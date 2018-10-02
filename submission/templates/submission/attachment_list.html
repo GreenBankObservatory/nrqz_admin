@@ -1,0 +1,12 @@
+{% extends "submission/base.html" %}
+
+{% block content %}
+<h1>Attachment Index</h1>
+<ul>
+    {% for attachment in object_list %}
+        <li><a href="{% url 'submission_attachment_detail' attachment.id %}">{{ attachment }}</a></li>
+    {% empty %}
+        <li>No attachments yet.</li>
+    {% endfor %}
+</ul>
+{% endblock %}

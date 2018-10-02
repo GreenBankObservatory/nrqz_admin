@@ -1,0 +1,47 @@
+graph TD
+    subgraph Public Application Methods
+        subgraph GBO-Provided Methods
+            nam_app[nrqzApplicationMaker-Based Application]
+            excel_app[Excel-Based Application]
+        end
+
+        subgraph Non-GBO Methods
+            fcc601_app[FCC 601]
+        end
+    end
+
+    web_server[NRQZ Admin Web Server]
+
+    nam_app --> | Uploaded to | web_server
+    excel_app --> | Uploaded to | web_server
+    fcc601_app --> | Uploaded to | web_server
+
+
+    web_server --> | Normalized by | nam_app_converter
+
+    web_server --> | Normalized by | excel_app_converter
+
+    web_server --> | Normalized by | fcc601_app_converter
+
+    
+    nam_app_converter[namConverter]
+    excel_app_converter[excelConverter]
+    fcc601_app_converter[FCC601Converter]
+
+    nam_app_converter --> | Stored in | db
+    excel_app_converter --> | Stored in | db
+    fcc601_app_converter --> | Stored in | db
+
+    db[Master DB]
+
+
+    db --> | Processed by | pipeline[New Python Pipeline]
+
+    pipeline --> yes(Concur)
+    pipeline --> no(No Concur)
+    pipeline --> maybe[Possibly Concur]
+
+    maybe -.-> nrqz_admin[Manual Intevention by NRQZ Administrator]
+
+    nrqz_admin --> yes
+    nrqz_admin --> no

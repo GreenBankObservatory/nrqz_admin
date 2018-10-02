@@ -1,0 +1,13 @@
+graph TD
+    subgraph Legacy Data Stores
+        access_db[Access DB]
+        nam_db[nrqzApplicationMaker Flat Files]
+        excel_db[Excel Flat Files]
+    end
+
+    db[Master DB]
+
+    nam_db --> db
+    excel_db --> db
+    access_db --> db
+

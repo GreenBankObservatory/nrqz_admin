@@ -1,0 +1,8 @@
+<h1>Antennas</h1>
+<ul>
+    {% for antenna in object_list %}
+        <li>{{ antenna }}</li>
+    {% empty %}
+        <li>No antennas yet.</li>
+    {% endfor %}
+</ul>

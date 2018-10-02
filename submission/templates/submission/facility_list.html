@@ -1,0 +1,12 @@
+{% extends "submission/base.html" %}
+
+{% block content %}
+<h1>Facilities Index</h1>
+<ul>
+    {% for facility in object_list %}
+        <li><a href="{% url 'submission_facility_detail' facility.id %}">{{ facility }}</a></li>
+    {% empty %}
+        <li>No facilities yet.</li>
+    {% endfor %}
+</ul>
+{% endblock %}

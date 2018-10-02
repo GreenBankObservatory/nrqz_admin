@@ -1,0 +1,32 @@
+{% extends "submission/base.html" %}
+
+{% block content %}
+<h1>Submission {{ submission.id }}</h1>
+
+<p>Created on: {{ submission.created_on }}</p>
+
+<h2>Comments</h2>
+{% if submission.comments %}
+<p>{{ submission.comments }}</p>
+{% else %}
+<p>No comments</p>
+{% endif %}
+
+<h2>Facilities</h2>
+<ul>
+    {% for facility in submission.facilities.all %}
+    <li><a href="{% url 'submission_facility_detail' facility.id %}">{{ facility }}</a></li>
+    {% empty %}
+    <li>No facilities</li>
+    {% endfor %}
+</ul>
+
+<h2>Attachments</h2>
+<ul>
+    {% for attachment in submission.attachments.all %}
+    <li>{{ attachment }}</li>
+    {% empty %}
+    <li>No attachments</li>
+    {% endfor %}
+</ul>
+{% endblock %}
