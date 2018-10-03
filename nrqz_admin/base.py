@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django_extensions",
     "django-resetdb",
+    "explorer",
     "submission",
 ]
 
@@ -139,3 +140,6 @@ LOGGING = {
         },
     }
 }
+
+EXPLORER_CONNECTIONS = {'Default': 'readonly'}
+EXPLORER_DEFAULT_CONNECTION = 'readonly'
