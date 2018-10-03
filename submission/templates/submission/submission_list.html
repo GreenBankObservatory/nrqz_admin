@@ -1,10 +1,11 @@
 {% extends "submission/base.html" %}
+{% load submission_tags %}
 
 {% block content %}
 <h1>Submission Index</h1>
 <ul>
     {% for submission in object_list %}
-        <li><a href="{% url 'submission_detail' submission.id %}">{{ submission }}</a></li>
+        <li><a href="{% url 'submission_detail' submission.id %}">{{ submission.attachments.first.path.name|filefield_basename }}</a></li>
     {% empty %}
         <li>No submissions yet.</li>
     {% endfor %}

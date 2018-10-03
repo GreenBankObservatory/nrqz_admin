@@ -49,6 +49,7 @@ class Facility(IsActiveModel, TrackedModel, Model):
         decimal_places=2,
         verbose_name="Freq Low (MHz)",
         help_text="Frequency specific or lower part of band.",
+        null=True,
     )
     site_name = CharField(
         max_length=256,
@@ -85,13 +86,11 @@ class Facility(IsActiveModel, TrackedModel, Model):
     # )
     latitude = CharField(
         max_length=256,
-        blank=True,
         null=True,
         help_text="Correct format is dd mm ss.ss (space seperated). No symbols or special characters!",
     )
     longitude = CharField(
         max_length=256,
-        blank=True,
         null=True,
         help_text="Correct format is dd mm ss.ss (space seperated). No symbols or special characters!",
     )
@@ -100,33 +99,38 @@ class Facility(IsActiveModel, TrackedModel, Model):
         decimal_places=2,
         verbose_name="AMSL (meters)",
         help_text="Ground elevation",
+        null=True,
     )
     agl = DecimalField(
         max_digits=10,
         decimal_places=2,
         verbose_name="AGL (meters)",
         help_text="Facility height to center above ground level",
+        null=True,
     )
     freq_high = DecimalField(
         max_digits=10,
         decimal_places=2,
         verbose_name="Freq High (MHz)",
         help_text="Frequency specific or upper part of band.",
+        null=True,
     )
     bandwidth = DecimalField(
         max_digits=10,
         decimal_places=2,
         verbose_name="Bandwidth (MHz)",
         help_text="Minimum utilized per TX (i.e. 11K0F0E is a value of 0.011)",
+        null=True,
     )
     max_output = DecimalField(
         max_digits=10,
         decimal_places=2,
         verbose_name="Max Output Pwr (W)",
         help_text="Per Transmitter or RRH (remote radio head) polarization",
+        null=True,
     )
     antenna_gain = DecimalField(
-        max_digits=10, decimal_places=2, verbose_name="Antenna Gain (dBi)"
+        max_digits=10, decimal_places=2, verbose_name="Antenna Gain (dBi)", null=True
     )
     system_loss = IntegerField(verbose_name="System Loss (dB)", blank=True, null=True)
     main_beam_orientation = CharField(
@@ -181,9 +185,14 @@ class Facility(IsActiveModel, TrackedModel, Model):
         default=False,
         verbose_name="This facility uses split sectorization",
         help_text="or dual-beam sectorization",
+        blank=True,
+        null=True,
     )
     uses_cross_polarization = BooleanField(
-        default=False, verbose_name="This facility uses Cross polarization "
+        default=False,
+        verbose_name="This facility uses Cross polarization ",
+        blank=True,
+        null=True,
     )
     quad_or_octal_polarization = CharField(
         max_length=256,
@@ -192,7 +201,9 @@ class Facility(IsActiveModel, TrackedModel, Model):
         verbose_name="If this facility uses Quad or Octal polarization, specify type here",
     )
     num_quad_or_octal_ports_with_feed_power = PositiveIntegerField(
-        blank=True, null=True, verbose_name="Number of Quad or Octal ports with feed power"
+        blank=True,
+        null=True,
+        verbose_name="Number of Quad or Octal ports with feed power",
     )
     tx_power_pos_45 = DecimalField(
         max_digits=10,
@@ -212,12 +223,14 @@ class Facility(IsActiveModel, TrackedModel, Model):
         help_text="Additional information or comments from the applicant"
     )
 
-    submission = ForeignKey("Submission", on_delete="PROTECT", related_name="facilities")
+    submission = ForeignKey(
+        "Submission", on_delete="PROTECT", related_name="facilities"
+    )
 
     def __iter__(self):
         for field in self._meta.fields:
             yield (field.verbose_name, field.value_to_string(self))
-            
+
     def __str__(self):
         return f"NRQZ {self.nrqz_id} ({self.latitude}, {self.longitude})"
 
@@ -305,7 +318,7 @@ class Organization(IsActiveModel, TrackedModel, Model):
 class Attachment(IsActiveModel, TrackedModel, Model):
     """Holds the path to a file along with some metadata"""
 
-    path = FileField(upload_to="attachments/")
+    path = FileField(max_length=256, upload_to="attachments/")
     comments = TextField()
 
     def __str__(self):
