@@ -36,6 +36,9 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django_extensions",
     "django-resetdb",
+    "django_tables2",
+    "django_filters",
+    "crispy_forms",
     "explorer",
     "submission",
 ]
@@ -143,3 +146,6 @@ LOGGING = {
 
 EXPLORER_CONNECTIONS = {'Default': 'readonly'}
 EXPLORER_DEFAULT_CONNECTION = 'readonly'
+
+DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap4.html"
+CRISPY_TEMPLATE_PACK = 'bootstrap4'

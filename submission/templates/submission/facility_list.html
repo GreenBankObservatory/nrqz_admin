@@ -1,12 +1,18 @@
 {% extends "submission/base.html" %}
+{% load render_table from django_tables2 %}
+{% load crispy_forms_tags %}
+
+
+{% block head %}
+    <title>Facility Index</title>
+{% endblock %}
 
 {% block content %}
-<h1>Facilities Index</h1>
-<ul>
-    {% for facility in object_list %}
-        <li><a href="{% url 'submission_facility_detail' facility.id %}">{{ facility }}</a></li>
-    {% empty %}
-        <li>No facilities yet.</li>
-    {% endfor %}
-</ul>
+<h1>Facility Index</h1>
+
+{% if filter %}
+{% crispy filter.form %}
+<p>Results: {{ table.data|length }}</p>
+{% endif %}
+{% render_table table %}
 {% endblock %}

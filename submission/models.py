@@ -1,3 +1,4 @@
+from django.urls import reverse
 from django.db.models import (
     BooleanField,
     CharField,
@@ -167,11 +168,6 @@ class Facility(IsActiveModel, TrackedModel, Model):
     tx_antennas_per_sector = PositiveIntegerField(
         blank=True, null=True, verbose_name="Number of polarizations with feed power"
     )
-    num_transmitters = IntegerField(
-        blank=True,
-        null=True,
-        help_text="Total number of transmitters (or number of RRH ports with feed power) per sector",
-    )
     num_pols_with_feed_power = PositiveIntegerField(
         blank=True, null=True, verbose_name="Number of polarizations with feed power"
     )
@@ -233,6 +229,9 @@ class Facility(IsActiveModel, TrackedModel, Model):
 
     def __str__(self):
         return f"NRQZ {self.nrqz_id} ({self.latitude}, {self.longitude})"
+
+    def get_absolute_url(self):
+        return reverse("submission_facility_detail", args=[str(self.id)])
 
 
 # class Site(IsActiveModel, TrackedModel, Model):
