@@ -1,17 +1,18 @@
 def coerce_bool(value):
-    clean_value = value.strip().lower()
+    clean_value = str(value).strip().lower()
     if clean_value.startswith("yes"):
         return True
     elif clean_value.startswith("no"):
         return False
-    elif clean_value in ["", "na"]:
+    elif clean_value in ["", "na", "n/a"]:
         return None
     else:
         raise ValueError("Could not determine truthiness of value {!r}".format(value))
 
 
 def coerce_num(value):
-    if value in ["", "na", "n/a", "no"]:
+    clean_value = str(value).strip().lower()
+    if clean_value in ["", "na", "n/a", "no"]:
         return None
     return value
 

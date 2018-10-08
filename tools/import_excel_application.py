@@ -10,6 +10,7 @@ django.setup()
 import argparse
 from collections import namedtuple
 from glob import glob
+import json
 import os
 from pprint import pprint, pformat
 import sys
@@ -22,7 +23,7 @@ from django.db import models
 
 
 from submission.models import Attachment, Submission, Facility
-from .field_import import facility_field_map
+from tools.field_import import facility_field_map
 
 
 INTERACTIVE = False
@@ -157,9 +158,11 @@ def process_excel_file(excel_path):
         try:
             with transaction.atomic():
                 facility.save()
-        except ValueError as error:
+        except (django.core.exceptions.ValidationError, ValueError, TypeError) as error:
             field = examine_tb(error.__traceback__)
             validation_errors.append(f"Field '{field}' encountered error: {error}")
+        else:
+            print(f"Created {facility}")
 
     print(f"Created {len(data)} Facility objects")
     print("-" * 80)
@@ -211,13 +214,10 @@ def main():
         reports = process_excel_file(args.path)
     else:
         raise ValueError("womp womp")
-    import json
 
+    print("Reports:")
     print(json.dumps(reports, indent=2, sort_keys=True))
-    # for file_name, file_report in reports.items():
-    #     print(f"Reporting on: {file_name}")
-    #     for report in file_report:
-    #         print(report)
+
     if args.dry_run:
         raise ManualRollback("DRY RUN; ROLLING BACK CHANGES")
 
