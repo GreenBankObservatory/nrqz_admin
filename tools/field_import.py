@@ -1,3 +1,10 @@
+import re
+
+
+COORD_PATTERN_STR = r"^(?P<degrees>\d+)\s+(?P<minutes>\d+)\s+(?P<seconds>\d+(?:\.\d+)?)$"
+COORD_PATTERN = re.compile(COORD_PATTERN_STR)
+
+
 def coerce_bool(value):
     clean_value = str(value).strip().lower()
     if clean_value.startswith("yes"):
@@ -16,6 +23,28 @@ def coerce_num(value):
         return None
     return value
 
+def dms_to_dd(degrees, minutes, seconds):
+    dd = float(degrees) + float(minutes) / 60 + float(seconds) / 3600
+    return dd
+
+def cooerce_coords(value):
+
+
+    clean_value = str(value).strip().lower()
+
+    if clean_value in ["", "None"]:
+        return None
+
+    match = re.match(COORD_PATTERN, clean_value)
+    if not match:
+        raise ValueError(f"Regex {COORD_PATTERN_STR} did not match value {value}")
+    
+    dd = dms_to_dd(**match.groupdict())
+    print(f"dd: {type(dd)}")
+    return dd
+    # try:
+    # except ValueError as error:
+    #     print(error)
 
 class FieldImport:
     def __init__(self, field, converter, known_headers):
@@ -43,10 +72,10 @@ field_importers = [
     FieldImport(
         field="fcc_file_number", converter=None, known_headers=["FCC File Number"]
     ),
-    FieldImport(field="latitude", converter=None, known_headers=["LAT (dd mm ss.ss)"]),
+    FieldImport(field="latitude", converter=cooerce_coords, known_headers=["LAT (dd mm ss.ss)"]),
     FieldImport(
         field="longitude",
-        converter=None,
+        converter=cooerce_coords,
         known_headers=["LON (-dd mm ss.ss)", "LON (dd mm ss.ss)"],
     ),
     FieldImport(field="amsl", converter=coerce_num, known_headers=["AMSL (m)"]),

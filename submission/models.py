@@ -73,28 +73,30 @@ class Facility(IsActiveModel, TrackedModel, Model):
         verbose_name="FCC File Number",
         help_text="(if known)",
     )
-    # latitude = DecimalField(
-    #     max_digits=10,
-    #     decimal_places=8,
-    #     verbose_name="Latitude",
-    #     help_text="Latitude of site, in degrees",
-    # )
-    # longitude = DecimalField(
-    #     max_digits=10,
-    #     decimal_places=8,
-    #     verbose_name="Longitude",
-    #     help_text="Longitude of site, in degrees",
-    # )
-    latitude = CharField(
-        max_length=256,
+    latitude = DecimalField(
         null=True,
-        help_text="Correct format is dd mm ss.ss (space seperated). No symbols or special characters!",
+        max_digits=10,
+        decimal_places=8,
+        verbose_name="Latitude",
+        help_text="Latitude of site, in degrees",
     )
-    longitude = CharField(
-        max_length=256,
+    longitude = DecimalField(
         null=True,
-        help_text="Correct format is dd mm ss.ss (space seperated). No symbols or special characters!",
+        max_digits=10,
+        decimal_places=8,
+        verbose_name="Longitude",
+        help_text="Longitude of site, in degrees",
     )
+    # latitude = CharField(
+    #     max_length=256,
+    #     null=True,
+    #     help_text="Correct format is dd mm ss.ss (space seperated). No symbols or special characters!",
+    # )
+    # longitude = CharField(
+    #     max_length=256,
+    #     null=True,
+    #     help_text="Correct format is dd mm ss.ss (space seperated). No symbols or special characters!",
+    # )
     amsl = DecimalField(
         max_digits=10,
         decimal_places=2,
@@ -273,6 +275,8 @@ class Submission(IsActiveModel, TrackedModel, Model):
     # sgrs_notified = BooleanField(default=False)
 
     attachments = ManyToManyField("Attachment")
+
+    import_report = TextField()
 
     # facilities = ManyToManyField("Facility")
 

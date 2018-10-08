@@ -32,9 +32,7 @@ INTERACTIVE = False
 # Each Excel file is represented by a Submission
 # Each row in the "From Applicant" sheet is represented by a Facility
 
-# def dms_to_dd(d, m, s):
-#     dd = d + float(m)/60 + float(s)/3600
-#     return dd
+
 
 
 def load_rows(book):
@@ -174,6 +172,9 @@ def process_excel_file(excel_path):
         ret["conversion_errors"] = conversion_errors
     if validation_errors:
         ret["validation_errors"] = validation_errors
+
+    submission.import_report = json.dumps(ret, indent=2, sort_keys=True)
+    submission.save()
     return ret
 
 

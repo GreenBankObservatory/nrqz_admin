@@ -1,4 +1,6 @@
 {% extends "submission/base.html" %}
+{% load submission_tags %}
+{% load static %}
 
 {% block content %}
 <h1>Submission {{ submission.id }}</h1>
@@ -29,4 +31,9 @@
     <li>No attachments</li>
     {% endfor %}
 </ul>
+
+{% if submission.import_report %}
+<h2>Import Errors</h2>
+{{ submission.import_report|json|safe }}
+{% endif %}
 {% endblock %}
