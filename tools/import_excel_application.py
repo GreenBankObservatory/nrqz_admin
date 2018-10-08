@@ -117,9 +117,15 @@ def process_excel_file(excel_path):
     rows = load_rows(book)
     print("...done")
 
-    invalid_rows = indentify_invalid_rows(rows)
-    for index in sorted(invalid_rows, reverse=True):
+    # Annotate each row with its original index (1-indexed). This
+    # is so that we can reference them by this later
+    rows = [row + [row_num] for row_num, row in enumerate(rows, 1)]
+
+    # Get the indexes of all invalid rows...
+    invalid_row_indices = indentify_invalid_rows(rows)
+    for index in sorted(invalid_row_indices, reverse=True):
         print(f"Deleted invalid row {index}")
+        # ...then delete them
         del rows[index]
 
     headers = rows[0]
@@ -135,22 +141,53 @@ def process_excel_file(excel_path):
     conversion_errors = []
     validation_errors = []
 
+    errors_by_header = {}
+
+    discovered_headers = {}
+
     for row in data:
+        # Pull out the row number from the row...
+        row_num = row[-1]
+        # ...then delete it
+        del row[-1]
         facility_dict = {}
         for ci, cell in enumerate(row):
-            fi = None
+            importer = None
+            header = headers[ci]
             try:
-                fi = facility_field_map[headers[ci]]
+                importer = facility_field_map[header]
             except KeyError:
-                missing_header_handlers.add(headers[ci])
+                missing_header_handlers.add(header)
+                errors_by_header[header] = {
+                    "converter": None,
+                    "field": None,
+                    "error_type": "header",
+                    "error": "No header mapped!"
+                }
+                discovered_headers[header] = None
             else:
+                discovered_headers[header] = importer.field
                 try:
-                    facility_dict[fi.field] = fi.converter(cell)
+                    facility_dict[importer.field] = importer.converter(cell)
                 except Exception as error:
                     conversion_errors.append(
                         f"Could not convert value {cell!r} using converter "
-                        f"{fi.converter.__name__}: {error}"
+                        f"{importer.converter.__name__}: {error}"
                     )
+                    es = {
+                        "error": str(error),
+                        "value": cell
+                    }
+                    if header in errors_by_header:
+                        errors_by_header[header]["row_errors"][row_num] = es
+                    else:
+                        errors_by_header[header] = {
+                            "converter": importer.converter.__name__,
+                            "field": importer.field,
+                            "error_type": "conversion",
+                            "row_errors": {row_num: es}
+                        }
+                        
 
         facility = Facility(**facility_dict, submission=submission)
         try:
@@ -158,7 +195,14 @@ def process_excel_file(excel_path):
                 facility.save()
         except (django.core.exceptions.ValidationError, ValueError, TypeError) as error:
             field = examine_tb(error.__traceback__)
+            inverted = {value: key for key, value in discovered_headers.items() if value is not None}
+            header = inverted[field.name]
             validation_errors.append(f"Field '{field}' encountered error: {error}")
+            errors_by_header[header] = {
+                "field": field.name,
+                "error_type": "validation",
+                "error": str(error.args),
+            }
         else:
             print(f"Created {facility}")
 
@@ -173,7 +217,7 @@ def process_excel_file(excel_path):
     if validation_errors:
         ret["validation_errors"] = validation_errors
 
-    submission.import_report = json.dumps(ret, indent=2, sort_keys=True)
+    submission.import_report = json.dumps(errors_by_header, indent=2, sort_keys=True)
     submission.save()
     return ret
 
