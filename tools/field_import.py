@@ -1,3 +1,22 @@
+"""Provides utilities for mapping header->field
+
+The problem: we have a bunch of Excel files, e.g., that have columnar data we
+wish to create model instances from. Each column should map to a field, but
+the columns don't always have the same names between Excel files. So, we need
+some way to map all possible column headers to their appropriate field.
+
+Additionally, we need a way to link a "converter" to each pairing -- this is
+responsible for cleaning the data and converting it to the proper type. For
+example, if we have a boolean column that represents None as either "" or "n/a",
+depending on the file, we need a way to say that all of those mean the same thing.
+
+This module contains all of the converters and the FieldImport class itself,
+as well as an dictionary of every known header to its mapped field -- "expanded"
+from the list of FieldImport instances
+"""
+
+# TODO: Make this module generic! Should not have code for import_excel_application
+
 import re
 
 
@@ -6,6 +25,8 @@ COORD_PATTERN = re.compile(COORD_PATTERN_STR)
 
 
 def coerce_bool(value):
+    """Coerce a string to a bool, or to None"""
+
     clean_value = str(value).strip().lower()
     if clean_value.startswith("yes"):
         return True
@@ -18,18 +39,21 @@ def coerce_bool(value):
 
 
 def coerce_num(value):
+    """Coerce a string to a number, or to None"""
+
     clean_value = str(value).strip().lower()
     if clean_value in ["", "na", "n/a", "no"]:
         return None
     return value
 
 def dms_to_dd(degrees, minutes, seconds):
+    """Convert degrees, minutes, seconds to decimal degress"""
+
     dd = float(degrees) + float(minutes) / 60 + float(seconds) / 3600
     return dd
 
 def cooerce_coords(value):
-
-
+    """Given a coordinate in DD MM SS.sss format, return it in DD.ddd format"""
     clean_value = str(value).strip().lower()
 
     if clean_value in ["", "None"]:
@@ -38,13 +62,9 @@ def cooerce_coords(value):
     match = re.match(COORD_PATTERN, clean_value)
     if not match:
         raise ValueError(f"Regex {COORD_PATTERN_STR} did not match value {value}")
-    
+
     dd = dms_to_dd(**match.groupdict())
-    print(f"dd: {type(dd)}")
     return dd
-    # try:
-    # except ValueError as error:
-    #     print(error)
 
 class FieldImport:
     def __init__(self, field, converter, known_headers):
@@ -54,13 +74,12 @@ class FieldImport:
         self.converter = converter if converter else self.default_converter
         self.known_headers = known_headers
 
-    def default_converter(self, value):
+    @staticmethod
+    def default_converter(value):
         return value
 
     def __repr__(self):
         return f"{self.field} <{self.converter.__name__}>: {self.known_headers}"
-
-    # def process(self, ):
 
 
 field_importers = [
@@ -201,6 +220,7 @@ field_importers = [
 
 # Generate a map of known_header->importer by "expanding" the known_headers of each FieldImporter
 # In this way we can easily and efficiently look up a given header and find its associated importer
+# NOTE: facility_field_map is the primary "export" of this module
 facility_field_map = {}
 for importer in field_importers:
     for header in importer.known_headers:
@@ -208,6 +228,8 @@ for importer in field_importers:
 
 
 if __name__ == '__main__':
+    # Print out a simple report of the final header->field mappings
+    # header_len is just the longest header in the map plus some padding
     header_len = max(len(header) for header in facility_field_map) + 3
     for header, importer in facility_field_map.items():
         print(f"{header!r:{header_len}}: {importer.field!r}")

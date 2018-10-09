@@ -1,26 +1,29 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""docstring"""
+"""Import Excel NRQZ application forms into the DB
 
-import django
+Each Excel file creates a Submission. Each data row in the Excel file creates
+a Facility.
 
-django.setup()
+Any files matching *.xls* or *.csv will be considered applications and
+an attempt will be made to import them
+"""
 
 import argparse
 from collections import namedtuple
-from glob import glob
 import json
 import os
-from pprint import pprint, pformat
+import re
 import sys
 import traceback
 
-import pyexcel
-
+import django
 from django.db import transaction
 from django.db import models
+django.setup()
 
+import pyexcel
 
 from submission.models import Attachment, Submission, Facility
 from tools.field_import import facility_field_map
@@ -29,13 +32,8 @@ from tools.field_import import facility_field_map
 INTERACTIVE = False
 
 
-# Each Excel file is represented by a Submission
-# Each row in the "From Applicant" sheet is represented by a Facility
-
-
-
-
-def load_rows(book):
+def load_rows(path):
+    book = pyexcel.get_book(file_name=path)
     book_dict = book.to_dict()
 
     try:
@@ -60,37 +58,40 @@ ConversionErrorReport = namedtuple(
 ValidationErrorReport = namedtuple("ValidationErrorReport", ["error", "field"])
 
 
-# def extract_submission_data(book):
+def derive_field_from_validation_error(tb):
+    """Examine ValidationError traceback, derive triggering field"""
 
-# def create_submission_from_rows(rows):
-#     """Create Submission object(s?) from given rows"""
-
-
-def examine_tb(tb):
+    # Get the last frame in the traceback (list of tuples)
     frame = list(traceback.walk_tb(tb))[-1][0]
     # If this frame contains a "self" object that is an instance of a Django Field...
     if "self" in frame.f_locals and isinstance(frame.f_locals["self"], models.Field):
         # ...then we can examine it to determine which field it is
         return frame.f_locals["self"]
+    else:
+        raise ValueError("Cannot derive field!")
 
 
 def excepthook(type_, value, tb):
     if type_ == ManualRollback:
         return
-    import ipdb
 
     # Print the exception, as we would expect
     traceback.print_exception(type_, value, tb)
     # Then grab the last frame from it
-    thing = examine_tb(tb)
-    if thing:
-        print(f"Error ocurred in relation to field: {thing}", file=sys.stderr)
-    # Otherwise just drop into an interactive shell
+    field = derive_field_from_validation_error(tb)
+    if field:
+        print(f"Error ocurred in relation to field: {field}", file=sys.stderr)
+    # Otherwise we might drop into an interactive shell...
     else:
+        # ...if we have indicated we want to
         if INTERACTIVE:
+            import ipdb
             ipdb.post_mortem(tb)
 
-def indentify_invalid_rows(rows, threshold=0.7):
+def indentify_invalid_rows(rows, threshold=None):
+    if threshold is None:
+        threshold = 0.7
+
     invalid_row_indices = []
     for ri, row in enumerate(rows):
         invalid_cells = 0
@@ -107,22 +108,17 @@ def indentify_invalid_rows(rows, threshold=0.7):
 
 
 @transaction.atomic
-def process_excel_file(excel_path):
+def process_excel_file(excel_path, threshold=None):
     """Create objects from given path"""
-
     print("Opening workbook")
-    book = pyexcel.get_book(file_name=excel_path)
+    rows = load_rows(excel_path)
     print("...done")
-    print("Loading rows...")
-    rows = load_rows(book)
-    print("...done")
-
     # Annotate each row with its original index (1-indexed). This
     # is so that we can reference them by this later
     rows = [row + [row_num] for row_num, row in enumerate(rows, 1)]
 
     # Get the indexes of all invalid rows...
-    invalid_row_indices = indentify_invalid_rows(rows)
+    invalid_row_indices = indentify_invalid_rows(rows, threshold)
     for index in sorted(invalid_row_indices, reverse=True):
         print(f"Deleted invalid row {index}")
         # ...then delete them
@@ -187,14 +183,14 @@ def process_excel_file(excel_path):
                             "error_type": "conversion",
                             "row_errors": {row_num: es}
                         }
-                        
+
 
         facility = Facility(**facility_dict, submission=submission)
         try:
             with transaction.atomic():
                 facility.save()
         except (django.core.exceptions.ValidationError, ValueError, TypeError) as error:
-            field = examine_tb(error.__traceback__)
+            field = derive_field_from_validation_error(error.__traceback__)
             inverted = {value: key for key, value in discovered_headers.items() if value is not None}
             header = inverted[field.name]
             validation_errors.append(f"Field '{field}' encountered error: {error}")
@@ -222,22 +218,14 @@ def process_excel_file(excel_path):
     return ret
 
 
-def process_excel_directory(dir_path):
+def process_excel_directory(dir_path, threshold=None, pattern=r".*\.(xls.?|csv)$"):
+    files = [os.path.join(dir_path, f) for f in os.listdir(dir_path) if re.search(pattern, f)]
     report = {}
-    for excel_path in sorted(glob(os.path.join(dir_path, "*.xls*"))):
-        print(f"Processing {excel_path}")
-        file_report = process_excel_file(excel_path)
+    for file_path in sorted(files):
+        print(f"Processing {file_path}")
+        file_report = process_excel_file(file_path, threshold)
         if file_report:
-            report[os.path.basename(excel_path)] = file_report
-    return report
-
-def process_csv_directory(dir_path):
-    report = {}
-    for csv_path in sorted(glob(os.path.join(dir_path, "*.csv"))):
-        print(f"Processing {csv_path}")
-        file_report = process_excel_file(csv_path)
-        if file_report:
-            report[os.path.basename(csv_path)] = file_report
+            report[os.path.basename(file_path)] = file_report
     return report
 
 
@@ -254,11 +242,11 @@ def main():
         INTERACTIVE = True
 
     if os.path.isdir(args.path):
-        reports = process_csv_directory(args.path)
+        reports = process_excel_directory(args.path, threshold=args.threshold, pattern=args.pattern)
     elif os.path.isfile(args.path):
-        reports = process_excel_file(args.path)
+        reports = process_excel_file(args.path, threshold=args.threshold)
     else:
-        raise ValueError("womp womp")
+        raise ValueError(f"Given path {args.path!r} is not a directory or file!")
 
     print("Reports:")
     print(json.dumps(reports, indent=2, sort_keys=True))
@@ -274,6 +262,9 @@ def parse_args():
     parser.add_argument("path")
     parser.add_argument("-d", "--dry-run", action="store_true")
     parser.add_argument("-i", "--interactive", action="store_true")
+    parser.add_argument("-t", "--threshold", type=float, default=0.7)
+    parser.add_argument("-p", "--pattern", default=r".*\.(xls.?|csv)$")
+
     return parser.parse_args()
 
 
