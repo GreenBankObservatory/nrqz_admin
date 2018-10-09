@@ -11,7 +11,7 @@ an attempt will be made to import them
 """
 
 import argparse
-from collections import namedtuple, ChainMap, OrderedDict
+from collections import namedtuple, OrderedDict
 import json
 import os
 import re
@@ -21,6 +21,7 @@ import traceback
 import django
 from django.db import transaction
 from django.db import models
+
 django.setup()
 
 import pyexcel
@@ -86,7 +87,9 @@ def excepthook(type_, value, tb):
         # ...if we have indicated we want to
         if INTERACTIVE:
             import ipdb
+
             ipdb.post_mortem(tb)
+
 
 def indentify_invalid_rows(rows, threshold=None):
     if threshold is None:
@@ -106,13 +109,16 @@ def indentify_invalid_rows(rows, threshold=None):
 
     return invalid_row_indices
 
+
 class UnknownHeaderError(KeyError):
     pass
+
 
 def determine_actual_headers(headers):
     return OrderedDict(
         [(header, facility_field_map.get(header, None)) for header in headers]
     )
+
 
 def create_facility_from_row(header_field_map, row, submission):
     facility_dict = {}
@@ -128,7 +134,7 @@ def create_facility_from_row(header_field_map, row, submission):
                     "field": importer.field,
                     "error_type": "conversion",
                     "error": str(error),
-                    "value": cell
+                    "value": cell,
                 }
         else:
             print(f"No converter; skipping cell {cell}!")
@@ -140,8 +146,14 @@ def create_facility_from_row(header_field_map, row, submission):
             facility.save()
     except (django.core.exceptions.ValidationError, ValueError, TypeError) as error:
         field = derive_field_from_validation_error(error.__traceback__)
-        field_header_map = {value.field: key for key, value in header_field_map.items() if value is not None}
-        index = [v.field if v else None for v in header_field_map.values()].index(field.name)
+        field_header_map = {
+            value.field: key
+            for key, value in header_field_map.items()
+            if value is not None
+        }
+        index = [v.field if v else None for v in header_field_map.values()].index(
+            field.name
+        )
         value = row[index]
         derived_header = field_header_map[field.name]
         errors_by_header[derived_header] = {
@@ -152,9 +164,11 @@ def create_facility_from_row(header_field_map, row, submission):
             "value": str(value),
         }
     else:
-        print(f"Created {facility}")
+        pass
+        # print(f"Created {facility}")
 
     return errors_by_header
+
 
 @transaction.atomic
 def process_excel_file(excel_path, threshold=None):
@@ -164,10 +178,9 @@ def process_excel_file(excel_path, threshold=None):
     submission = Submission.objects.create()
 
     # An attachment referencing the original Excel (or .csv) file
-    excel_attachment = Attachment.objects.create(
-        path=excel_path, comments=f"Attached by {__file__}"
+    submission.attachments.add(
+        Attachment.objects.create(path=excel_path, comments=f"Attached by {__file__}")
     )
-    submission.attachments.add(excel_attachment)
 
     print("Opening workbook")
     rows = load_rows(excel_path)
@@ -185,15 +198,13 @@ def process_excel_file(excel_path, threshold=None):
 
     # A list of the headers actually in the file
     headers = rows[0][:-1]
-
     # A list of rows containing data
     data = rows[1:]
-
-    errors_by_row = {}
-
-
     header_field_map = determine_actual_headers(headers)
 
+
+
+    errors_by_row = {}
     # Create Facility objects for every row
     for row in data:
         # Pull out the row number from the row...
@@ -204,26 +215,35 @@ def process_excel_file(excel_path, threshold=None):
         if result:
             errors_by_row[row_num] = result
 
-    # errors_by_header = dict(ChainMap(*errors_by_row.values()))
-
     error_summary = {}
-    unmapped_headers = [header for header, field in header_field_map.items() if field is None]
+    unmapped_headers = [
+        header for header, field in header_field_map.items() if field is None
+    ]
     if unmapped_headers:
         error_summary["Unmapped Headers"] = unmapped_headers
     column_error_summary = {}
     for row_num, row_errors in errors_by_row.items():
         for header, row_error in row_errors.items():
             if header in column_error_summary:
-                if row_error["value"] not in column_error_summary[header]["Invalid Values"]:
-                    column_error_summary[header]["Invalid Values"].append(row_error["value"])
+                if (
+                    row_error["value"]
+                    not in column_error_summary[header]["Invalid Values"]
+                ):
+                    column_error_summary[header]["Invalid Values"].append(
+                        row_error["value"]
+                    )
             else:
-                column_error_summary[header] = OrderedDict((
-                    ("Header", header),
-                    ("Converter", row_error["converter"]),
-                    ("Invalid Values", [row_error["value"]]),
-                ))
+                column_error_summary[header] = OrderedDict(
+                    (
+                        ("Header", header),
+                        ("Converter", row_error["converter"]),
+                        ("Invalid Values", [row_error["value"]]),
+                    )
+                )
     if column_error_summary:
-        error_summary["Column Errors"] = sorted(column_error_summary.values(), key=lambda x: x["Header"])
+        error_summary["Column Errors"] = sorted(
+            column_error_summary.values(), key=lambda x: x["Header"]
+        )
 
     # print(f"Created {len([r for r in results if r])} Facility objects")
     print("-" * 80)
@@ -240,7 +260,9 @@ def process_excel_file(excel_path, threshold=None):
 
 
 def process_excel_directory(dir_path, threshold=None, pattern=r".*\.(xls.?|csv)$"):
-    files = [os.path.join(dir_path, f) for f in os.listdir(dir_path) if re.search(pattern, f)]
+    files = [
+        os.path.join(dir_path, f) for f in os.listdir(dir_path) if re.search(pattern, f)
+    ]
     report = {}
     for file_path in sorted(files):
         print(f"Processing {file_path}")
@@ -263,7 +285,9 @@ def main():
         INTERACTIVE = True
 
     if os.path.isdir(args.path):
-        reports = process_excel_directory(args.path, threshold=args.threshold, pattern=args.pattern)
+        reports = process_excel_directory(
+            args.path, threshold=args.threshold, pattern=args.pattern
+        )
     elif os.path.isfile(args.path):
         reports = process_excel_file(args.path, threshold=args.threshold)
     else:
@@ -280,11 +304,44 @@ def parse_args():
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
-    parser.add_argument("path")
-    parser.add_argument("-d", "--dry-run", action="store_true")
-    parser.add_argument("-i", "--interactive", action="store_true")
-    parser.add_argument("-t", "--threshold", type=float, default=0.7)
-    parser.add_argument("-p", "--pattern", default=r".*\.(xls.?|csv)$")
+    parser.add_argument(
+        "path",
+        help=(
+            "The path to an Excel application "
+            "(or .csv representation), or a directory thereof"
+        ),
+    )
+    parser.add_argument(
+        "-d",
+        "--dry-run",
+        action="store_true",
+        help=(
+            "Roll back all database changes after execution. Note that "
+            "this will leave gaps in the PKs where created objects were rolled back"
+        ),
+    )
+    parser.add_argument(
+        "-i",
+        "--interactive",
+        action="store_true",
+        help="If given, drop into an interactive shell upon unhandled exception",
+    )
+    parser.add_argument(
+        "-t",
+        "--threshold",
+        type=float,
+        default=0.7,
+        help="Threshold of invalid cells which constitute an invalid row.",
+    )
+    parser.add_argument(
+        "-p",
+        "--pattern",
+        default=r".*\.(xls.?|csv)$",
+        help=(
+            "Regular expression used to identify Excel application files. "
+            "Used only when a directory is given in path"
+        ),
+    )
 
     return parser.parse_args()
 
