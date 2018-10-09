@@ -32,8 +32,9 @@
     {% endfor %}
 </ul>
 
-{% if submission.import_report %}
+{% if submission.import_error_summary %}
 <h2>Import Errors</h2>
-{{ submission.import_report|json|safe }}
+<p>Map of column headers to list of unique invalid values (values that caused errors)</p>
+{{ submission.import_error_summary|json|safe }}
 {% endif %}
 {% endblock %}

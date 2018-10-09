@@ -276,7 +276,7 @@ class Submission(IsActiveModel, TrackedModel, Model):
 
     attachments = ManyToManyField("Attachment")
 
-    import_report = TextField()
+    import_error_summary = TextField()
 
     # facilities = ManyToManyField("Facility")
 

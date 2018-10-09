@@ -11,7 +11,7 @@ an attempt will be made to import them
 """
 
 import argparse
-from collections import namedtuple
+from collections import namedtuple, ChainMap, OrderedDict
 import json
 import os
 import re
@@ -26,7 +26,7 @@ django.setup()
 import pyexcel
 
 from submission.models import Attachment, Submission, Facility
-from tools.field_import import facility_field_map
+from tools.excelfieldmap import facility_field_map
 
 
 INTERACTIVE = False
@@ -106,10 +106,69 @@ def indentify_invalid_rows(rows, threshold=None):
 
     return invalid_row_indices
 
+class UnknownHeaderError(KeyError):
+    pass
+
+def determine_actual_headers(headers):
+    return OrderedDict(
+        [(header, facility_field_map.get(header, None)) for header in headers]
+    )
+
+def create_facility_from_row(header_field_map, row, submission):
+    facility_dict = {}
+    errors_by_header = {}
+    foo = zip(header_field_map.keys(), header_field_map.values(), row)
+    for header, importer, cell in foo:
+        if importer:
+            try:
+                facility_dict[importer.field] = importer.converter(cell)
+            except (ValueError) as error:
+                errors_by_header[header] = {
+                    "converter": importer.converter.__name__,
+                    "field": importer.field,
+                    "error_type": "conversion",
+                    "error": str(error),
+                    "value": cell
+                }
+        else:
+            print(f"No converter; skipping cell {cell}!")
+            continue
+
+    facility = Facility(**facility_dict, submission=submission)
+    try:
+        with transaction.atomic():
+            facility.save()
+    except (django.core.exceptions.ValidationError, ValueError, TypeError) as error:
+        field = derive_field_from_validation_error(error.__traceback__)
+        field_header_map = {value.field: key for key, value in header_field_map.items() if value is not None}
+        index = [v.field if v else None for v in header_field_map.values()].index(field.name)
+        value = row[index]
+        derived_header = field_header_map[field.name]
+        errors_by_header[derived_header] = {
+            "converter": facility_field_map[derived_header].converter.__name__,
+            "field": field.name,
+            "error_type": "validation",
+            "error": str(error.args),
+            "value": str(value),
+        }
+    else:
+        print(f"Created {facility}")
+
+    return errors_by_header
 
 @transaction.atomic
 def process_excel_file(excel_path, threshold=None):
     """Create objects from given path"""
+
+    # A submission representing this Excel file
+    submission = Submission.objects.create()
+
+    # An attachment referencing the original Excel (or .csv) file
+    excel_attachment = Attachment.objects.create(
+        path=excel_path, comments=f"Attached by {__file__}"
+    )
+    submission.attachments.add(excel_attachment)
+
     print("Opening workbook")
     rows = load_rows(excel_path)
     print("...done")
@@ -124,96 +183,58 @@ def process_excel_file(excel_path, threshold=None):
         # ...then delete them
         del rows[index]
 
-    headers = rows[0]
+    # A list of the headers actually in the file
+    headers = rows[0][:-1]
+
+    # A list of rows containing data
     data = rows[1:]
 
-    submission = Submission.objects.create()
+    errors_by_row = {}
 
-    excel_attachment = Attachment.objects.create(
-        path=excel_path, comments="Attached by import_excel_application.py"
-    )
-    submission.attachments.add(excel_attachment)
-    missing_header_handlers = set()
-    conversion_errors = []
-    validation_errors = []
 
-    errors_by_header = {}
+    header_field_map = determine_actual_headers(headers)
 
-    discovered_headers = {}
-
+    # Create Facility objects for every row
     for row in data:
         # Pull out the row number from the row...
         row_num = row[-1]
         # ...then delete it
         del row[-1]
-        facility_dict = {}
-        for ci, cell in enumerate(row):
-            importer = None
-            header = headers[ci]
-            try:
-                importer = facility_field_map[header]
-            except KeyError:
-                missing_header_handlers.add(header)
-                errors_by_header[header] = {
-                    "converter": None,
-                    "field": None,
-                    "error_type": "header",
-                    "error": "No header mapped!"
-                }
-                discovered_headers[header] = None
+        result = create_facility_from_row(header_field_map, row, submission)
+        if result:
+            errors_by_row[row_num] = result
+
+    # errors_by_header = dict(ChainMap(*errors_by_row.values()))
+
+    error_summary = {}
+    unmapped_headers = [header for header, field in header_field_map.items() if field is None]
+    if unmapped_headers:
+        error_summary["Unmapped Headers"] = unmapped_headers
+    column_error_summary = {}
+    for row_num, row_errors in errors_by_row.items():
+        for header, row_error in row_errors.items():
+            if header in column_error_summary:
+                if row_error["value"] not in column_error_summary[header]["Invalid Values"]:
+                    column_error_summary[header]["Invalid Values"].append(row_error["value"])
             else:
-                discovered_headers[header] = importer.field
-                try:
-                    facility_dict[importer.field] = importer.converter(cell)
-                except Exception as error:
-                    conversion_errors.append(
-                        f"Could not convert value {cell!r} using converter "
-                        f"{importer.converter.__name__}: {error}"
-                    )
-                    es = {
-                        "error": str(error),
-                        "value": cell
-                    }
-                    if header in errors_by_header:
-                        errors_by_header[header]["row_errors"][row_num] = es
-                    else:
-                        errors_by_header[header] = {
-                            "converter": importer.converter.__name__,
-                            "field": importer.field,
-                            "error_type": "conversion",
-                            "row_errors": {row_num: es}
-                        }
+                column_error_summary[header] = OrderedDict((
+                    ("Header", header),
+                    ("Converter", row_error["converter"]),
+                    ("Invalid Values", [row_error["value"]]),
+                ))
+    if column_error_summary:
+        error_summary["Column Errors"] = sorted(column_error_summary.values(), key=lambda x: x["Header"])
 
-
-        facility = Facility(**facility_dict, submission=submission)
-        try:
-            with transaction.atomic():
-                facility.save()
-        except (django.core.exceptions.ValidationError, ValueError, TypeError) as error:
-            field = derive_field_from_validation_error(error.__traceback__)
-            inverted = {value: key for key, value in discovered_headers.items() if value is not None}
-            header = inverted[field.name]
-            validation_errors.append(f"Field '{field}' encountered error: {error}")
-            errors_by_header[header] = {
-                "field": field.name,
-                "error_type": "validation",
-                "error": str(error.args),
-            }
-        else:
-            print(f"Created {facility}")
-
-    print(f"Created {len(data)} Facility objects")
+    # print(f"Created {len([r for r in results if r])} Facility objects")
     print("-" * 80)
 
     ret = {}
-    if missing_header_handlers:
-        ret["missing_header_handlers"] = list(missing_header_handlers)
-    if conversion_errors:
-        ret["conversion_errors"] = conversion_errors
-    if validation_errors:
-        ret["validation_errors"] = validation_errors
+    # if any(errors_by_row.values()):
+    #     ret["errors_by_row"] = errors_by_row
+    if error_summary:
+        submission.import_error_summary = json.dumps(error_summary, indent=2)
+        ret["error_summary"] = error_summary
 
-    submission.import_report = json.dumps(errors_by_header, indent=2, sort_keys=True)
     submission.save()
     return ret
 
