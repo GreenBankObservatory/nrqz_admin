@@ -17,6 +17,8 @@ from the list of FieldMap instances
 
 import re
 
+from utils.coord_utils import dms_to_dd
+
 
 COORD_PATTERN_STR = r"^(?P<degrees>\d+)\s+(?P<minutes>\d+)\s+(?P<seconds>\d+(?:\.\d+)?)$"
 COORD_PATTERN = re.compile(COORD_PATTERN_STR)
@@ -43,13 +45,6 @@ def coerce_num(value):
     if clean_value in ["", "na", "n/a", "no"]:
         return None
     return value
-
-
-def dms_to_dd(degrees, minutes, seconds):
-    """Convert degrees, minutes, seconds to decimal degress"""
-
-    dd = float(degrees) + float(minutes) / 60 + float(seconds) / 3600
-    return dd
 
 
 def cooerce_coords(value):

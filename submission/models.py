@@ -40,7 +40,13 @@ from .mixins import IsActiveModel, TrackedModel
 #     model_num = CharField(
 #         max_length=256, verbose_name="Model Number", help_text="Antenna Model Number"
 #     )
+from utils.coord_utils import dd_to_dms
 
+class CoordinateField(DecimalField):
+    def value_to_string(self, obj):
+        value = self.value_from_object(obj)
+        d, m, s = dd_to_dms(value)
+        return f"{d:03d} {m:02d} {s:2.3f}"
 
 class Facility(IsActiveModel, TrackedModel, Model):
     """Describes a single, physical antenna"""
@@ -73,30 +79,20 @@ class Facility(IsActiveModel, TrackedModel, Model):
         verbose_name="FCC File Number",
         help_text="(if known)",
     )
-    latitude = DecimalField(
+    latitude = CoordinateField(
         null=True,
         max_digits=10,
         decimal_places=8,
         verbose_name="Latitude",
         help_text="Latitude of site, in degrees",
     )
-    longitude = DecimalField(
+    longitude = CoordinateField(
         null=True,
         max_digits=10,
         decimal_places=8,
         verbose_name="Longitude",
         help_text="Longitude of site, in degrees",
     )
-    # latitude = CharField(
-    #     max_length=256,
-    #     null=True,
-    #     help_text="Correct format is dd mm ss.ss (space seperated). No symbols or special characters!",
-    # )
-    # longitude = CharField(
-    #     max_length=256,
-    #     null=True,
-    #     help_text="Correct format is dd mm ss.ss (space seperated). No symbols or special characters!",
-    # )
     amsl = DecimalField(
         max_digits=10,
         decimal_places=2,
@@ -225,6 +221,9 @@ class Facility(IsActiveModel, TrackedModel, Model):
         "Submission", on_delete="PROTECT", related_name="facilities"
     )
 
+    class Meta:
+        verbose_name_plural = "Facilities"
+
     def __iter__(self):
         for field in self._meta.fields:
             yield (field.verbose_name, field.value_to_string(self))
@@ -248,18 +247,6 @@ class Facility(IsActiveModel, TrackedModel, Model):
 #     long = DecimalField(
 #         max_digits=10, decimal_places=8, help_text="Longitude of site, in degrees"
 #     )
-
-
-# class Polarization(IsActiveModel, TrackedModel, Model):
-#     """A type of polarization"""
-
-#     abbrev = CharField(max_length=64)
-#     name = CharField(max_length=64)
-
-#     def __str__(self):
-#         return f"{self.name} ({self.abbrev})"
-
-#     # comments = TextField()
 
 
 # TODO: Change to Application
