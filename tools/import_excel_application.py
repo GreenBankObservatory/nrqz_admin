@@ -33,6 +33,10 @@ from tools.excelfieldmap import facility_field_map
 INTERACTIVE = False
 
 
+class ManualRollback(Exception):
+    pass
+
+
 def load_rows(path):
     book = pyexcel.get_book(file_name=path)
     book_dict = book.to_dict()
@@ -50,13 +54,6 @@ def load_rows(path):
         sheet = book.sheet_by_index(0).array
 
     return sheet
-
-
-MissingHeaderReport = namedtuple("MissingHeaderReport", ["header"])
-ConversionErrorReport = namedtuple(
-    "ConversionErrorReport", ["error", "value", "importer"]
-)
-ValidationErrorReport = namedtuple("ValidationErrorReport", ["error", "field"])
 
 
 def derive_field_from_validation_error(tb):
@@ -110,10 +107,6 @@ def indentify_invalid_rows(rows, threshold=None):
     return invalid_row_indices
 
 
-class UnknownHeaderError(KeyError):
-    pass
-
-
 def determine_actual_headers(headers):
     return OrderedDict(
         [(header, facility_field_map.get(header, None)) for header in headers]
@@ -121,10 +114,11 @@ def determine_actual_headers(headers):
 
 
 def create_facility_from_row(header_field_map, row, submission):
+    """Given a map of headers->fields, a data row, and a submission, create a Facility"""
+
     facility_dict = {}
     errors_by_header = {}
-    foo = zip(header_field_map.keys(), header_field_map.values(), row)
-    for header, importer, cell in foo:
+    for header, importer, cell in zip(header_field_map.keys(), header_field_map.values(), row):
         if importer:
             try:
                 facility_dict[importer.field] = importer.converter(cell)
@@ -170,6 +164,42 @@ def create_facility_from_row(header_field_map, row, submission):
     return errors_by_header
 
 
+def generate_error_summary(errors_by_row, header_field_map):
+    """Generate a more concise error report from errors_by_row"""
+
+    error_summary = {}
+    unmapped_headers = [
+        header for header, field in header_field_map.items() if field is None
+    ]
+    if unmapped_headers:
+        error_summary["Unmapped Headers"] = unmapped_headers
+    column_error_summary = {}
+    for row_num, row_errors in errors_by_row.items():
+        for header, row_error in row_errors.items():
+            if header in column_error_summary:
+                if (
+                    row_error["value"]
+                    not in column_error_summary[header]["Invalid Values"]
+                ):
+                    column_error_summary[header]["Invalid Values"].append(
+                        row_error["value"]
+                    )
+            else:
+                column_error_summary[header] = OrderedDict(
+                    (
+                        ("Header", header),
+                        ("Converter", row_error["converter"]),
+                        ("Invalid Values", [row_error["value"]]),
+                    )
+                )
+    if column_error_summary:
+        error_summary["Column Errors"] = sorted(
+            column_error_summary.values(), key=lambda x: x["Header"]
+        )
+
+    return error_summary
+
+
 @transaction.atomic
 def process_excel_file(excel_path, threshold=None):
     """Create objects from given path"""
@@ -202,8 +232,6 @@ def process_excel_file(excel_path, threshold=None):
     data = rows[1:]
     header_field_map = determine_actual_headers(headers)
 
-
-
     errors_by_row = {}
     # Create Facility objects for every row
     for row in data:
@@ -215,35 +243,7 @@ def process_excel_file(excel_path, threshold=None):
         if result:
             errors_by_row[row_num] = result
 
-    error_summary = {}
-    unmapped_headers = [
-        header for header, field in header_field_map.items() if field is None
-    ]
-    if unmapped_headers:
-        error_summary["Unmapped Headers"] = unmapped_headers
-    column_error_summary = {}
-    for row_num, row_errors in errors_by_row.items():
-        for header, row_error in row_errors.items():
-            if header in column_error_summary:
-                if (
-                    row_error["value"]
-                    not in column_error_summary[header]["Invalid Values"]
-                ):
-                    column_error_summary[header]["Invalid Values"].append(
-                        row_error["value"]
-                    )
-            else:
-                column_error_summary[header] = OrderedDict(
-                    (
-                        ("Header", header),
-                        ("Converter", row_error["converter"]),
-                        ("Invalid Values", [row_error["value"]]),
-                    )
-                )
-    if column_error_summary:
-        error_summary["Column Errors"] = sorted(
-            column_error_summary.values(), key=lambda x: x["Header"]
-        )
+    error_summary = generate_error_summary(errors_by_row, header_field_map)
 
     # print(f"Created {len([r for r in results if r])} Facility objects")
     print("-" * 80)
@@ -260,6 +260,8 @@ def process_excel_file(excel_path, threshold=None):
 
 
 def process_excel_directory(dir_path, threshold=None, pattern=r".*\.(xls.?|csv)$"):
+    """Import each file in the given dir_path matching the given pattern"""
+
     files = [
         os.path.join(dir_path, f) for f in os.listdir(dir_path) if re.search(pattern, f)
     ]
@@ -270,10 +272,6 @@ def process_excel_directory(dir_path, threshold=None, pattern=r".*\.(xls.?|csv)$
         if file_report:
             report[os.path.basename(file_path)] = file_report
     return report
-
-
-class ManualRollback(Exception):
-    pass
 
 
 @transaction.atomic
