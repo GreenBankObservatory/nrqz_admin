@@ -164,10 +164,7 @@ class Facility(IsActiveModel, TrackedModel, Model):
         help_text="(or No. of RRH's ports with feed power",
     )
     tx_antennas_per_sector = PositiveIntegerField(
-        blank=True, null=True, verbose_name="Number of polarizations with feed power"
-    )
-    num_pols_with_feed_power = PositiveIntegerField(
-        blank=True, null=True, verbose_name="Number of polarizations with feed power"
+        blank=True, null=True, verbose_name="Number of transmitting antennas per sector"
     )
     technology = CharField(
         max_length=256,
@@ -187,12 +184,6 @@ class Facility(IsActiveModel, TrackedModel, Model):
         verbose_name="This facility uses Cross polarization ",
         blank=True,
         null=True,
-    )
-    quad_or_octal_polarization = CharField(
-        max_length=256,
-        blank=True,
-        null=True,
-        verbose_name="If this facility uses Quad or Octal polarization, specify type here",
     )
     num_quad_or_octal_ports_with_feed_power = PositiveIntegerField(
         blank=True,

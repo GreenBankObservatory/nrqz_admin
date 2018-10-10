@@ -16,6 +16,7 @@ from the list of FieldMap instances
 """
 
 import re
+import string
 
 from utils.coord_utils import dms_to_dd
 
@@ -44,7 +45,18 @@ def coerce_num(value):
     clean_value = str(value).strip().lower()
     if clean_value in ["", "na", "n/a", "no"]:
         return None
-    return value
+
+
+    if clean_value == "quad":
+        clean_value = 4
+    elif clean_value == "hex":
+        clean_value = 6
+    elif clean_value == "deca":
+        clean_value = 10
+    else:
+        clean_value = re.sub(f"[{string.ascii_letters}]", '', clean_value)
+
+    return float(clean_value)
 
 
 def cooerce_coords(value):
@@ -61,6 +73,12 @@ def cooerce_coords(value):
     dd = dms_to_dd(**match.groupdict())
     return dd
 
+def cooerce_lat(value):
+    return cooerce_coords(value)
+
+def cooerce_long(value):
+    # Need to invert this because all of our longitudes will be W
+    return -1 * cooerce_coords(value)
 
 class FieldMap:
     """Map field to its associated headers and to a converter"""

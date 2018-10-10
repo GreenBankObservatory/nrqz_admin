@@ -1,13 +1,29 @@
 {% extends "submission/base.html" %}
+{% load submission_tags %}
 
 {% block content %}
 <h1>{{ facility }}</h1>
-<table>
-    {% for field, value in facility %}
-        <tr>
-            <td>{{ field }}</td>
-            <td>{{ value }}</td>
-        </tr>
-    {% endfor %}
-</table>
+<div class="row">
+    <div class="col-sm">
+        <div class="row">
+            {% info_table facility "Metadata" meta_info %}
+        </div>
+        <div class="row">
+            {% location_table facility "Location Info" location_info %}
+        </div>
+    </div>
+    <div class="col-sm">
+        {% info_table facility "Antenna Info" antenna_info %}
+    </div>
+    <div class="col-sm">
+        {% info_table facility "Other Info" other_info %}
+    </div>
+</div>
+{% if facility.comments %}
+<h2>Comments</h2>
+<div class="row">
+    <p>{{ facility.comments }}</p>
+</div>
+{% endif %}
+
 {% endblock %}

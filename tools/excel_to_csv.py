@@ -5,6 +5,7 @@
 
 
 import argparse
+import csv
 from glob import glob
 import os
 
@@ -26,7 +27,7 @@ def convert_excel_file_to_csv(excel_path, output="."):
     sheet = book.sheet_by_index(0)
     excel_file_name = os.path.basename(excel_path)
     file_name = f"{os.path.join(output, excel_file_name)}.{sheet.name}.csv".replace(" ", "_")
-    sheet.save_as(file_name)
+    sheet.save_as(file_name, quoting=csv.QUOTE_ALL)
     print(f"Wrote {excel_file_name} to {file_name}")
 
 def convert_excel_directory_to_csv(dir_path, output):
@@ -49,7 +50,7 @@ def parse_args():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument("path")
-    parser.add_argument("-o", "--output")
+    parser.add_argument("-o", "--output", default=".")
     return parser.parse_args()
 
 

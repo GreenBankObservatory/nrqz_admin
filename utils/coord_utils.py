@@ -10,7 +10,7 @@ def dms_to_dd(degrees, minutes, seconds):
 # https://en.wikipedia.org/wiki/Decimal_degrees#Example
 def dd_to_dms(decimal):
     d = math.trunc(decimal)
-    m = math.trunc((decimal * 60) % 60)
-    s = (decimal * 60 * 60) % 60
+    m = math.trunc((math.fabs(decimal) * 60) % 60)
+    s = (math.fabs(decimal) * 60 * 60) % 60
 
     return (d, m, s)

@@ -1,0 +1,9 @@
+<h2>{{ title }}</h2>
+<table class="table">
+    {% for label, value in rows %}
+    <tr>
+        <td>{{ label }}</td>
+        <td>{{ value|safe }}</td>
+    </tr>
+    {% endfor %}
+</table>

@@ -1,18 +1,18 @@
-from tools.fieldmap import FieldMap, coerce_num, cooerce_coords, coerce_bool
+from tools.fieldmap import FieldMap, coerce_num, cooerce_lat, cooerce_long, coerce_bool
 
 field_mappers = [
-    FieldMap(
-        field="freq_low", converter=coerce_num, known_headers=["Freq Low (MHz)"]
-    ),
+    FieldMap(field="freq_low", converter=coerce_num, known_headers=["Freq Low (MHz)"]),
     FieldMap(field="site_name", converter=None, known_headers=["Site Name"]),
     FieldMap(field="call_sign", converter=None, known_headers=["Call Sign"]),
     FieldMap(
         field="fcc_file_number", converter=None, known_headers=["FCC File Number"]
     ),
-    FieldMap(field="latitude", converter=cooerce_coords, known_headers=["LAT (dd mm ss.ss)"]),
+    FieldMap(
+        field="latitude", converter=cooerce_lat, known_headers=["LAT (dd mm ss.ss)"]
+    ),
     FieldMap(
         field="longitude",
-        converter=cooerce_coords,
+        converter=cooerce_long,
         known_headers=["LON (-dd mm ss.ss)", "LON (dd mm ss.ss)"],
     ),
     FieldMap(field="amsl", converter=coerce_num, known_headers=["AMSL (m)"]),
@@ -101,16 +101,12 @@ field_mappers = [
         ],
     ),
     FieldMap(
-        field="quad_or_octal_polarization",
-        converter=coerce_bool,
-        known_headers=[
-            "If this facility uses Quad or Octal polarization, specify type here"
-        ],
-    ),
-    FieldMap(
         field="num_quad_or_octal_ports_with_feed_power",
         converter=coerce_num,
-        known_headers=["Number of Quad or Octal ports with  feed power"],
+        known_headers=[
+            "If this facility uses Quad or Octal polarization, specify type here",
+            "Number of Quad or Octal ports with  feed power",
+        ],
     ),
     FieldMap(
         field="tx_power_pos_45",
@@ -131,9 +127,6 @@ field_mappers = [
         converter=None,
         known_headers=["", "Additional information or comments from the applicant"],
     ),
-    FieldMap(
-        field="num_pols_with_feed_power", converter=coerce_num, known_headers=[]
-    ),
 ]
 
 # Generate a map of known_header->importer by "expanding" the known_headers of each FieldMap
@@ -145,7 +138,7 @@ for importer in field_mappers:
         facility_field_map[header] = importer
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Print out a simple report of the final header->field mappings
     # header_len is just the longest header in the map plus some padding
     header_len = max(len(header) for header in facility_field_map) + 3

@@ -182,21 +182,20 @@ def generate_error_summary(errors_by_row, header_field_map):
                     not in column_error_summary[header]["Invalid Values"]
                 ):
                     column_error_summary[header]["Invalid Values"].append(
-                        row_error["value"]
+                        str(row_error["value"])
                     )
             else:
                 column_error_summary[header] = OrderedDict(
                     (
                         ("Header", header),
                         ("Converter", row_error["converter"]),
-                        ("Invalid Values", [row_error["value"]]),
+                        ("Invalid Values", [str(row_error["value"])]),
                     )
                 )
     if column_error_summary:
         error_summary["Column Errors"] = sorted(
             column_error_summary.values(), key=lambda x: x["Header"]
         )
-
     return error_summary
 
 
@@ -254,8 +253,8 @@ def process_excel_file(excel_path, threshold=None):
     if error_summary:
         submission.import_error_summary = json.dumps(error_summary, indent=2)
         ret["error_summary"] = error_summary
+        submission.save()
 
-    submission.save()
     return ret
 
 
