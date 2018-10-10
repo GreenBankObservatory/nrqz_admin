@@ -118,7 +118,9 @@ def create_facility_from_row(header_field_map, row, submission):
 
     facility_dict = {}
     errors_by_header = {}
-    for header, importer, cell in zip(header_field_map.keys(), header_field_map.values(), row):
+    for header, importer, cell in zip(
+        header_field_map.keys(), header_field_map.values(), row
+    ):
         if importer:
             try:
                 facility_dict[importer.field] = importer.converter(cell)
@@ -204,7 +206,9 @@ def process_excel_file(excel_path, threshold=None):
     """Create objects from given path"""
 
     # A submission representing this Excel file
-    submission = Submission.objects.create()
+    submission = Submission.objects.create(
+        name=os.path.basename(excel_path), comments=f"Created by {__file__}"
+    )
 
     # An attachment referencing the original Excel (or .csv) file
     submission.attachments.add(

@@ -256,10 +256,14 @@ class Submission(IsActiveModel, TrackedModel, Model):
 
     import_error_summary = TextField()
 
+    name = CharField(max_length=256, blank=True, null=True)
     # facilities = ManyToManyField("Facility")
 
     def __str__(self):
         return f"Application {self.id} ({self.created_on})"
+
+    def get_absolute_url(self):
+        return reverse("submission_detail", args=[str(self.id)])
 
 
 class Person(IsActiveModel, TrackedModel, Model):

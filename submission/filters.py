@@ -1,6 +1,7 @@
 import django_filters
 from . import models
 
+
 class FacilityFilter(django_filters.FilterSet):
     site_name = django_filters.CharFilter(lookup_expr='icontains')
     nrqz_id = django_filters.CharFilter(lookup_expr='icontains')
@@ -16,3 +17,11 @@ class FacilityFilter(django_filters.FilterSet):
         model = models.Facility
         fields = ("site_name", "nrqz_id", "latitude", "longitude", "amsl", "agl", "freq_low", "freq_high")
 
+
+class SubmissionFilter(django_filters.FilterSet):
+    created_on = django_filters.DateFromToRangeFilter(lookup_expr="range")
+    name = django_filters.CharFilter(lookup_expr='icontains')
+    comments = django_filters.CharFilter(lookup_expr='icontains')
+    class Meta:
+        model = models.Submission
+        fields = ("created_on", "name", "comments")

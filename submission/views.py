@@ -2,19 +2,37 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
-
+from django.db.models.aggregates import Max
 from crispy_forms.layout import Submit, Layout, ButtonHolder, Div
 from crispy_forms.helper import FormHelper
 
-from .filters import FacilityFilter
-from .tables import FacilityTable
+from .filters import FacilityFilter, SubmissionFilter
+from .tables import FacilityTable, SubmissionTable
 
 from .models import Attachment, Submission, Facility
 
+def submission_list(request):
+    filter_ = SubmissionFilter(request.GET, queryset=Submission.objects.all())
+    filter_.form.helper = FormHelper()
+    filter_.form.helper.form_method = "get"
+    filter_.form.helper.layout = Layout(
+        Div(
+            Div("created_on", css_class="col"),
+            Div("name", css_class="col"),
+            Div("comments", css_class="col"),
+            css_class="row",
+        ),
+        ButtonHolder(Submit("submit", "Filter")),
+    )
 
-class SubmissionListView(ListView):
-    model = Submission
-
+    # Can't get this to work with CBV, so I hacked this together
+    # Use the filter's queryset, but with ONLY the fields specified in the filter
+    # This is to prevent the table from coming up as blank initially
+    table = SubmissionTable(data=filter_.qs)
+    table.paginate(page=request.GET.get("page", 1), per_page=25)
+    return render(
+        request, "submission/submission_list.html", {"filter": filter_, "table": table}
+    )
 
 class SubmissionDetailView(DetailView):
     model = Submission
