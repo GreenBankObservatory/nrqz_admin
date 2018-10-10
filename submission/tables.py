@@ -14,6 +14,8 @@ class FacilityTable(tables.Table):
         fields = FacilityFilter.Meta.fields
 
     def _render_coord(self, value):
+        """Render a coordinate as DD MM SS.sss"""
+
         d, m, s = dd_to_dms(value)
         return f"{d:3d} {m:2d} {s:2.3f}"
 

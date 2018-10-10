@@ -1,67 +1,36 @@
-from django.http import HttpResponseRedirect
-from django.shortcuts import render
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
-from django.db.models.aggregates import Max
-from crispy_forms.layout import Submit, Layout, ButtonHolder, Div
-from crispy_forms.helper import FormHelper
 
+from django_filters.views import FilterView
+from django_tables2.views import SingleTableMixin
+
+from .models import Attachment, Submission, Facility
 from .filters import FacilityFilter, SubmissionFilter
 from .tables import FacilityTable, SubmissionTable
 
-from .models import Attachment, Submission, Facility
 
-def submission_list(request):
-    filter_ = SubmissionFilter(request.GET, queryset=Submission.objects.all())
-    filter_.form.helper = FormHelper()
-    filter_.form.helper.form_method = "get"
-    filter_.form.helper.layout = Layout(
-        Div(
-            Div("created_on", css_class="col"),
-            Div("name", css_class="col"),
-            Div("comments", css_class="col"),
-            css_class="row",
-        ),
-        ButtonHolder(Submit("submit", "Filter")),
-    )
+class FilterTableView(SingleTableMixin, FilterView):
+    table_class = None
+    filterset_class = None
 
-    # Can't get this to work with CBV, so I hacked this together
-    # Use the filter's queryset, but with ONLY the fields specified in the filter
-    # This is to prevent the table from coming up as blank initially
-    table = SubmissionTable(data=filter_.qs)
-    table.paginate(page=request.GET.get("page", 1), per_page=25)
-    return render(
-        request, "submission/submission_list.html", {"filter": filter_, "table": table}
-    )
+    def get_context_data(self, **kwargs):
+        if not self.object_list:
+            # Need this here to avoid a blank table appearing on first load
+            self.object_list = self.table_class.Meta.model.objects.all()
+        return super().get_context_data(**kwargs)
+
+class SubmissionListView(FilterTableView):
+    table_class = SubmissionTable
+    filterset_class = SubmissionFilter
+    template_name = "submission/submission_list.html"
+
+class FacilityListView(FilterTableView):
+    table_class = FacilityTable
+    filterset_class = FacilityFilter
+    template_name = "submission/facility_list.html"
 
 class SubmissionDetailView(DetailView):
     model = Submission
-
-
-def facility_list(request):
-    filter_ = FacilityFilter(request.GET, queryset=Facility.objects.all())
-    filter_.form.helper = FormHelper()
-    filter_.form.helper.form_method = "get"
-    filter_.form.helper.layout = Layout(
-        Div(
-            Div("site_name", "nrqz_id", css_class="col"),
-            Div("latitude", "longitude", css_class="col"),
-            Div("amsl", "agl", css_class="col"),
-            Div("freq_low", "freq_high", css_class="col"),
-            css_class="row",
-        ),
-        ButtonHolder(Submit("submit", "Filter")),
-    )
-
-    # Can't get this to work with CBV, so I hacked this together
-    # Use the filter's queryset, but with ONLY the fields specified in the filter
-    # This is to prevent the table from coming up as blank initially
-    table = FacilityTable(data=filter_.qs.only(*FacilityFilter.Meta.fields))
-    table.paginate(page=request.GET.get("page", 1), per_page=25)
-    return render(
-        request, "submission/facility_list.html", {"filter": filter_, "table": table}
-    )
-
 
 class FacilityDetailView(DetailView):
     model = Facility
