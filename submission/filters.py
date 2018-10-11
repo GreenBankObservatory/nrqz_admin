@@ -47,7 +47,17 @@ class FacilityFilterFormHelper(FormHelper):
             # Div("submission", css_class="col"),
             css_class="row",
         ),
-        ButtonHolder(Submit("submit", "Filter")),
+        ButtonHolder(
+            Submit("submit", "Filter"),
+            Submit(
+                "kml",
+                "As .kml",
+                title=(
+                    "Download the locations of all currently-filtered "
+                    "Facilities as a .kml file"
+                ),
+            ),
+        ),
     )
 
 
@@ -79,7 +89,17 @@ class SubmissionFilterFormHelper(FormHelper):
             Div("comments", css_class="col"),
             css_class="row",
         ),
-        ButtonHolder(Submit("submit", "Filter")),
+        ButtonHolder(
+            Submit("submit", "Filter"),
+            Submit(
+                "kml",
+                "As .kml",
+                title=(
+                    "Download the locations of all facilities linked to "
+                    "the currently-filtered Submissions as a .kml file"
+                ),
+            ),
+        ),
     )
 
 

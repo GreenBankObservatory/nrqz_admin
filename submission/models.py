@@ -13,40 +13,17 @@ from django.db.models import (
     TextField,
 )
 
+from .kml import facility_as_kml, submission_as_kml, kml_to_string
+from utils.coord_utils import dd_to_dms
 from .mixins import IsActiveModel, TrackedModel
 
-# from django.contrib.gis.db.models import PointField
-
-
-# class Technology(IsActiveModel, TrackedModel, Model):
-#     """A type of cellular technology"""
-
-#     class Meta:
-#         verbose_name_plural = "Technologies"
-
-#     abbrev = CharField(max_length=16)
-#     name = CharField(max_length=256)
-
-#     def __str__(self):
-#         return f"{self.name} ({self.abbrev})"
-
-
-# class Transmitter(IsActiveModel, TrackedModel, Model):
-
-# class Antenna(IsActiveModel, TrackedModel, Model):
-#     gain = DecimalField(
-#         max_digits=10, decimal_places=2, verbose_name="Gain", help_text="Gain in dB"
-#     )
-#     model_num = CharField(
-#         max_length=256, verbose_name="Model Number", help_text="Antenna Model Number"
-#     )
-from utils.coord_utils import dd_to_dms
 
 class CoordinateField(DecimalField):
     def value_to_string(self, obj):
         value = self.value_from_object(obj)
         d, m, s = dd_to_dms(value)
         return f"{d:03d} {m:02d} {s:2.3f}"
+
 
 class Facility(IsActiveModel, TrackedModel, Model):
     """Describes a single, physical antenna"""
@@ -225,22 +202,10 @@ class Facility(IsActiveModel, TrackedModel, Model):
     def get_absolute_url(self):
         return reverse("submission_facility_detail", args=[str(self.id)])
 
-
-# class Site(IsActiveModel, TrackedModel, Model):
-#     """Describes a single, physical site"""
-
-#     name = CharField(
-#         max_length=256, help_text="What you call it! Include MCN and eNB information."
-#     )
-#     lat = DecimalField(
-#         max_digits=10, decimal_places=8, help_text="Latitude of site, in degrees"
-#     )
-#     long = DecimalField(
-#         max_digits=10, decimal_places=8, help_text="Longitude of site, in degrees"
-#     )
+    def as_kml(self):
+        return kml_to_string(facility_as_kml(self))
 
 
-# TODO: Change to Application
 class Submission(IsActiveModel, TrackedModel, Model):
     """Defines a given NRQZ Application"""
 
@@ -264,6 +229,9 @@ class Submission(IsActiveModel, TrackedModel, Model):
 
     def get_absolute_url(self):
         return reverse("submission_detail", args=[str(self.id)])
+
+    def as_kml(self):
+        return kml_to_string(submission_as_kml(self))
 
 
 class Person(IsActiveModel, TrackedModel, Model):

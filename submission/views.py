@@ -1,5 +1,6 @@
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
+from django.http import HttpResponse
 
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
@@ -7,6 +8,13 @@ from django_tables2.views import SingleTableMixin
 from .models import Attachment, Submission, Facility
 from .filters import FacilityFilter, SubmissionFilter
 from .tables import FacilityTable, SubmissionTable
+from .kml import (
+    facility_as_kml,
+    facilities_as_kml,
+    submission_as_kml,
+    submissions_as_kml,
+    kml_to_string,
+)
 
 
 class FilterTableView(SingleTableMixin, FilterView):
@@ -25,11 +33,38 @@ class SubmissionListView(FilterTableView):
     filterset_class = SubmissionFilter
     template_name = "submission/submission_list.html"
 
+    def get(self, request, *args, **kwargs):
+        if "kml" in request.GET:
+            # TODO: Must be a cleaner way to do this
+            qs = self.get_filterset(self.filterset_class).qs
+            response = HttpResponse(
+                kml_to_string(submissions_as_kml(qs)),
+                content_type="application/vnd.google-earth.kml+xml.",
+            )
+            response["Content-Disposition"] = 'application; filename="nrqz_apps.kml"'
+            return response
+        else:
+            return super(SubmissionListView, self).get(request, *args, **kwargs)
+
 
 class FacilityListView(FilterTableView):
     table_class = FacilityTable
     filterset_class = FacilityFilter
     template_name = "submission/facility_list.html"
+
+    def get(self, request, *args, **kwargs):
+        if "kml" in request.GET:
+            # TODO: Must be a cleaner way to do this
+            qs = self.get_filterset(self.filterset_class).qs
+            response = HttpResponse(
+                kml_to_string(facilities_as_kml(qs)),
+                content_type="application/vnd.google-earth.kml+xml.",
+            )
+            response["Content-Disposition"] = 'application; filename="nrqz_facilities.kml"'
+            return response
+        else:
+            return super(FacilityListView, self).get(request, *args, **kwargs)
+
 
 
 class SubmissionDetailView(DetailView):
@@ -53,6 +88,9 @@ class SubmissionDetailView(DetailView):
             context["facility_table"] = table
 
         return context
+
+    def as_kml(self):
+        submission_as_kml(self.object)
 
 
 class FacilityDetailView(DetailView):
@@ -90,6 +128,9 @@ class FacilityDetailView(DetailView):
         context["other_info"] = ["site_name", "call_sign", "fcc_file_number"]
 
         return context
+
+    def as_kml(self):
+        facility_as_kml(self.object)
 
 
 class AttachmentListView(ListView):
