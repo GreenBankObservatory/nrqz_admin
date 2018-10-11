@@ -4,6 +4,7 @@ from crispy_forms.helper import FormHelper
 
 from . import models
 
+
 def discover_fields(layout):
     """Discover all fields defined in a layout object
 
@@ -35,13 +36,15 @@ class HelpedFilterSet(django_filters.FilterSet):
 
 class FacilityFilterFormHelper(FormHelper):
     """Provides layout information for FacilityFilter.form"""
+
     form_method = "get"
     layout = Layout(
         Div(
-            Div("site_name", "nrqz_id", css_class="col"),
+            Div("nrqz_id", "site_name", css_class="col"),
             Div("latitude", "longitude", css_class="col"),
-            Div("amsl", "agl", css_class="col"),
+            # Div("amsl", "agl", css_class="col"),
             Div("freq_low", "freq_high", css_class="col"),
+            # Div("submission", css_class="col"),
             css_class="row",
         ),
         ButtonHolder(Submit("submit", "Filter")),
@@ -49,15 +52,15 @@ class FacilityFilterFormHelper(FormHelper):
 
 
 class FacilityFilter(HelpedFilterSet):
-    site_name = django_filters.CharFilter(lookup_expr='icontains')
-    nrqz_id = django_filters.CharFilter(lookup_expr='icontains')
-    call_sign = django_filters.CharFilter(lookup_expr='icontains')
-    latitude = django_filters.CharFilter(lookup_expr='startswith')
-    longitude = django_filters.CharFilter(lookup_expr='startswith')
-    freq_low = django_filters.RangeFilter(lookup_expr='range')
-    freq_high = django_filters.RangeFilter(lookup_expr='range')
-    amsl = django_filters.RangeFilter(lookup_expr='range')
-    agl = django_filters.RangeFilter(lookup_expr='range')
+    site_name = django_filters.CharFilter(lookup_expr="icontains")
+    nrqz_id = django_filters.CharFilter(lookup_expr="icontains")
+    call_sign = django_filters.CharFilter(lookup_expr="icontains")
+    latitude = django_filters.CharFilter(lookup_expr="startswith")
+    longitude = django_filters.CharFilter(lookup_expr="startswith")
+    freq_low = django_filters.RangeFilter(lookup_expr="range")
+    freq_high = django_filters.RangeFilter(lookup_expr="range")
+    amsl = django_filters.RangeFilter(lookup_expr="range")
+    agl = django_filters.RangeFilter(lookup_expr="range")
 
     class Meta:
         model = models.Facility
@@ -70,8 +73,8 @@ class SubmissionFilterFormHelper(FormHelper):
 
     form_method = "get"
     layout = Layout(
+        Div(Div("created_on", css_class="col"), css_class="row"),
         Div(
-            Div("created_on", css_class="col"),
             Div("name", css_class="col"),
             Div("comments", css_class="col"),
             css_class="row",
@@ -82,8 +85,8 @@ class SubmissionFilterFormHelper(FormHelper):
 
 class SubmissionFilter(HelpedFilterSet):
     created_on = django_filters.DateFromToRangeFilter(lookup_expr="range")
-    name = django_filters.CharFilter(lookup_expr='icontains')
-    comments = django_filters.CharFilter(lookup_expr='icontains')
+    name = django_filters.CharFilter(lookup_expr="icontains")
+    comments = django_filters.CharFilter(lookup_expr="icontains")
 
     class Meta:
         model = models.Submission

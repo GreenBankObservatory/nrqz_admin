@@ -1,14 +1,13 @@
-import os
-
 import django_tables2 as tables
-from .filters import FacilityFilter, SubmissionFilter
-from . import models
 
 from utils.coord_utils import dd_to_dms
+from . import models
+from .filters import FacilityFilter, SubmissionFilter
 
 
 class FacilityTable(tables.Table):
-    site_name = tables.Column(linkify=True)
+    nrqz_id = tables.Column(linkify=True)
+
     class Meta:
         model = models.Facility
         fields = FacilityFilter.Meta.fields
@@ -25,6 +24,7 @@ class FacilityTable(tables.Table):
 
 class SubmissionTable(tables.Table):
     name = tables.Column(linkify=True)
+
     class Meta:
         model = models.Submission
         fields = SubmissionFilter.Meta.fields

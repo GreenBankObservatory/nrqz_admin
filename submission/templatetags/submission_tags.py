@@ -1,14 +1,11 @@
-import os
-
 from django import template
-import json as _json
 
 from pygments import highlight
 from pygments.lexers.data import JsonLexer
-
 from pygments.formatters import HtmlFormatter
 
 from utils.coord_utils import dd_to_dms
+
 
 register = template.Library()
 

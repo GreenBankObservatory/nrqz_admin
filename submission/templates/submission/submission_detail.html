@@ -1,9 +1,11 @@
 {% extends "submission/base.html" %}
 {% load submission_tags %}
-{% load static %}
+{% load render_table from django_tables2 %}
+{% load crispy_forms_tags %}
 
 {% block content %}
 <h1>Submission {{ submission.id }}</h1>
+<p>{{ submission.name }}</p>
 
 <p>Created on: {{ submission.created_on }}</p>
 
@@ -14,14 +16,15 @@
 <p>No comments</p>
 {% endif %}
 
+
 <h2>Facilities</h2>
-<ul>
-    {% for facility in submission.facilities.all %}
-    <li><a href="{% url 'submission_facility_detail' facility.id %}">{{ facility }}</a></li>
-    {% empty %}
-    <li>No facilities</li>
-    {% endfor %}
-</ul>
+<div class="container-fluid" style="border:1px solid #D3D3D3; border-radius: 10px">
+    {% if facility_filter %}
+    {% crispy facility_filter.form %}
+    <p>Results: {{ facility_table.data|length }}</p>
+    {% endif %}
+    {% render_table facility_table %}
+</div>
 
 <h2>Attachments</h2>
 <ul>
