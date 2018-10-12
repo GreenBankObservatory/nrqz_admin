@@ -123,11 +123,11 @@ def create_facility_from_row(header_field_map, row, submission):
     ):
         if importer:
             try:
-                facility_dict[importer.field] = importer.converter(cell)
+                facility_dict[importer.to_field] = importer.converter(cell)
             except (ValueError) as error:
                 errors_by_header[header] = {
                     "converter": importer.converter.__name__,
-                    "field": importer.field,
+                    "field": importer.to_field,
                     "error_type": "conversion",
                     "error": str(error),
                     "value": cell,
