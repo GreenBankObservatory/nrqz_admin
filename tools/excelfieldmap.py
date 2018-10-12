@@ -1,5 +1,30 @@
+import re
+
 from tools.fieldmap import FieldMap, coerce_num, cooerce_lat, cooerce_long, coerce_bool
 
+site_name_regex_str = r"(?P<nrqz_id>\d+)\s+(?P<site_name>\D+)\s+(?P<facility_name>\d+\S+)"
+site_name_regex = re.compile()
+
+def parse_site_name(value):
+    match = re.match(site_name_regex, value)
+    if not match:
+        raise ValueError(f"Could not parse {value} using regex {site_name_regex_str}")
+
+    return match.groupdict()
+
+def coerce_nrqz_id(value):
+    return parse_site_name("nrqz_id")
+
+def coerce_site_name(value):
+    return parse_site_name("site_name")
+
+def coerce_facility_name(value):
+    return parse_site_name("facility_name")
+
+# TODO: FieldMap must be able to map a single header to multiple fields. Need to have
+# a FieldMaps class (or similar) that holds a list of FieldMaps as well as:
+# * a class (e.g. Facility) that will be created
+# * ???
 field_mappers = [
     FieldMap(to_field="freq_low", converter=coerce_num, from_fields=["Freq Low (MHz)"]),
     FieldMap(to_field="site_name", converter=None, from_fields=["Site Name"]),
@@ -54,6 +79,7 @@ field_mappers = [
     FieldMap(
         to_field="antenna_model_number", converter=None, from_fields=["Antenna Model #"]
     ),
+    # TODO:
     FieldMap(
         to_field="nrqz_id",
         converter=None,

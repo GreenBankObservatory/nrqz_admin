@@ -37,6 +37,17 @@ def info_table(instance, title, fields):
     ]
     return {"title": title, "rows": rows}
 
+@register.inclusion_tag("submission/info_table.html")
+def attachment_table(instance, title, fields):
+    rows = [
+        (
+            instance._meta.get_field(field).verbose_name,
+            instance._meta.get_field(field).value_to_string(instance),
+        )
+        for field in fields if getattr(instance, field)
+    ]
+    return {"title": title, "rows": rows}
+
 
 @register.inclusion_tag("submission/info_table.html")
 def location_table(instance, title, fields):

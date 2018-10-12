@@ -19,9 +19,8 @@ class ApplicantDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        context["meta_info"] = ["nrqz_no"]
-
         context["applicant_info"] = [
+            "nrqz_no",
             "applicant",
             "contact",
             "phone",
@@ -48,26 +47,12 @@ class ApplicantDetailView(DetailView):
         context["application_info"] = [
             "radio_service",
             "call_sign",
-            "fc_num",
-            "fcc_num",
+            "fcc_freq_coord",
+            "fcc_file_num",
             "num_freqs",
             "num_sites",
             "num_outside",
             "erpd_limit",
-        ]
-
-        context["radio_info"] = [
-            "hf_band",
-            "vhf_band",
-            "uhf1_band",
-            "uhf2_band",
-            "l_band",
-            "s_band",
-            "c_band",
-            "x_band",
-            "ku_band",
-            "k_band",
-            "ka_band",
         ]
 
         context["attachment_info"] = [

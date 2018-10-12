@@ -2,6 +2,7 @@
 {% load submission_tags %}
 
 {% block content %}
+<a href={% url "submission_detail" facility.submission.id %}>View submission</a>
 <h1>{{ facility }}</h1>
 <div class="row">
     <div class="col-sm">
@@ -22,7 +23,7 @@
 {% if facility.comments %}
 <h2>Comments</h2>
 <div class="row">
-    <p>{{ facility.comments }}</p>
+    {{ facility.comments | linebreaks }}
 </div>
 {% endif %}
 

@@ -11,7 +11,7 @@
 
 <h2>Comments</h2>
 {% if submission.comments %}
-<p>{{ submission.comments }}</p>
+{{ submission.comments | linebreaks}}
 {% else %}
 <p>No comments</p>
 {% endif %}

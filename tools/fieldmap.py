@@ -83,9 +83,15 @@ def cooerce_long(value):
 class FieldMap:
     """Map field to its associated headers and to a converter"""
 
-    def __init__(self, to_field, converter, from_fields=None, from_field=None):
+    def __init__(self, to_field, converter, from_fields=None, from_field=None, to_fields=None):
+        if to_fields and to_field:
+            raise ValueError("Cannot provide both to_fields and to_field")
+        elif not (to_fields or to_field):
+            raise ValueError("Must provide exactly one of to_fields or to_field")
+
         # Headers the to_field could potentially be associated with
         self.to_field = to_field
+        self.to_fields = to_fields
         # Function to convert/clean data
         self.converter = converter if converter else self.nop_converter
         if from_fields and from_field:
