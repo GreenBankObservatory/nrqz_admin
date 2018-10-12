@@ -1,0 +1,27 @@
+{% extends "submission/base.html" %}
+{% load submission_tags %}
+
+{% block content %}
+<h1>{{ applicant }}</h1>
+<div class="row">
+    <div class="col-sm">
+        {% info_table applicant "Metadata" meta_info %}
+        {% info_table applicant "Application" application_info %}
+    </div>
+    <div class="col-sm">
+        {% info_table applicant "Applicant Info" applicant_info %}
+        {% info_table applicant "Radio Info" radio_info %}
+    </div>
+    <div class="col-sm">
+        {% info_table applicant "Status Info" status_info %}
+        {% info_table applicant "Attachments" attachment_info %}
+    </div>
+</div>
+{% if applicant.comments %}
+<h2>Comments</h2>
+<div class="row">
+    <p>{{ applicant.comments }}</p>
+</div>
+{% endif %}
+
+{% endblock %}

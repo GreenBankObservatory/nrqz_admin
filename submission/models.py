@@ -200,7 +200,7 @@ class Facility(IsActiveModel, TrackedModel, Model):
         return f"NRQZ {self.nrqz_id} ({self.latitude}, {self.longitude})"
 
     def get_absolute_url(self):
-        return reverse("submission_facility_detail", args=[str(self.id)])
+        return reverse("facility_detail", args=[str(self.id)])
 
     def as_kml(self):
         return kml_to_string(facility_as_kml(self))

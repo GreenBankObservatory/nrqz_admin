@@ -32,7 +32,12 @@ def coerce_positive_int(value):
     return int(num)
 
 def coerce_bool(value):
-    return bool(value)
+    if value == "0":
+        return False
+    elif value == "1":
+        return True
+    else:
+        raise ValueError(f"Unexpected boolean value: {value}")
 
 def coerce_path(value):
     if value == "":

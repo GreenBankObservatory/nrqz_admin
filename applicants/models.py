@@ -1,3 +1,4 @@
+from django.urls import reverse
 from django.db.models import (
     BooleanField,
     CharField,
@@ -77,4 +78,7 @@ class Applicant(IsActiveModel, TrackedModel, Model):
     #     return bool(self.si_done)
 
     def __str__(self):
-        return f"{self.applicant} <{self.nrqz_no}"
+        return f"{self.applicant} <{self.nrqz_no}>"
+
+    def get_absolute_url(self):
+        return reverse("applicant_detail", args=[str(self.id)])

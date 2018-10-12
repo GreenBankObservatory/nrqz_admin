@@ -22,9 +22,12 @@ class FilterTableView(SingleTableMixin, FilterView):
     filterset_class = None
 
     def get_context_data(self, **kwargs):
-        if not self.object_list:
+        # If there are no query params, then no results are
+        # displayed -- but that's not what we want!
+        if not self.request.GET:
             # Need this here to avoid a blank table appearing on first load
             self.object_list = self.table_class.Meta.model.objects.all()
+
         return super().get_context_data(**kwargs)
 
 
