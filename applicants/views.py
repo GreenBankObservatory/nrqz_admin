@@ -20,7 +20,7 @@ class ApplicantDetailView(DetailView):
         context = super().get_context_data(**kwargs)
 
         context["applicant_info"] = [
-            "nrqz_no",
+            "submission",
             "applicant",
             "contact",
             "phone",

@@ -2,16 +2,20 @@ from datetime import datetime
 import pytz
 
 from tools.fieldmap import FieldMap, coerce_num
+from submission.models import Submission
 
 
-def coerce_key(value):
+def coerce_submission(value):
     clean_value = value.strip()
     if clean_value in [None, ""]:
         return None
     float_value = float(value)
     int_value = int(float_value)
     if int_value == float_value:
-        return int_value
+        try:
+            return Submission.objects.get(nrqz_id=int_value)
+        except Submission.DoesNotExist:
+            return None
     else:
         raise ValueError(f"{value} cannot be coerced to an int!")
 
@@ -48,7 +52,7 @@ def coerce_path(value):
 
 
 field_mappers = [
-    FieldMap(to_field="nrqz_no", converter=coerce_key, from_field="NRQZ_NO"),
+    FieldMap(to_field="submission", converter=coerce_submission, from_field="NRQZ_NO"),
     FieldMap(to_field="comments", converter=None, from_field="COMMENTS"),
     FieldMap(to_field="applicant", converter=None, from_field="APPLICANT"),
     FieldMap(to_field="contact", converter=None, from_field="CONTACT"),

@@ -21,7 +21,7 @@ class Applicant(IsActiveModel, TrackedModel, Model):
     created_on = DateTimeField(null=True)
     modified_on = DateTimeField(null=True)
 
-    nrqz_no = PositiveIntegerField(null=True, blank=True)
+    submission = PositiveIntegerField(null=True, blank=True)
     comments = TextField(null=True, blank=True)
     applicant = CharField(max_length=256, blank=True)
     contact = CharField(max_length=256, blank=True)
@@ -67,7 +67,7 @@ class Applicant(IsActiveModel, TrackedModel, Model):
     #     return bool(self.si_done)
 
     def __str__(self):
-        return f"{self.applicant} <{self.nrqz_no}>"
+        return f"{self.applicant} <{self.submission}>"
 
     def get_absolute_url(self):
         return reverse("applicant_detail", args=[str(self.id)])

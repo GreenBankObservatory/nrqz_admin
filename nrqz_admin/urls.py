@@ -5,7 +5,7 @@ from django.urls import include, path
 from django.views.generic.base import RedirectView
 
 urlpatterns = [
-    path("", RedirectView.as_view(url="/submissions")),
+    path("", RedirectView.as_view(url="/submissions/batches")),
     path("applicants/", include("applicants.urls")),
     path("submissions/", include("submission.urls")),
     path("explorer/", include("explorer.urls")),

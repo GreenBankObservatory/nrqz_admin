@@ -3,7 +3,7 @@ import re
 from tools.fieldmap import FieldMap, coerce_num, cooerce_lat, cooerce_long, coerce_bool
 
 site_name_regex_str = r"(?P<nrqz_id>\d+)\s+(?P<site_name>\D+)\s+(?P<facility_name>\d+\S+)"
-site_name_regex = re.compile()
+site_name_regex = re.compile(site_name_regex_str)
 
 def parse_site_name(value):
     match = re.match(site_name_regex, value)

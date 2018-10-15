@@ -34,6 +34,28 @@ class HelpedFilterSet(django_filters.FilterSet):
         self.form.helper = self.Meta.formhelper_class()
 
 
+class BatchFilterFormHelper(FormHelper):
+    """Provides layout information for FacilityFilter.form"""
+
+    form_method = "get"
+    layout = Layout(
+        Div(
+            Div("name", "comments", css_class="col"),
+            css_class="row",
+        ),
+        ButtonHolder(
+            Submit("submit", "Filter"),
+        ),
+    )
+
+class BatchFilter(HelpedFilterSet):
+    class Meta:
+        model = models.Batch
+        formhelper_class = BatchFilterFormHelper
+        fields = discover_fields(formhelper_class.layout)
+        exclude = ["batch"]
+
+
 class FacilityFilterFormHelper(FormHelper):
     """Provides layout information for FacilityFilter.form"""
 
@@ -83,10 +105,11 @@ class SubmissionFilterFormHelper(FormHelper):
 
     form_method = "get"
     layout = Layout(
-        Div(Div("created_on", css_class="col"), css_class="row"),
         Div(
+            Div("case_num", css_class="col"),
             Div("name", css_class="col"),
             Div("comments", css_class="col"),
+            Div("batch", css_class="col"),
             css_class="row",
         ),
         ButtonHolder(

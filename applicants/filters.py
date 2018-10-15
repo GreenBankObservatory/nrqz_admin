@@ -13,7 +13,7 @@ class ApplicantFilterFormHelper(FormHelper):
     form_method = "get"
     layout = Layout(
         Div(
-            Div("nrqz_no", "applicant", "contact", css_class="col"),
+            Div("submission", "applicant", "contact", css_class="col"),
             Div("phone", "email", "state", css_class="col"),
             Div("completed", "shutdown", css_class="col"),
             Div("radio_service", "call_sign", "fcc_num", css_class="col"),

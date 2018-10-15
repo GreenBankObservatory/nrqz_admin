@@ -13,10 +13,9 @@ from django.db.models import (
     TextField,
 )
 
-from .kml import facility_as_kml, submission_as_kml, kml_to_string
 from utils.coord_utils import dd_to_dms
+from .kml import facility_as_kml, submission_as_kml, kml_to_string
 from .mixins import IsActiveModel, TrackedModel
-
 
 class CoordinateField(DecimalField):
     def value_to_string(self, obj):
@@ -206,6 +205,19 @@ class Facility(IsActiveModel, TrackedModel, Model):
         return kml_to_string(facility_as_kml(self))
 
 
+class Batch(IsActiveModel, TrackedModel, Model):
+    comments = TextField(blank=True)
+    attachments = ManyToManyField("Attachment")
+    name = CharField(max_length=256, blank=True, null=True)
+    import_error_summary = TextField()
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse("batch_detail", args=[str(self.id)])
+
+
 class Submission(IsActiveModel, TrackedModel, Model):
     """Defines a given NRQZ Application"""
 
@@ -213,16 +225,11 @@ class Submission(IsActiveModel, TrackedModel, Model):
     # applicant = ForeignKey("Person", on_delete="PROTECT", related_name="applicant_for", null=True, blank=True)
     # contact = ForeignKey("Person", on_delete="PROTECT", related_name="contact_for", null=True, blank=True)
     comments = TextField(blank=True)
-
-    # fcc_file_number
-    # sgrs_notified = BooleanField(default=False)
-
-    attachments = ManyToManyField("Attachment")
-
-    import_error_summary = TextField()
-
+    case_num = PositiveIntegerField()
     name = CharField(max_length=256, blank=True, null=True)
-    # facilities = ManyToManyField("Facility")
+
+    batch = ForeignKey("Batch", related_name="submissions", on_delete="PROTECT")
+
 
     def __str__(self):
         return f"Application {self.id} ({self.created_on})"

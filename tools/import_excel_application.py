@@ -3,8 +3,8 @@
 
 """Import Excel NRQZ application forms into the DB
 
-Each Excel file creates a Submission. Each data row in the Excel file creates
-a Facility.
+Each Excel file creates a Batch. Each case number represents a Submission.
+Each data row in the Excel file creates a Facility.
 
 Any files matching *.xls* or *.csv will be considered applications and
 an attempt will be made to import them
@@ -14,6 +14,7 @@ import argparse
 from collections import namedtuple, OrderedDict
 import json
 import os
+from pprint import pprint
 import re
 import sys
 import traceback
@@ -26,8 +27,9 @@ django.setup()
 
 import pyexcel
 
-from submission.models import Attachment, Submission, Facility
+from submission.models import Attachment, Batch, Submission, Facility
 from tools.excelfieldmap import facility_field_map
+from tools.error_reporter import ErrorReporter
 
 
 INTERACTIVE = False
@@ -113,11 +115,9 @@ def determine_actual_headers(headers):
     )
 
 
-def create_facility_from_row(header_field_map, row, submission):
-    """Given a map of headers->fields, a data row, and a submission, create a Facility"""
+def create_facility_dict_from_row(header_field_map, row, error_reporter, row_num):
 
     facility_dict = {}
-    errors_by_header = {}
     for header, importer, cell in zip(
         header_field_map.keys(), header_field_map.values(), row
     ):
@@ -125,17 +125,25 @@ def create_facility_from_row(header_field_map, row, submission):
             try:
                 facility_dict[importer.to_field] = importer.converter(cell)
             except (ValueError) as error:
-                errors_by_header[header] = {
-                    "converter": importer.converter.__name__,
-                    "field": importer.to_field,
-                    "error_type": "conversion",
-                    "error": str(error),
-                    "value": cell,
-                }
+                error_reporter.add_row_error(
+                    header,
+                    row_num,
+                    {
+                        "converter": importer.converter.__name__,
+                        "field": importer.to_field,
+                        "error_type": "conversion",
+                        "error": str(error),
+                        "value": cell,
+                    },
+                )
         else:
-            print(f"No converter; skipping cell {cell}!")
+            print(f"No converter; skipping value {cell!r} for header {header!r}!")
             continue
 
+    return facility_dict
+
+
+def create_facility(header_field_map, facility_dict, submission):
     facility = Facility(**facility_dict, submission=submission)
     try:
         with transaction.atomic():
@@ -147,71 +155,96 @@ def create_facility_from_row(header_field_map, row, submission):
             for key, value in header_field_map.items()
             if value is not None
         }
-        index = [v.field if v else None for v in header_field_map.values()].index(
-            field.name
-        )
-        value = row[index]
+        value = facility_dict[field]
         derived_header = field_header_map[field.name]
-        errors_by_header[derived_header] = {
+        error = (derived_header, {
             "converter": facility_field_map[derived_header].converter.__name__,
             "field": field.name,
             "error_type": "validation",
             "error": str(error.args),
             "value": str(value),
-        }
+        })
+        facility = None
     else:
-        pass
+        error = None
         # print(f"Created {facility}")
 
-    return errors_by_header
+    return facility, error
+
+# https://regex101.com/r/gRPTN8/1
+nrqz_id_regex_str = r"^(?P<case_num>\d+)[\s_\*]+(?:\(.*\)[\s_]+)?(?P<site_name>(?:(?:\w+\s+)?\S{5}|\D+))[\s_]+(?P<facility_name>\S+)$"
+nrqz_id_regex = re.compile(nrqz_id_regex_str)
+nrqz_id_regex_fallback_str = r"^(?P<case_num>\d+).*"
+nrqz_id_regex_fallback = re.compile(nrqz_id_regex_fallback_str)
 
 
-def generate_error_summary(errors_by_row, header_field_map):
-    """Generate a more concise error report from errors_by_row"""
+def derive_case_num_from_nrqz_id(nrqz_id):
+    try:
+        match = nrqz_id_regex.match(nrqz_id)
+    except TypeError:
+        print(f"nrqz_id: {nrqz_id!r}")
 
-    error_summary = {}
-    unmapped_headers = [
-        header for header, field in header_field_map.items() if field is None
-    ]
-    if unmapped_headers:
-        error_summary["Unmapped Headers"] = unmapped_headers
-    column_error_summary = {}
-    for row_num, row_errors in errors_by_row.items():
-        for header, row_error in row_errors.items():
-            if header in column_error_summary:
-                if (
-                    row_error["value"]
-                    not in column_error_summary[header]["Invalid Values"]
-                ):
-                    column_error_summary[header]["Invalid Values"].append(
-                        str(row_error["value"])
-                    )
+    if not match:
+        match = nrqz_id_regex_fallback.match(nrqz_id)
+        if not match:
+            raise ValueError(
+                f"Could not parse NRQZ ID '{nrqz_id}' using "
+                f"'{nrqz_id_regex_str}' or '{nrqz_id_regex_fallback_str}'!"
+            )
+    return match["case_num"]
+
+
+def create_submission_map(header_field_map, data, nrqz_id_field, error_reporter):
+    submission_map = {}
+    for row in data:
+        # Pull out the row number from the row...
+        row_num = row[-1]
+        # ...then delete it
+        del row[-1]
+        facility_dict = create_facility_dict_from_row(header_field_map, row, error_reporter, row_num)
+        try:
+            case_num = derive_case_num_from_nrqz_id(str(facility_dict[nrqz_id_field]))
+        except ValueError as error:
+            field_header_map = {
+                value.to_field: key
+                for key, value in header_field_map.items()
+                if value is not None
+            }
+            header = field_header_map[nrqz_id_field]
+            error_reporter.add_row_error(header, row_num, {"error": str(error), "converter": None, "value": None})
+        else:
+            if case_num in submission_map:
+                submission_map[case_num][row_num] = facility_dict
             else:
-                column_error_summary[header] = OrderedDict(
-                    (
-                        ("Header", header),
-                        ("Converter", row_error["converter"]),
-                        ("Invalid Values", [str(row_error["value"])]),
-                    )
-                )
-    if column_error_summary:
-        error_summary["Column Errors"] = sorted(
-            column_error_summary.values(), key=lambda x: x["Header"]
-        )
-    return error_summary
+                submission_map[case_num] = {row_num: facility_dict}
+
+    return submission_map
+
+
+def derive_nrqz_id_field(fields):
+    nrqz_id_fields = ["nrqz_id", "site_name"]
+    for nrqz_id_field in nrqz_id_fields:
+        if nrqz_id_field in fields:
+            return nrqz_id_field
+
+    return None
+
 
 
 @transaction.atomic
 def process_excel_file(excel_path, threshold=None):
     """Create objects from given path"""
 
-    # A submission representing this Excel file
-    submission = Submission.objects.create(
+    error_reporter = ErrorReporter(excel_path)
+
+
+    # A Batch representing this Excel file
+    batch = Batch.objects.create(
         name=os.path.basename(excel_path), comments=f"Created by {__file__}"
     )
 
     # An attachment referencing the original Excel (or .csv) file
-    submission.attachments.add(
+    batch.attachments.add(
         Attachment.objects.create(path=excel_path, comments=f"Attached by {__file__}")
     )
 
@@ -235,29 +268,38 @@ def process_excel_file(excel_path, threshold=None):
     data = rows[1:]
     header_field_map = determine_actual_headers(headers)
 
-    errors_by_row = {}
-    # Create Facility objects for every row
-    for row in data:
-        # Pull out the row number from the row...
-        row_num = row[-1]
-        # ...then delete it
-        del row[-1]
-        result = create_facility_from_row(header_field_map, row, submission)
-        if result:
-            errors_by_row[row_num] = result
+    for header, field in header_field_map.items():
+        if field is None:
+            error_reporter.add_unmapped_header(header)
 
-    error_summary = generate_error_summary(errors_by_row, header_field_map)
+    nrqz_id_field = derive_nrqz_id_field(fields=[fm.to_field for fm in header_field_map.values() if fm])
+    if not nrqz_id_field:
+        error_reporter.add_sheet_error({
+            "error_type": "case_num_not_found",
+            "error": "No case number header found; tried site_name and nrqz_id",
+        })
+    else:
+        submission_map = create_submission_map(header_field_map, data, nrqz_id_field, error_reporter)
+        for case_num, row_to_facility_map in submission_map.items():
+            submission = Submission.objects.create(batch=batch, case_num=case_num)
+            for row_num, facility_dict in row_to_facility_map.items():
+                facility, facility_error = create_facility(
+                    header_field_map, facility_dict, submission
+                )
+                if facility_error:
+                    header, error = facility_error
+                    error_reporter.add_row_error(header, row_num, error)
 
-    # print(f"Created {len([r for r in results if r])} Facility objects")
+
+    error_reporter.print_report()
     print("-" * 80)
 
     ret = {}
-    # if any(errors_by_row.values()):
-    #     ret["errors_by_row"] = errors_by_row
-    if error_summary:
-        submission.import_error_summary = json.dumps(error_summary, indent=2)
+    if error_reporter.report:
+        error_summary = error_reporter.generate_error_summary()
+        batch.import_error_summary = json.dumps(error_summary, indent=2)
         ret["error_summary"] = error_summary
-        submission.save()
+        batch.save()
 
     return ret
 

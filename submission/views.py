@@ -5,9 +5,9 @@ from django.http import HttpResponse
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 
-from .models import Attachment, Submission, Facility
-from .filters import FacilityFilter, SubmissionFilter
-from .tables import FacilityTable, SubmissionTable
+from .models import Attachment, Batch, Submission, Facility
+from .filters import BatchFilter, FacilityFilter, SubmissionFilter
+from .tables import BatchTable, FacilityTable, SubmissionTable
 from .kml import (
     facility_as_kml,
     facilities_as_kml,
@@ -29,6 +29,35 @@ class FilterTableView(SingleTableMixin, FilterView):
             self.object_list = self.table_class.Meta.model.objects.all()
 
         return super().get_context_data(**kwargs)
+
+
+class BatchListView(FilterTableView):
+    table_class = BatchTable
+    filterset_class = BatchFilter
+    template_name = "submission/batch_list.html"
+
+
+class BatchDetailView(DetailView):
+    model = Batch
+
+    def __init__(self, *args, **kwargs):
+        super(BatchDetailView, self).__init__(*args, **kwargs)
+        self.submission_filter = None
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.submission_filter is None:
+            self.submission_filter = SubmissionFilter(
+                self.request.GET, queryset=self.object.submissions.all()
+            )
+            context["submission_filter"] = self.submission_filter
+
+        if "submission_table" not in context:
+            table = SubmissionTable(data=self.submission_filter.qs)
+            table.paginate(page=self.request.GET.get("page", 1), per_page=10)
+            context["submission_table"] = table
+
+        return context
 
 
 class SubmissionListView(FilterTableView):
@@ -63,11 +92,12 @@ class FacilityListView(FilterTableView):
                 kml_to_string(facilities_as_kml(qs)),
                 content_type="application/vnd.google-earth.kml+xml.",
             )
-            response["Content-Disposition"] = 'application; filename="nrqz_facilities.kml"'
+            response[
+                "Content-Disposition"
+            ] = 'application; filename="nrqz_facilities.kml"'
             return response
         else:
             return super(FacilityListView, self).get(request, *args, **kwargs)
-
 
 
 class SubmissionDetailView(DetailView):
