@@ -3,7 +3,7 @@ from pprint import pprint
 from django import setup
 setup()
 
-from submission.models import Submission, Antenna, Person, Site
+from cases.models import Case, Antenna, Person, Site
 
 key_to_thing = {
     Antenna: {
@@ -21,7 +21,7 @@ key_to_thing = {
         # TODO: Will definitely need special handling
         "sysType": "technology",
     },
-    Submission: {
+    Case: {
 
     },
     Person: {

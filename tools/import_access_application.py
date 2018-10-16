@@ -13,11 +13,11 @@ import django
 django.setup()
 from django.db import transaction
 
-from submission.models import Attachment, Submission, Person
+from cases.models import Attachment, Case, Person
 from tools.accessfieldmap import (
     applicant_field_mappers,
     contact_field_mappers,
-    submission_field_mappers,
+    case_field_mappers,
     get_combined_field_map,
 )
 from tools.import_excel_application import derive_field_from_validation_error
@@ -39,7 +39,7 @@ _letters = [f"letter{i}" for i in range(1, 9)]
 def handle_row(field_importers, row):
     applicant_dict = {}
     contact_dict = {}
-    submission_dict = {}
+    case_dict = {}
 
     for fi, value in zip(field_importers, row):
         if fi:
@@ -47,12 +47,12 @@ def handle_row(field_importers, row):
                 applicant_dict[fi.to_field] = fi.converter(value)
             elif fi in contact_field_mappers:
                 contact_dict[fi.to_field] = fi.converter(value)
-            elif fi in submission_field_mappers:
-                submission_dict[fi.to_field] = fi.converter(value)
+            elif fi in case_field_mappers:
+                case_dict[fi.to_field] = fi.converter(value)
             else:
                 raise ValueError("Shouldn't be possible")
 
-    found_report = dict(applicant=False, contact=False, submission=False)
+    found_report = dict(applicant=False, contact=False, case=False)
     applicant = None
     if any(applicant_dict.values()):
         try:
@@ -81,16 +81,16 @@ def handle_row(field_importers, row):
     else:
         print("No contact data; skipping")
 
-    if any(submission_dict.values()):
+    if any(case_dict.values()):
         try:
-            submission = Submission.objects.get(case_num=submission_dict["case_num"])
-            print(f"Found submission {submission}")
-            found_report["submission"] = True
-        except Submission.DoesNotExist:
+            case = Case.objects.get(case_num=case_dict["case_num"])
+            print(f"Found case {case}")
+            found_report["case"] = True
+        except Case.DoesNotExist:
 
-            stripped_submission_dict = {}
+            stripped_case_dict = {}
             attachments = []
-            for key, value in submission_dict.items():
+            for key, value in case_dict.items():
                 if key in _letters:
                     if value:
                         try:
@@ -101,12 +101,12 @@ def handle_row(field_importers, row):
                             print(f"Created attachment: {attachment}")
                         attachments.append(attachment)
                 else:
-                    stripped_submission_dict[key] = value
+                    stripped_case_dict[key] = value
 
 
-            submission = Submission.objects.create(**stripped_submission_dict, applicant=applicant, contact=contact)
-            submission.attachments.add(*attachments)
-            # print(f"Created submission {submission}")
+            case = Case.objects.create(**stripped_case_dict, applicant=applicant, contact=contact)
+            case.attachments.add(*attachments)
+            # print(f"Created case {case}")
     else:
         print("No contact data; skipping")
 
@@ -127,7 +127,7 @@ def main():
         except KeyError:
             field_importers.append(None)
 
-    found_counts = {"applicant": 0, "contact": 0, "submission": 0}
+    found_counts = {"applicant": 0, "contact": 0, "case": 0}
     for row in data:
         try:
             found_report = handle_row(field_importers, row)
@@ -138,7 +138,7 @@ def main():
         else:
             found_counts["applicant"] += bool(found_report["applicant"])
             found_counts["contact"] += bool(found_report["contact"])
-            found_counts["submission"] += bool(found_report["submission"])
+            found_counts["case"] += bool(found_report["case"])
 
     pprint(found_counts)
 

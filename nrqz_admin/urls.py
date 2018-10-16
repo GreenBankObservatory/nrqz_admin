@@ -6,9 +6,8 @@ from django.conf import settings
 from django.views.generic.base import RedirectView
 
 urlpatterns = [
-    path("", RedirectView.as_view(url="/submissions")),
-    path("", include("submission.urls")),
-    # path("applicants/", include("applicants.urls")),
+    path("", RedirectView.as_view(url="/cases")),
+    path("", include("cases.urls")),
     path("explorer/", include("explorer.urls")),
     path("admin/", admin.site.urls),
 ]

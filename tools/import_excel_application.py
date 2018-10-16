@@ -3,7 +3,7 @@
 
 """Import Excel NRQZ application forms into the DB
 
-Each Excel file creates a Batch. Each case number represents a Submission.
+Each Excel file creates a Batch. Each case number represents a Case.
 Each data row in the Excel file creates a Facility.
 
 Any files matching *.xls* or *.csv will be considered applications and
@@ -27,7 +27,7 @@ django.setup()
 
 import pyexcel
 
-from submission.models import Attachment, Batch, Submission, Facility
+from cases.models import Attachment, Batch, Case, Facility
 from tools.excelfieldmap import facility_field_map
 from tools.error_reporter import ErrorReporter
 
@@ -143,8 +143,8 @@ def create_facility_dict_from_row(header_field_map, row, error_reporter, row_num
     return facility_dict
 
 
-def create_facility(header_field_map, facility_dict, submission):
-    facility = Facility(**facility_dict, submission=submission)
+def create_facility(header_field_map, facility_dict, case):
+    facility = Facility(**facility_dict, case=case)
     try:
         with transaction.atomic():
             facility.save()
@@ -198,8 +198,8 @@ def derive_case_num_from_nrqz_id(nrqz_id):
     return match["case_num"]
 
 
-def create_submission_map(header_field_map, data, nrqz_id_field, error_reporter):
-    submission_map = {}
+def create_case_map(header_field_map, data, nrqz_id_field, error_reporter):
+    case_map = {}
     for row in data:
         # Pull out the row number from the row...
         row_num = row[-1]
@@ -221,12 +221,12 @@ def create_submission_map(header_field_map, data, nrqz_id_field, error_reporter)
                 header, row_num, {"error": str(error), "converter": None, "value": None}
             )
         else:
-            if case_num in submission_map:
-                submission_map[case_num][row_num] = facility_dict
+            if case_num in case_map:
+                case_map[case_num][row_num] = facility_dict
             else:
-                submission_map[case_num] = {row_num: facility_dict}
+                case_map[case_num] = {row_num: facility_dict}
 
-    return submission_map
+    return case_map
 
 
 def derive_nrqz_id_field(fields):
@@ -289,13 +289,13 @@ def process_excel_file(excel_path, threshold=None):
             }
         )
     else:
-        submission_map = create_submission_map(
+        case_map = create_case_map(
             header_field_map, data, nrqz_id_field, error_reporter
         )
-        for case_num, row_to_facility_map in submission_map.items():
+        for case_num, row_to_facility_map in case_map.items():
             with transaction.atomic():
                 try:
-                    submission = Submission.objects.create(batch=batch, case_num=case_num)
+                    case = Case.objects.create(batch=batch, case_num=case_num)
                 except django.db.utils.IntegrityError as error:
                     error_reporter.add_sheet_error(
                         {"error_type": "IntegrityError", "error": str(error)}
@@ -303,7 +303,7 @@ def process_excel_file(excel_path, threshold=None):
                 else:
                     for row_num, facility_dict in row_to_facility_map.items():
                         facility, facility_error = create_facility(
-                            header_field_map, facility_dict, submission
+                            header_field_map, facility_dict, case
                         )
                         if facility_error:
                             header, error = facility_error

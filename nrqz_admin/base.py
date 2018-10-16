@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     "crispy_forms",
     "explorer",
     "debug_toolbar",
-    "submission",
+    "cases",
 ]
 
 MIDDLEWARE = [
@@ -136,7 +136,7 @@ LOGGING = {
         }
     },
     "loggers": {
-        "submission": {"handlers": ["console"], "level": "DEBUG", "propagate": True}
+        "cases": {"handlers": ["console"], "level": "DEBUG", "propagate": True}
     },
 }
 

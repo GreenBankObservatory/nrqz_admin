@@ -26,7 +26,7 @@ def dms(value):
     return f"{d:3d} {m:2d} {s:2.3f}"
 
 
-@register.inclusion_tag("submission/info_table.html")
+@register.inclusion_tag("cases/info_table.html")
 def info_table(instance, title, fields):
     rows = [
         (
@@ -37,7 +37,7 @@ def info_table(instance, title, fields):
     ]
     return {"title": title, "rows": rows}
 
-@register.inclusion_tag("submission/info_table.html")
+@register.inclusion_tag("cases/info_table.html")
 def attachment_table(instance, title, fields):
     rows = [
         (
@@ -49,7 +49,7 @@ def attachment_table(instance, title, fields):
     return {"title": title, "rows": rows}
 
 
-@register.inclusion_tag("submission/info_table.html")
+@register.inclusion_tag("cases/info_table.html")
 def location_table(instance, title, fields):
     fields.remove("latitude")
     latitude = getattr(instance, "latitude")

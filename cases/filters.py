@@ -100,8 +100,8 @@ class FacilityFilter(HelpedFilterSet):
         fields = discover_fields(formhelper_class.layout)
 
 
-class SubmissionFilterFormHelper(FormHelper):
-    """Provides layout information for SubmissionFilter.form"""
+class CaseFilterFormHelper(FormHelper):
+    """Provides layout information for CaseFilter.form"""
 
     form_method = "get"
     layout = Layout(
@@ -122,14 +122,14 @@ class SubmissionFilterFormHelper(FormHelper):
                 "As .kml",
                 title=(
                     "Download the locations of all facilities linked to "
-                    "the currently-filtered Submissions as a .kml file"
+                    "the currently-filtered Casess as a .kml file"
                 ),
             ),
         ),
     )
 
 
-class SubmissionFilter(HelpedFilterSet):
+class CaseFilter(HelpedFilterSet):
     created_on = django_filters.DateFromToRangeFilter(lookup_expr="range")
     name = django_filters.CharFilter(lookup_expr="icontains")
     comments = django_filters.CharFilter(lookup_expr="icontains")
@@ -138,8 +138,8 @@ class SubmissionFilter(HelpedFilterSet):
     contact = django_filters.CharFilter(lookup_expr="name__icontains")
 
     class Meta:
-        model = models.Submission
-        formhelper_class = SubmissionFilterFormHelper
+        model = models.Case
+        formhelper_class = CaseFilterFormHelper
         fields = discover_fields(formhelper_class.layout)
 
 

@@ -23,16 +23,16 @@ def facilities_as_kml(facilities):
     return KML.Folder(*[facility_as_kml(facility) for facility in facilities])
 
 
-def submission_as_kml(submission):
+def case_as_kml(case):
     return KML.Folder(
-        KML.name(submission.name), *facilities_as_kml(submission.facilities.all())
+        KML.name(case.name), *facilities_as_kml(case.facilities.all())
     )
 
 
-def submissions_as_kml(submissions):
+def cases_as_kml(cases):
     return KML.Folder(
-        KML.name("submissions"),
-        *[submission_as_kml(submission) for submission in submissions],
+        KML.name("cases"),
+        *[case_as_kml(case) for case in cases],
     )
 
 
@@ -50,8 +50,8 @@ def write_kml(kml, output=None):
 def main():
     # args = parse_args()
     # kml = create_facility_placemarks(Facility.objects.all())
-    facility_placemarks_by_submission = submissions_as_kml()
-    write_kml(facility_placemarks_by_submission)
+    facility_placemarks_by_case = cases_as_kml()
+    write_kml(facility_placemarks_by_case)
 
 
 # def parse_args():
@@ -64,6 +64,6 @@ def main():
 
 if __name__ == "__main__":
     django.setup()
-    from submission.models import Submission, Facility
+    from cases.models import Case, Facility
 
     main()

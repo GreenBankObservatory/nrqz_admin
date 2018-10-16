@@ -5,8 +5,8 @@ from . import views
 urlpatterns = [
     path("batches/", views.BatchListView.as_view(), name="batch_index"),
     path("batches/<int:pk>/", views.BatchDetailView.as_view(), name="batch_detail"),
-    path("submissions/", views.SubmissionListView.as_view(), name="submission_index"),
-    path("submissions/<int:pk>/", views.SubmissionDetailView.as_view(), name="submission_detail"),
+    path("cases/", views.CaseListView.as_view(), name="case_index"),
+    path("cases/<int:pk>/", views.CaseDetailView.as_view(), name="case_detail"),
     path(
         "facilities/",
         views.FacilityListView.as_view(),

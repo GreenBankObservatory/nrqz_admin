@@ -2,10 +2,10 @@ from datetime import datetime
 import pytz
 
 from tools.fieldmap import FieldMap, coerce_num
-from submission.models import Person, Submission
+from cases.models import Person, Case
 
 
-def coerce_submission(value):
+def coerce_case(value):
     clean_value = value.strip()
     if clean_value in [None, ""]:
         return None
@@ -13,8 +13,8 @@ def coerce_submission(value):
     int_value = int(float_value)
     if int_value == float_value:
         try:
-            return Submission.objects.get(case_num=int_value)
-        except Submission.DoesNotExist:
+            return Case.objects.get(case_num=int_value)
+        except Case.DoesNotExist:
             return None
     else:
         raise ValueError(f"{value} cannot be coerced to an int!")
@@ -65,7 +65,7 @@ contact_field_mappers = [
     FieldMap(to_field="name", converter=None, from_field="CONTACT"),
 ]
 
-submission_field_mappers = [
+case_field_mappers = [
     FieldMap(to_field="case_num", converter=coerce_positive_int, from_field="NRQZ_NO"),
     FieldMap(to_field="comments", converter=None, from_field="COMMENTS"),
     FieldMap(to_field="created_on", converter=coerce_datetime, from_field="DATEREC"),
@@ -111,7 +111,7 @@ def expand_field_mappers(field_mappers):
     return field_map
 
 def get_combined_field_map():
-    return expand_field_mappers([*applicant_field_mappers, *contact_field_mappers, *submission_field_mappers])
+    return expand_field_mappers([*applicant_field_mappers, *contact_field_mappers, *case_field_mappers])
 
 
 def print_field_map(field_map):
@@ -125,8 +125,8 @@ def print_field_map(field_map):
 
 
 if __name__ == "__main__":
-    print("Submission field map:")
-    print_field_map(expand_field_mappers(submission_field_mappers))
+    print("Case field map:")
+    print_field_map(expand_field_mappers(case_field_mappers))
     print()
     print("Person field map:")
     print_field_map(expand_field_mappers(person_field_mappers))

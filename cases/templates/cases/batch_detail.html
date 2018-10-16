@@ -1,5 +1,5 @@
-{% extends "submission/base.html" %}
-{% load submission_tags %}
+{% extends "cases/base.html" %}
+{% load cases_tags %}
 {% load render_table from django_tables2 %}
 {% load crispy_forms_tags %}
 
@@ -17,13 +17,13 @@
 {% endif %}
 
 
-<h2>Submissions</h2>
+<h2>Cases</h2>
 <div class="container-fluid" style="border:1px solid #D3D3D3; border-radius: 10px">
-    {% if submission_filter %}
-    {% crispy submission_filter.form %}
-    <p>Results: {{ submission_table.data|length }}</p>
+    {% if case_filter %}
+    {% crispy case_filter.form %}
+    <p>Results: {{ case_table.data|length }}</p>
     {% endif %}
-    {% render_table submission_table %}
+    {% render_table case_table %}
 </div>
 
 {% if batch.import_error_summary %}

@@ -4,27 +4,27 @@ from django.http import HttpResponse
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 
-from .models import Attachment, Batch, Submission, Facility, Person
+from .models import Attachment, Batch, Case, Facility, Person
 from .filters import (
     AttachmentFilter,
     BatchFilter,
     FacilityFilter,
     PersonFilter,
-    SubmissionFilter,
+    CaseFilter,
 )
 from .tables import (
     AttachmentTable,
     BatchTable,
     FacilityTable,
     PersonTable,
-    SubmissionTable,
+    CaseTable,
 )
 
 from .kml import (
     facility_as_kml,
     facilities_as_kml,
-    submission_as_kml,
-    submissions_as_kml,
+    case_as_kml,
+    cases_as_kml,
     kml_to_string,
 )
 
@@ -46,7 +46,7 @@ class FilterTableView(SingleTableMixin, FilterView):
 class BatchListView(FilterTableView):
     table_class = BatchTable
     filterset_class = BatchFilter
-    template_name = "submission/batch_list.html"
+    template_name = "cases/batch_list.html"
 
 
 class BatchDetailView(DetailView):
@@ -54,47 +54,47 @@ class BatchDetailView(DetailView):
 
     def __init__(self, *args, **kwargs):
         super(BatchDetailView, self).__init__(*args, **kwargs)
-        self.submission_filter = None
+        self.case_filter = None
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if self.submission_filter is None:
-            self.submission_filter = SubmissionFilter(
-                self.request.GET, queryset=self.object.submissions.all()
+        if self.case_filter is None:
+            self.case_filter = CaseFilter(
+                self.request.GET, queryset=self.object.cases.all()
             )
-            context["submission_filter"] = self.submission_filter
+            context["case_filter"] = self.case_filter
 
-        if "submission_table" not in context:
-            table = SubmissionTable(data=self.submission_filter.qs)
+        if "case_table" not in context:
+            table = CaseTable(data=self.case_filter.qs)
             table.paginate(page=self.request.GET.get("page", 1), per_page=10)
-            context["submission_table"] = table
+            context["case_table"] = table
 
         return context
 
 
-class SubmissionListView(FilterTableView):
-    table_class = SubmissionTable
-    filterset_class = SubmissionFilter
-    template_name = "submission/submission_list.html"
+class CaseListView(FilterTableView):
+    table_class = CaseTable
+    filterset_class = CaseFilter
+    template_name = "cases/case_list.html"
 
     def get(self, request, *args, **kwargs):
         if "kml" in request.GET:
             # TODO: Must be a cleaner way to do this
             qs = self.get_filterset(self.filterset_class).qs
             response = HttpResponse(
-                kml_to_string(submissions_as_kml(qs)),
+                kml_to_string(cases_as_kml(qs)),
                 content_type="application/vnd.google-earth.kml+xml.",
             )
             response["Content-Disposition"] = 'application; filename="nrqz_apps.kml"'
             return response
         else:
-            return super(SubmissionListView, self).get(request, *args, **kwargs)
+            return super(CaseListView, self).get(request, *args, **kwargs)
 
 
 class FacilityListView(FilterTableView):
     table_class = FacilityTable
     filterset_class = FacilityFilter
-    template_name = "submission/facility_list.html"
+    template_name = "cases/facility_list.html"
 
     def get(self, request, *args, **kwargs):
         if "kml" in request.GET:
@@ -112,11 +112,11 @@ class FacilityListView(FilterTableView):
             return super(FacilityListView, self).get(request, *args, **kwargs)
 
 
-class SubmissionDetailView(DetailView):
-    model = Submission
+class CaseDetailView(DetailView):
+    model = Case
 
     def __init__(self, *args, **kwargs):
-        super(SubmissionDetailView, self).__init__(*args, **kwargs)
+        super(CaseDetailView, self).__init__(*args, **kwargs)
         self.facility_filter = None
         self.attachment_filter = None
 
@@ -171,7 +171,7 @@ class SubmissionDetailView(DetailView):
         return context
 
     def as_kml(self):
-        submission_as_kml(self.object)
+        case_as_kml(self.object)
 
 
 class FacilityDetailView(DetailView):
@@ -217,7 +217,7 @@ class FacilityDetailView(DetailView):
 class AttachmentListView(FilterTableView):
     table_class = AttachmentTable
     filterset_class = AttachmentFilter
-    template_name = "submission/attachment_list.html"
+    template_name = "cases/attachment_list.html"
 
 
 class AttachmentDetailView(DetailView):
@@ -225,22 +225,22 @@ class AttachmentDetailView(DetailView):
 
     def __init__(self, *args, **kwargs):
         super(AttachmentDetailView, self).__init__(*args, **kwargs)
-        self.submission_filter = None
+        self.case_filter = None
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["meta_info"] = ["id", "created_on", "modified_on"]
 
-        if self.submission_filter is None:
-            self.submission_filter = SubmissionFilter(
-                self.request.GET, queryset=self.object.submissions.all()
+        if self.case_filter is None:
+            self.case_filter = CaseFilter(
+                self.request.GET, queryset=self.object.cases.all()
             )
-            context["submission_filter"] = self.submission_filter
+            context["case_filter"] = self.case_filter
 
-        if "submission_table" not in context:
-            table = SubmissionTable(data=self.submission_filter.qs)
+        if "case_table" not in context:
+            table = CaseTable(data=self.case_filter.qs)
             table.paginate(page=self.request.GET.get("page", 1), per_page=10)
-            context["submission_table"] = table
+            context["case_table"] = table
 
         return context
 
@@ -248,7 +248,7 @@ class AttachmentDetailView(DetailView):
 class PersonListView(FilterTableView):
     table_class = PersonTable
     filterset_class = PersonFilter
-    template_name = "submission/person_list.html"
+    template_name = "cases/person_list.html"
 
 
 class PersonDetailView(DetailView):
@@ -256,13 +256,13 @@ class PersonDetailView(DetailView):
 
     def __init__(self, *args, **kwargs):
         super(PersonDetailView, self).__init__(*args, **kwargs)
-        self.submission_filter = None
+        self.case_filter = None
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
         context["applicant_info"] = [
-            # "submissions",
+            # "cases",
             "name",
             "phone",
             "fax",
@@ -274,15 +274,15 @@ class PersonDetailView(DetailView):
             "zipcode",
         ]
 
-        if self.submission_filter is None:
-            self.submission_filter = SubmissionFilter(
-                self.request.GET, queryset=self.object.applicant_for_submissions.all()
+        if self.case_filter is None:
+            self.case_filter = CaseFilter(
+                self.request.GET, queryset=self.object.applicant_for_cases.all()
             )
-            context["submission_filter"] = self.submission_filter
+            context["case_filter"] = self.case_filter
 
-        if "submission_table" not in context:
-            table = SubmissionTable(data=self.submission_filter.qs)
+        if "case_table" not in context:
+            table = CaseTable(data=self.case_filter.qs)
             table.paginate(page=self.request.GET.get("page", 1), per_page=10)
-            context["submission_table"] = table
+            context["case_table"] = table
 
         return context

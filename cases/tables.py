@@ -2,7 +2,7 @@ import django_tables2 as tables
 
 from utils.coord_utils import dd_to_dms
 from . import models
-from .filters import AttachmentFilter, BatchFilter, FacilityFilter, PersonFilter, SubmissionFilter
+from .filters import AttachmentFilter, BatchFilter, FacilityFilter, PersonFilter, CaseFilter
 
 
 class FacilityTable(tables.Table):
@@ -22,15 +22,15 @@ class FacilityTable(tables.Table):
     render_longitude = _render_coord
 
 
-class SubmissionTable(tables.Table):
+class CaseTable(tables.Table):
     case_num = tables.LinkColumn()
     batch = tables.LinkColumn()
     applicant = tables.LinkColumn()
     contact = tables.LinkColumn()
 
     class Meta:
-        model = models.Submission
-        fields = SubmissionFilter.Meta.fields
+        model = models.Case
+        fields = CaseFilter.Meta.fields
 
 
 class BatchTable(tables.Table):

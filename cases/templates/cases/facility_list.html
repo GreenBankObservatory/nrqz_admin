@@ -1,14 +1,14 @@
-{% extends "submission/base.html" %}
+{% extends "cases/base.html" %}
 {% load render_table from django_tables2 %}
 {% load crispy_forms_tags %}
 
 
 {% block head %}
-<title>Attachment Index</title>
+<title>Facility Index</title>
 {% endblock %}
 
 {% block content %}
-<h1>Attachment Index</h1>
+<h1>Facility Index</h1>
 
 {% if filter %}
 {% crispy filter.form %}

@@ -15,7 +15,7 @@ from django.db.models import (
 )
 
 from utils.coord_utils import dd_to_dms
-from .kml import facility_as_kml, submission_as_kml, kml_to_string
+from .kml import facility_as_kml, case_as_kml, kml_to_string
 from .mixins import IsActiveModel, TrackedModel
 
 
@@ -186,8 +186,8 @@ class Facility(IsActiveModel, TrackedModel, Model):
         help_text="Additional information or comments from the applicant"
     )
 
-    submission = ForeignKey(
-        "Submission", on_delete="PROTECT", related_name="facilities"
+    case = ForeignKey(
+        "Case", on_delete="PROTECT", related_name="facilities"
     )
 
     class Meta:
@@ -220,21 +220,21 @@ class Batch(IsActiveModel, TrackedModel, Model):
         return reverse("batch_detail", args=[str(self.id)])
 
 
-class Submission(IsActiveModel, TrackedModel, Model):
+class Case(IsActiveModel, TrackedModel, Model):
     """Defines a given NRQZ Application"""
 
     # sites = ManyToManyField("Site")
     applicant = ForeignKey(
         "Person",
         on_delete="PROTECT",
-        related_name="applicant_for_submissions",
+        related_name="applicant_for_cases",
         null=True,
         blank=True,
     )
     contact = ForeignKey(
         "Person",
         on_delete="PROTECT",
-        related_name="contact_for_submissions",
+        related_name="contact_for_cases",
         null=True,
         blank=True,
     )
@@ -243,10 +243,10 @@ class Submission(IsActiveModel, TrackedModel, Model):
     name = CharField(max_length=256, blank=True, null=True)
 
     batch = ForeignKey(
-        "Batch", related_name="submissions", on_delete="PROTECT", null=True
+        "Batch", related_name="cases", on_delete="PROTECT", null=True
     )
 
-    attachments = ManyToManyField("Attachment", related_name="submissions")
+    attachments = ManyToManyField("Attachment", related_name="cases")
 
     # From Access
     completed = BooleanField(default=False, blank=True)
@@ -270,10 +270,10 @@ class Submission(IsActiveModel, TrackedModel, Model):
         return f"Application {self.id} ({self.created_on})"
 
     def get_absolute_url(self):
-        return reverse("submission_detail", args=[str(self.id)])
+        return reverse("case_detail", args=[str(self.id)])
 
     def as_kml(self):
-        return kml_to_string(submission_as_kml(self))
+        return kml_to_string(case_as_kml(self))
 
 
 class Person(IsActiveModel, TrackedModel, Model):
