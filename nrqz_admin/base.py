@@ -40,11 +40,13 @@ INSTALLED_APPS = [
     "django_filters",
     "crispy_forms",
     "explorer",
+    "debug_toolbar",
     "submission",
     "applicants",
 ]
 
 MIDDLEWARE = [
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -112,41 +114,37 @@ LOGGING = {
     "formatters": {
         "simple": {
             "format": "[%(asctime)s] %(levelname)s %(message)s",
-            "datefmt": "%Y-%m-%d %H:%M:%S"
+            "datefmt": "%Y-%m-%d %H:%M:%S",
         },
         "verbose": {
-            "format": ("[%(asctime)s] %(levelname)s"
-                       "[%(name)s.%(funcName)s:%(lineno)d] %(message)s"),
-            "datefmt": "%Y-%m-%d %H:%M:%S"
+            "format": (
+                "[%(asctime)s] %(levelname)s"
+                "[%(name)s.%(funcName)s:%(lineno)d] %(message)s"
+            ),
+            "datefmt": "%Y-%m-%d %H:%M:%S",
         },
     },
     "filters": {
-        "require_debug_true": {
-            "()": "django.utils.log.RequireDebugTrue",
-        },
-        "require_debug_false": {
-            "()": "django.utils.log.RequireDebugFalse",
-        },
+        "require_debug_true": {"()": "django.utils.log.RequireDebugTrue"},
+        "require_debug_false": {"()": "django.utils.log.RequireDebugFalse"},
     },
     "handlers": {
         "console": {
             "level": "DEBUG",
             "class": "logging.StreamHandler",
             "filters": ["require_debug_true"],
-            "formatter": "simple"
-        },
+            "formatter": "simple",
+        }
     },
     "loggers": {
-        "submission": {
-            "handlers": ["console"],
-            "level": "DEBUG",
-            "propagate": True
-        },
-    }
+        "submission": {"handlers": ["console"], "level": "DEBUG", "propagate": True}
+    },
 }
 
-EXPLORER_CONNECTIONS = {'Default': 'readonly'}
-EXPLORER_DEFAULT_CONNECTION = 'readonly'
+EXPLORER_CONNECTIONS = {"Default": "readonly"}
+EXPLORER_DEFAULT_CONNECTION = "readonly"
 
 DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap4.html"
-CRISPY_TEMPLATE_PACK = 'bootstrap4'
+CRISPY_TEMPLATE_PACK = "bootstrap4"
+
+INTERNAL_IPS = ["10.16.96.146"]

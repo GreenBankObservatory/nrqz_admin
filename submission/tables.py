@@ -25,11 +25,7 @@ class FacilityTable(tables.Table):
 class SubmissionTable(tables.Table):
     case_num = tables.Column(linkify=True)
     batch = tables.Column(linkify=True)
-    num_facilities = tables.Column(empty_values=())
-
-    def render_num_facilities(self, record):
-        # TODO: Can't sort
-        return record.facilities.count()
+    applicant = tables.Column(verbose_name="Applicant", linkify=True)
 
     class Meta:
         model = models.Submission
@@ -37,12 +33,8 @@ class SubmissionTable(tables.Table):
 
 class BatchTable(tables.Table):
     name = tables.Column(linkify=True)
-    num_submissions = tables.Column(empty_values=())
 
     class Meta:
         model = models.Batch
         fields = BatchFilter.Meta.fields
 
-    def render_num_submissions(self, record):
-        # TODO: Can't sort
-        return record.submissions.count()

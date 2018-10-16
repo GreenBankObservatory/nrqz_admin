@@ -2,8 +2,8 @@ import django_filters
 from crispy_forms.layout import Submit, Layout, ButtonHolder, Div
 from crispy_forms.helper import FormHelper
 
+from applicants.models import Applicant
 from . import models
-
 
 def discover_fields(layout):
     """Discover all fields defined in a layout object
@@ -53,7 +53,6 @@ class BatchFilter(HelpedFilterSet):
         model = models.Batch
         formhelper_class = BatchFilterFormHelper
         fields = discover_fields(formhelper_class.layout)
-        exclude = ["batch"]
 
 
 class FacilityFilterFormHelper(FormHelper):
@@ -107,8 +106,7 @@ class SubmissionFilterFormHelper(FormHelper):
     layout = Layout(
         Div(
             Div("case_num", css_class="col"),
-            Div("name", css_class="col"),
-            Div("comments", css_class="col"),
+            Div("applicant", css_class="col"),
             Div("batch", css_class="col"),
             css_class="row",
         ),
@@ -130,6 +128,8 @@ class SubmissionFilter(HelpedFilterSet):
     created_on = django_filters.DateFromToRangeFilter(lookup_expr="range")
     name = django_filters.CharFilter(lookup_expr="icontains")
     comments = django_filters.CharFilter(lookup_expr="icontains")
+    applicant = django_filters.CharFilter(label="Applicant name contains", lookup_expr="applicant__icontains")
+    batch = django_filters.CharFilter(lookup_expr="name__icontains")
 
     class Meta:
         model = models.Submission

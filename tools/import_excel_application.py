@@ -157,19 +157,23 @@ def create_facility(header_field_map, facility_dict, submission):
         }
         value = facility_dict[field]
         derived_header = field_header_map[field.name]
-        error = (derived_header, {
-            "converter": facility_field_map[derived_header].converter.__name__,
-            "field": field.name,
-            "error_type": "validation",
-            "error": str(error.args),
-            "value": str(value),
-        })
+        error = (
+            derived_header,
+            {
+                "converter": facility_field_map[derived_header].converter.__name__,
+                "field": field.name,
+                "error_type": "validation",
+                "error": str(error.args),
+                "value": str(value),
+            },
+        )
         facility = None
     else:
         error = None
         # print(f"Created {facility}")
 
     return facility, error
+
 
 # https://regex101.com/r/gRPTN8/1
 nrqz_id_regex_str = r"^(?P<case_num>\d+)[\s_\*]+(?:\(.*\)[\s_]+)?(?P<site_name>(?:(?:\w+\s+)?\S{5}|\D+))[\s_]+(?P<facility_name>\S+)$"
@@ -201,7 +205,9 @@ def create_submission_map(header_field_map, data, nrqz_id_field, error_reporter)
         row_num = row[-1]
         # ...then delete it
         del row[-1]
-        facility_dict = create_facility_dict_from_row(header_field_map, row, error_reporter, row_num)
+        facility_dict = create_facility_dict_from_row(
+            header_field_map, row, error_reporter, row_num
+        )
         try:
             case_num = derive_case_num_from_nrqz_id(str(facility_dict[nrqz_id_field]))
         except ValueError as error:
@@ -211,7 +217,9 @@ def create_submission_map(header_field_map, data, nrqz_id_field, error_reporter)
                 if value is not None
             }
             header = field_header_map[nrqz_id_field]
-            error_reporter.add_row_error(header, row_num, {"error": str(error), "converter": None, "value": None})
+            error_reporter.add_row_error(
+                header, row_num, {"error": str(error), "converter": None, "value": None}
+            )
         else:
             if case_num in submission_map:
                 submission_map[case_num][row_num] = facility_dict
@@ -230,13 +238,11 @@ def derive_nrqz_id_field(fields):
     return None
 
 
-
 @transaction.atomic
 def process_excel_file(excel_path, threshold=None):
     """Create objects from given path"""
 
     error_reporter = ErrorReporter(excel_path)
-
 
     # A Batch representing this Excel file
     batch = Batch.objects.create(
@@ -272,24 +278,36 @@ def process_excel_file(excel_path, threshold=None):
         if field is None:
             error_reporter.add_unmapped_header(header)
 
-    nrqz_id_field = derive_nrqz_id_field(fields=[fm.to_field for fm in header_field_map.values() if fm])
+    nrqz_id_field = derive_nrqz_id_field(
+        fields=[fm.to_field for fm in header_field_map.values() if fm]
+    )
     if not nrqz_id_field:
-        error_reporter.add_sheet_error({
-            "error_type": "case_num_not_found",
-            "error": "No case number header found; tried site_name and nrqz_id",
-        })
+        error_reporter.add_sheet_error(
+            {
+                "error_type": "case_num_not_found",
+                "error": "No case number header found; tried site_name and nrqz_id",
+            }
+        )
     else:
-        submission_map = create_submission_map(header_field_map, data, nrqz_id_field, error_reporter)
+        submission_map = create_submission_map(
+            header_field_map, data, nrqz_id_field, error_reporter
+        )
         for case_num, row_to_facility_map in submission_map.items():
-            submission = Submission.objects.create(batch=batch, case_num=case_num)
-            for row_num, facility_dict in row_to_facility_map.items():
-                facility, facility_error = create_facility(
-                    header_field_map, facility_dict, submission
-                )
-                if facility_error:
-                    header, error = facility_error
-                    error_reporter.add_row_error(header, row_num, error)
-
+            with transaction.atomic():
+                try:
+                    submission = Submission.objects.create(batch=batch, case_num=case_num)
+                except django.db.utils.IntegrityError as error:
+                    error_reporter.add_sheet_error(
+                        {"error_type": "IntegrityError", "error": str(error)}
+                    )
+                else:
+                    for row_num, facility_dict in row_to_facility_map.items():
+                        facility, facility_error = create_facility(
+                            header_field_map, facility_dict, submission
+                        )
+                        if facility_error:
+                            header, error = facility_error
+                            error_reporter.add_row_error(header, row_num, error)
 
     error_reporter.print_report()
     print("-" * 80)

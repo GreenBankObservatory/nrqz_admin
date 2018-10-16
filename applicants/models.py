@@ -10,6 +10,7 @@ from django.db.models import (
     IntegerField,
     ManyToManyField,
     Model,
+    OneToOneField,
     PositiveIntegerField,
     TextField,
 )
@@ -21,7 +22,7 @@ class Applicant(IsActiveModel, TrackedModel, Model):
     created_on = DateTimeField(null=True)
     modified_on = DateTimeField(null=True)
 
-    submission = PositiveIntegerField(null=True, blank=True)
+    submission = OneToOneField("submission.Submission", null=True, blank=True, on_delete="PROTECT", verbose_name="Submission")
     comments = TextField(null=True, blank=True)
     applicant = CharField(max_length=256, blank=True)
     contact = CharField(max_length=256, blank=True)

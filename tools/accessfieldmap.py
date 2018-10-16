@@ -13,7 +13,7 @@ def coerce_submission(value):
     int_value = int(float_value)
     if int_value == float_value:
         try:
-            return Submission.objects.get(nrqz_id=int_value)
+            return Submission.objects.get(case_num=int_value)
         except Submission.DoesNotExist:
             return None
     else:

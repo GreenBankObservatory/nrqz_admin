@@ -13,10 +13,10 @@ class ApplicantFilterFormHelper(FormHelper):
     form_method = "get"
     layout = Layout(
         Div(
-            Div("submission", "applicant", "contact", css_class="col"),
+            Div("submission_id", "applicant", "contact", css_class="col"),
             Div("phone", "email", "state", css_class="col"),
             Div("completed", "shutdown", css_class="col"),
-            Div("radio_service", "call_sign", "fcc_num", css_class="col"),
+            Div("radio_service", "call_sign", "fcc_file_num", css_class="col"),
             css_class="row",
         ),
         ButtonHolder(Submit("submit", "Filter")),
@@ -29,7 +29,7 @@ class ApplicantFilter(HelpedFilterSet):
     call_sign = django_filters.CharFilter(lookup_expr="icontains")
     phone = django_filters.CharFilter(lookup_expr="icontains")
     email = django_filters.CharFilter(lookup_expr="icontains")
-    fcc_num = django_filters.CharFilter(lookup_expr="icontains")
+    fcc_file_num = django_filters.CharFilter(lookup_expr="icontains")
     state = django_filters.CharFilter(lookup_expr="icontains")
     radio_service = django_filters.CharFilter(lookup_expr="icontains")
 

@@ -225,7 +225,7 @@ class Submission(IsActiveModel, TrackedModel, Model):
     # applicant = ForeignKey("Person", on_delete="PROTECT", related_name="applicant_for", null=True, blank=True)
     # contact = ForeignKey("Person", on_delete="PROTECT", related_name="contact_for", null=True, blank=True)
     comments = TextField(blank=True)
-    case_num = PositiveIntegerField()
+    case_num = PositiveIntegerField(unique=True)
     name = CharField(max_length=256, blank=True, null=True)
 
     batch = ForeignKey("Batch", related_name="submissions", on_delete="PROTECT")
