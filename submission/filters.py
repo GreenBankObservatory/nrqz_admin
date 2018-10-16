@@ -2,8 +2,8 @@ import django_filters
 from crispy_forms.layout import Submit, Layout, ButtonHolder, Div
 from crispy_forms.helper import FormHelper
 
-from applicants.models import Applicant
 from . import models
+
 
 def discover_fields(layout):
     """Discover all fields defined in a layout object
@@ -40,15 +40,18 @@ class BatchFilterFormHelper(FormHelper):
     form_method = "get"
     layout = Layout(
         Div(
-            Div("name", "comments", css_class="col"),
+            Div("name", css_class="col"),
+            Div("comments", css_class="col"),
             css_class="row",
         ),
-        ButtonHolder(
-            Submit("submit", "Filter"),
-        ),
+        ButtonHolder(Submit("submit", "Filter")),
     )
 
+
 class BatchFilter(HelpedFilterSet):
+    name = django_filters.CharFilter(lookup_expr="icontains")
+    comments = django_filters.CharFilter(lookup_expr="icontains")
+
     class Meta:
         model = models.Batch
         formhelper_class = BatchFilterFormHelper
@@ -63,9 +66,7 @@ class FacilityFilterFormHelper(FormHelper):
         Div(
             Div("nrqz_id", "site_name", css_class="col"),
             Div("latitude", "longitude", css_class="col"),
-            # Div("amsl", "agl", css_class="col"),
             Div("freq_low", "freq_high", css_class="col"),
-            # Div("submission", css_class="col"),
             css_class="row",
         ),
         ButtonHolder(
@@ -105,9 +106,13 @@ class SubmissionFilterFormHelper(FormHelper):
     form_method = "get"
     layout = Layout(
         Div(
-            Div("case_num", css_class="col"),
-            Div("applicant", css_class="col"),
-            Div("batch", css_class="col"),
+            Div("case_num", "batch", css_class="col"),
+            Div("applicant", "contact", css_class="col"),
+            css_class="row",
+        ),
+        Div(
+            Div("completed", "shutdown", css_class="col"),
+            Div("radio_service", "call_sign", "fcc_file_num", css_class="col"),
             css_class="row",
         ),
         ButtonHolder(
@@ -128,10 +133,62 @@ class SubmissionFilter(HelpedFilterSet):
     created_on = django_filters.DateFromToRangeFilter(lookup_expr="range")
     name = django_filters.CharFilter(lookup_expr="icontains")
     comments = django_filters.CharFilter(lookup_expr="icontains")
-    applicant = django_filters.CharFilter(label="Applicant name contains", lookup_expr="applicant__icontains")
     batch = django_filters.CharFilter(lookup_expr="name__icontains")
+    applicant = django_filters.CharFilter(lookup_expr="name__icontains")
+    contact = django_filters.CharFilter(lookup_expr="name__icontains")
 
     class Meta:
         model = models.Submission
         formhelper_class = SubmissionFilterFormHelper
+        fields = discover_fields(formhelper_class.layout)
+
+
+class PersonFilterFormHelper(FormHelper):
+    """Provides layout information for PersonFilter.form"""
+
+    form_method = "get"
+    layout = Layout(
+        Div(
+            Div("name", "email", "phone", css_class="col"),
+            Div("street", "city", "state", "zipcode", css_class="col"),
+            css_class="row",
+        ),
+        ButtonHolder(Submit("submit", "Filter")),
+    )
+
+
+class PersonFilter(HelpedFilterSet):
+    name = django_filters.CharFilter(lookup_expr="icontains")
+    email = django_filters.CharFilter(lookup_expr="icontains")
+    phone = django_filters.CharFilter(lookup_expr="icontains")
+    street = django_filters.CharFilter(lookup_expr="icontains")
+    city = django_filters.CharFilter(lookup_expr="icontains")
+    state = django_filters.CharFilter(lookup_expr="icontains")
+    zipcode = django_filters.CharFilter(lookup_expr="icontains")
+
+    class Meta:
+        model = models.Person
+        formhelper_class = PersonFilterFormHelper
+        fields = discover_fields(formhelper_class.layout)
+
+
+class AttachmentFilterFormHelper(FormHelper):
+    """Provides layout information for AttachmentFilter.form"""
+
+    form_method = "get"
+    layout = Layout(
+        Div(
+            Div("path", css_class="col"),
+            Div("comments", css_class="col"),
+            css_class="row",
+        ),
+        ButtonHolder(Submit("submit", "Filter")),
+    )
+
+
+class AttachmentFilter(HelpedFilterSet):
+    path = django_filters.CharFilter(lookup_expr="icontains")
+    class Meta:
+        model = models.Attachment
+        formhelper_class = AttachmentFilterFormHelper
         fields = discover_fields(formhelper_class.layout)

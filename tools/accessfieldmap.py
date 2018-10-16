@@ -2,7 +2,7 @@ from datetime import datetime
 import pytz
 
 from tools.fieldmap import FieldMap, coerce_num
-from submission.models import Submission
+from submission.models import Person, Submission
 
 
 def coerce_submission(value):
@@ -49,13 +49,8 @@ def coerce_path(value):
 
     return value.split("#")[1]
 
-
-
-field_mappers = [
-    FieldMap(to_field="submission", converter=coerce_submission, from_field="NRQZ_NO"),
-    FieldMap(to_field="comments", converter=None, from_field="COMMENTS"),
-    FieldMap(to_field="applicant", converter=None, from_field="APPLICANT"),
-    FieldMap(to_field="contact", converter=None, from_field="CONTACT"),
+applicant_field_mappers = [
+    FieldMap(to_field="name", converter=None, from_field="APPLICANT"),
     FieldMap(to_field="phone", converter=None, from_field="PHONE"),
     FieldMap(to_field="fax", converter=None, from_field="FAX"),
     FieldMap(to_field="email", converter=None, from_field="EMAIL"),
@@ -64,6 +59,15 @@ field_mappers = [
     FieldMap(to_field="county", converter=None, from_field="COUNTY"),
     FieldMap(to_field="state", converter=None, from_field="STATE"),
     FieldMap(to_field="zipcode", converter=None, from_field="ZIPCODE"),
+]
+
+contact_field_mappers = [
+    FieldMap(to_field="name", converter=None, from_field="CONTACT"),
+]
+
+submission_field_mappers = [
+    FieldMap(to_field="case_num", converter=coerce_positive_int, from_field="NRQZ_NO"),
+    FieldMap(to_field="comments", converter=None, from_field="COMMENTS"),
     FieldMap(to_field="created_on", converter=coerce_datetime, from_field="DATEREC"),
     FieldMap(to_field="modified_on", converter=coerce_datetime, from_field="DATEALTERED"),
     FieldMap(to_field="completed", converter=coerce_bool, from_field="COMPLETED"),
@@ -92,17 +96,37 @@ field_mappers = [
     FieldMap(to_field="letter8", converter=coerce_path, from_field="LETTER8_Link"),
 ]
 
-# Generate a map of known_header->importer by "expanding" the from_fields of each FieldMap
-# In this way we can easily and efficiently look up a given header and find its associated importer
 # NOTE: applicant_field_map is the primary "export" of this module
-applicant_field_map = {}
-for importer in field_mappers:
-    applicant_field_map[importer.from_field] = importer
+
+
+def expand_field_mappers(field_mappers):
+    """Generate a map of known_header->importer by "expanding" the from_fields of each FieldMap
+    In this way we can easily and efficiently look up a given header and find its associated importer
+    """
+
+    field_map = {}
+    for importer in field_mappers:
+        field_map[importer.from_field] = importer
+
+    return field_map
+
+def get_combined_field_map():
+    return expand_field_mappers([*applicant_field_mappers, *contact_field_mappers, *submission_field_mappers])
+
+
+def print_field_map(field_map):
+    """Print out a simple report of the final header->field mappings"""
+
+    # from_field_len is just the longest header in the map plus some padding
+    from_field_len = max(len(from_field) for from_field in field_map) + 3
+    for from_field, importer in field_map.items():
+        print(f"{from_field!r:{from_field_len}}: {importer.to_field!r}")
+
 
 
 if __name__ == "__main__":
-    # Print out a simple report of the final header->field mappings
-    # from_field_len is just the longest header in the map plus some padding
-    from_field_len = max(len(from_field) for from_field in applicant_field_map) + 3
-    for from_field, importer in applicant_field_map.items():
-        print(f"{from_field!r:{from_field_len}}: {importer.to_field!r}")
+    print("Submission field map:")
+    print_field_map(expand_field_mappers(submission_field_mappers))
+    print()
+    print("Person field map:")
+    print_field_map(expand_field_mappers(person_field_mappers))

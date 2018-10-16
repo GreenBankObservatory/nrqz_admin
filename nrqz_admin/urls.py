@@ -3,10 +3,12 @@
 from django.contrib import admin
 from django.urls import include, path
 from django.conf import settings
+from django.views.generic.base import RedirectView
 
 urlpatterns = [
+    path("", RedirectView.as_view(url="/submissions")),
     path("", include("submission.urls")),
-    path("applicants/", include("applicants.urls")),
+    # path("applicants/", include("applicants.urls")),
     path("explorer/", include("explorer.urls")),
     path("admin/", admin.site.urls),
 ]

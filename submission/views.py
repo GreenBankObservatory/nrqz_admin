@@ -1,13 +1,25 @@
 from django.views.generic.detail import DetailView
-from django.views.generic.list import ListView
 from django.http import HttpResponse
 
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 
-from .models import Attachment, Batch, Submission, Facility
-from .filters import BatchFilter, FacilityFilter, SubmissionFilter
-from .tables import BatchTable, FacilityTable, SubmissionTable
+from .models import Attachment, Batch, Submission, Facility, Person
+from .filters import (
+    AttachmentFilter,
+    BatchFilter,
+    FacilityFilter,
+    PersonFilter,
+    SubmissionFilter,
+)
+from .tables import (
+    AttachmentTable,
+    BatchTable,
+    FacilityTable,
+    PersonTable,
+    SubmissionTable,
+)
+
 from .kml import (
     facility_as_kml,
     facilities_as_kml,
@@ -106,10 +118,34 @@ class SubmissionDetailView(DetailView):
     def __init__(self, *args, **kwargs):
         super(SubmissionDetailView, self).__init__(*args, **kwargs)
         self.facility_filter = None
+        self.attachment_filter = None
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if self.facility_filter is None:
+
+        context["status_info"] = [
+            "completed",
+            "shutdown",
+            "completed_on",
+            "sgrs_notify",
+            "sgrs_notified_on",
+            "si_waived",
+            "si",
+            "si_done",
+        ]
+
+        context["application_info"] = [
+            "radio_service",
+            "call_sign",
+            "fcc_freq_coord",
+            "fcc_file_num",
+            "num_freqs",
+            "num_sites",
+            "num_outside",
+            "erpd_limit",
+        ]
+
+        if not self.facility_filter:
             self.facility_filter = FacilityFilter(
                 self.request.GET, queryset=self.object.facilities.all()
             )
@@ -119,6 +155,18 @@ class SubmissionDetailView(DetailView):
             table = FacilityTable(data=self.facility_filter.qs)
             table.paginate(page=self.request.GET.get("page", 1), per_page=10)
             context["facility_table"] = table
+
+
+        if not self.attachment_filter:
+            self.attachment_filter = AttachmentFilter(
+                self.request.GET, queryset=self.object.attachments.all()
+            )
+            context["attachment_filter"] = self.attachment_filter
+
+        if "attachment_table" not in context:
+            table = AttachmentTable(data=self.attachment_filter.qs)
+            table.paginate(page=self.request.GET.get("page", 1), per_page=10)
+            context["attachment_table"] = table
 
         return context
 
@@ -166,9 +214,75 @@ class FacilityDetailView(DetailView):
         facility_as_kml(self.object)
 
 
-class AttachmentListView(ListView):
-    model = Attachment
+class AttachmentListView(FilterTableView):
+    table_class = AttachmentTable
+    filterset_class = AttachmentFilter
+    template_name = "submission/attachment_list.html"
 
 
 class AttachmentDetailView(DetailView):
     model = Attachment
+
+    def __init__(self, *args, **kwargs):
+        super(AttachmentDetailView, self).__init__(*args, **kwargs)
+        self.submission_filter = None
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["meta_info"] = ["id", "created_on", "modified_on"]
+
+        if self.submission_filter is None:
+            self.submission_filter = SubmissionFilter(
+                self.request.GET, queryset=self.object.submissions.all()
+            )
+            context["submission_filter"] = self.submission_filter
+
+        if "submission_table" not in context:
+            table = SubmissionTable(data=self.submission_filter.qs)
+            table.paginate(page=self.request.GET.get("page", 1), per_page=10)
+            context["submission_table"] = table
+
+        return context
+
+
+class PersonListView(FilterTableView):
+    table_class = PersonTable
+    filterset_class = PersonFilter
+    template_name = "submission/person_list.html"
+
+
+class PersonDetailView(DetailView):
+    model = Person
+
+    def __init__(self, *args, **kwargs):
+        super(PersonDetailView, self).__init__(*args, **kwargs)
+        self.submission_filter = None
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context["applicant_info"] = [
+            # "submissions",
+            "name",
+            "phone",
+            "fax",
+            "email",
+            "street",
+            "city",
+            "county",
+            "state",
+            "zipcode",
+        ]
+
+        if self.submission_filter is None:
+            self.submission_filter = SubmissionFilter(
+                self.request.GET, queryset=self.object.applicant_for_submissions.all()
+            )
+            context["submission_filter"] = self.submission_filter
+
+        if "submission_table" not in context:
+            table = SubmissionTable(data=self.submission_filter.qs)
+            table.paginate(page=self.request.GET.get("page", 1), per_page=10)
+            context["submission_table"] = table
+
+        return context

@@ -2,11 +2,11 @@ import django_tables2 as tables
 
 from utils.coord_utils import dd_to_dms
 from . import models
-from .filters import BatchFilter, FacilityFilter, SubmissionFilter
+from .filters import AttachmentFilter, BatchFilter, FacilityFilter, PersonFilter, SubmissionFilter
 
 
 class FacilityTable(tables.Table):
-    nrqz_id = tables.Column(linkify=True)
+    nrqz_id = tables.LinkColumn()
 
     class Meta:
         model = models.Facility
@@ -23,18 +23,32 @@ class FacilityTable(tables.Table):
 
 
 class SubmissionTable(tables.Table):
-    case_num = tables.Column(linkify=True)
-    batch = tables.Column(linkify=True)
-    applicant = tables.Column(verbose_name="Applicant", linkify=True)
+    case_num = tables.LinkColumn()
+    batch = tables.LinkColumn()
+    applicant = tables.LinkColumn()
+    contact = tables.LinkColumn()
 
     class Meta:
         model = models.Submission
         fields = SubmissionFilter.Meta.fields
 
+
 class BatchTable(tables.Table):
-    name = tables.Column(linkify=True)
+    name = tables.LinkColumn()
 
     class Meta:
         model = models.Batch
         fields = BatchFilter.Meta.fields
 
+
+class PersonTable(tables.Table):
+    class Meta:
+        model = models.Person
+        fields = PersonFilter.Meta.fields
+
+class AttachmentTable(tables.Table):
+    path = tables.LinkColumn()
+
+    class Meta:
+        model = models.Attachment
+        fields = AttachmentFilter.Meta.fields

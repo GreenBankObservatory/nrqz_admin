@@ -42,7 +42,6 @@ INSTALLED_APPS = [
     "explorer",
     "debug_toolbar",
     "submission",
-    "applicants",
 ]
 
 MIDDLEWARE = [

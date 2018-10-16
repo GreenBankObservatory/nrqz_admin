@@ -5,9 +5,41 @@
 
 {% block content %}
 <h1>Submission {{ submission.id }}</h1>
-<p>{{ submission.name }}</p>
 
 <p>Created on: {{ submission.created_on }}</p>
+
+<h2>Applicant Info</h2>
+<table class="table">
+    <tr>
+        <th>Applicant</th>
+        <td>
+            {% if submission.applicant %}
+            <a href={% url "person_detail" submission.applicant.id %}>{{ submission.applicant.name }}</a>
+            {% else %}
+            <p>None</p>
+            {% endif %}
+        </td>
+    </tr>
+    <tr>
+        <th>Contact</th>
+        <td>
+            {% if submission.contact %}
+            <a href={% url "person_detail" submission.contact.id %}>{{ submission.contact.name }}</a>
+            {% else %}
+            <p>None</p>
+            {% endif %}
+        </td>
+    </tr>
+</table>
+
+<div class="row">
+    <div class="col-sm">
+        {% info_table submission "Application" application_info %}
+    </div>
+    <div class="col-sm">
+        {% info_table submission "Status Info" status_info %}
+    </div>
+</div>
 
 <h2>Comments</h2>
 {% if submission.comments %}
@@ -27,13 +59,17 @@
 </div>
 
 <h2>Attachments</h2>
-<ul>
-    {% for attachment in submission.attachments.all %}
-    <li>{{ attachment }}</li>
-    {% empty %}
-    <li>No attachments</li>
-    {% endfor %}
-</ul>
+{% if attachment_table.data %}
+<div class="container-fluid">
+    {% if attachment_filter %}
+    {% crispy attachment_filter.form %}
+    <p>Results: {{ attachment_table.data|length }}</p>
+    {% endif %}
+    {% render_table attachment_table %}
+</div>
+{% else %}
+<p>No attachments</p>
+{% endif %}
 
 {% if submission.import_error_summary %}
 <h2>Import Errors</h2>

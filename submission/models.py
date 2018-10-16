@@ -2,6 +2,7 @@ from django.urls import reverse
 from django.db.models import (
     BooleanField,
     CharField,
+    DateTimeField,
     DecimalField,
     EmailField,
     FileField,
@@ -16,6 +17,7 @@ from django.db.models import (
 from utils.coord_utils import dd_to_dms
 from .kml import facility_as_kml, submission_as_kml, kml_to_string
 from .mixins import IsActiveModel, TrackedModel
+
 
 class CoordinateField(DecimalField):
     def value_to_string(self, obj):
@@ -222,14 +224,47 @@ class Submission(IsActiveModel, TrackedModel, Model):
     """Defines a given NRQZ Application"""
 
     # sites = ManyToManyField("Site")
-    # applicant = ForeignKey("Person", on_delete="PROTECT", related_name="applicant_for", null=True, blank=True)
-    # contact = ForeignKey("Person", on_delete="PROTECT", related_name="contact_for", null=True, blank=True)
+    applicant = ForeignKey(
+        "Person",
+        on_delete="PROTECT",
+        related_name="applicant_for_submissions",
+        null=True,
+        blank=True,
+    )
+    contact = ForeignKey(
+        "Person",
+        on_delete="PROTECT",
+        related_name="contact_for_submissions",
+        null=True,
+        blank=True,
+    )
     comments = TextField(blank=True)
     case_num = PositiveIntegerField(unique=True)
     name = CharField(max_length=256, blank=True, null=True)
 
-    batch = ForeignKey("Batch", related_name="submissions", on_delete="PROTECT")
+    batch = ForeignKey(
+        "Batch", related_name="submissions", on_delete="PROTECT", null=True
+    )
 
+    attachments = ManyToManyField("Attachment", related_name="submissions")
+
+    # From Access
+    completed = BooleanField(default=False, blank=True)
+    shutdown = BooleanField(default=False, blank=True)
+    completed_on = DateTimeField(null=True)
+    sgrs_notify = BooleanField(default=False, blank=True)
+    sgrs_notified_on = DateTimeField(null=True)
+    radio_service = CharField(max_length=256, blank=True)
+    call_sign = CharField(max_length=256, blank=True)
+    fcc_freq_coord = CharField(max_length=256, blank=True)
+    fcc_file_num = CharField(max_length=256, blank=True)
+    num_freqs = PositiveIntegerField(null=True, blank=True)
+    num_sites = PositiveIntegerField(null=True, blank=True)
+    num_outside = PositiveIntegerField(null=True, blank=True)
+    erpd_limit = BooleanField(default=False, blank=True)
+    si_waived = BooleanField(default=False, blank=True)
+    si = BooleanField(default=False, blank=True)
+    si_done = DateTimeField(null=True)
 
     def __str__(self):
         return f"Application {self.id} ({self.created_on})"
@@ -244,42 +279,52 @@ class Submission(IsActiveModel, TrackedModel, Model):
 class Person(IsActiveModel, TrackedModel, Model):
     """A single, physical person"""
 
-    name = CharField(max_length=256)
-    address = CharField(max_length=256)
-    email = EmailField()
+    name = CharField(max_length=256, blank=True)
+    phone = CharField(max_length=256, blank=True)
+    fax = CharField(max_length=256, blank=True)
+    email = EmailField(null=True, blank=True)
+    street = CharField(max_length=256, blank=True)
+    city = CharField(max_length=256, blank=True)
+    county = CharField(max_length=256, blank=True)
+    state = CharField(max_length=256, blank=True)
+    zipcode = CharField(max_length=256, blank=True)
+    comments = TextField(blank=True)
 
-    phone_num = CharField(max_length=16)
-    fax_num = CharField(max_length=16)
-
-    comments = TextField()
-
-    organization = ForeignKey("Organization", on_delete="PROTECT")
-
-    def __str__(self):
-        return f"{self.name}"
-
-
-class Organization(IsActiveModel, TrackedModel, Model):
-    """A single, physical organization"""
-
-    name = CharField(max_length=256)
-    address = CharField(max_length=256)
-    email = EmailField()
-
-    phone_num = CharField(max_length=16)
-    fax_num = CharField(max_length=16)
-
-    comments = TextField()
+    # organization = ForeignKey("Organization", on_delete="PROTECT")
 
     def __str__(self):
         return f"{self.name}"
+
+    def get_absolute_url(self):
+        return reverse("person_detail", args=[str(self.id)])
+
+
+# class Organization(IsActiveModel, TrackedModel, Model):
+#     """A single, physical organization"""
+
+#     name = CharField(max_length=256)
+#     address = CharField(max_length=256)
+#     email = EmailField()
+
+#     phone_num = CharField(max_length=16)
+#     fax_num = CharField(max_length=16)
+
+#     comments = TextField()
+
+#     def __str__(self):
+#         return f"{self.name}"
 
 
 class Attachment(IsActiveModel, TrackedModel, Model):
     """Holds the path to a file along with some metadata"""
 
-    path = FileField(max_length=256, upload_to="attachments/")
+    # TODO: This will need to be a proper FileField eventually...
+    path = CharField(max_length=256)
+    # path = FileField(max_length=256, upload_to="attachments/")
     comments = TextField()
 
     def __str__(self):
         return f"{self.path}"
+
+    def get_absolute_url(self):
+        return reverse("attachment_detail", args=[str(self.id)])

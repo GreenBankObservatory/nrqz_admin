@@ -27,4 +27,7 @@ urlpatterns = [
         views.AttachmentDetailView.as_view(),
         name="attachment_detail",
     ),
+    path("people/", views.PersonListView.as_view(), name="person_index"),
+    path("people/<int:pk>/", views.PersonDetailView.as_view(), name="person_detail"),
+
 ]
