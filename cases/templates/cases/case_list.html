@@ -1,13 +1,7 @@
 {% extends "cases/base.html" %}
 {% load cases_tags %}
-{% load render_table from django_tables2 %}
-{% load crispy_forms_tags %}
 
 {% block content %}
 <h1>Case Index</h1>
-{% if filter %}
-{% crispy filter.form %}
-<p>Results: {{ table.data|length }}</p>
-{% endif %}
-{% render_table table %}
+{% filter_table %}
 {% endblock %}

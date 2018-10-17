@@ -26,6 +26,18 @@ def dms(value):
     return f"{d:3d} {m:2d} {s:2.3f}"
 
 
+@register.inclusion_tag("cases/filter_table.html", takes_context=True)
+def filter_table(context):
+    model_name = context["table"].Meta.model.__name__.lower()
+
+    return dict(
+        request=context["request"],
+        table=context["table"],
+        filter=context["filter"],
+        form_id=f"{model_name}-filter-form",
+    )
+
+
 @register.inclusion_tag("cases/info_table.html")
 def info_table(instance, title, fields):
     rows = [
@@ -37,6 +49,7 @@ def info_table(instance, title, fields):
     ]
     return {"title": title, "rows": rows}
 
+
 @register.inclusion_tag("cases/info_table.html")
 def attachment_table(instance, title, fields):
     rows = [
@@ -44,7 +57,8 @@ def attachment_table(instance, title, fields):
             instance._meta.get_field(field).verbose_name,
             instance._meta.get_field(field).value_to_string(instance),
         )
-        for field in fields if getattr(instance, field)
+        for field in fields
+        if getattr(instance, field)
     ]
     return {"title": title, "rows": rows}
 
@@ -58,9 +72,7 @@ def location_table(instance, title, fields):
     longitude = getattr(instance, "longitude")
     longitude_str = instance._meta.get_field("longitude").value_to_string(instance)
     url = f"https://www.google.com/maps/place/{latitude},{longitude}"
-    rows = [
-        ("Coordinates", f"<a href={url}>({latitude_str}, {longitude_str})</a>")
-    ]
+    rows = [("Coordinates", f"<a href={url}>({latitude_str}, {longitude_str})</a>")]
 
     rows.extend(
         [

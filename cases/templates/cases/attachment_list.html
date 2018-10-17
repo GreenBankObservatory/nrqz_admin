@@ -1,18 +1,13 @@
 {% extends "cases/base.html" %}
-{% load render_table from django_tables2 %}
-{% load crispy_forms_tags %}
-
+{% load cases_tags %}
 
 {% block head %}
 <title>Attachment Index</title>
 {% endblock %}
 
 {% block content %}
-<h1>Attachment Index</h1>
 
-{% if filter %}
-{% crispy filter.form %}
-<p>Results: {{ table.data|length }}</p>
-{% endif %}
-{% render_table table %}
+<h1>Attachment Index</h1>
+{% filter_table %}
+
 {% endblock %}

@@ -1,5 +1,6 @@
 import django_filters
-from crispy_forms.layout import Submit, Layout, ButtonHolder, Div
+from crispy_forms.layout import Submit, Layout, Button, Div
+from crispy_forms.bootstrap import FormActions
 from crispy_forms.helper import FormHelper
 
 from . import models
@@ -38,13 +39,18 @@ class BatchFilterFormHelper(FormHelper):
     """Provides layout information for FacilityFilter.form"""
 
     form_method = "get"
+    form_class = "collapse"
+    form_id = "batch-filter-form"
     layout = Layout(
         Div(
-            Div("name", css_class="col"),
-            Div("comments", css_class="col"),
-            css_class="row",
-        ),
-        ButtonHolder(Submit("submit", "Filter")),
+            Div(
+                Div("name", css_class="col"),
+                Div("comments", css_class="col"),
+                css_class="row",
+            ),
+            FormActions(Submit("submit", "Filter")),
+            css_class="container"
+        )
     )
 
 
@@ -69,7 +75,7 @@ class FacilityFilterFormHelper(FormHelper):
             Div("freq_low", "freq_high", css_class="col"),
             css_class="row",
         ),
-        ButtonHolder(
+        FormActions(
             Submit("submit", "Filter"),
             Submit(
                 "kml",
@@ -115,7 +121,7 @@ class CaseFilterFormHelper(FormHelper):
             Div("radio_service", "call_sign", "fcc_file_num", css_class="col"),
             css_class="row",
         ),
-        ButtonHolder(
+        FormActions(
             Submit("submit", "Filter"),
             Submit(
                 "kml",
@@ -153,7 +159,7 @@ class PersonFilterFormHelper(FormHelper):
             Div("street", "city", "state", "zipcode", css_class="col"),
             css_class="row",
         ),
-        ButtonHolder(Submit("submit", "Filter")),
+        FormActions(Submit("submit", "Filter")),
     )
 
 
@@ -182,7 +188,7 @@ class AttachmentFilterFormHelper(FormHelper):
             Div("comments", css_class="col"),
             css_class="row",
         ),
-        ButtonHolder(Submit("submit", "Filter")),
+        FormActions(Submit("submit", "Filter")),
     )
 
 
