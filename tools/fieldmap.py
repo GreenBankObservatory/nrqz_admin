@@ -78,7 +78,11 @@ def cooerce_lat(value):
 
 def cooerce_long(value):
     # Need to invert this because all of our longitudes will be W
-    return -1 * cooerce_coords(value)
+    longitude = cooerce_coords(value)
+    if longitude is not None:
+        return -1 * longitude
+    else:
+        return None
 
 class FieldMap:
     """Map field to its associated headers and to a converter"""
