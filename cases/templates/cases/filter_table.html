@@ -1,0 +1,19 @@
+{% load render_table from django_tables2 %}
+{% load crispy_forms_tags %}
+
+{% if title %}
+<h2>{{ title }}</h2>
+{% endif %}
+
+{% if filter %}
+{% crispy filter.form %}
+
+<div class="row">
+    <button class="btn btn-sm btn-info" type="button" data-toggle="collapse" data-target="#{{ form_id }}" aria-expanded="false" aria-controls="{{ form_id }}">
+        Show Filters
+    </button>
+    <p>Results: {{ table.data|length }}</p>
+</div>
+{% endif %}
+
+{% render_table table %}
