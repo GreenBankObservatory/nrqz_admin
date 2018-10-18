@@ -2,21 +2,33 @@ import json
 from collections import namedtuple, OrderedDict
 from pprint import pprint
 
-class ErrorReporter:
+class ImportReport:
     def __init__(self, filename):
         self.filename = filename
 
         self.report = {
             "sheet_errors": [],
-            "unmapped_headers": [],
+            "header_errors": {
+                "unmapped_headers": [],
+                "duplicate_headers": []
+            },
             "data_errors": {},
         }
 
     def add_sheet_error(self, error):
         self.report["sheet_errors"].append(error)
 
-    def add_unmapped_header(self, header):
-        self.report["unmapped_headers"].append(header)
+    def set_unmapped_headers(self, headers):
+        if not self.report["header_errors"]["unmapped_headers"]:
+            self.report["header_errors"]["unmapped_headers"] = headers
+        else:
+            raise ValueError("Cannot set unmapped_headers more than once!")
+
+    def set_duplicate_headers(self, headers):
+        if not self.report["header_errors"]["duplicate_headers"]:
+            self.report["header_errors"]["duplicate_headers"] = headers
+        else:
+            raise ValueError("Cannot set duplicate_headers more than once!")
 
     def add_row_error(self, header, row_num, error):
         if header not in self.report["data_errors"]:
@@ -52,7 +64,8 @@ class ErrorReporter:
 
         error_summary = {}
         error_summary["sheet_errors"] = self.report["sheet_errors"]
-        error_summary["unmapped_headers"] = self.report["unmapped_headers"]
+        error_summary["unmapped_headers"] = self.report["header_errors"]["unmapped_headers"]
+        error_summary["duplicate_headers"] = self.report["header_errors"]["duplicate_headers"]
 
 
 
@@ -82,3 +95,11 @@ class ErrorReporter:
             )
 
         return error_summary
+
+    def has_errors(self):
+        return (
+            any(self.report["sheet_errors"]) or
+            any(self.report["header_errors"]["unmapped_headers"]) or
+            any(self.report["header_errors"]["duplicate_headers"]) or
+            any(self.report["data_errors"])
+        )

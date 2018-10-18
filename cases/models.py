@@ -135,14 +135,16 @@ class Facility(IsActiveModel, TrackedModel, Model):
         verbose_name="NRQZ ID",
         help_text="Assigned by NRAO. Do not put any of your data in this column.",
     )
-    tx_per_sector = PositiveIntegerField(
+    tx_per_sector = CharField(
+        max_length=256,
         blank=True,
-        null=True,
         verbose_name="Total number of TXers per sector",
         help_text="(or No. of RRH's ports with feed power",
     )
-    tx_antennas_per_sector = PositiveIntegerField(
-        blank=True, null=True, verbose_name="Number of transmitting antennas per sector"
+    tx_antennas_per_sector = CharField(
+        max_length=256,
+        blank=True,
+        verbose_name="Number of transmitting antennas per sector",
     )
     technology = CharField(
         max_length=256,
@@ -160,6 +162,12 @@ class Facility(IsActiveModel, TrackedModel, Model):
     uses_cross_polarization = BooleanField(
         default=False,
         verbose_name="This facility uses Cross polarization ",
+        blank=True,
+        null=True,
+    )
+    uses_quad_or_octal_polarization = BooleanField(
+        default=False,
+        verbose_name="This facility uses Quad or Octal polarization",
         blank=True,
         null=True,
     )
@@ -186,9 +194,7 @@ class Facility(IsActiveModel, TrackedModel, Model):
         help_text="Additional information or comments from the applicant"
     )
 
-    case = ForeignKey(
-        "Case", on_delete="PROTECT", related_name="facilities"
-    )
+    case = ForeignKey("Case", on_delete="PROTECT", related_name="facilities")
 
     class Meta:
         verbose_name_plural = "Facilities"
@@ -242,9 +248,7 @@ class Case(IsActiveModel, TrackedModel, Model):
     case_num = PositiveIntegerField(unique=True)
     name = CharField(max_length=256, blank=True, null=True)
 
-    batch = ForeignKey(
-        "Batch", related_name="cases", on_delete="PROTECT", null=True
-    )
+    batch = ForeignKey("Batch", related_name="cases", on_delete="PROTECT", null=True)
 
     attachments = ManyToManyField("Attachment", related_name="cases")
 

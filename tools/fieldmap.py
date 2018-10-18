@@ -29,9 +29,9 @@ def coerce_bool(value):
     """Coerce a string to a bool, or to None"""
 
     clean_value = str(value).strip().lower()
-    if clean_value.startswith("yes"):
+    if clean_value in ["yes"]:
         return True
-    elif clean_value.startswith("no"):
+    elif clean_value in ["no", "n0"]:
         return False
     elif clean_value in ["", "na", "n/a"]:
         return None
@@ -90,8 +90,6 @@ class FieldMap:
     def __init__(self, to_field, converter, from_fields=None, from_field=None, to_fields=None):
         if to_fields and to_field:
             raise ValueError("Cannot provide both to_fields and to_field")
-        elif not (to_fields or to_field):
-            raise ValueError("Must provide exactly one of to_fields or to_field")
 
         # Headers the to_field could potentially be associated with
         self.to_field = to_field

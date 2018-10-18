@@ -13,6 +13,8 @@ import django
 django.setup()
 from django.db import transaction
 
+from tqdm import tqdm
+
 from cases.models import Attachment, Case, Person
 from tools.accessfieldmap import (
     applicant_field_mappers,
@@ -57,34 +59,34 @@ def handle_row(field_importers, row):
     if any(applicant_dict.values()):
         try:
             applicant = Person.objects.get(name=applicant_dict["name"])
-            print(f"Found applicant {applicant}")
+            tqdm.write(f"Found applicant {applicant}")
             found_report["applicant"] = True
         except Person.DoesNotExist:
             applicant = Person.objects.create(**applicant_dict)
-            # print(f"Created applicant {applicant}")
+            # tqdm.write(f"Created applicant {applicant}")
         except Person.MultipleObjectsReturned:
             raise ValueError(applicant_dict)
     else:
-        print("No applicant data; skipping")
+        tqdm.write("No applicant data; skipping")
 
     contact = None
     if any(contact_dict.values()):
         try:
             contact = Person.objects.get(name=contact_dict["name"])
-            print(f"Found contact {contact}")
+            tqdm.write(f"Found contact {contact}")
             found_report["contact"] = True
         except Person.DoesNotExist:
             contact = Person.objects.create(**contact_dict)
-            # print(f"Created contact {contact}")
+            # tqdm.write(f"Created contact {contact}")
         except Person.MultipleObjectsReturned:
             raise ValueError(contact_dict)
     else:
-        print("No contact data; skipping")
+        tqdm.write("No contact data; skipping")
 
     if any(case_dict.values()):
         try:
             case = Case.objects.get(case_num=case_dict["case_num"])
-            print(f"Found case {case}")
+            tqdm.write(f"Found case {case}")
             found_report["case"] = True
         except Case.DoesNotExist:
 
@@ -95,10 +97,10 @@ def handle_row(field_importers, row):
                     if value:
                         try:
                             attachment = Attachment.objects.get(path=value)
-                            print(f"Found attachment: {attachment}")
+                            tqdm.write(f"Found attachment: {attachment}")
                         except Attachment.DoesNotExist:
                             attachment = Attachment.objects.create(path=value, comments=f"Imported by {__file__}")
-                            print(f"Created attachment: {attachment}")
+                            tqdm.write(f"Created attachment: {attachment}")
                         attachments.append(attachment)
                 else:
                     stripped_case_dict[key] = value
@@ -106,9 +108,9 @@ def handle_row(field_importers, row):
 
             case = Case.objects.create(**stripped_case_dict, applicant=applicant, contact=contact)
             case.attachments.add(*attachments)
-            # print(f"Created case {case}")
+            # tqdm.write(f"Created case {case}")
     else:
-        print("No contact data; skipping")
+        tqdm.write("No contact data; skipping")
 
     return found_report
 
@@ -128,12 +130,13 @@ def main():
             field_importers.append(None)
 
     found_counts = {"applicant": 0, "contact": 0, "case": 0}
-    for row in data:
+    data_with_progress = tqdm(data, unit="rows")
+    for row in data_with_progress:
         try:
             found_report = handle_row(field_importers, row)
         except Exception as error:
-            print(f"Failed to handle row: {row}")
-            print(str(error))
+            tqdm.write(f"Failed to handle row: {row}")
+            tqdm.write(str(error))
             # raise
         else:
             found_counts["applicant"] += bool(found_report["applicant"])
