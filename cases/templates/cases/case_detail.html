@@ -4,17 +4,17 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
-<h1>Case {{ submission.id }}</h1>
+<h1>Case {{ case.id }}</h1>
 
-<p>Created on: {{ submission.created_on }}</p>
+<p>Created on: {{ case.created_on }}</p>
 
 <h2>Applicant Info</h2>
 <table class="table">
     <tr>
         <th>Applicant</th>
         <td>
-            {% if submission.applicant %}
-            <a href={% url "person_detail" submission.applicant.id %}>{{ submission.applicant.name }}</a>
+            {% if case.applicant %}
+            <a href={% url "person_detail" case.applicant.id %}>{{ case.applicant.name }}</a>
             {% else %}
             <p>None</p>
             {% endif %}
@@ -23,8 +23,8 @@
     <tr>
         <th>Contact</th>
         <td>
-            {% if submission.contact %}
-            <a href={% url "person_detail" submission.contact.id %}>{{ submission.contact.name }}</a>
+            {% if case.contact %}
+            <a href={% url "person_detail" case.contact.id %}>{{ case.contact.name }}</a>
             {% else %}
             <p>None</p>
             {% endif %}
@@ -34,16 +34,16 @@
 
 <div class="row">
     <div class="col-sm">
-        {% info_table submission "Application" application_info %}
+        {% info_table case "Application" application_info %}
     </div>
     <div class="col-sm">
-        {% info_table submission "Status Info" status_info %}
+        {% info_table case "Status Info" status_info %}
     </div>
 </div>
 
 <h2>Comments</h2>
-{% if submission.comments %}
-{{ submission.comments | linebreaks}}
+{% if case.comments %}
+{{ case.comments | linebreaks}}
 {% else %}
 <p>No comments</p>
 {% endif %}
@@ -71,9 +71,9 @@
 <p>No attachments</p>
 {% endif %}
 
-{% if submission.import_error_summary %}
+{% if case.import_error_summary %}
 <h2>Import Errors</h2>
 <p>Map of column headers to list of unique invalid values (values that caused errors)</p>
-{{ submission.import_error_summary|json|safe }}
+{{ case.import_error_summary|json|safe }}
 {% endif %}
 {% endblock %}
