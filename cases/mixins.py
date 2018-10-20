@@ -21,11 +21,11 @@ class TrackedModel(models.Model):
     # We'll have to set these ourselves
     # created_by = models.ForeignKey(settings.AUTH_USER_MODEL,
     #                                related_name="%(class)s_created",
-    #                                on_delete="PROTECT")
+    #                                on_delete=models.PROTECT)
     # modified_by = models.ForeignKey(settings.AUTH_USER_MODEL,
     #                                 related_name="%(class)s_modified",
     #                                 null=True,
-    #                                 on_delete="PROTECT")
+    #                                 on_delete=models.PROTECT)
 
     class Meta:
         abstract = True

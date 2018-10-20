@@ -4,6 +4,11 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
+{% if case.batch %}
+<a href={% url "batch_detail" case.batch.id %}>View batch</a>
+{% else %}
+<p>Not created from an Excel sheet; no batch</p>
+{% endif %}
 <h1>Case {{ case.id }}</h1>
 
 <p>Created on: {{ case.created_on }}</p>
@@ -50,6 +55,7 @@
 
 
 <h2>Facilities</h2>
+{% if case.facilities.all %}
 <div class="container-fluid" style="border:1px solid #D3D3D3; border-radius: 10px">
     {% if facility_filter %}
     {% crispy facility_filter.form %}
@@ -57,6 +63,9 @@
     {% endif %}
     {% render_table facility_table %}
 </div>
+{% else %}
+<p>No Facilities</p>
+{% endif %}
 
 <h2>Attachments</h2>
 {% if attachment_table.data %}

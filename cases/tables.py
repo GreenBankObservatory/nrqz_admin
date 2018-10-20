@@ -16,7 +16,7 @@ class FacilityTable(tables.Table):
         """Render a coordinate as DD MM SS.sss"""
 
         d, m, s = dd_to_dms(value)
-        return f"{d:3d} {m:2d} {s:2.3f}"
+        return f"{d:3d} {m:02d} {s:2.3f}"
 
     render_latitude = _render_coord
     render_longitude = _render_coord

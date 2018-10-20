@@ -12,6 +12,7 @@ from django.db.models import (
     Model,
     PositiveIntegerField,
     TextField,
+    PROTECT
 )
 
 from utils.coord_utils import dd_to_dms
@@ -194,7 +195,7 @@ class Facility(IsActiveModel, TrackedModel, Model):
         help_text="Additional information or comments from the applicant"
     )
 
-    case = ForeignKey("Case", on_delete="PROTECT", related_name="facilities")
+    case = ForeignKey("Case", on_delete=PROTECT, related_name="facilities")
 
     class Meta:
         verbose_name_plural = "Facilities"
@@ -232,14 +233,14 @@ class Case(IsActiveModel, TrackedModel, Model):
     # sites = ManyToManyField("Site")
     applicant = ForeignKey(
         "Person",
-        on_delete="PROTECT",
+        on_delete=PROTECT,
         related_name="applicant_for_cases",
         null=True,
         blank=True,
     )
     contact = ForeignKey(
         "Person",
-        on_delete="PROTECT",
+        on_delete=PROTECT,
         related_name="contact_for_cases",
         null=True,
         blank=True,
@@ -248,7 +249,7 @@ class Case(IsActiveModel, TrackedModel, Model):
     case_num = PositiveIntegerField(unique=True)
     name = CharField(max_length=256, blank=True, null=True)
 
-    batch = ForeignKey("Batch", related_name="cases", on_delete="PROTECT", null=True)
+    batch = ForeignKey("Batch", related_name="cases", on_delete=PROTECT, null=True)
 
     attachments = ManyToManyField("Attachment", related_name="cases")
 
@@ -294,7 +295,7 @@ class Person(IsActiveModel, TrackedModel, Model):
     zipcode = CharField(max_length=256, blank=True)
     comments = TextField(blank=True)
 
-    # organization = ForeignKey("Organization", on_delete="PROTECT")
+    # organization = ForeignKey("Organization", on_delete=PROTECT)
 
     def __str__(self):
         return f"{self.name}"
@@ -302,21 +303,6 @@ class Person(IsActiveModel, TrackedModel, Model):
     def get_absolute_url(self):
         return reverse("person_detail", args=[str(self.id)])
 
-
-# class Organization(IsActiveModel, TrackedModel, Model):
-#     """A single, physical organization"""
-
-#     name = CharField(max_length=256)
-#     address = CharField(max_length=256)
-#     email = EmailField()
-
-#     phone_num = CharField(max_length=16)
-#     fax_num = CharField(max_length=16)
-
-#     comments = TextField()
-
-#     def __str__(self):
-#         return f"{self.name}"
 
 
 class Attachment(IsActiveModel, TrackedModel, Model):

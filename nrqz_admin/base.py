@@ -136,7 +136,8 @@ LOGGING = {
         }
     },
     "loggers": {
-        "cases": {"handlers": ["console"], "level": "DEBUG", "propagate": True}
+        "cases": {"handlers": ["console"], "level": "DEBUG", "propagate": True},
+        "tools": {"handlers": ["console"], "level": "DEBUG", "propagate": True},
     },
 }
 
@@ -147,3 +148,5 @@ DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap4.html"
 CRISPY_TEMPLATE_PACK = "bootstrap4"
 
 INTERNAL_IPS = ["10.16.96.146"]
+
+USER_FINDER_MODEL = "Person"
