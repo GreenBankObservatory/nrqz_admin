@@ -1,3 +1,4 @@
+from django.contrib.gis.geos import GEOSGeometry
 import django_filters
 from crispy_forms.layout import Submit, Layout, Button, Div
 from crispy_forms.bootstrap import FormActions
@@ -71,7 +72,7 @@ class FacilityFilterFormHelper(FormHelper):
     layout = Layout(
         Div(
             Div("nrqz_id", "site_name", css_class="col"),
-            Div("latitude", "longitude", css_class="col"),
+            Div("latitude", "longitude", "location", css_class="col"),
             Div("freq_low", "freq_high", css_class="col"),
             css_class="row",
         ),
@@ -88,6 +89,13 @@ class FacilityFilterFormHelper(FormHelper):
         ),
     )
 
+# class DistanceFilterField(django_filters.Field):
+#     def method 
+
+def foo(queryset, lookup, value):
+    pnt = GEOSGeometry(value, srid=4326)
+    return models.Facility.objects.filter(location__distance_lte=(pnt, 1000))
+    # return queryset.filter(**{lookup: (GEOSGeometry(value, srid=4326), 1000)})
 
 class FacilityFilter(HelpedFilterSet):
     site_name = django_filters.CharFilter(lookup_expr="icontains")
@@ -99,6 +107,7 @@ class FacilityFilter(HelpedFilterSet):
     freq_high = django_filters.RangeFilter(lookup_expr="range")
     amsl = django_filters.RangeFilter(lookup_expr="range")
     agl = django_filters.RangeFilter(lookup_expr="range")
+    location = django_filters.CharFilter(lookup_expr="distance_lte", method=foo)
 
     class Meta:
         model = models.Facility

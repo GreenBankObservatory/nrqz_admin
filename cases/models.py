@@ -14,6 +14,7 @@ from django.db.models import (
     TextField,
     PROTECT
 )
+from django.contrib.gis.db.models import PointField
 
 from utils.coord_utils import dd_to_dms
 from .kml import facility_as_kml, case_as_kml, kml_to_string
@@ -58,6 +59,7 @@ class Facility(IsActiveModel, TrackedModel, Model):
         verbose_name="FCC File Number",
         help_text="(if known)",
     )
+    location = PointField(null=True, spatial_index=True, geography=True)
     latitude = CoordinateField(
         null=True,
         max_digits=10,
