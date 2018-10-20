@@ -12,7 +12,8 @@ from django.db.models import (
     Model,
     PositiveIntegerField,
     TextField,
-    PROTECT
+    PROTECT,
+    SET_NULL,
 )
 from django.contrib.gis.db.models import PointField
 
@@ -235,14 +236,14 @@ class Case(IsActiveModel, TrackedModel, Model):
     # sites = ManyToManyField("Site")
     applicant = ForeignKey(
         "Person",
-        on_delete=PROTECT,
+        on_delete=SET_NULL,
         related_name="applicant_for_cases",
         null=True,
         blank=True,
     )
     contact = ForeignKey(
         "Person",
-        on_delete=PROTECT,
+        on_delete=SET_NULL,
         related_name="contact_for_cases",
         null=True,
         blank=True,
@@ -251,7 +252,7 @@ class Case(IsActiveModel, TrackedModel, Model):
     case_num = PositiveIntegerField(unique=True)
     name = CharField(max_length=256, blank=True, null=True)
 
-    batch = ForeignKey("Batch", related_name="cases", on_delete=PROTECT, null=True)
+    batch = ForeignKey("Batch", related_name="cases", on_delete=SET_NULL, null=True)
 
     attachments = ManyToManyField("Attachment", related_name="cases")
 
@@ -297,14 +298,13 @@ class Person(IsActiveModel, TrackedModel, Model):
     zipcode = CharField(max_length=256, blank=True)
     comments = TextField(blank=True)
 
-    # organization = ForeignKey("Organization", on_delete=PROTECT)
+    # organization = ForeignKey("Organization", on_delete=SET_NULL)
 
     def __str__(self):
         return f"{self.name}"
 
     def get_absolute_url(self):
         return reverse("person_detail", args=[str(self.id)])
-
 
 
 class Attachment(IsActiveModel, TrackedModel, Model):
