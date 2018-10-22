@@ -9,7 +9,7 @@
 {% crispy filter.form %}
 
 <div class="row">
-    <button class="btn btn-sm btn-info" type="button" data-toggle="collapse" data-target="#{{ form_id }}" aria-expanded="false" aria-controls="{{ form_id }}">
+    <button class="btn btn-sm btn-info" type="button" data-toggle="collapse" data-target="#{{ form_id }}" aria-expanded="true" aria-controls="{{ form_id }}">
         Show Filters
     </button>
     <p>Results: {{ table.data|length }}</p>
