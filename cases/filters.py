@@ -245,7 +245,10 @@ class CaseFilterFormHelper(FormHelper):
     """Provides layout information for CaseFilter.form"""
 
     form_method = "get"
-    layout = Layout(
+    form_class = "collapse"
+    form_id = "case-filter-form"
+
+    layout = CollapsibleFilterFormLayout(
         Div(
             Div("case_num", "batch", css_class="col"),
             Div("applicant", "contact", css_class="col"),
@@ -255,17 +258,6 @@ class CaseFilterFormHelper(FormHelper):
             Div("completed", "shutdown", css_class="col"),
             Div("radio_service", "call_sign", "fcc_file_num", css_class="col"),
             css_class="row",
-        ),
-        FormActions(
-            Submit("submit", "Filter"),
-            Submit(
-                "kml",
-                "As .kml",
-                title=(
-                    "Download the locations of all facilities linked to "
-                    "the currently-filtered Casess as a .kml file"
-                ),
-            ),
         ),
     )
 
