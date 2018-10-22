@@ -1,4 +1,5 @@
 from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.gis.measure import Distance
 from django.contrib.gis.geos.error import GEOSException
 from django import forms
 import django_filters
@@ -97,20 +98,30 @@ class FacilityFilterFormHelper(FormHelper):
             Div("nrqz_id", "site_name", css_class="col"),
             Div("location", "freq_low", "freq_high", css_class="col"),
             css_class="row",
-        ),
+        )
     )
 
 
 class PointWidget(django_filters.widgets.SuffixedMultiWidget):
     template_name = "cases/point_field.html"
-    suffixes = ["lat", "long"]
+    suffixes = ["lat", "long", "radius", "unit"]
 
-    def __init__(self, attrs=None):
+    def __init__(self, unit_choices=None, attrs=None):
         if attrs is None:
             attrs = {}
+
+        if unit_choices is None:
+            unit_choices = [
+                ("m", "Meters"),
+                ("km", "Kilometers"),
+                ("ft", "Feet"),
+                ("mi", "Miles"),
+            ]
         _widgets = (
             forms.TextInput(attrs={"placeholder": "latitude", **attrs}),
             forms.TextInput(attrs={"placeholder": "longitude", **attrs}),
+            forms.NumberInput(attrs={"placeholder": "radius", **attrs}),
+            forms.Select(attrs=attrs, choices=unit_choices),
         )
         super().__init__(_widgets, attrs)
 
@@ -123,7 +134,15 @@ class PointWidget(django_filters.widgets.SuffixedMultiWidget):
 class PointField(forms.MultiValueField):
     widget = PointWidget
 
-    def __init__(self, fields=None, *args, **kwargs):
+    def __init__(self, fields=None, unit_choices=None, *args, **kwargs):
+        if unit_choices is None:
+            unit_choices = [
+                ("m", "Meters"),
+                ("km", "Kilometers"),
+                ("ft", "Feet"),
+                ("mi", "Miles"),
+            ]
+
         error_messages = {"incomplete": "Enter both a latitude and a longitude"}
         if fields is None:
             fields = (
@@ -135,7 +154,10 @@ class PointField(forms.MultiValueField):
                     error_messages={"invalid": "Enter a valid longitude"},
                     validators=[self.coord_validator],
                 ),
+                forms.FloatField(min_value=0),
+                django_filters.fields.ChoiceField(choices=unit_choices),
             )
+
         super().__init__(fields, *args, **kwargs, error_messages=error_messages)
 
     def coord_validator(self, coord):
@@ -145,12 +167,19 @@ class PointField(forms.MultiValueField):
             raise forms.ValidationError(self.error_messages["invalid"], code="invalid")
 
     def compress(self, data_list):
+        print("data list", data_list)
         if data_list:
-            if len(data_list) != 2:
-                raise forms.ValidationError(f"Expected 2 values; got {len(data_list)}")
+            expected_length = 4
+            if len(data_list) != expected_length:
+                raise forms.ValidationError(
+                    f"Expected {expected_length} values; got {len(data_list)}"
+                )
 
             latitude_orig = data_list[0]
             longitude_orig = data_list[1]
+
+            radius = data_list[2]
+            unit = data_list[3]
 
             try:
                 latitude = parse_coord(latitude_orig)
@@ -164,12 +193,12 @@ class PointField(forms.MultiValueField):
                 ) from error
 
             try:
-                value = GEOSGeometry(f"Point({longitude} {latitude})")
+                point = GEOSGeometry(f"Point({longitude} {latitude})")
             except (ValueError, GEOSException):
                 raise forms.ValidationError(
                     f"Failed to create Point from ({latitude_orig}, {longitude_orig})!"
                 )
-            return value
+            return (point, radius, unit)
 
         return None
 
@@ -180,7 +209,8 @@ class PointFilter(django_filters.Filter):
     def filter(self, qs, value):
         if value:
             print("value: ", value)
-            return qs.filter(location__distance_lte=(value, 1000))
+            point, radius, unit = value
+            return qs.filter(location__distance_lte=(point, Distance(**{unit: radius})))
         else:
             return super().filter(qs, value)
 
