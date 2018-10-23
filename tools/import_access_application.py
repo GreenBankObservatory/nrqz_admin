@@ -22,7 +22,6 @@ from tools.accessfieldmap import (
     case_field_mappers,
     get_combined_field_map,
 )
-from tools.import_excel_application import derive_field_from_validation_error
 
 field_map = get_combined_field_map()
 
@@ -59,7 +58,7 @@ def handle_row(field_importers, row):
     if any(applicant_dict.values()):
         try:
             applicant = Person.objects.get(name=applicant_dict["name"])
-            tqdm.write(f"Found applicant {applicant}")
+            # tqdm.write(f"Found applicant {applicant}")
             found_report["applicant"] = True
         except Person.DoesNotExist:
             applicant = Person.objects.create(**applicant_dict)
@@ -67,13 +66,14 @@ def handle_row(field_importers, row):
         except Person.MultipleObjectsReturned:
             raise ValueError(applicant_dict)
     else:
-        tqdm.write("No applicant data; skipping")
+        # tqdm.write("No applicant data; skipping")
+        pass
 
     contact = None
     if any(contact_dict.values()):
         try:
             contact = Person.objects.get(name=contact_dict["name"])
-            tqdm.write(f"Found contact {contact}")
+            # tqdm.write(f"Found contact {contact}")
             found_report["contact"] = True
         except Person.DoesNotExist:
             contact = Person.objects.create(**contact_dict)
@@ -81,36 +81,39 @@ def handle_row(field_importers, row):
         except Person.MultipleObjectsReturned:
             raise ValueError(contact_dict)
     else:
-        tqdm.write("No contact data; skipping")
+        # tqdm.write("No contact data; skipping")
+        pass
 
     if any(case_dict.values()):
+        stripped_case_dict = {}
+        attachments = []
+        for key, value in case_dict.items():
+            if key in _letters:
+                if value:
+                    try:
+                        attachment = Attachment.objects.get(path=value)
+                        # tqdm.write(f"Found attachment: {attachment}")
+                    except Attachment.DoesNotExist:
+                        attachment = Attachment.objects.create(path=value, comments=f"Imported by {__file__}")
+                        # tqdm.write(f"Created attachment: {attachment}")
+                    attachments.append(attachment)
+            else:
+                stripped_case_dict[key] = value
+
         try:
             case = Case.objects.get(case_num=case_dict["case_num"])
+            case.applicant = applicant
+            case.contact = contact
+            case.save()
             tqdm.write(f"Found case {case}")
             found_report["case"] = True
         except Case.DoesNotExist:
-
-            stripped_case_dict = {}
-            attachments = []
-            for key, value in case_dict.items():
-                if key in _letters:
-                    if value:
-                        try:
-                            attachment = Attachment.objects.get(path=value)
-                            tqdm.write(f"Found attachment: {attachment}")
-                        except Attachment.DoesNotExist:
-                            attachment = Attachment.objects.create(path=value, comments=f"Imported by {__file__}")
-                            tqdm.write(f"Created attachment: {attachment}")
-                        attachments.append(attachment)
-                else:
-                    stripped_case_dict[key] = value
-
-
             case = Case.objects.create(**stripped_case_dict, applicant=applicant, contact=contact)
-            case.attachments.add(*attachments)
-            # tqdm.write(f"Created case {case}")
+            tqdm.write(f"Created case {case}")
+
+        case.attachments.add(*attachments)
     else:
-        tqdm.write("No contact data; skipping")
+        tqdm.write("No case data; skipping")
 
     return found_report
 
@@ -129,7 +132,7 @@ def main():
         except KeyError:
             field_importers.append(None)
 
-    found_counts = {"applicant": 0, "contact": 0, "case": 0}
+    found_counts = {"applicant": 0, "contact": 0, "case": 0, "technical_with_no_case": 0}
     data_with_progress = tqdm(data, unit="rows")
     for row in data_with_progress:
         try:
@@ -138,10 +141,13 @@ def main():
             tqdm.write(f"Failed to handle row: {row}")
             tqdm.write(str(error))
             # raise
+            pass
         else:
             found_counts["applicant"] += bool(found_report["applicant"])
             found_counts["contact"] += bool(found_report["contact"])
             found_counts["case"] += bool(found_report["case"])
+            if not (found_report["applicant"] or found_report["contact"]) and found_report["case"]:
+                found_counts["technical_with_no_case"] += 1
 
     pprint(found_counts)
 
