@@ -320,3 +320,6 @@ class Attachment(IsActiveModel, TrackedModel, Model):
 
     def get_absolute_url(self):
         return reverse("attachment_detail", args=[str(self.id)])
+
+class LetterTemplate(IsActiveModel, TrackedModel, Model):
+    template = TextField()

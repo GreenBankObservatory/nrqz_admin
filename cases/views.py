@@ -1,6 +1,6 @@
 from django.views.generic.detail import DetailView
 from django.http import HttpResponse
-
+from django.db.models import Min, Max
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 
@@ -18,6 +18,7 @@ from .tables import (
     FacilityTable,
     PersonTable,
     CaseTable,
+    ConcurrenceFacilityTable
 )
 
 from .kml import (
@@ -110,6 +111,20 @@ class FacilityListView(FilterTableView):
             return response
         else:
             return super(FacilityListView, self).get(request, *args, **kwargs)
+
+
+class ConcurrenceLetterView(DetailView):
+    model = Case
+    template_name = "cases/concurrence_letter.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["min_freq"] = self.object.facilities.annotate(Min("freq_low")).order_by("freq_low__min").first().freq_low
+        context["max_freq"] = self.object.facilities.annotate(Max("freq_high")).order_by("-freq_high__max").first().freq_high
+
+        table = ConcurrenceFacilityTable(data=self.object.facilities.all())
+        context["facilities_table"] = table
+        return context
 
 
 class CaseDetailView(DetailView):

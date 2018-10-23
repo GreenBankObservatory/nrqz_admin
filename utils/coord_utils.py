@@ -26,14 +26,18 @@ def coords_to_string(latitude, longitude):
         latitude = dd_to_dms(latitude)
     if isinstance(longitude, float):
         longitude = dd_to_dms(longitude)
+
+    lat_hemi = "S" if latitude[0] < 0 else "N"
+    long_hemi = "W" if longitude[0] < 0 else "E"
     coord_format = "{:3d}° {:02d}′ {:2.3f}″"
-    return "{}, {}".format(
-        coord_format.format(*latitude), coord_format.format(*longitude)
-    )
+    return f"{coord_format.format(*latitude)}{lat_hemi}, {coord_format.format(*longitude)}{long_hemi}"
 
 
-# https://regex101.com/r/40vZ2H/1/
-coord_regex_str = r"(?P<degrees>\-?\d{1,3}(:\.\d+)?)\D+(:?(?P<minutes>\d{1,2})\D+(?P<seconds>\d{1,2})[^NnEeWwSs]+)?(?P<hemisphere>[NnEeWwSs])?"
+# https://regex101.com/r/vMa4Ov/5
+coord_regex_str = (
+    r"(?P<degrees>\-?\d{1,3}(?:\.\d+)?)\D*(?:(?P<minutes>\d{1,2})\D+"
+    r"(?P<seconds>\d{1,2}(?:\.\d+)?)[^NnEeWwSs]+)?(?P<hemisphere>[NnEeWwSs])?"
+)
 coord_regex = re.compile(coord_regex_str)
 
 
@@ -41,7 +45,6 @@ def parse_coord(coord):
     match = coord_regex.match(coord)
     if not match:
         raise ValueError(f"Failed to parse {coord!r} with regex {coord_regex_str!r}")
-    print(f"match {coord}")
     degrees = float(match["degrees"])
     if match["minutes"]:
         minutes = float(match["minutes"])
