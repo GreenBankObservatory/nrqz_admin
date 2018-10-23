@@ -3,7 +3,7 @@ from django.contrib.gis.measure import Distance
 from django.contrib.gis.geos.error import GEOSException
 from django import forms
 import django_filters
-from crispy_forms.layout import Submit, Layout, Button, Div, Reset
+from crispy_forms.layout import Submit, Layout, Button, Fieldset, Div, Reset
 from crispy_forms.bootstrap import FormActions
 from crispy_forms.helper import FormHelper
 
@@ -56,8 +56,9 @@ class CollapsibleFilterFormLayout(Layout):
                             "Facilities as a .kml file"
                         ),
                     ),
+                    css_class="filter-form-buttons"
                 ),
-                css_class="container",
+                css_class="container-fluid filter-form",
             )
         )
 
@@ -66,7 +67,7 @@ class BatchFilterFormHelper(FormHelper):
     """Provides layout information for FacilityFilter.form"""
 
     form_method = "get"
-    form_class = "collapse"
+    form_class = "collapse show"
     form_id = "batch-filter-form"
     layout = CollapsibleFilterFormLayout(
         Div(
@@ -95,8 +96,9 @@ class FacilityFilterFormHelper(FormHelper):
     form_id = "facility-filter-form"
     layout = CollapsibleFilterFormLayout(
         Div(
-            Div("nrqz_id", "site_name", css_class="col"),
-            Div("location", "freq_low", "freq_high", css_class="col"),
+            Div("nrqz_id", "site_name", css_class="col-sm-2"),
+            Div("freq_high", "freq_low", css_class="col-sm-5"),
+            Div("location", css_class="col-sm-5"),
             css_class="row",
         )
     )
@@ -177,10 +179,22 @@ class PointField(forms.MultiValueField):
 
             latitude_orig = data_list[0]
             longitude_orig = data_list[1]
-
             radius = data_list[2]
             unit = data_list[3]
 
+            latitude_clean = latitude_orig.strip()
+            longitude_clean = longitude_orig.strip()
+
+            # If we have neither latitude nor longitude, don't attempt
+            # to create a Point, just bail
+            if not (latitude_clean or longitude_clean or radius):
+                return None
+
+            if (latitude_clean or longitude_clean) and not radius:
+                raise forms.ValidationError("All location fields must be provided!")
+
+
+            print("Now parsing latlong")
             try:
                 latitude = parse_coord(latitude_orig)
                 print(f"latitude converted from {latitude_orig!r} {latitude!r}")
@@ -189,7 +203,7 @@ class PointField(forms.MultiValueField):
             except ValueError as error:
                 print("ValidationError")
                 raise forms.ValidationError(
-                    "Valid latitude and longitude must be given!"
+                    "All location fields must be provided!"
                 ) from error
 
             try:
@@ -250,7 +264,7 @@ class CaseFilterFormHelper(FormHelper):
 
     layout = CollapsibleFilterFormLayout(
         Div(
-            Div("case_num", "batch", css_class="col"),
+            Div("case_num", css_class="col"),
             Div("applicant", "contact", css_class="col"),
             css_class="row",
         ),
@@ -266,7 +280,6 @@ class CaseFilter(HelpedFilterSet):
     created_on = django_filters.DateFromToRangeFilter(lookup_expr="range")
     name = django_filters.CharFilter(lookup_expr="icontains")
     comments = django_filters.CharFilter(lookup_expr="icontains")
-    batch = django_filters.CharFilter(lookup_expr="name__icontains")
     applicant = django_filters.CharFilter(lookup_expr="name__icontains")
     contact = django_filters.CharFilter(lookup_expr="name__icontains")
 
