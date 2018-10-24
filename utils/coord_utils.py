@@ -27,10 +27,20 @@ def coords_to_string(latitude, longitude):
     if isinstance(longitude, float):
         longitude = dd_to_dms(longitude)
 
-    lat_hemi = "S" if latitude[0] < 0 else "N"
-    long_hemi = "W" if longitude[0] < 0 else "E"
+    if latitude[0] < 0:
+        latitude = (abs(i) for i in latitude)
+        lat_hemi = "S"
+    else:
+        lat_hemi = "N"
+
+    if longitude[0] < 0:
+        longitude = (abs(i) for i in longitude)
+        long_hemi = "W"
+    else:
+        long_hemi = "E"
+
     coord_format = "{:3d}° {:02d}′ {:2.3f}″"
-    return f"{coord_format.format(*latitude)}{lat_hemi}, {coord_format.format(*longitude)}{long_hemi}"
+    return f"{coord_format.format(*latitude)} {lat_hemi}, {coord_format.format(*longitude)} {long_hemi}"
 
 
 # https://regex101.com/r/vMa4Ov/5

@@ -5,7 +5,8 @@
 
 {% block content %}
 {% if case.batch %}
-<a href={% url "batch_detail" case.batch.id %}>View batch</a>
+<a href={% url "batch_detail" case.batch.id %}>View batch</a> |
+<a href={% url "concurrence" case.id %}>View concurrence letter</a>
 {% else %}
 <p>Not created from an Excel sheet; no batch</p>
 {% endif %}
@@ -61,7 +62,12 @@
     {% crispy facility_filter.form %}
     <p>Results: {{ facility_table.data|length }}</p>
     {% endif %}
-    {% render_table facility_table %}
+    <form method="post" action={% url "concurrence" case.id %}>
+        {% csrf_token %}
+        {% render_table facility_table %}
+        <button type="submit">Generate Concurrence Letter</button>
+    </form>
+
 </div>
 {% else %}
 <p>No Facilities</p>

@@ -1,4 +1,5 @@
 from django.views.generic.detail import DetailView
+from django.views.generic.base import TemplateView
 from django.http import HttpResponse
 from django.db.models import Min, Max
 from django_filters.views import FilterView
@@ -112,17 +113,30 @@ class FacilityListView(FilterTableView):
         else:
             return super(FacilityListView, self).get(request, *args, **kwargs)
 
+from django.shortcuts import get_object_or_404
 
-class ConcurrenceLetterView(DetailView):
-    model = Case
+class ConcurrenceLetterView(TemplateView):
     template_name = "cases/concurrence_letter.html"
+
+    def post(self, request, *args, **kwargs):
+        return self.get(request, **request.POST)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["min_freq"] = self.object.facilities.annotate(Min("freq_low")).order_by("freq_low__min").first().freq_low
-        context["max_freq"] = self.object.facilities.annotate(Max("freq_high")).order_by("-freq_high__max").first().freq_high
 
-        table = ConcurrenceFacilityTable(data=self.object.facilities.all())
+        # import ipdb; ipdb.set_trace()
+        # case = get_object_or_404(Case, id=kwargs["pk"])
+        facilities = Facility.objects.filter(nrqz_id__in=context["select"])
+        unique_cases = facilities.values_list("case", flat=True).distinct()
+        if len(unique_cases) != 1:
+            raise ValueError(f"Expected 1 unique case; got {len(unique_cases)}")
+        case = Case.objects.get(id=unique_cases[0])
+        context["case"] = case
+        context["facilities"] = facilities
+        context["nrqz_ids"] = ", ".join(facilities.values_list("nrqz_id", flat=True))
+        context["min_freq"] = case.facilities.annotate(Min("freq_low")).order_by("freq_low__min").first().freq_low
+        context["max_freq"] = case.facilities.annotate(Max("freq_high")).order_by("-freq_high__max").first().freq_high
+        table = ConcurrenceFacilityTable(data=facilities)
         context["facilities_table"] = table
         return context
 
@@ -134,6 +148,7 @@ class CaseDetailView(DetailView):
         super(CaseDetailView, self).__init__(*args, **kwargs)
         self.facility_filter = None
         self.attachment_filter = None
+
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

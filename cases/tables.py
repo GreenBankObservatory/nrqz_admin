@@ -1,3 +1,5 @@
+from django.utils.safestring import mark_safe
+
 import django_tables2 as tables
 
 from utils.coord_utils import coords_to_string, dd_to_dms
@@ -57,12 +59,34 @@ class ConcurrenceFacilityTable(tables.Table):
         return coords_to_string(latitude=latitude, longitude=longitude)
 
 
+from django_tables2.utils import Accessor, AttributeDict
+
+
+class SelectColumn(tables.CheckBoxColumn):
+    verbose_name = "Concur"
+    empty_values = ()
+
+    def __init__(self, *args, **kwargs):
+        super(SelectColumn, self).__init__(*args, **kwargs)
+
+    @property
+    def header(self):
+        return mark_safe(f"<span>{SelectColumn.verbose_name}</span>")
+
+    def render(self, value, bound_column, record):
+        attrs = AttributeDict(
+            {"type": "checkbox", "name": "select", "value": record.nrqz_id}
+        )
+        return mark_safe("<input %s/>" % attrs.as_html())
+
+
 class FacilityTable(tables.Table):
     nrqz_id = tables.LinkColumn()
+    selected = SelectColumn()
 
     class Meta:
         model = models.Facility
-        fields = FacilityFilter.Meta.fields
+        fields = FacilityFilter.Meta.fields + ["selected"]
 
     def render_location(self, value):
         """Render a coordinate as DD MM SS.sss"""

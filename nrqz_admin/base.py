@@ -59,6 +59,19 @@ MIDDLEWARE = [
 ROOT_URLCONF = "nrqz_admin.urls"
 
 TEMPLATES = [
+    # {
+    #     "BACKEND": "django.template.backends.django.DjangoTemplates",
+    #     "DIRS": [],
+    #     "APP_DIRS": True,
+    #     "OPTIONS": {
+    #         "context_processors": [
+    #             "django.template.context_processors.debug",
+    #             "django.contrib.auth.context_processors.auth",
+    #             "django.contrib.messages.context_processors.messages",
+    #             "django.template.context_processors.request",
+    #         ]
+    #     },
+    # },
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [],
@@ -69,7 +82,8 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "django.template.context_processors.request",
-            ]
+            ],
+            "string_if_invalid": r"{{ %s }}"
         },
     }
 ]
