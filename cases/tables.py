@@ -75,7 +75,7 @@ class SelectColumn(tables.CheckBoxColumn):
 
     def render(self, value, bound_column, record):
         attrs = AttributeDict(
-            {"type": "checkbox", "name": "select", "value": record.nrqz_id}
+            {"type": "checkbox", "name": "facilities", "value": record.id}
         )
         return mark_safe("<input %s/>" % attrs.as_html())
 

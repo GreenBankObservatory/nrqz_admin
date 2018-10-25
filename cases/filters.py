@@ -9,7 +9,7 @@ from crispy_forms.helper import FormHelper
 
 from utils.coord_utils import dms_to_dd, parse_coord
 from . import models
-
+from .forms import LetterTemplateForm
 
 def discover_fields(layout):
     """Discover all fields defined in a layout object
@@ -339,3 +339,26 @@ class AttachmentFilter(HelpedFilterSet):
         model = models.Attachment
         formhelper_class = AttachmentFilterFormHelper
         fields = discover_fields(formhelper_class.layout)
+
+
+# class ConcurrenceLetterFilterFormHelper(FormHelper):
+#     form_method = "get"
+#     layout = Layout(
+#         Div(
+#             Div("case", css_class="col"),
+#             Div("nrqz_id", css_class="col"),
+#             css_class="row",
+#         ),
+#         FormActions(Submit("submit", "Filter")),
+#     )
+
+# class ConcurrenceLetterFilter(HelpedFilterSet):
+#     cases = django_filters.MultipleChoiceFilter(lookup_expr="case__case_num__startswith")
+#     nrqz_id = django_filters.CharFilter(lookup_expr="startswith")
+
+#     class Meta:
+#         model = models.Facility
+#         formhelper_class = ConcurrenceLetterFilterFormHelper
+#         # fields = discover_fields(formhelper_class.layout)
+#         fields = ("case", "nrqz_id")
+#         # form = LetterTemplateForm

@@ -208,7 +208,7 @@ class Facility(IsActiveModel, TrackedModel, Model):
             yield (field.verbose_name, field.value_to_string(self))
 
     def __str__(self):
-        return f"NRQZ {self.nrqz_id} ({self.latitude}, {self.longitude})"
+        return f"{self.nrqz_id}"
 
     def get_absolute_url(self):
         return reverse("facility_detail", args=[str(self.id)])
@@ -275,7 +275,7 @@ class Case(IsActiveModel, TrackedModel, Model):
     si_done = DateTimeField(null=True)
 
     def __str__(self):
-        return f"Application {self.id} ({self.created_on})"
+        return f"{self.case_num}"
 
     def get_absolute_url(self):
         return reverse("case_detail", args=[str(self.id)])
@@ -322,4 +322,8 @@ class Attachment(IsActiveModel, TrackedModel, Model):
         return reverse("attachment_detail", args=[str(self.id)])
 
 class LetterTemplate(IsActiveModel, TrackedModel, Model):
+    name = CharField(max_length=256)
     template = TextField()
+
+    def __str__(self):
+        return self.name

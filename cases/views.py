@@ -1,11 +1,19 @@
+from datetime import date
+
 from django.views.generic.detail import DetailView
 from django.views.generic.base import TemplateView
 from django.http import HttpResponse
 from django.db.models import Min, Max
+from django.shortcuts import get_object_or_404
+from django.template import Template, Context
+from django.db.models import Q
+
+from dal import autocomplete
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 
-from .models import Attachment, Batch, Case, Facility, Person
+from .forms import LetterTemplateForm
+from .models import Attachment, Batch, Case, Facility, Person, LetterTemplate
 from .filters import (
     AttachmentFilter,
     BatchFilter,
@@ -19,7 +27,7 @@ from .tables import (
     FacilityTable,
     PersonTable,
     CaseTable,
-    ConcurrenceFacilityTable
+    ConcurrenceFacilityTable,
 )
 
 from .kml import (
@@ -113,31 +121,111 @@ class FacilityListView(FilterTableView):
         else:
             return super(FacilityListView, self).get(request, *args, **kwargs)
 
-from django.shortcuts import get_object_or_404
+
+class CaseAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        cases = Case.objects.order_by("case_num")
+        if self.q:
+            cases = cases.filter(case_num__istartswith=self.q).order_by("case_num")
+        return cases
+
+
+class FacilityAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        facilities = Facility.objects.order_by("nrqz_id")
+        if self.q:
+            facilities = facilities.filter(nrqz_id__icontains=self.q)
+        return facilities
 
 class ConcurrenceLetterView(TemplateView):
     template_name = "cases/concurrence_letter.html"
 
-    def post(self, request, *args, **kwargs):
-        return self.get(request, **request.POST)
+    def get(self, request, *args, **kwargs):
+        facilities_q = Q()
+        if "facilities" in request.GET:
+            kwargs.update({"facilities": request.GET.getlist("facilities")})
+            facilities_q |= Q(id__in=request.GET.getlist("facilities"))
+
+        if "cases" in request.GET:
+            kwargs.update({"cases": request.GET.getlist("cases")})
+            facilities_q |= Q(case__in=request.GET.getlist("cases"))
+
+        if "batches" in request.GET:
+            kwargs.update({"batches": request.GET.getlist("batches")})
+            facilities_q |= Q(batch__case__in=request.GET.getlist("batches"))
+
+        if "template" in request.GET:
+            kwargs.update({"template": request.GET["template"]})
+
+        if facilities_q:
+            facilities = Facility.objects.filter(facilities_q)
+        else:
+            facilities = Facility.objects.none()
+        kwargs.update({"facilities_result": facilities})
+        # print(facilities.count())
+
+
+        return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
         # import ipdb; ipdb.set_trace()
         # case = get_object_or_404(Case, id=kwargs["pk"])
-        facilities = Facility.objects.filter(nrqz_id__in=context["select"])
-        unique_cases = facilities.values_list("case", flat=True).distinct()
-        if len(unique_cases) != 1:
-            raise ValueError(f"Expected 1 unique case; got {len(unique_cases)}")
-        case = Case.objects.get(id=unique_cases[0])
-        context["case"] = case
+        facilities = context["facilities_result"]
         context["facilities"] = facilities
-        context["nrqz_ids"] = ", ".join(facilities.values_list("nrqz_id", flat=True))
-        context["min_freq"] = case.facilities.annotate(Min("freq_low")).order_by("freq_low__min").first().freq_low
-        context["max_freq"] = case.facilities.annotate(Max("freq_high")).order_by("-freq_high__max").first().freq_high
+        # facilities = Facility.objects.filter(case__case_num__in=context["cases"])
+        # facilities = Facility.objects.filter(case__in=context["cases"])
+        print(f"rendering {facilities.count()} facilities")
+        # facilities = F
+
+        # unique_cases = facilities.values_list("case", flat=True).distinct()
+        # if len(unique_cases) != 1:
+        #     raise ValueError(f"Expected 1 unique case; got {len(unique_cases)}")
+        # cases = context["cases"]
+        # cases = Case.objects.filter(facilities__in=facilities).distinct()
+        # context["cases"] = cases
+        if "cases" in context:
+            context["cases"] = Case.objects.filter(id__in=context["cases"])
+        else:
+            context["cases"] = Case.objects.none()
+        # context["case"] = case
+
+
+        letter_context = {}
+        letter_context["generation_date"] = date.today().strftime("%B %d, %Y")
+        letter_context["nrqz_ids"] = ", ".join(facilities.values_list("nrqz_id", flat=True))
+        # context["min_freq"] = case.facilities.annotate(Min("freq_low")).order_by("freq_low__min").first().freq_low
+        # context["max_freq"] = case.facilities.annotate(Max("freq_high")).order_by("-freq_high__max").first().freq_high
         table = ConcurrenceFacilityTable(data=facilities)
-        context["facilities_table"] = table
+        letter_context["facilities_table"] = table
+
+        if "template" in context:
+            letter_template_text = get_object_or_404(
+                LetterTemplate, name=context["template"]
+            ).template
+        else:
+            try:
+                letter_template_text = LetterTemplate.objects.get(
+                    name="default"
+                ).template
+                kwargs["template"] = "default"
+            except LetterTemplate.DoesNotExist:
+                lt = LetterTemplate.objects.first()
+                letter_template_text = lt.template
+                kwargs["template"] = lt.name
+        # import ipdb; ipdb.set_trace()
+        # print(letter_template_text)
+        form_values = {
+            field: value
+            for field, value in kwargs.items()
+            if field in ["cases", "facilities", "batches", "template"]
+        }
+        print(f"form_values: {form_values}")
+        context["template_form"] = LetterTemplateForm(form_values)
+        context["letter_template"] = Template(letter_template_text).render(
+            Context(letter_context)
+        )
         return context
 
 
@@ -148,7 +236,6 @@ class CaseDetailView(DetailView):
         super(CaseDetailView, self).__init__(*args, **kwargs)
         self.facility_filter = None
         self.attachment_filter = None
-
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -185,7 +272,6 @@ class CaseDetailView(DetailView):
             table = FacilityTable(data=self.facility_filter.qs)
             table.paginate(page=self.request.GET.get("page", 1), per_page=10)
             context["facility_table"] = table
-
 
         if not self.attachment_filter:
             self.attachment_filter = AttachmentFilter(
