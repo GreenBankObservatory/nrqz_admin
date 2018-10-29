@@ -6,7 +6,7 @@ urlpatterns = [
     path("batches/", views.BatchListView.as_view(), name="batch_index"),
     path("batches/<int:pk>/", views.BatchDetailView.as_view(), name="batch_detail"),
     path("cases/", views.CaseListView.as_view(), name="case_index"),
-    path("cases/<int:pk>/", views.CaseDetailView.as_view(), name="case_detail"),
+    path("cases/<int:slug>/", views.CaseDetailView.as_view(), name="case_detail"),
     path("case-autocomplete/", views.CaseAutocomplete.as_view(), name="case_autocomplete"),
     path("facility-autocomplete/", views.FacilityAutocomplete.as_view(), name="facility_autocomplete"),
     path(

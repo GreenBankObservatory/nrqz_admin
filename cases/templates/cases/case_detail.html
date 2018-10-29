@@ -6,11 +6,13 @@
 {% block content %}
 {% if case.batch %}
 <a href={% url "batch_detail" case.batch.id %}>View batch</a> |
-<a href="{% url 'concurrence' %}?cases={{case.id}}">View concurrence letter</a>
 {% else %}
 <p>Not created from an Excel sheet; no batch</p>
 {% endif %}
-<h1>Case {{ case.id }}</h1>
+
+<a href="{% url 'concurrence' %}?cases={{case.id}}">View concurrence letter</a>
+
+<h1>Case {{ case.case_num }}</h1>
 
 <p>Created on: {{ case.created_on }}</p>
 

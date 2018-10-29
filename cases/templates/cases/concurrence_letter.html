@@ -7,10 +7,11 @@
 
 <h1>Concurrence Letter Generation</h1>
 
-<form id="letter-template-form" method="get" action="{% url 'concurrence' %}">
+<form id="letter-template-form" method="get">
   {{ template_form.media }}
   {{ template_form }}
   <button class="button" type="submit" value="submit">Submit</button>
+  <button class="button" type="submit" name="download" value="download">Download</button>
 </form>
 
 <ul>

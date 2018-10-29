@@ -1,4 +1,5 @@
 from datetime import date
+import tempfile
 
 from django.views.generic.detail import DetailView
 from django.views.generic.base import TemplateView
@@ -8,6 +9,7 @@ from django.shortcuts import get_object_or_404
 from django.template import Template, Context
 from django.db.models import Q
 
+import pypandoc
 from dal import autocomplete
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
@@ -137,6 +139,9 @@ class FacilityAutocomplete(autocomplete.Select2QuerySetView):
             facilities = facilities.filter(nrqz_id__icontains=self.q)
         return facilities
 
+
+
+
 class ConcurrenceLetterView(TemplateView):
     template_name = "cases/concurrence_letter.html"
 
@@ -164,39 +169,37 @@ class ConcurrenceLetterView(TemplateView):
         kwargs.update({"facilities_result": facilities})
         # print(facilities.count())
 
-
         return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        # import ipdb; ipdb.set_trace()
-        # case = get_object_or_404(Case, id=kwargs["pk"])
         facilities = context["facilities_result"]
-        context["facilities"] = facilities
-        # facilities = Facility.objects.filter(case__case_num__in=context["cases"])
-        # facilities = Facility.objects.filter(case__in=context["cases"])
-        print(f"rendering {facilities.count()} facilities")
-        # facilities = F
-
-        # unique_cases = facilities.values_list("case", flat=True).distinct()
-        # if len(unique_cases) != 1:
-        #     raise ValueError(f"Expected 1 unique case; got {len(unique_cases)}")
-        # cases = context["cases"]
-        # cases = Case.objects.filter(facilities__in=facilities).distinct()
-        # context["cases"] = cases
         if "cases" in context:
-            context["cases"] = Case.objects.filter(id__in=context["cases"])
+            cases = Case.objects.filter(id__in=context["cases"])
         else:
-            context["cases"] = Case.objects.none()
-        # context["case"] = case
-
+            cases = Case.objects.none()
+        context["cases"] = cases
+        context["facilities"] = facilities
 
         letter_context = {}
+        letter_context["case"] = cases.first()
         letter_context["generation_date"] = date.today().strftime("%B %d, %Y")
-        letter_context["nrqz_ids"] = ", ".join(facilities.values_list("nrqz_id", flat=True))
-        # context["min_freq"] = case.facilities.annotate(Min("freq_low")).order_by("freq_low__min").first().freq_low
-        # context["max_freq"] = case.facilities.annotate(Max("freq_high")).order_by("-freq_high__max").first().freq_high
+        letter_context["nrqz_ids"] = ", ".join(
+            facilities.values_list("nrqz_id", flat=True)
+        )
+        context["min_freq"] = (
+            facilities.annotate(Min("freq_low"))
+            .order_by("freq_low__min")
+            .first()
+            .freq_low
+        )
+        context["max_freq"] = (
+            facilities.annotate(Max("freq_high"))
+            .order_by("-freq_high__max")
+            .first()
+            .freq_high
+        )
         table = ConcurrenceFacilityTable(data=facilities)
         letter_context["facilities_table"] = table
 
@@ -227,6 +230,38 @@ class ConcurrenceLetterView(TemplateView):
             Context(letter_context)
         )
         return context
+
+    def render_to_response(self, context, **response_kwargs):
+        if "download" in self.request.GET:
+            # pypandoc will only write to disk. So, we make a temp file...
+            with tempfile.NamedTemporaryFile() as fp:
+                # ...write the converted document to it...
+                pypandoc.convert_text(
+                    context["letter_template"],
+                    to="docx",
+                    format="html",
+                    outputfile=fp.name,
+                )
+                # ...and then read it into memory
+                docx = fp.read()
+
+            # Generate the filename based on the case number(s)
+            case_nums = [str(c.case_num) for c in context["cases"]]
+            filename = f"{'_'.join(case_nums)}_letter.docx"
+
+            # And serve the document
+            # TODO: Large files will probably cause issues here... will need to set up streaming if
+            # this happens
+            response = HttpResponse(
+                docx,
+                content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            )
+            response["Content-Disposition"] = f'application; filename="{filename}"'
+            return response
+        else:
+            return super(ConcurrenceLetterView, self).render_to_response(
+                context, **response_kwargs
+            )
 
 
 class CaseDetailView(DetailView):

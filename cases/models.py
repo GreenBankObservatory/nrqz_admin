@@ -14,6 +14,7 @@ from django.db.models import (
     TextField,
     PROTECT,
     SET_NULL,
+    SlugField,
 )
 from django.contrib.gis.db.models import PointField
 
@@ -252,16 +253,16 @@ class Case(IsActiveModel, TrackedModel, Model):
     case_num = PositiveIntegerField(unique=True)
     name = CharField(max_length=256, blank=True, null=True)
 
-    batch = ForeignKey("Batch", related_name="cases", on_delete=SET_NULL, null=True)
+    batch = ForeignKey("Batch", related_name="cases", on_delete=SET_NULL, null=True, blank=True)
 
-    attachments = ManyToManyField("Attachment", related_name="cases")
+    attachments = ManyToManyField("Attachment", related_name="cases", blank=True)
 
     # From Access
     completed = BooleanField(default=False, blank=True)
     shutdown = BooleanField(default=False, blank=True)
-    completed_on = DateTimeField(null=True)
+    completed_on = DateTimeField(null=True, blank=True)
     sgrs_notify = BooleanField(default=False, blank=True)
-    sgrs_notified_on = DateTimeField(null=True)
+    sgrs_notified_on = DateTimeField(null=True, blank=True)
     radio_service = CharField(max_length=256, blank=True)
     call_sign = CharField(max_length=256, blank=True)
     fcc_freq_coord = CharField(max_length=256, blank=True)
@@ -272,7 +273,9 @@ class Case(IsActiveModel, TrackedModel, Model):
     erpd_limit = BooleanField(default=False, blank=True)
     si_waived = BooleanField(default=False, blank=True)
     si = BooleanField(default=False, blank=True)
-    si_done = DateTimeField(null=True)
+    si_done = DateTimeField(null=True, blank=True)
+
+    slug = SlugField()
 
     def __str__(self):
         return f"{self.case_num}"
@@ -282,6 +285,11 @@ class Case(IsActiveModel, TrackedModel, Model):
 
     def as_kml(self):
         return kml_to_string(case_as_kml(self))
+
+    def save(self, *args, **kwargs):
+        self.slug = str(self.case_num)
+        super(Case, self).save(*args, **kwargs)
+
 
 
 class Person(IsActiveModel, TrackedModel, Model):
