@@ -11,6 +11,7 @@ from utils.coord_utils import dms_to_dd, parse_coord
 from . import models
 from .forms import LetterTemplateForm
 
+
 def discover_fields(layout):
     """Discover all fields defined in a layout object
 
@@ -56,7 +57,7 @@ class CollapsibleFilterFormLayout(Layout):
                             "Facilities as a .kml file"
                         ),
                     ),
-                    css_class="filter-form-buttons"
+                    css_class="filter-form-buttons",
                 ),
                 css_class="container-fluid filter-form",
             )
@@ -193,7 +194,6 @@ class PointField(forms.MultiValueField):
             if (latitude_clean or longitude_clean) and not radius:
                 raise forms.ValidationError("All location fields must be provided!")
 
-
             print("Now parsing latlong")
             try:
                 latitude = parse_coord(latitude_orig)
@@ -240,7 +240,6 @@ class FacilityFilter(HelpedFilterSet):
     location = PointFilter()
     comments = django_filters.CharFilter(lookup_expr="icontains")
 
-
     class Meta:
         model = models.Facility
         formhelper_class = FacilityFilterFormHelper
@@ -260,7 +259,7 @@ class CaseFilterFormHelper(FormHelper):
             Div("radio_service", "call_sign", "fcc_file_num", css_class="col"),
             Div("completed", "shutdown", "comments", css_class="col"),
             css_class="row",
-        ),
+        )
     )
 
 

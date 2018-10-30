@@ -1,6 +1,8 @@
 from django.db import models
 
 from django.conf import settings
+
+
 class IsActiveModel(models.Model):
     """An abstract class that allows objects to be 'soft' deleted.
     """
@@ -15,6 +17,7 @@ class TrackedModel(models.Model):
     """An abstract class for any models that need to track who
     created or last modified an object and when.
     """
+
     # Django sets these fields automagically for us when objs are saved!
     created_on = models.DateTimeField(auto_now_add=True)
     modified_on = models.DateTimeField(auto_now=True, null=True)

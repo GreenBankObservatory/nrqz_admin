@@ -1,6 +1,7 @@
 from pprint import pprint
 
 from django import setup
+
 setup()
 
 from cases.models import Case, Antenna, Person, Site
@@ -21,9 +22,7 @@ key_to_thing = {
         # TODO: Will definitely need special handling
         "sysType": "technology",
     },
-    Case: {
-
-    },
+    Case: {},
     Person: {
         "caddr": None,
         "caddr2": None,
@@ -38,10 +37,7 @@ key_to_thing = {
         "camendate": None,
         "cnumber": None,
     },
-    Site: {
-        "sitename": "name",
-        "nant": None,
-    },
+    Site: {"sitename": "name", "nant": None},
     "unsorted": {
         "nrqzLinks": None,
         "AgencyNo": None,
@@ -53,7 +49,6 @@ key_to_thing = {
         "legalname": None,
         "cityst": None,
         "asr": None,
-
         "purpose": None,
         "txmanuf": None,
         "mxtxpo": None,
@@ -113,7 +108,7 @@ key_to_thing = {
         "AlterableTilt": None,
         "AlterablePan": None,
         "AlterableBW": None,
-    }
+    },
 }
 
 
@@ -137,6 +132,7 @@ def foo(path):
     # pprint(app_dict)
     return app_dict
 
+
 def bar(app_dict):
     antenna = Antenna()
     for key, value in key_to_thing.items():
@@ -148,7 +144,6 @@ def bar(app_dict):
 
 path = "/home/sandboxes/tchamber/projects/nrqz_admin/examples/5763-1 AT&T_SW800/nrqzApplication.txt"
 bar(foo(path))
-
 
 
 # keys = [

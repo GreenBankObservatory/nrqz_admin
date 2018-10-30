@@ -92,7 +92,9 @@ def indentify_invalid_rows(rows, threshold=None):
                 invalid_cells += 1
 
         if invalid_cells / len(row) > threshold:
-            tqdm.write(f"Found invalid row {ri} (>{threshold * 100}% cells invalid): {row}")
+            tqdm.write(
+                f"Found invalid row {ri} (>{threshold * 100}% cells invalid): {row}"
+            )
             invalid_row_indices.append(ri)
 
     return invalid_row_indices
@@ -370,7 +372,9 @@ def process_excel_directory(dir_path, threshold=None, pattern=r".*\.(xls.?|csv)$
     report = {}
     sorted_files = tqdm(sorted(files), unit="files")
     for file_path in sorted_files:
-        sorted_files.set_description(f"Processing {os.path.basename(file_path):{max_fn_len}}")
+        sorted_files.set_description(
+            f"Processing {os.path.basename(file_path):{max_fn_len}}"
+        )
         import_reporter = process_excel_file(file_path, threshold)
         if import_reporter:
             report[os.path.basename(file_path)] = import_reporter
@@ -410,10 +414,11 @@ def main():
             print(f"One or more errors while importing {filename!r}")
 
         all_unmapped_headers.update(report.report["header_errors"]["unmapped_headers"])
-        all_duplicate_headers.update(report.report["header_errors"]["duplicate_headers"])
+        all_duplicate_headers.update(
+            report.report["header_errors"]["duplicate_headers"]
+        )
 
         # pprint(report.report)
-
 
     print("Summary:")
     print(

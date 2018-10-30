@@ -1,7 +1,9 @@
-if __name__ == '__main__':
+if __name__ == "__main__":
     import django
+
     django.setup()
     from django.contrib.auth import get_user_model
+
     User = get_user_model()
 
     users = ["tchamber", "pwoody", "mholstin", "mwhitehe", "koneil"]

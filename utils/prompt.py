@@ -16,7 +16,6 @@ def prompt(string, valid_responses=None):
             response = response_type(response)
             valid_responses.index(response)
         except (TypeError, ValueError):
-            print("Invalid response; please choose from: {}"
-                  .format(valid_responses))
+            print("Invalid response; please choose from: {}".format(valid_responses))
         else:
             return response

@@ -34,7 +34,9 @@ def load_rows(path):
     with open(path, newline="", encoding="latin1") as file:
         return list(csv.reader(file))
 
+
 _letters = [f"letter{i}" for i in range(1, 9)]
+
 
 @transaction.atomic
 def handle_row(field_importers, row):
@@ -94,7 +96,9 @@ def handle_row(field_importers, row):
                         attachment = Attachment.objects.get(path=value)
                         # tqdm.write(f"Found attachment: {attachment}")
                     except Attachment.DoesNotExist:
-                        attachment = Attachment.objects.create(path=value, comments=f"Imported by {__file__}")
+                        attachment = Attachment.objects.create(
+                            path=value, comments=f"Imported by {__file__}"
+                        )
                         # tqdm.write(f"Created attachment: {attachment}")
                     attachments.append(attachment)
             else:
@@ -108,7 +112,9 @@ def handle_row(field_importers, row):
             tqdm.write(f"Found case {case}")
             found_report["case"] = True
         except Case.DoesNotExist:
-            case = Case.objects.create(**stripped_case_dict, applicant=applicant, contact=contact)
+            case = Case.objects.create(
+                **stripped_case_dict, applicant=applicant, contact=contact
+            )
             tqdm.write(f"Created case {case}")
 
         case.attachments.add(*attachments)
@@ -132,7 +138,12 @@ def main():
         except KeyError:
             field_importers.append(None)
 
-    found_counts = {"applicant": 0, "contact": 0, "case": 0, "technical_with_no_case": 0}
+    found_counts = {
+        "applicant": 0,
+        "contact": 0,
+        "case": 0,
+        "technical_with_no_case": 0,
+    }
     data_with_progress = tqdm(data, unit="rows")
     for row in data_with_progress:
         try:
@@ -146,7 +157,10 @@ def main():
             found_counts["applicant"] += bool(found_report["applicant"])
             found_counts["contact"] += bool(found_report["contact"])
             found_counts["case"] += bool(found_report["case"])
-            if not (found_report["applicant"] or found_report["contact"]) and found_report["case"]:
+            if (
+                not (found_report["applicant"] or found_report["contact"])
+                and found_report["case"]
+            ):
                 found_counts["technical_with_no_case"] += 1
 
     pprint(found_counts)

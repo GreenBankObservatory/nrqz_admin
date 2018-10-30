@@ -135,11 +135,7 @@ def handle_local_field_diffs(model_object_to_keep, local_diffs, populate_blank=T
     for field, possible_values in local_diffs.items():
         logger.debug("Processing {}: {}".format(field, possible_values))
         original_value = getattr(model_object_to_keep, field)
-        if (
-            populate_blank
-            and original_value
-            and not any(possible_values)
-        ):
+        if populate_blank and original_value and not any(possible_values):
             val_to_set = possible_values.pop()
             logger.info("Setting previously-blank '%s' to '%s'", field, val_to_set)
         else:

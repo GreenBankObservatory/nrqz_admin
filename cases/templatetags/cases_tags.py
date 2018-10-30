@@ -90,6 +90,7 @@ def location_table(instance, title, fields):
 def get_verbose_name(instance, field_name):
     return instance._meta.get_field(field_name).verbose_name
 
+
 @register.simple_tag
 def gen_query(*args):
     query_string = "&".join(args)

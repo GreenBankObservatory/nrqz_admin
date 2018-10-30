@@ -24,16 +24,11 @@ def facilities_as_kml(facilities):
 
 
 def case_as_kml(case):
-    return KML.Folder(
-        KML.name(case.name), *facilities_as_kml(case.facilities.all())
-    )
+    return KML.Folder(KML.name(case.name), *facilities_as_kml(case.facilities.all()))
 
 
 def cases_as_kml(cases):
-    return KML.Folder(
-        KML.name("cases"),
-        *[case_as_kml(case) for case in cases],
-    )
+    return KML.Folder(KML.name("cases"), *[case_as_kml(case) for case in cases])
 
 
 def kml_to_string(kml):

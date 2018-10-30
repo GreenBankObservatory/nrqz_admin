@@ -2,16 +2,14 @@ import json
 from collections import namedtuple, OrderedDict
 from pprint import pprint
 
+
 class ImportReport:
     def __init__(self, filename):
         self.filename = filename
 
         self.report = {
             "sheet_errors": [],
-            "header_errors": {
-                "unmapped_headers": [],
-                "duplicate_headers": []
-            },
+            "header_errors": {"unmapped_headers": [], "duplicate_headers": []},
             "data_errors": {},
         }
 
@@ -57,18 +55,17 @@ class ImportReport:
         # print(json.dumps(self.report, indent=2))
         pass
 
-
-
     def generate_error_summary(self):
         """Generate a more concise error report"""
 
         error_summary = {}
         error_summary["sheet_errors"] = self.report["sheet_errors"]
-        error_summary["unmapped_headers"] = self.report["header_errors"]["unmapped_headers"]
-        error_summary["duplicate_headers"] = self.report["header_errors"]["duplicate_headers"]
-
-
-
+        error_summary["unmapped_headers"] = self.report["header_errors"][
+            "unmapped_headers"
+        ]
+        error_summary["duplicate_headers"] = self.report["header_errors"][
+            "duplicate_headers"
+        ]
 
         column_error_summary = {}
         for header, errors_by_row in self.report["data_errors"].items():
@@ -98,8 +95,8 @@ class ImportReport:
 
     def has_errors(self):
         return (
-            any(self.report["sheet_errors"]) or
-            any(self.report["header_errors"]["unmapped_headers"]) or
-            any(self.report["header_errors"]["duplicate_headers"]) or
-            any(self.report["data_errors"])
+            any(self.report["sheet_errors"])
+            or any(self.report["header_errors"]["unmapped_headers"])
+            or any(self.report["header_errors"]["duplicate_headers"])
+            or any(self.report["data_errors"])
         )

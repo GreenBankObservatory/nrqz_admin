@@ -35,6 +35,7 @@ def coerce_positive_int(value):
 
     return int(num)
 
+
 def coerce_bool(value):
     if value == "0":
         return False
@@ -43,11 +44,13 @@ def coerce_bool(value):
     else:
         raise ValueError(f"Unexpected boolean value: {value}")
 
+
 def coerce_path(value):
     if value == "":
         return None
 
     return value.split("#")[1]
+
 
 applicant_field_mappers = [
     FieldMap(to_field="name", converter=None, from_field="APPLICANT"),
@@ -62,26 +65,36 @@ applicant_field_mappers = [
 ]
 
 contact_field_mappers = [
-    FieldMap(to_field="name", converter=None, from_field="CONTACT"),
+    FieldMap(to_field="name", converter=None, from_field="CONTACT")
 ]
 
 case_field_mappers = [
     FieldMap(to_field="case_num", converter=coerce_positive_int, from_field="NRQZ_NO"),
     FieldMap(to_field="comments", converter=None, from_field="COMMENTS"),
     FieldMap(to_field="created_on", converter=coerce_datetime, from_field="DATEREC"),
-    FieldMap(to_field="modified_on", converter=coerce_datetime, from_field="DATEALTERED"),
+    FieldMap(
+        to_field="modified_on", converter=coerce_datetime, from_field="DATEALTERED"
+    ),
     FieldMap(to_field="completed", converter=coerce_bool, from_field="COMPLETED"),
     FieldMap(to_field="shutdown", converter=coerce_bool, from_field="SHUTDOWN"),
     FieldMap(to_field="completed_on", converter=coerce_datetime, from_field="DATECOMP"),
     FieldMap(to_field="sgrs_notify", converter=coerce_bool, from_field="SGRSNOTIFY"),
-    FieldMap(to_field="sgrs_notified_on", converter=coerce_datetime, from_field="SGRSDATE"),
+    FieldMap(
+        to_field="sgrs_notified_on", converter=coerce_datetime, from_field="SGRSDATE"
+    ),
     FieldMap(to_field="radio_service", converter=None, from_field="RADIOSRV"),
     FieldMap(to_field="call_sign", converter=None, from_field="CALLSIGN"),
     FieldMap(to_field="fcc_freq_coord", converter=None, from_field="FCNUMBER"),
     FieldMap(to_field="fcc_file_num", converter=None, from_field="FCCNUMBER"),
-    FieldMap(to_field="num_freqs", converter=coerce_positive_int, from_field="NO_FREQS"),
-    FieldMap(to_field="num_sites", converter=coerce_positive_int, from_field="NO_SITES"),
-    FieldMap(to_field="num_outside", converter=coerce_positive_int, from_field="NO_OUTSIDE"),
+    FieldMap(
+        to_field="num_freqs", converter=coerce_positive_int, from_field="NO_FREQS"
+    ),
+    FieldMap(
+        to_field="num_sites", converter=coerce_positive_int, from_field="NO_SITES"
+    ),
+    FieldMap(
+        to_field="num_outside", converter=coerce_positive_int, from_field="NO_OUTSIDE"
+    ),
     FieldMap(to_field="erpd_limit", converter=coerce_bool, from_field="ERPD_LIMIT"),
     FieldMap(to_field="si_waived", converter=coerce_bool, from_field="SIWAIVED"),
     FieldMap(to_field="si", converter=coerce_bool, from_field="SI"),
@@ -110,8 +123,11 @@ def expand_field_mappers(field_mappers):
 
     return field_map
 
+
 def get_combined_field_map():
-    return expand_field_mappers([*applicant_field_mappers, *contact_field_mappers, *case_field_mappers])
+    return expand_field_mappers(
+        [*applicant_field_mappers, *contact_field_mappers, *case_field_mappers]
+    )
 
 
 def print_field_map(field_map):
@@ -121,7 +137,6 @@ def print_field_map(field_map):
     from_field_len = max(len(from_field) for from_field in field_map) + 3
     for from_field, importer in field_map.items():
         print(f"{from_field!r:{from_field_len}}: {importer.to_field!r}")
-
 
 
 if __name__ == "__main__":

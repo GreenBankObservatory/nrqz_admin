@@ -21,7 +21,9 @@ import string
 from utils.coord_utils import dms_to_dd
 
 
-COORD_PATTERN_STR = r"^(?P<degrees>\d+)\s+(?P<minutes>\d+)\s+(?P<seconds>\d+(?:\.\d+)?)$"
+COORD_PATTERN_STR = (
+    r"^(?P<degrees>\d+)\s+(?P<minutes>\d+)\s+(?P<seconds>\d+(?:\.\d+)?)$"
+)
 COORD_PATTERN = re.compile(COORD_PATTERN_STR)
 
 
@@ -46,7 +48,6 @@ def coerce_num(value):
     if clean_value in ["", "na", "n/a", "no"]:
         return None
 
-
     if clean_value == "quad":
         clean_value = 4
     elif clean_value == "hex":
@@ -54,7 +55,7 @@ def coerce_num(value):
     elif clean_value == "deca":
         clean_value = 10
     else:
-        clean_value = re.sub(f"[{string.ascii_letters}]", '', clean_value)
+        clean_value = re.sub(f"[{string.ascii_letters}]", "", clean_value)
 
     return float(clean_value)
 
@@ -73,8 +74,10 @@ def cooerce_coords(value):
     dd = dms_to_dd(**match.groupdict())
     return dd
 
+
 def cooerce_lat(value):
     return cooerce_coords(value)
+
 
 def cooerce_long(value):
     # Need to invert this because all of our longitudes will be W
@@ -84,10 +87,13 @@ def cooerce_long(value):
     else:
         return None
 
+
 class FieldMap:
     """Map field to its associated headers and to a converter"""
 
-    def __init__(self, to_field, converter, from_fields=None, from_field=None, to_fields=None):
+    def __init__(
+        self, to_field, converter, from_fields=None, from_field=None, to_fields=None
+    ):
         if to_fields and to_field:
             raise ValueError("Cannot provide both to_fields and to_field")
 

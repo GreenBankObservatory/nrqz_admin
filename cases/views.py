@@ -146,8 +146,6 @@ class FacilityAutocomplete(autocomplete.Select2QuerySetView):
         return facilities
 
 
-
-
 class LetterView(TemplateView):
     template_name = "cases/concurrence_letter.html"
 

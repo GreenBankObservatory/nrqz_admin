@@ -67,6 +67,7 @@ def case_numbers_by_filenames(filenames_by_case_number):
             by_fn[filenames_as_tuple] = [case_number]
     return by_fn
 
+
 def is_contiguous(list_):
     last_element = None
     for element in list_:
@@ -76,6 +77,7 @@ def is_contiguous(list_):
 
     return True
 
+
 def clean_case_numbers(filename_overlaps_by_case_number):
     cleaned = {}
     for key, value in filename_overlaps_by_case_number.items():
@@ -83,7 +85,6 @@ def clean_case_numbers(filename_overlaps_by_case_number):
         if is_contiguous(value):
             cleaned[key] = (value[0], value[-1])
     return cleaned
-
 
 
 def main():
@@ -98,7 +99,9 @@ def main():
     cleaned = clean_case_numbers(case_number_overlaps_by_filenames)
     for filenames, case_number_range in cleaned.items():
         case_number_start, case_number_end = case_number_range
-        print(f"Files {filenames!r} overlap on the following case numbers: {case_number_start} - {case_number_end}")
+        print(
+            f"Files {filenames!r} overlap on the following case numbers: {case_number_start} - {case_number_end}"
+        )
     # pprint(cleaned)
 
 

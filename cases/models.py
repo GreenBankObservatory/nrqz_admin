@@ -254,7 +254,9 @@ class Case(IsActiveModel, TrackedModel, Model):
     case_num = PositiveIntegerField(unique=True)
     name = CharField(max_length=256, blank=True, null=True)
 
-    batch = ForeignKey("Batch", related_name="cases", on_delete=SET_NULL, null=True, blank=True)
+    batch = ForeignKey(
+        "Batch", related_name="cases", on_delete=SET_NULL, null=True, blank=True
+    )
 
     attachments = ManyToManyField("Attachment", related_name="cases", blank=True)
 
@@ -290,7 +292,6 @@ class Case(IsActiveModel, TrackedModel, Model):
     def save(self, *args, **kwargs):
         self.slug = str(self.case_num)
         super(Case, self).save(*args, **kwargs)
-
 
 
 class Person(IsActiveModel, TrackedModel, Model):
@@ -329,6 +330,7 @@ class Attachment(IsActiveModel, TrackedModel, Model):
 
     def get_absolute_url(self):
         return reverse("attachment_detail", args=[str(self.id)])
+
 
 class LetterTemplate(IsActiveModel, TrackedModel, Model):
     name = CharField(max_length=256, unique=True)

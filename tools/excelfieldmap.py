@@ -204,15 +204,13 @@ field_mappers = [
         to_field="uses_quad_or_octal_polarization",
         converter=None,
         from_fields=[
-            "If this facility uses Quad or Octal polarization, specify type here",
+            "If this facility uses Quad or Octal polarization, specify type here"
         ],
     ),
     FieldMap(
         to_field="num_quad_or_octal_ports_with_feed_power",
         converter=coerce_num,
-        from_fields=[
-            "Number of Quad or Octal ports with  feed power",
-        ],
+        from_fields=["Number of Quad or Octal ports with  feed power"],
     ),
     FieldMap(
         to_field="tx_power_pos_45",
