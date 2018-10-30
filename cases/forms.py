@@ -22,7 +22,7 @@ class LetterFormHelper(FormHelper):
                 "Render",
                 title="Re-render the template with the above choices",
             ),
-            Button("download", "Download", title="Download as .docx"),
+            Submit("download", "Download", title="Download as .docx"),
             css_class="float-right",
         ),
     )
