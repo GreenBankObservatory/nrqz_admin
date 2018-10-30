@@ -116,11 +116,13 @@ def load(path, **kwargs):
         people_ids_to_merge = json.load(file, **kwargs)
         return people_ids_to_merge
 
+
 def compare_thresholds(thresholds):
     print(f"Thresholds: {thresholds}")
     for threshold in thresholds:
         groups = find_similar_people(threshold=threshold)
         dump(groups, f"people_t={threshold}.json")
+
 
 def main():
     args = parse_args()
@@ -134,13 +136,16 @@ def main():
 
     # Get Person object for each Person ID in each group
     people_to_merge = [
-        Person.objects.filter(id__in=group) for group in people_ids_to_merge
+        Person.objects.filter(id__in=group).order_by("name")
+        for group in people_ids_to_merge
     ]
 
-    print("Summary of unique names:")
-    for person in sorted([group[0].name for group in people_to_merge]):
-        print(f"  {person}")
-    # print(people_to_merge)
+    print("Summary of merge groups:")
+    for group in people_to_merge:
+        print("--- Group: ---")
+        for person in group:
+            print(f"  {person.name}")
+        print("-" * 80)
     # merge_people(people_to_merge)
 
 
@@ -161,5 +166,5 @@ def parse_args():
 
 
 if __name__ == "__main__":
-    # main()
-    compare_thresholds([i / 10 for i in range(1, 10)])
+    main()
+    # compare_thresholds([i / 10 for i in range(1, 10)])

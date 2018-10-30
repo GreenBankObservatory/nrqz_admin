@@ -1,8 +1,4 @@
-from django.utils.safestring import mark_safe
-from django.utils.html import escape
-
 import django_tables2 as tables
-from django_tables2.utils import AttributeDict
 
 from utils.coord_utils import coords_to_string
 from . import models
@@ -13,6 +9,7 @@ from .filters import (
     PersonFilter,
     CaseFilter,
 )
+from .columns import SelectColumn, TrimmedTextColumn
 
 
 class LetterFacilityTable(tables.Table):
@@ -59,38 +56,6 @@ class LetterFacilityTable(tables.Table):
         """Render a coordinate as DD MM SS.sss"""
         longitude, latitude = value.coords
         return coords_to_string(latitude=latitude, longitude=longitude)
-
-
-class TrimmedTextColumn(tables.Column):
-    def __init__(self, *args, length=80, **kwargs):
-        super(TrimmedTextColumn, self).__init__(*args, **kwargs)
-        self.trim_length = length
-
-    def render(self, value):
-        value = escape(value)
-        first_line = value.split("\n")[0]
-        if len(first_line) > self.trim_length:
-            trimmed = " ".join(first_line[: self.trim_length].split(" ")[:-1])
-            return mark_safe(f"<span title='{value[:512]}'>{trimmed} ...</span>")
-        return first_line
-
-
-class SelectColumn(tables.CheckBoxColumn):
-    verbose_name = "Concur"
-    empty_values = ()
-
-    def __init__(self, *args, **kwargs):
-        super(SelectColumn, self).__init__(*args, **kwargs)
-
-    @property
-    def header(self):
-        return mark_safe(f"<span>{SelectColumn.verbose_name}</span>")
-
-    def render(self, value, bound_column, record):
-        attrs = AttributeDict(
-            {"type": "checkbox", "name": "facilities", "value": record.id}
-        )
-        return mark_safe("<input %s/>" % attrs.as_html())
 
 
 class FacilityTable(tables.Table):

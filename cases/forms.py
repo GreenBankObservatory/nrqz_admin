@@ -1,32 +1,9 @@
 from django import forms
 
-from crispy_forms.layout import Field, Submit, Layout, Div
-from crispy_forms.helper import FormHelper
-from crispy_forms.bootstrap import FormActions
 from dal import autocomplete
 
 from cases.models import Case, Facility, LetterTemplate
-
-
-class LetterFormHelper(FormHelper):
-    form_method = "get"
-    layout = Layout(
-        Div(
-            Div(Field("cases", css_class="no-form-control"), css_class="col"),
-            Div(Field("facilities", css_class="no-form-control"), css_class="col"),
-            Div("template", css_class="col"),
-            css_class="row",
-        ),
-        FormActions(
-            Submit(
-                "submit",
-                "Render",
-                title="Re-render the template with the above choices",
-            ),
-            Submit("download", "Download", title="Download as .docx"),
-            css_class="float-right",
-        ),
-    )
+from .form_helpers import LetterFormHelper
 
 
 class LetterTemplateForm(forms.Form):
