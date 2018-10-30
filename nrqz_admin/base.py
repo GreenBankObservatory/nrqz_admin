@@ -155,6 +155,8 @@ LOGGING = {
     "loggers": {
         "cases": {"handlers": ["console"], "level": "DEBUG", "propagate": True},
         "tools": {"handlers": ["console"], "level": "DEBUG", "propagate": True},
+        "dal": {"handlers": ["console"], "level": "DEBUG", "propagate": True},
+        "dal_select2": {"handlers": ["console"], "level": "DEBUG", "propagate": True},
     },
 }
 

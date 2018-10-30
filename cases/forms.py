@@ -5,8 +5,7 @@ from crispy_forms.layout import Submit, Layout, Button, Fieldset, Div, Reset
 from crispy_forms.helper import FormHelper
 from crispy_forms.bootstrap import FormActions
 from dal import autocomplete
-
-
+# from dal_queryset_sequence import fields as dal_fields
 class LetterFormHelper(FormHelper):
     form_method = "get"
     layout = Layout(
@@ -31,7 +30,8 @@ class LetterTemplateForm(forms.Form):
     )
     facilities = forms.ModelMultipleChoiceField(
         queryset=Facility.objects.all(),
-        # to_field_name="case_num",
+        # TODO: This isn't unique; can't use it!
+        # to_field_name="nrqz_id",
         widget=autocomplete.ModelSelect2Multiple(
             url="facility_autocomplete", attrs={"data-placeholder": "NRQZ ID"}
         ),

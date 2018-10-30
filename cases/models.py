@@ -139,6 +139,7 @@ class Facility(IsActiveModel, TrackedModel, Model):
         null=True,
         verbose_name="NRQZ ID",
         help_text="Assigned by NRAO. Do not put any of your data in this column.",
+        # unique=True,
     )
     tx_per_sector = CharField(
         max_length=256,
@@ -275,7 +276,7 @@ class Case(IsActiveModel, TrackedModel, Model):
     si = BooleanField(default=False, blank=True)
     si_done = DateTimeField(null=True, blank=True)
 
-    slug = SlugField()
+    slug = SlugField(unique=True)
 
     def __str__(self):
         return f"{self.case_num}"
@@ -330,7 +331,7 @@ class Attachment(IsActiveModel, TrackedModel, Model):
         return reverse("attachment_detail", args=[str(self.id)])
 
 class LetterTemplate(IsActiveModel, TrackedModel, Model):
-    name = CharField(max_length=256)
+    name = CharField(max_length=256, unique=True)
     template = TextField()
 
     def __str__(self):

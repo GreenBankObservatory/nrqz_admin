@@ -125,11 +125,17 @@ class FacilityListView(FilterTableView):
 
 
 class CaseAutocomplete(autocomplete.Select2QuerySetView):
+    # model_field_name = "case_num"
+
     def get_queryset(self):
         cases = Case.objects.order_by("case_num")
         if self.q:
             cases = cases.filter(case_num__istartswith=self.q).order_by("case_num")
         return cases
+
+    def get_result_value(self, result):
+        """Return the value of a result."""
+        return str(result.case_num)
 
 
 class FacilityAutocomplete(autocomplete.Select2QuerySetView):
@@ -149,15 +155,15 @@ class ConcurrenceLetterView(TemplateView):
         facilities_q = Q()
         if "facilities" in request.GET:
             kwargs.update({"facilities": request.GET.getlist("facilities")})
-            facilities_q |= Q(id__in=request.GET.getlist("facilities"))
+            facilities_q |= Q(nrqz_id__in=request.GET.getlist("facilities"))
 
         if "cases" in request.GET:
             kwargs.update({"cases": request.GET.getlist("cases")})
-            facilities_q |= Q(case__in=request.GET.getlist("cases"))
+            facilities_q |= Q(case__case_num__in=request.GET.getlist("cases"))
 
         if "batches" in request.GET:
             kwargs.update({"batches": request.GET.getlist("batches")})
-            facilities_q |= Q(batch__case__in=request.GET.getlist("batches"))
+            facilities_q |= Q(batch__case__case_num__in=request.GET.getlist("batches"))
 
         if "template" in request.GET:
             kwargs.update({"template": request.GET["template"]})
@@ -176,7 +182,7 @@ class ConcurrenceLetterView(TemplateView):
 
         facilities = context["facilities_result"]
         if "cases" in context:
-            cases = Case.objects.filter(id__in=context["cases"])
+            cases = Case.objects.filter(case_num__in=context["cases"])
         else:
             cases = Case.objects.none()
         context["cases"] = cases
@@ -188,18 +194,19 @@ class ConcurrenceLetterView(TemplateView):
         letter_context["nrqz_ids"] = ", ".join(
             facilities.values_list("nrqz_id", flat=True)
         )
-        context["min_freq"] = (
-            facilities.annotate(Min("freq_low"))
-            .order_by("freq_low__min")
-            .first()
-            .freq_low
-        )
-        context["max_freq"] = (
-            facilities.annotate(Max("freq_high"))
-            .order_by("-freq_high__max")
-            .first()
-            .freq_high
-        )
+        if facilities:
+            context["min_freq"] = (
+                facilities.annotate(Min("freq_low"))
+                .order_by("freq_low__min")
+                .first()
+                .freq_low
+            )
+            context["max_freq"] = (
+                facilities.annotate(Max("freq_high"))
+                .order_by("-freq_high__max")
+                .first()
+                .freq_high
+            )
         table = ConcurrenceFacilityTable(data=facilities)
         letter_context["facilities_table"] = table
 
