@@ -1,3 +1,5 @@
+"""Custom django_filters.FilterSet sub-classes for cases app"""
+
 from django.contrib.gis.measure import Distance
 import django_filters
 

@@ -1,3 +1,5 @@
+"""Template tags for cases app"""
+
 from django import template
 
 from pygments import highlight

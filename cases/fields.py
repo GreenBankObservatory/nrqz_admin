@@ -1,3 +1,5 @@
+"""Custom form fields for cases app"""
+
 from django import forms
 from django.contrib.gis.geos import GEOSGeometry
 from django.contrib.gis.geos.error import GEOSException

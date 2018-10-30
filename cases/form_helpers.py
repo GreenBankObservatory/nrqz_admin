@@ -1,3 +1,5 @@
+"""Custom crispy_forms.helper.FormHelper sub-classes for cases app"""
+
 from crispy_forms.bootstrap import FormActions
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Field, Submit, Layout, Div, Reset

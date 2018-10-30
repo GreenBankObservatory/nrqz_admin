@@ -1,3 +1,5 @@
+"""Custom field widgets for cases app"""
+
 from django import forms
 from django_filters import widgets
 

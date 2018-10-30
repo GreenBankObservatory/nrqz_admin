@@ -1,3 +1,5 @@
+"""Forms for cases app"""
+
 from django import forms
 
 from dal import autocomplete

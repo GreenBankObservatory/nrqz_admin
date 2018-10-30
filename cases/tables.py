@@ -1,3 +1,5 @@
+"""Custom django_tables2.Table sub-classes for cases app"""
+
 import django_tables2 as tables
 
 from utils.coord_utils import coords_to_string

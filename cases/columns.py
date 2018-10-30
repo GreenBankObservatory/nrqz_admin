@@ -1,3 +1,5 @@
+"""Custom djang_tables2.Column sub-classes for cases app"""
+
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
