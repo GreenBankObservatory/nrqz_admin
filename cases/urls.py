@@ -10,11 +10,13 @@ urlpatterns = [
     path("cases/", views.CaseListView.as_view(), name="case_index"),
     path("cases/<int:slug>/", views.CaseDetailView.as_view(), name="case_detail"),
     path(
-        "case-autocomplete/", views.CaseAutocomplete.as_view(), name="case_autocomplete"
+        "case-autocomplete/",
+        views.CaseAutocompleteView.as_view(),
+        name="case_autocomplete",
     ),
     path(
         "facility-autocomplete/",
-        views.FacilityAutocomplete.as_view(),
+        views.FacilityAutocompleteView.as_view(),
         name="facility_autocomplete",
     ),
     path("letters/", views.LetterView.as_view(), name="letters"),

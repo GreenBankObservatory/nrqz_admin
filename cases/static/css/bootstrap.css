@@ -42,3 +42,8 @@ we simply disable the offending attributes here.*/
     align-items: center;
 }
 */
+
+.filter-button {
+    margin-right: 10px;
+    margin-bottom: 10px;
+}

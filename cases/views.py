@@ -125,7 +125,7 @@ class FacilityListView(FilterTableView):
             return super(FacilityListView, self).get(request, *args, **kwargs)
 
 
-class CaseAutocomplete(autocomplete.Select2QuerySetView):
+class CaseAutocompleteView(autocomplete.Select2QuerySetView):
     # model_field_name = "case_num"
 
     def get_queryset(self):
@@ -139,7 +139,7 @@ class CaseAutocomplete(autocomplete.Select2QuerySetView):
         return str(result.case_num)
 
 
-class FacilityAutocomplete(autocomplete.Select2QuerySetView):
+class FacilityAutocompleteView(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         facilities = Facility.objects.order_by("nrqz_id", "id")
         if self.q:
@@ -172,7 +172,6 @@ class LetterView(TemplateView):
         else:
             facilities = Facility.objects.none()
         kwargs.update({"facilities_result": facilities})
-        # print(facilities.count())
 
         return super().get(request, *args, **kwargs)
 

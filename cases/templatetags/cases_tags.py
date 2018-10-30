@@ -25,13 +25,20 @@ def dms(value):
 
 @register.inclusion_tag("cases/filter_table.html", takes_context=True)
 def filter_table(context):
-    model_name = context["table"].Meta.model.__name__.lower()
+    model_name = context["table"].Meta.model._meta.verbose_name.lower()
+    model_name_plural = context["table"].Meta.model._meta.verbose_name_plural.lower()
+    total_objects = context["table"].Meta.model.objects.count()
+    current_objects = len(context["table"].data)
 
     return dict(
         request=context["request"],
         table=context["table"],
         filter=context["filter"],
+        model_name_plural=model_name_plural,
         form_id=f"{model_name}-filter-form",
+        total_objects=total_objects,
+        current_objects=current_objects,
+        percent_shown=f"{current_objects / total_objects * 100:.0f}%",
     )
 
 
