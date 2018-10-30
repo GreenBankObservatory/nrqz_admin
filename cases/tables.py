@@ -1,6 +1,8 @@
 from django.utils.safestring import mark_safe
+from django.utils.html import escape
 
 import django_tables2 as tables
+from django_tables2.utils import Accessor, AttributeDict
 
 from utils.coord_utils import coords_to_string, dd_to_dms
 from . import models
@@ -59,7 +61,18 @@ class ConcurrenceFacilityTable(tables.Table):
         return coords_to_string(latitude=latitude, longitude=longitude)
 
 
-from django_tables2.utils import Accessor, AttributeDict
+class TrimmedTextColumn(tables.Column):
+    def __init__(self, *args, length=80, **kwargs):
+        super(TrimmedTextColumn, self).__init__(*args, **kwargs)
+        self.trim_length = length
+
+    def render(self, value):
+        value = escape(value)
+        first_line = value.split("\n")[0]
+        if len(first_line) > self.trim_length:
+            trimmed = " ".join(first_line[:self.trim_length].split(" ")[:-1])
+            return mark_safe(f"<span title='{value[:512]}'>{trimmed} ...</span>")
+        return first_line
 
 
 class SelectColumn(tables.CheckBoxColumn):
@@ -81,8 +94,10 @@ class SelectColumn(tables.CheckBoxColumn):
 
 
 class FacilityTable(tables.Table):
-    nrqz_id = tables.LinkColumn()
+    nrqz_id = tables.Column(linkify=True)
     selected = SelectColumn()
+    comments = TrimmedTextColumn()
+
 
     class Meta:
         model = models.Facility
@@ -94,18 +109,23 @@ class FacilityTable(tables.Table):
         return coords_to_string(latitude=latitude, longitude=longitude)
 
 
+
+
 class CaseTable(tables.Table):
-    case_num = tables.LinkColumn()
-    applicant = tables.LinkColumn()
-    contact = tables.LinkColumn()
+    case_num = tables.Column(linkify=True)
+    applicant = tables.Column(linkify=True)
+    contact = tables.Column(linkify=True)
+    comments = TrimmedTextColumn()
 
     class Meta:
         model = models.Case
         fields = CaseFilter.Meta.fields
+        print(f"fields: {fields}")
 
 
 class BatchTable(tables.Table):
-    name = tables.LinkColumn()
+    name = tables.Column(linkify=True)
+    comments = TrimmedTextColumn()
 
     class Meta:
         model = models.Batch
@@ -113,13 +133,16 @@ class BatchTable(tables.Table):
 
 
 class PersonTable(tables.Table):
+    comments = TrimmedTextColumn()
+
     class Meta:
         model = models.Person
         fields = PersonFilter.Meta.fields
 
 
 class AttachmentTable(tables.Table):
-    path = tables.LinkColumn()
+    path = tables.Column(linkify=True)
+    comments = TrimmedTextColumn()
 
     class Meta:
         model = models.Attachment

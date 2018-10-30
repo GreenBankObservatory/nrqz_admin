@@ -98,7 +98,7 @@ class FacilityFilterFormHelper(FormHelper):
         Div(
             Div("nrqz_id", "site_name", css_class="col-sm-2"),
             Div("freq_high", "freq_low", css_class="col-sm-5"),
-            Div("location", css_class="col-sm-5"),
+            Div("location", "comments", css_class="col-sm-5"),
             css_class="row",
         )
     )
@@ -229,16 +229,6 @@ class PointFilter(django_filters.Filter):
             return super().filter(qs, value)
 
 
-# class DistanceFilterField(django_filters.Field):
-#     def method(self, queryset, lookup, value):
-#         pnt = GEOSGeometry(value, srid=4326)
-#         return models.Facility.objects.filter(location__distance_lte=(pnt, 1000))
-
-# class DistanceFilter(django_filters.FilterSet):
-#     class Meta:
-#         model = Facility
-
-
 class FacilityFilter(HelpedFilterSet):
     site_name = django_filters.CharFilter(lookup_expr="icontains")
     nrqz_id = django_filters.CharFilter(lookup_expr="icontains")
@@ -248,6 +238,8 @@ class FacilityFilter(HelpedFilterSet):
     amsl = django_filters.NumericRangeFilter()
     agl = django_filters.NumericRangeFilter()
     location = PointFilter()
+    comments = django_filters.CharFilter(lookup_expr="icontains")
+
 
     class Meta:
         model = models.Facility
@@ -264,13 +256,9 @@ class CaseFilterFormHelper(FormHelper):
 
     layout = CollapsibleFilterFormLayout(
         Div(
-            Div("case_num", css_class="col"),
-            Div("applicant", "contact", css_class="col"),
-            css_class="row",
-        ),
-        Div(
-            Div("completed", "shutdown", css_class="col"),
+            Div("case_num", "applicant", "contact", css_class="col"),
             Div("radio_service", "call_sign", "fcc_file_num", css_class="col"),
+            Div("completed", "shutdown", "comments", css_class="col"),
             css_class="row",
         ),
     )
@@ -279,9 +267,9 @@ class CaseFilterFormHelper(FormHelper):
 class CaseFilter(HelpedFilterSet):
     created_on = django_filters.DateFromToRangeFilter(lookup_expr="range")
     name = django_filters.CharFilter(lookup_expr="icontains")
-    comments = django_filters.CharFilter(lookup_expr="icontains")
     applicant = django_filters.CharFilter(lookup_expr="name__icontains")
     contact = django_filters.CharFilter(lookup_expr="name__icontains")
+    comments = django_filters.CharFilter(lookup_expr="icontains")
 
     class Meta:
         model = models.Case
@@ -296,7 +284,7 @@ class PersonFilterFormHelper(FormHelper):
     layout = Layout(
         Div(
             Div("name", "email", "phone", css_class="col"),
-            Div("street", "city", "state", "zipcode", css_class="col"),
+            Div("street", "city", "state", "zipcode", "comments", css_class="col"),
             css_class="row",
         ),
         FormActions(Submit("submit", "Filter")),
@@ -311,6 +299,7 @@ class PersonFilter(HelpedFilterSet):
     city = django_filters.CharFilter(lookup_expr="icontains")
     state = django_filters.CharFilter(lookup_expr="icontains")
     zipcode = django_filters.CharFilter(lookup_expr="icontains")
+    comments = django_filters.CharFilter(lookup_expr="icontains")
 
     class Meta:
         model = models.Person
@@ -334,31 +323,9 @@ class AttachmentFilterFormHelper(FormHelper):
 
 class AttachmentFilter(HelpedFilterSet):
     path = django_filters.CharFilter(lookup_expr="icontains")
+    comments = django_filters.CharFilter(lookup_expr="icontains")
 
     class Meta:
         model = models.Attachment
         formhelper_class = AttachmentFilterFormHelper
         fields = discover_fields(formhelper_class.layout)
-
-
-# class ConcurrenceLetterFilterFormHelper(FormHelper):
-#     form_method = "get"
-#     layout = Layout(
-#         Div(
-#             Div("case", css_class="col"),
-#             Div("nrqz_id", css_class="col"),
-#             css_class="row",
-#         ),
-#         FormActions(Submit("submit", "Filter")),
-#     )
-
-# class ConcurrenceLetterFilter(HelpedFilterSet):
-#     cases = django_filters.MultipleChoiceFilter(lookup_expr="case__case_num__startswith")
-#     nrqz_id = django_filters.CharFilter(lookup_expr="startswith")
-
-#     class Meta:
-#         model = models.Facility
-#         formhelper_class = ConcurrenceLetterFilterFormHelper
-#         # fields = discover_fields(formhelper_class.layout)
-#         fields = ("case", "nrqz_id")
-#         # form = LetterTemplateForm

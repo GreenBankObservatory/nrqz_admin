@@ -16,6 +16,23 @@
 
 <p>Created on: {{ case.created_on }}</p>
 
+<h2>Facilities</h2>
+{% if case.facilities.all %}
+<div class="container-fluid" style="border:1px solid #D3D3D3; border-radius: 10px">
+    {% if facility_filter %}
+    {% crispy facility_filter.form %}
+    <p>Results: {{ facility_table.data|length }}</p>
+    {% endif %}
+    <form method="get" action="{% url 'concurrence' %}">
+        {% render_table facility_table %}
+        <button type="submit">Generate Concurrence Letter</button>
+    </form>
+
+</div>
+{% else %}
+<p>No Facilities</p>
+{% endif %}
+
 <h2>Applicant Info</h2>
 <table class="table">
     <tr>
@@ -57,22 +74,6 @@
 {% endif %}
 
 
-<h2>Facilities</h2>
-{% if case.facilities.all %}
-<div class="container-fluid" style="border:1px solid #D3D3D3; border-radius: 10px">
-    {% if facility_filter %}
-    {% crispy facility_filter.form %}
-    <p>Results: {{ facility_table.data|length }}</p>
-    {% endif %}
-    <form method="get" action="{% url 'concurrence' %}">
-        {% render_table facility_table %}
-        <button type="submit">Generate Concurrence Letter</button>
-    </form>
-
-</div>
-{% else %}
-<p>No Facilities</p>
-{% endif %}
 
 <h2>Attachments</h2>
 {% if attachment_table.data %}
