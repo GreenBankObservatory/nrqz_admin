@@ -11,7 +11,7 @@ urlpatterns = [
     path("facility-autocomplete/", views.FacilityAutocomplete.as_view(), name="facility_autocomplete"),
     path(
         "letters/",
-        views.ConcurrenceLetterView.as_view(),
+        views.LetterView.as_view(),
         name="letters",
     ),
     path("facilities/", views.FacilityListView.as_view(), name="facility_index"),

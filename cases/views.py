@@ -29,7 +29,7 @@ from .tables import (
     FacilityTable,
     PersonTable,
     CaseTable,
-    ConcurrenceFacilityTable,
+    LetterFacilityTable,
 )
 
 from .kml import (
@@ -140,7 +140,7 @@ class CaseAutocomplete(autocomplete.Select2QuerySetView):
 
 class FacilityAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
-        facilities = Facility.objects.order_by("nrqz_id")
+        facilities = Facility.objects.order_by("nrqz_id", "id")
         if self.q:
             facilities = facilities.filter(nrqz_id__icontains=self.q)
         return facilities
@@ -148,14 +148,14 @@ class FacilityAutocomplete(autocomplete.Select2QuerySetView):
 
 
 
-class ConcurrenceLetterView(TemplateView):
+class LetterView(TemplateView):
     template_name = "cases/concurrence_letter.html"
 
     def get(self, request, *args, **kwargs):
         facilities_q = Q()
         if "facilities" in request.GET:
             kwargs.update({"facilities": request.GET.getlist("facilities")})
-            facilities_q |= Q(nrqz_id__in=request.GET.getlist("facilities"))
+            facilities_q |= Q(id__in=request.GET.getlist("facilities"))
 
         if "cases" in request.GET:
             kwargs.update({"cases": request.GET.getlist("cases")})
@@ -207,7 +207,7 @@ class ConcurrenceLetterView(TemplateView):
                 .first()
                 .freq_high
             )
-        table = ConcurrenceFacilityTable(data=facilities)
+        table = LetterFacilityTable(data=facilities)
         letter_context["facilities_table"] = table
 
         if "template" in context:
@@ -224,18 +224,19 @@ class ConcurrenceLetterView(TemplateView):
                 lt = LetterTemplate.objects.first()
                 letter_template_text = lt.template
                 kwargs["template"] = lt.name
-        # import ipdb; ipdb.set_trace()
         # print(letter_template_text)
         form_values = {
             field: value
             for field, value in kwargs.items()
             if field in ["cases", "facilities", "batches", "template"]
         }
-        print(f"form_values: {form_values}")
         context["template_form"] = LetterTemplateForm(form_values)
         context["letter_template"] = Template(letter_template_text).render(
             Context(letter_context)
         )
+        # Create queryset of specified facilities that are not included in any
+        # of the specified cases (should be useful as a sanity check)
+        context["non_case_facilities"] = facilities.exclude(case__in=cases)
         return context
 
     def render_to_response(self, context, **response_kwargs):
@@ -266,7 +267,7 @@ class ConcurrenceLetterView(TemplateView):
             response["Content-Disposition"] = f'application; filename="{filename}"'
             return response
         else:
-            return super(ConcurrenceLetterView, self).render_to_response(
+            return super(LetterView, self).render_to_response(
                 context, **response_kwargs
             )
 

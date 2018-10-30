@@ -6,6 +6,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.bootstrap import FormActions
 from dal import autocomplete
 
+
 class LetterFormHelper(FormHelper):
     form_method = "get"
     layout = Layout(
@@ -16,9 +17,13 @@ class LetterFormHelper(FormHelper):
             css_class="row",
         ),
         FormActions(
-            Submit("submit", "Render", title="Re-render the template with the above choices"),
+            Submit(
+                "submit",
+                "Render",
+                title="Re-render the template with the above choices",
+            ),
             Button("download", "Download", title="Download as .docx"),
-            css_class="float-right"
+            css_class="float-right",
         ),
     )
 
@@ -41,7 +46,10 @@ class LetterTemplateForm(forms.Form):
             url="facility_autocomplete", attrs={"data-placeholder": "NRQZ ID"}
         ),
         required=False,
-        help_text="This should only rarely be used! Use cases instead unless you're sure!",
+        help_text=(
+            "Select Facilities that are not included in any of the "
+            "Cases you have selected. This should only rarely be used!"
+        ),
     )
     template = forms.ModelChoiceField(
         queryset=LetterTemplate.objects.all(),

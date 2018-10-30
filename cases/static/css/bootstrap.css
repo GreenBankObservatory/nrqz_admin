@@ -25,8 +25,20 @@ p.fine-print {
 }
 
 /* We need to be able to disable form-control styling sometimes. Specifically,
-Select2 widgets appear to have padding that conflicts with Bootstrap's. So,
-we simply disable that here.*/
+Select2 widgets appear to have conflicts with Bootstrap. So,
+we simply disable the offending attributes here.*/
 .no-form-control {
     padding: unset;
+    height: unset;
 }
+
+/* Needed to keep tables from escaping their containers in bootstrap */
+/*td {
+    word-break: unset;
+}*/
+
+/*.vertical-text {
+    display: flex;
+    align-items: center;
+}
+*/

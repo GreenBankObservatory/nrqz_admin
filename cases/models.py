@@ -210,7 +210,7 @@ class Facility(IsActiveModel, TrackedModel, Model):
             yield (field.verbose_name, field.value_to_string(self))
 
     def __str__(self):
-        return f"{self.nrqz_id}"
+        return f"{self.nrqz_id} <{self.id}>"
 
     def get_absolute_url(self):
         return reverse("facility_detail", args=[str(self.id)])

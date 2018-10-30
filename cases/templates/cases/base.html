@@ -40,10 +40,10 @@
             <a class="nav-link" href={% url "letters" %}>Letters</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link text-info" href="/explorer/">SQL Explorer</a>
+            <a class="nav-link text-info" href={% url "explorer:explorer_index" %}>SQL Explorer</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link text-info" href="/admin/">Admin</a>
+            <a class="nav-link text-info" href={% url "admin:index" %}>Admin</a>
           </li>
         </ul>
       </nav>

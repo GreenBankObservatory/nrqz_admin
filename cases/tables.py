@@ -15,7 +15,7 @@ from .filters import (
 )
 
 
-class ConcurrenceFacilityTable(tables.Table):
+class LetterFacilityTable(tables.Table):
     nrqz_id = tables.Column(verbose_name="NRQZ ID")
     site_name = tables.Column(verbose_name="Site Name")
     max_output = tables.Column(verbose_name="Max TX Power (W)")
@@ -70,7 +70,7 @@ class TrimmedTextColumn(tables.Column):
         value = escape(value)
         first_line = value.split("\n")[0]
         if len(first_line) > self.trim_length:
-            trimmed = " ".join(first_line[:self.trim_length].split(" ")[:-1])
+            trimmed = " ".join(first_line[: self.trim_length].split(" ")[:-1])
             return mark_safe(f"<span title='{value[:512]}'>{trimmed} ...</span>")
         return first_line
 
@@ -98,7 +98,6 @@ class FacilityTable(tables.Table):
     selected = SelectColumn()
     comments = TrimmedTextColumn()
 
-
     class Meta:
         model = models.Facility
         fields = FacilityFilter.Meta.fields + ["selected"]
@@ -107,8 +106,6 @@ class FacilityTable(tables.Table):
         """Render a coordinate as DD MM SS.sss"""
         longitude, latitude = value.coords
         return coords_to_string(latitude=latitude, longitude=longitude)
-
-
 
 
 class CaseTable(tables.Table):
@@ -120,7 +117,6 @@ class CaseTable(tables.Table):
     class Meta:
         model = models.Case
         fields = CaseFilter.Meta.fields
-        print(f"fields: {fields}")
 
 
 class BatchTable(tables.Table):
