@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.gis",
+    "stronghold",
     "django_extensions",
     "django-resetdb",
     "django_tables2",
@@ -56,6 +57,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "stronghold.middleware.LoginRequiredMiddleware",
 ]
 
 ROOT_URLCONF = "nrqz_admin.urls"
@@ -76,7 +78,7 @@ TEMPLATES = [
     # },
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [os.path.join(BASE_DIR, "registration/templates")],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
