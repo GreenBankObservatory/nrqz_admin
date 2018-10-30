@@ -139,6 +139,7 @@ class Facility(IsActiveModel, TrackedModel, Model):
         null=True,
         verbose_name="NRQZ ID",
         help_text="Assigned by NRAO. Do not put any of your data in this column.",
+        db_index=True,
         # unique=True,
     )
     tx_per_sector = CharField(
@@ -251,7 +252,7 @@ class Case(IsActiveModel, TrackedModel, Model):
         blank=True,
     )
     comments = TextField(blank=True)
-    case_num = PositiveIntegerField(unique=True)
+    case_num = PositiveIntegerField(unique=True, db_index=True)
     name = CharField(max_length=256, blank=True, null=True)
 
     batch = ForeignKey(
