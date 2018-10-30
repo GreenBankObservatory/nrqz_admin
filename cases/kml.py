@@ -4,8 +4,6 @@
 """docstring"""
 
 
-import argparse
-
 import django
 
 from pykml.factory import KML_ElementMaker as KML
@@ -45,7 +43,7 @@ def write_kml(kml, output=None):
 def main():
     # args = parse_args()
     # kml = create_facility_placemarks(Facility.objects.all())
-    facility_placemarks_by_case = cases_as_kml()
+    facility_placemarks_by_case = cases_as_kml(Case.objects.all())
     write_kml(facility_placemarks_by_case)
 
 

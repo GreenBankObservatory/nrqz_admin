@@ -11,11 +11,6 @@ register = template.Library()
 
 
 @register.filter
-def filefield_basename(value):
-    return os.path.basename(value)
-
-
-@register.filter
 def json(value):
     return highlight(value, JsonLexer(), HtmlFormatter())
 
@@ -89,9 +84,3 @@ def location_table(instance, title, fields):
 @register.simple_tag
 def get_verbose_name(instance, field_name):
     return instance._meta.get_field(field_name).verbose_name
-
-
-@register.simple_tag
-def gen_query(*args):
-    query_string = "&".join(args)
-    return f"?{query_string}"

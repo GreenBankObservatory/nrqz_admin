@@ -44,6 +44,7 @@ from .kml import (
 class FilterTableView(SingleTableMixin, FilterView):
     table_class = None
     filterset_class = None
+    object_list = NotImplemented
 
     def get_context_data(self, **kwargs):
         # If there are no query params, then no results are

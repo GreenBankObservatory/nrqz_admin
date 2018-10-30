@@ -3,13 +3,12 @@ from django.contrib.gis.measure import Distance
 from django.contrib.gis.geos.error import GEOSException
 from django import forms
 import django_filters
-from crispy_forms.layout import Submit, Layout, Button, Fieldset, Div, Reset
+from crispy_forms.layout import Submit, Layout, Div, Reset
 from crispy_forms.bootstrap import FormActions
 from crispy_forms.helper import FormHelper
 
-from utils.coord_utils import dms_to_dd, parse_coord
+from utils.coord_utils import parse_coord
 from . import models
-from .forms import LetterTemplateForm
 
 
 def discover_fields(layout):
@@ -39,6 +38,9 @@ class HelpedFilterSet(django_filters.FilterSet):
     def __init__(self, *args, **kwargs):
         super(HelpedFilterSet, self).__init__(*args, **kwargs)
         self.form.helper = self.Meta.formhelper_class()
+
+    class Meta:
+        formhelper_class = lambda x: NotImplemented
 
 
 class CollapsibleFilterFormLayout(Layout):

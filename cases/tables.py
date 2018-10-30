@@ -2,9 +2,9 @@ from django.utils.safestring import mark_safe
 from django.utils.html import escape
 
 import django_tables2 as tables
-from django_tables2.utils import Accessor, AttributeDict
+from django_tables2.utils import AttributeDict
 
-from utils.coord_utils import coords_to_string, dd_to_dms
+from utils.coord_utils import coords_to_string
 from . import models
 from .filters import (
     AttachmentFilter,

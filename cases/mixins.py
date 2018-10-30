@@ -1,7 +1,5 @@
 from django.db import models
 
-from django.conf import settings
-
 
 class IsActiveModel(models.Model):
     """An abstract class that allows objects to be 'soft' deleted.
