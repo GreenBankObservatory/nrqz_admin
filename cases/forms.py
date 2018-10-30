@@ -1,32 +1,37 @@
 from django import forms
 from cases.models import Case, Facility, LetterTemplate
 
-from crispy_forms.layout import Submit, Layout, Button, Fieldset, Div, Reset
+from crispy_forms.layout import Field, Submit, Layout, Button, Fieldset, Div, Reset
 from crispy_forms.helper import FormHelper
 from crispy_forms.bootstrap import FormActions
 from dal import autocomplete
-# from dal_queryset_sequence import fields as dal_fields
+
 class LetterFormHelper(FormHelper):
     form_method = "get"
     layout = Layout(
         Div(
-            Div("case", css_class="col"),
-            Div("nrqz_id", css_class="col"),
+            Div(Field("cases", css_class="no-form-control"), css_class="col"),
+            Div(Field("facilities", css_class="no-form-control"), css_class="col"),
+            Div("template", css_class="col"),
             css_class="row",
         ),
-        # FormActions(Submit("submit", "Submit")),
+        FormActions(
+            Submit("submit", "Render", title="Re-render the template with the above choices"),
+            Button("download", "Download", title="Download as .docx"),
+            css_class="float-right"
+        ),
     )
 
 
 class LetterTemplateForm(forms.Form):
-    # cases = forms.ModelMultipleChoiceField(widget=forms.HiddenInput(), required=False)
     cases = forms.ModelMultipleChoiceField(
         queryset=Case.objects.all(),
-        # to_field_name="case_num",
+        to_field_name="case_num",
         widget=autocomplete.ModelSelect2Multiple(
             url="case_autocomplete", attrs={"data-placeholder": "Case Num"}
         ),
         required=False,
+        help_text="Select a set of cases to generate a letter for",
     )
     facilities = forms.ModelMultipleChoiceField(
         queryset=Facility.objects.all(),
@@ -36,17 +41,17 @@ class LetterTemplateForm(forms.Form):
             url="facility_autocomplete", attrs={"data-placeholder": "NRQZ ID"}
         ),
         required=False,
+        help_text="This should only rarely be used! Use cases instead unless you're sure!",
     )
-    # facilities = forms.ModelMultipleChoiceField(
-    #     queryset=Facility.objects.all(),
-    #     to_field_name="nrqz_id",
-    # )
     template = forms.ModelChoiceField(
         queryset=LetterTemplate.objects.all(),
         empty_label=None,
         to_field_name="name",
-        # widget=forms.Select(attrs={"onchange": "this.form.submit()"}),
         required=False,
+        help_text=(
+            "Select a template to render below. This will determine "
+            'the "type" of letter (concur, non-concur, etc.)'
+        ),
     )
 
     def __init__(self, *args, **kwargs):

@@ -23,3 +23,10 @@
 p.fine-print {
     font-size: 10px;
 }
+
+/* We need to be able to disable form-control styling sometimes. Specifically,
+Select2 widgets appear to have padding that conflicts with Bootstrap's. So,
+we simply disable that here.*/
+.no-form-control {
+    padding: unset;
+}

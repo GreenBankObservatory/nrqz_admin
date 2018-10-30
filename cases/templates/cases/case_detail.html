@@ -10,7 +10,7 @@
 <p>Not created from an Excel sheet; no batch</p>
 {% endif %}
 
-<a href="{% url 'concurrence' %}?cases={{case.case_num}}">View concurrence letter</a>
+<a href="{% url 'letter' %}?cases={{case.case_num}}">View concurrence letter</a>
 
 <h1>Case {{ case.case_num }}</h1>
 
@@ -23,7 +23,7 @@
     {% crispy facility_filter.form %}
     <p>Results: {{ facility_table.data|length }}</p>
     {% endif %}
-    <form method="get" action="{% url 'concurrence' %}">
+    <form method="get"">
         {% render_table facility_table %}
         <button type="submit">Generate Concurrence Letter</button>
     </form>

@@ -10,9 +10,9 @@ urlpatterns = [
     path("case-autocomplete/", views.CaseAutocomplete.as_view(), name="case_autocomplete"),
     path("facility-autocomplete/", views.FacilityAutocomplete.as_view(), name="facility_autocomplete"),
     path(
-        "concurrence/",
+        "letters/",
         views.ConcurrenceLetterView.as_view(),
-        name="concurrence",
+        name="letters",
     ),
     path("facilities/", views.FacilityListView.as_view(), name="facility_index"),
     path(

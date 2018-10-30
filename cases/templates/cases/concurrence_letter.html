@@ -7,13 +7,9 @@
 
 <h1>Concurrence Letter Generation</h1>
 
-<form id="letter-template-form" method="get">
-  {{ template_form }}
-  {{ template_form.media }}
-  <button class="button" type="submit" value="submit">Submit</button>
-  <button class="button" type="submit" name="download" value="download">Download</button>
-</form>
+{% crispy template_form %}
 
+<h3>Summary:</h3>
 <ul>
   {% for case in cases %}
     <li>Case {{ case.case_num }}: {{ case.facilities.count }} facilities</li>
@@ -24,7 +20,7 @@
   {% if facilities %}
   {{ letter_template }}
   {% else %}
-  <p>No facilities!</p>
+  <p>No facilities! Alter your selections above such that technical information is included</p>
   {% endif %}
 </div>
 
