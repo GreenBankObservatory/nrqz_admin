@@ -6,21 +6,16 @@ from crispy_forms.layout import Field, Submit, Layout, Div, Reset
 
 
 class CollapsibleFilterFormLayout(Layout):
-    def __init__(self, *args):
+    def __init__(self, *args, extra_buttons=None):
+        if extra_buttons is None:
+            extra_buttons = []
         super(CollapsibleFilterFormLayout, self).__init__(
             Div(
                 *args,
                 FormActions(
                     Submit("submit", "Filter"),
                     Reset("reset", "Reset"),
-                    Submit(
-                        "kml",
-                        "As .kml",
-                        title=(
-                            "Download the locations of all currently-filtered "
-                            "Facilities as a .kml file"
-                        ),
-                    ),
+                    *extra_buttons,
                     css_class="filter-form-buttons",
                 ),
                 css_class="container-fluid filter-form",
@@ -29,6 +24,8 @@ class CollapsibleFilterFormLayout(Layout):
 
 
 class LetterFormHelper(FormHelper):
+    form_method = "get"
+
     layout = Layout(
         Div(
             Div(Field("cases", css_class="no-form-control"), css_class="col"),
@@ -56,7 +53,17 @@ class BatchFilterFormHelper(FormHelper):
             Div("name", css_class="col"),
             Div("comments", css_class="col"),
             css_class="row",
-        )
+        ),
+        extra_buttons=[
+            Submit(
+                "kml",
+                "As .kml",
+                title=(
+                    "Download the locations of all currently-filtered "
+                    "Facilities as a .kml file"
+                ),
+            )
+        ],
     )
 
 
@@ -70,7 +77,17 @@ class FacilityFilterFormHelper(FormHelper):
             Div("structure", "comments", css_class="col-sm-5"),
             Div("location", css_class="col-sm-12"),
             css_class="row",
-        )
+        ),
+        extra_buttons=[
+            Submit(
+                "kml",
+                "As .kml",
+                title=(
+                    "Download the locations of all currently-filtered "
+                    "Facilities as a .kml file"
+                ),
+            )
+        ],
     )
 
 
@@ -83,33 +100,43 @@ class CaseFilterFormHelper(FormHelper):
             Div("radio_service", "call_sign", "fcc_file_num", css_class="col"),
             Div("completed", "shutdown", "comments", css_class="col"),
             css_class="row",
-        )
+        ),
+        extra_buttons=[
+            Submit(
+                "kml",
+                "As .kml",
+                title=(
+                    "Download the locations of all currently-filtered "
+                    "Facilities as a .kml file"
+                ),
+            )
+        ],
     )
 
 
 class PersonFilterFormHelper(FormHelper):
     """Provides layout information for PersonFilter.form"""
 
-    layout = Layout(
+    layout = CollapsibleFilterFormLayout(
         Div(
-            Div("name", "email", "phone", css_class="col"),
-            Div("street", "city", "state", "zipcode", "comments", css_class="col"),
+            Div("name", "street", css_class="col"),
+            Div("email", "city", css_class="col"),
+            Div("state", "phone", css_class="col"),
+            Div("comments", "zipcode", css_class="col"),
             css_class="row",
-        ),
-        FormActions(Submit("submit", "Filter")),
+        )
     )
 
 
 class AttachmentFilterFormHelper(FormHelper):
     """Provides layout information for AttachmentFilter.form"""
 
-    layout = Layout(
+    layout = CollapsibleFilterFormLayout(
         Div(
             Div("path", css_class="col"),
             Div("comments", css_class="col"),
             css_class="row",
-        ),
-        FormActions(Submit("submit", "Filter")),
+        )
     )
 
 

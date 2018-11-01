@@ -33,7 +33,9 @@ class CoordinateField(DecimalField):
 
 
 class Structure(IsActiveModel, TrackedModel, Model):
-    asr = PositiveIntegerField(unique=True, verbose_name="Antenna Registration Number")
+    asr = PositiveIntegerField(
+        unique=True, verbose_name="Antenna Registration Number", db_index=True
+    )
     file_num = CharField(max_length=256, verbose_name="File Number")
     location = PointField(spatial_index=True, geography=True, verbose_name="Location")
     faa_circ_num = CharField(max_length=256, verbose_name="FAA Circulation Number")

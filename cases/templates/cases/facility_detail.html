@@ -2,7 +2,7 @@
 {% load cases_tags %}
 
 {% block content %}
-<a href={% url "case_detail" facility.case.id %}>View case</a>
+<a href={% url "case_detail" facility.case.case_num %}>View case</a>
 <a href={% url "structure_detail" facility.structure.id %}>View structure</a>
 <h1>{{ facility }}</h1>
 <div class="row">
