@@ -22,6 +22,12 @@ class HelpedFilterSet(django_filters.FilterSet):
     def __init__(self, *args, **kwargs):
         super(HelpedFilterSet, self).__init__(*args, **kwargs)
         self.form.helper = self.Meta.formhelper_class()
+        self.form.helper.form_id = self._derive_form_id()
+        self.form.helper.form_method = "get"
+        self.form.helper.form_class = "collapse show"
+
+    def _derive_form_id(self):
+        return f"{self.Meta.model.__name__.lower()}-filter-form"
 
     class Meta:
         formhelper_class = lambda: NotImplemented

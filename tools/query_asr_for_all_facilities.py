@@ -1,6 +1,8 @@
 import json
 from pprint import pprint
 
+from tqdm import tqdm
+
 from django.contrib.gis.geos import GEOSGeometry
 from cases.models import Facility, Structure
 from cases.forms import StructureForm
@@ -49,15 +51,15 @@ def create_structure_from_feature(feature, facility):
         structure_form = StructureForm(structure_dict)
         if structure_form.is_valid():
             structure = Structure.objects.create(**structure_form.cleaned_data)
-            print(f"Created Structure {structure}")
+            tqdm.write(f"Created Structure {structure}")
         else:
             pprint(structure_form.errors)
             return (None, structure_form.errors)
     else:
-        print(f"Found Structure {structure}")
+        tqdm.write(f"Found Structure {structure}")
 
     structure.facilities.add(facility)
-    print(f"Added {facility} to Structure {structure}")
+    tqdm.write(f"Added {facility} to Structure {structure}")
     facility.asr_from_applicant = False
     facility.save()
 
@@ -72,12 +74,12 @@ def query_asr_for_facilities(facilities):
         "not_found": [],
     }
     height_errors = []
-    for facility in facilities:
+    for facility in tqdm(facilities, unit="facilities"):
         if facility.structure:
             report["skipped"].append(facility)
             continue
         result = query_asr_by_location(
-            coords=facility.location.coords, units="meter", radius=100
+            coords=facility.location.coords, units="meter", radius=10
         )
         features = result["features"]
         num_features = len(features)
@@ -89,24 +91,27 @@ def query_asr_for_facilities(facilities):
             else:
                 report["found"]["errors"][facility] = errors
         elif num_features > 1:
-            print("Multiple features found!")
+            tqdm.write("Multiple ASR records found!")
             report["multiple_found"][facility] = features
         else:
-            print("No features found!")
+            tqdm.write("No ASR records found!")
             # If over 60 meters (~200 feet), something is probably wrong
-            if facility.agl > 60:
+            if facility.agl and facility.agl > 60:
                 height_errors.append(facility)
             report["not_found"].append(facility)
-        print("-" * 80)
+        tqdm.write("-" * 80)
     return report
 
 
 def run():
-    facilities = Facility.objects.filter(location__isnull=False, agl__gte=60)
-    with open("no_asr.json") as fp:
-        no_asr = json.load(fp)
-        if not no_asr:
-            no_asr = []
+    facilities = Facility.objects.filter(location__isnull=False)
+    # facilities = Facility.objects.filter(location__isnull=False, agl__gte=60)
+    try:
+        with open("no_asr.json") as fp:
+            no_asr = json.load(fp)
+    except FileNotFoundError:
+        no_asr = []
+
     print(f"Excluding {len(no_asr)} Facilities from operation")
     facilities = facilities.exclude(id__in=no_asr)
 

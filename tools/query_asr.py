@@ -49,8 +49,8 @@ def query_asr(query):
             "Error <{code}>: {message} ({details})".format(**response_json["error"])
         )
 
-    if not response_json["features"]:
-        print("No results found!")
+    # if not response_json["features"]:
+    #     print("No results found!")
 
     return response_json
 

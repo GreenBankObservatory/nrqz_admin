@@ -38,7 +38,7 @@ def filter_table(context):
         form_id=f"{model_name}-filter-form",
         total_objects=total_objects,
         current_objects=current_objects,
-        percent_shown=f"{current_objects / total_objects * 100:.0f}%",
+        percent_shown=f"{current_objects / total_objects * 100:.2f}%",
     )
 
 

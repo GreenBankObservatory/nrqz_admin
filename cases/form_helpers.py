@@ -29,7 +29,6 @@ class CollapsibleFilterFormLayout(Layout):
 
 
 class LetterFormHelper(FormHelper):
-    form_method = "get"
     layout = Layout(
         Div(
             Div(Field("cases", css_class="no-form-control"), css_class="col"),
@@ -52,9 +51,6 @@ class LetterFormHelper(FormHelper):
 class BatchFilterFormHelper(FormHelper):
     """Provides layout information for FacilityFilter.form"""
 
-    form_method = "get"
-    form_class = "collapse show"
-    form_id = "batch-filter-form"
     layout = CollapsibleFilterFormLayout(
         Div(
             Div("name", css_class="col"),
@@ -67,14 +63,12 @@ class BatchFilterFormHelper(FormHelper):
 class FacilityFilterFormHelper(FormHelper):
     """Provides layout information for FacilityFilter.form"""
 
-    form_method = "get"
-    form_class = "collapse show"
-    form_id = "facility-filter-form"
     layout = CollapsibleFilterFormLayout(
         Div(
             Div("nrqz_id", "site_name", css_class="col-sm-2"),
             Div("freq_high", "freq_low", css_class="col-sm-5"),
-            Div("location", "structure", "comments", css_class="col-sm-5"),
+            Div("structure", "comments", css_class="col-sm-5"),
+            Div("location", css_class="col-sm-12"),
             css_class="row",
         )
     )
@@ -82,10 +76,6 @@ class FacilityFilterFormHelper(FormHelper):
 
 class CaseFilterFormHelper(FormHelper):
     """Provides layout information for CaseFilter.form"""
-
-    form_method = "get"
-    form_class = "collapse"
-    form_id = "case-filter-form"
 
     layout = CollapsibleFilterFormLayout(
         Div(
@@ -100,7 +90,6 @@ class CaseFilterFormHelper(FormHelper):
 class PersonFilterFormHelper(FormHelper):
     """Provides layout information for PersonFilter.form"""
 
-    form_method = "get"
     layout = Layout(
         Div(
             Div("name", "email", "phone", css_class="col"),
@@ -114,7 +103,6 @@ class PersonFilterFormHelper(FormHelper):
 class AttachmentFilterFormHelper(FormHelper):
     """Provides layout information for AttachmentFilter.form"""
 
-    form_method = "get"
     layout = Layout(
         Div(
             Div("path", css_class="col"),
@@ -128,15 +116,12 @@ class AttachmentFilterFormHelper(FormHelper):
 class StructureFilterFormHelper(FormHelper):
     """Provides layout information for StructureFilter.form"""
 
-    form_method = "get"
-    form_class = "collapse"
-    form_id = "case-filter-form"
-
     layout = CollapsibleFilterFormLayout(
         Div(
-            Div("asr", "file_num", "location", css_class="col"),
-            Div("faa_circ_num", "faa_study_num", "issue_date", css_class="col"),
-            Div("height", css_class="col"),
+            Div("asr", "file_num", css_class="col"),
+            Div("height", "faa_circ_num", css_class="col"),
+            Div("faa_study_num", "issue_date", css_class="col"),
+            Div("location", css_class="col-sm-12"),
             css_class="row",
         )
     )
