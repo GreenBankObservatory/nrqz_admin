@@ -63,18 +63,25 @@ class LetterFacilityTable(tables.Table):
 
 class FacilityTable(tables.Table):
     nrqz_id = tables.Column(linkify=True)
-    selected = SelectColumn()
     comments = TrimmedTextColumn()
     structure = tables.Column(linkify=True)
 
     class Meta:
         model = models.Facility
-        fields = FacilityFilter.Meta.fields + ["selected"]
+        fields = FacilityFilter.Meta.fields
 
     def render_location(self, value):
         """Render a coordinate as DD MM SS.sss"""
         longitude, latitude = value.coords
         return coords_to_string(latitude=latitude, longitude=longitude)
+
+
+class FacilityTableWithConcur(FacilityTable):
+    selected = SelectColumn()
+
+    class Meta:
+        model = models.Facility
+        fields = FacilityFilter.Meta.fields + ["selected"]
 
 
 class CaseTable(tables.Table):

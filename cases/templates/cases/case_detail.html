@@ -5,12 +5,10 @@
 
 {% block content %}
 {% if case.batch %}
-<a href={% url "batch_detail" case.batch.id %}>View batch</a> |
+<a href={% url "batch_detail" case.batch.id %}>View batch</a>
 {% else %}
 <p>Not created from an Excel sheet; no batch</p>
 {% endif %}
-
-<a href="{% url 'letters' %}?cases={{case.case_num}}">View concurrence letter</a>
 
 <h1>Case {{ case.case_num }}</h1>
 
@@ -21,11 +19,17 @@
 <div class="container-fluid" style="border:1px solid #D3D3D3; border-radius: 10px">
     {% if facility_filter %}
     {% crispy facility_filter.form %}
-    <p>Results: {{ facility_table.data|length }}</p>
+    <button class="btn btn-info btn-sm filter-button" type="button" data-toggle="collapse" data-target="#facility-filter-form" aria-expanded="true" aria-controls="facility-filter-form">
+        Show Filters
+    </button>
+    <p>{{ facility_table.data|length }} facilities</p>
     {% endif %}
-    <form method="get">
+    <form method="get" action={% url 'letters' %}>
         {% render_table facility_table %}
-        <button type="submit">Generate Concurrence Letter</button>
+        <input type="hidden" name="cases" value="{{ case.case_num }}">
+        <button type="submit" class="btn btn-primary" title="Generate letter from selected Facilities">
+            Generate Letter
+        </button>
     </form>
 
 </div>
@@ -78,11 +82,7 @@
 <h2>Attachments</h2>
 {% if attachment_table.data %}
 <div class="container-fluid">
-    {% if attachment_filter %}
-    {% crispy attachment_filter.form %}
-    <p>Results: {{ attachment_table.data|length }}</p>
-    {% endif %}
-    {% render_table attachment_table %}
+    {% filter_table attachment_table attachment_filter %}
 </div>
 {% else %}
 <p>No attachments</p>

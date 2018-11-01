@@ -19,12 +19,18 @@ from .fields import PointField
 class HelpedFilterSet(django_filters.FilterSet):
     """A FilterSet with a Crispy Form Helper class"""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, form_helper_kwargs=None, **kwargs):
+        if form_helper_kwargs is None:
+            form_helper_kwargs = {}
         super(HelpedFilterSet, self).__init__(*args, **kwargs)
         self.form.helper = self.Meta.formhelper_class()
-        self.form.helper.form_id = self._derive_form_id()
-        self.form.helper.form_method = "get"
-        self.form.helper.form_class = "collapse show"
+        self.form.helper.form_id = form_helper_kwargs.get(
+            "form_id", self._derive_form_id()
+        )
+        self.form.helper.form_method = form_helper_kwargs.get("form_method", "get")
+        self.form.helper.form_class = form_helper_kwargs.get(
+            "form_class", "collapse show"
+        )
 
     def _derive_form_id(self):
         return f"{self.Meta.model.__name__.lower()}-filter-form"

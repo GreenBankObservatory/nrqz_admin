@@ -7,17 +7,14 @@
 <h1>{{ person.name }}</h1>
 <div class="row">
     <div class="col-sm">
-        {% info_table person "Applicant Info" applicant_info %}
+        {% info_table person "Entity Info" applicant_info %}
     </div>
 </div>
 
 <h2>Cases</h2>
+<p>Cases where <b>{{ person.name }}</b> is either an applicant or a contact</p>
 <div class="container-fluid" style="border:1px solid #D3D3D3; border-radius: 10px">
-    {% if case_filter %}
-    {% crispy case_filter.form %}
-    <p>Results: {{ case_table.data|length }}</p>
-    {% endif %}
-    {% render_table case_table %}
+    {% filter_table case_table case_filter %}
 </div>
 
 {% endblock %}

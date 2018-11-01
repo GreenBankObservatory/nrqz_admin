@@ -28,15 +28,7 @@
 <h2>Facilities</h2>
 {% if structure.facilities.all %}
 <div class="container-fluid" style="border:1px solid #D3D3D3; border-radius: 10px">
-    {% if facility_filter %}
-    {% crispy facility_filter.form %}
-    <p>Results: {{ facility_table.data|length }}</p>
-    {% endif %}
-    <form method="get">
-        {% render_table facility_table %}
-        <button type="submit">Generate Concurrence Letter</button>
-    </form>
-
+  {% filter_table facility_table facility_filter %}
 </div>
 {% else %}
 <p>No Facilities</p>

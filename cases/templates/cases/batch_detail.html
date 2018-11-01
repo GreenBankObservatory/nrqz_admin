@@ -19,11 +19,7 @@
 
 <h2>Cases</h2>
 <div class="container-fluid" style="border:1px solid #D3D3D3; border-radius: 10px">
-    {% if case_filter %}
-    {% crispy case_filter.form %}
-    <p>Results: {{ case_table.data|length }}</p>
-    {% endif %}
-    {% render_table case_table %}
+    {% filter_table case_table case_filter %}
 </div>
 
 {% if batch.import_error_summary %}

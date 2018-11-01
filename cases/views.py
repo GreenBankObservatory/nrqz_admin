@@ -1,6 +1,8 @@
 from datetime import date
 import tempfile
 
+import pypandoc
+
 from django.views.generic.detail import DetailView
 from django.views.generic.base import TemplateView
 from django.http import HttpResponse
@@ -9,7 +11,7 @@ from django.shortcuts import get_object_or_404
 from django.template import Template, Context
 from django.db.models import Q
 
-import pypandoc
+from crispy_forms.layout import Submit
 from dal import autocomplete
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
@@ -28,6 +30,7 @@ from .tables import (
     AttachmentTable,
     BatchTable,
     FacilityTable,
+    FacilityTableWithConcur,
     PersonTable,
     CaseTable,
     LetterFacilityTable,
@@ -75,7 +78,9 @@ class BatchDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         if self.case_filter is None:
             self.case_filter = CaseFilter(
-                self.request.GET, queryset=self.object.cases.all()
+                self.request.GET,
+                queryset=self.object.cases.all(),
+                form_helper_kwargs={"form_class": "collapse"},
             )
             context["case_filter"] = self.case_filter
 
@@ -307,18 +312,22 @@ class CaseDetailView(DetailView):
 
         if not self.facility_filter:
             self.facility_filter = FacilityFilter(
-                self.request.GET, queryset=self.object.facilities.all()
+                self.request.GET,
+                queryset=self.object.facilities.all(),
+                form_helper_kwargs={"form_class": "collapse"},
             )
             context["facility_filter"] = self.facility_filter
 
         if "facility_table" not in context:
-            table = FacilityTable(data=self.facility_filter.qs)
+            table = FacilityTableWithConcur(data=self.facility_filter.qs)
             table.paginate(page=self.request.GET.get("page", 1), per_page=10)
             context["facility_table"] = table
 
         if not self.attachment_filter:
             self.attachment_filter = AttachmentFilter(
-                self.request.GET, queryset=self.object.attachments.all()
+                self.request.GET,
+                queryset=self.object.attachments.all(),
+                form_helper_kwargs={"form_class": "collapse"},
             )
             context["attachment_filter"] = self.attachment_filter
 
@@ -392,7 +401,9 @@ class AttachmentDetailView(DetailView):
 
         if self.case_filter is None:
             self.case_filter = CaseFilter(
-                self.request.GET, queryset=self.object.cases.all()
+                self.request.GET,
+                queryset=self.object.cases.all(),
+                form_helper_kwargs={"form_class": "collapse"},
             )
             context["case_filter"] = self.case_filter
 
@@ -435,7 +446,11 @@ class PersonDetailView(DetailView):
 
         if self.case_filter is None:
             self.case_filter = CaseFilter(
-                self.request.GET, queryset=self.object.applicant_for_cases.all()
+                self.request.GET,
+                queryset=Case.objects.filter(
+                    Q(applicant=self.object) | Q(contact=self.object)
+                ),
+                form_helper_kwargs={"form_class": "collapse"},
             )
             context["case_filter"] = self.case_filter
 
@@ -475,7 +490,9 @@ class StructureDetailView(DetailView):
 
         if not self.facility_filter:
             self.facility_filter = FacilityFilter(
-                self.request.GET, queryset=self.object.facilities.all()
+                self.request.GET,
+                queryset=self.object.facilities.all(),
+                form_helper_kwargs={"form_class": "collapse"},
             )
             context["facility_filter"] = self.facility_filter
 
