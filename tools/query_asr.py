@@ -16,6 +16,8 @@ from pprint import pprint
 
 import requests
 
+DEFAULTS = {"SRID": 4326, "UNIT": "meter"}
+
 UNIT_MAP = {
     "meter": "esriSRUnit_Meter",
     "mile": "esriSRUnit_StatuteMile",
@@ -53,9 +55,6 @@ def query_asr(query):
     return response_json
 
 
-# def add_spatial_filter(query, radius):
-
-
 def query_asr_by_reg_num(regnum, output_coord_sys):
     query = OrderedDict(
         where="REGNUM like '%{}%'".format(regnum),
@@ -66,19 +65,25 @@ def query_asr_by_reg_num(regnum, output_coord_sys):
     return query_asr(query)
 
 
-def query_asr_by_location(coords, radius, input_coord_sys, output_coord_sys):
-    geometry = "{},{}".format(coords[1], coords[0])
-    radius = "10"
+def query_asr_by_location(
+    coords,
+    radius=10,
+    input_coord_sys=DEFAULTS["SRID"],
+    output_coord_sys=DEFAULTS["SRID"],
+    units=DEFAULTS["UNIT"],
+):
+    geometry = "{},{}".format(*coords)
+    units = UNIT_MAP[units]
     query = OrderedDict(
         where="1=1",
         outFields="*",
         geometry=geometry,
         geometryType="esriGeometryPoint",
-        inSR=input_coord_sys,
+        inSR=str(input_coord_sys),
         spatialRel="esriSpatialRelIntersects",
-        distance=radius,
-        units="esriSRUnit_StatuteMile",
-        outSR=output_coord_sys,
+        distance=str(radius),
+        units=units,
+        outSR=str(output_coord_sys),
         f="json",
     )
 
@@ -95,11 +100,16 @@ def main():
                 radius=args.radius,
                 coords="({}, {})".format(*args.coords),
                 input_coord_sys=args.input_coord_sys,
-                plural_unit=UNIT_PLURAL_MAP[args.unit],
+                plural_unit=UNIT_PLURAL_MAP[args.units],
             )
         )
         json = query_asr_by_location(
-            args.coords, args.radius, args.input_coord_sys, args.output_coord_sys
+            # Note that we reverse these here!
+            coords=(args.coords[1], args.coords[0]),
+            radius=args.radius,
+            input_coord_sys=args.input_coord_sys,
+            output_coord_sys=args.output_coord_sys,
+            units=args.units,
         )
     elif args.regnum:
         print(
@@ -127,7 +137,7 @@ def parse_args():
     parser.add_argument(
         "-I",
         "--input-coord-sys",
-        default="4326",
+        default=DEFAULTS["SRID"],
         help=(
             "ArcGIS ID of input coordinate system. Defaults to WGS84. See "
             "https://developers.arcgis.com/javascript/3/jshelp/gcs.html"
@@ -136,7 +146,7 @@ def parse_args():
     parser.add_argument(
         "-O",
         "--output-coord-sys",
-        default="4326",
+        default=DEFAULTS["SRID"],
         help=(
             "ArcGIS ID of output coordinate system. Defaults to WGS84. See "
             "https://developers.arcgis.com/javascript/3/jshelp/gcs.html"
@@ -155,7 +165,7 @@ def parse_args():
     )
     parser.add_argument(
         "-u",
-        "--unit",
+        "--units",
         help="Units for --radius",
         choices=UNIT_MAP.keys(),
         default="kilometer",
@@ -166,7 +176,11 @@ def parse_args():
         help="Print out full JSON response from query",
         action="store_true",
     )
-    return parser.parse_args()
+    args = parser.parse_args()
+
+    if not args.coords or args.regnum:
+        parser.error("One of --coords or --regnum is required")
+    return args
 
 
 if __name__ == "__main__":

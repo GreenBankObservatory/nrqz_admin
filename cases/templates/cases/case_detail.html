@@ -23,7 +23,7 @@
     {% crispy facility_filter.form %}
     <p>Results: {{ facility_table.data|length }}</p>
     {% endif %}
-    <form method="get"">
+    <form method="get">
         {% render_table facility_table %}
         <button type="submit">Generate Concurrence Letter</button>
     </form>

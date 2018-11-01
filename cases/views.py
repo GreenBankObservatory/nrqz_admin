@@ -15,13 +15,14 @@ from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 
 from .forms import LetterTemplateForm
-from .models import Attachment, Batch, Case, Facility, Person, LetterTemplate
+from .models import Attachment, Batch, Case, Facility, Person, LetterTemplate, Structure
 from .filters import (
     AttachmentFilter,
     BatchFilter,
     FacilityFilter,
     PersonFilter,
     CaseFilter,
+    StructureFilter,
 )
 from .tables import (
     AttachmentTable,
@@ -30,6 +31,7 @@ from .tables import (
     PersonTable,
     CaseTable,
     LetterFacilityTable,
+    StructureTable,
 )
 
 from .kml import (
@@ -441,5 +443,45 @@ class PersonDetailView(DetailView):
             table = CaseTable(data=self.case_filter.qs)
             table.paginate(page=self.request.GET.get("page", 1), per_page=10)
             context["case_table"] = table
+
+        return context
+
+
+class StructureListView(FilterTableView):
+    table_class = StructureTable
+    filterset_class = StructureFilter
+    template_name = "cases/structure_list.html"
+
+
+class StructureDetailView(DetailView):
+    model = Structure
+
+    def __init__(self, *args, **kwargs):
+        super(StructureDetailView, self).__init__(*args, **kwargs)
+        self.facility_filter = None
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context["info"] = [
+            "asr",
+            "file_num",
+            "location",
+            "faa_circ_num",
+            "faa_study_num",
+            "issue_date",
+            "height",
+        ]
+
+        if not self.facility_filter:
+            self.facility_filter = FacilityFilter(
+                self.request.GET, queryset=self.object.facilities.all()
+            )
+            context["facility_filter"] = self.facility_filter
+
+        if "facility_table" not in context:
+            table = FacilityTable(data=self.facility_filter.qs)
+            table.paginate(page=self.request.GET.get("page", 1), per_page=10)
+            context["facility_table"] = table
 
         return context

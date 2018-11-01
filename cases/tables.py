@@ -10,6 +10,7 @@ from .filters import (
     FacilityFilter,
     PersonFilter,
     CaseFilter,
+    StructureFilter,
 )
 from .columns import SelectColumn, TrimmedTextColumn
 
@@ -64,6 +65,7 @@ class FacilityTable(tables.Table):
     nrqz_id = tables.Column(linkify=True)
     selected = SelectColumn()
     comments = TrimmedTextColumn()
+    structure = tables.Column(linkify=True)
 
     class Meta:
         model = models.Facility
@@ -110,3 +112,16 @@ class AttachmentTable(tables.Table):
     class Meta:
         model = models.Attachment
         fields = AttachmentFilter.Meta.fields
+
+
+class StructureTable(tables.Table):
+    asr = tables.Column(linkify=True)
+
+    class Meta:
+        model = models.Structure
+        fields = StructureFilter.Meta.fields
+
+    def render_location(self, value):
+        """Render a coordinate as DD MM SS.sss"""
+        longitude, latitude = value.coords
+        return coords_to_string(latitude=latitude, longitude=longitude)

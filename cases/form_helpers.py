@@ -74,7 +74,7 @@ class FacilityFilterFormHelper(FormHelper):
         Div(
             Div("nrqz_id", "site_name", css_class="col-sm-2"),
             Div("freq_high", "freq_low", css_class="col-sm-5"),
-            Div("location", "comments", css_class="col-sm-5"),
+            Div("location", "structure", "comments", css_class="col-sm-5"),
             css_class="row",
         )
     )
@@ -122,4 +122,21 @@ class AttachmentFilterFormHelper(FormHelper):
             css_class="row",
         ),
         FormActions(Submit("submit", "Filter")),
+    )
+
+
+class StructureFilterFormHelper(FormHelper):
+    """Provides layout information for StructureFilter.form"""
+
+    form_method = "get"
+    form_class = "collapse"
+    form_id = "case-filter-form"
+
+    layout = CollapsibleFilterFormLayout(
+        Div(
+            Div("asr", "file_num", "location", css_class="col"),
+            Div("faa_circ_num", "faa_study_num", "issue_date", css_class="col"),
+            Div("height", css_class="col"),
+            css_class="row",
+        )
     )

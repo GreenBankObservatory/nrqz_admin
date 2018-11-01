@@ -2,10 +2,12 @@ from django.urls import reverse
 from django.db.models import (
     BooleanField,
     CharField,
+    DateField,
     DateTimeField,
     DecimalField,
     EmailField,
     FileField,
+    FloatField,
     ForeignKey,
     IntegerField,
     ManyToManyField,
@@ -28,6 +30,26 @@ class CoordinateField(DecimalField):
         value = self.value_from_object(obj)
         d, m, s = dd_to_dms(value)
         return f"{d:03d} {m:02d} {s:2.3f}"
+
+
+class Structure(IsActiveModel, TrackedModel, Model):
+    asr = PositiveIntegerField(unique=True, verbose_name="Antenna Registration Number")
+    file_num = CharField(max_length=256, verbose_name="File Number")
+    location = PointField(spatial_index=True, geography=True, verbose_name="Location")
+    faa_circ_num = CharField(max_length=256, verbose_name="FAA Circulation Number")
+    faa_study_num = CharField(max_length=256, verbose_name="FAA Study Number")
+    issue_date = DateField(verbose_name="Issue Date")
+    height = FloatField(verbose_name="Height (m)")
+    # owner = ForeignKey("Person", on_delete=PROTECT, related_name="owner_for_structures")
+    # contact = ForeignKey(
+    #     "Person", on_delete=PROTECT, related_name="contact_for_structures"
+    # )
+
+    def __str__(self):
+        return str(self.asr)
+
+    def get_absolute_url(self):
+        return reverse("structure_detail", args=[str(self.id)])
 
 
 class Facility(IsActiveModel, TrackedModel, Model):
@@ -197,11 +219,15 @@ class Facility(IsActiveModel, TrackedModel, Model):
         blank=True,
         verbose_name="Max TX output PWR at -45 degrees",
     )
+    asr_is_from_applicant = BooleanField(null=True, blank=True)
     comments = TextField(
         help_text="Additional information or comments from the applicant"
     )
 
     case = ForeignKey("Case", on_delete=PROTECT, related_name="facilities")
+    structure = ForeignKey(
+        "Structure", null=True, on_delete=SET_NULL, related_name="facilities"
+    )
 
     class Meta:
         verbose_name_plural = "Facilities"

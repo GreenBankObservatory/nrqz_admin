@@ -1,0 +1,45 @@
+{% extends "cases/base.html" %}
+{% load cases_tags %}
+{% load render_table from django_tables2 %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<h1>Structure {{ structure.asr }}</h1>
+
+<form method="post" action="http://wireless2.fcc.gov/UlsApp/AsrSearch/asrResults.jsp?searchType=TRB" class="inline">
+  <input type="hidden" name="asr_r_state" value="">
+  <input type="hidden" name="asr_r_zipcode" value="">
+  <input type="hidden" name="fiExactMatchInd" value="N">
+  <input type="hidden" name="fiSearchByType" value="registration_num">
+  <input type="hidden" name="fiSearchByValue" value="{{ structure.asr }}">
+  <input type="hidden" name="jsValidated" value="true">
+  <button type="submit" name="Submit" value="Submit" class="btn btn-sm">
+    View FCC Registration page
+  </button>
+</form>
+
+<div class="row">
+    <div class="col-sm">
+        {% info_table structure "Info" info %}
+    </div>
+</div>
+
+<h2>Facilities</h2>
+{% if structure.facilities.all %}
+<div class="container-fluid" style="border:1px solid #D3D3D3; border-radius: 10px">
+    {% if facility_filter %}
+    {% crispy facility_filter.form %}
+    <p>Results: {{ facility_table.data|length }}</p>
+    {% endif %}
+    <form method="get">
+        {% render_table facility_table %}
+        <button type="submit">Generate Concurrence Letter</button>
+    </form>
+
+</div>
+{% else %}
+<p>No Facilities</p>
+{% endif %}
+
+{% endblock %}

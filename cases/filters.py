@@ -11,6 +11,7 @@ from .form_helpers import (
     CaseFilterFormHelper,
     PersonFilterFormHelper,
     AttachmentFilterFormHelper,
+    StructureFilterFormHelper,
 )
 from .fields import PointField
 
@@ -57,6 +58,7 @@ class FacilityFilter(HelpedFilterSet):
     amsl = django_filters.NumericRangeFilter()
     agl = django_filters.NumericRangeFilter()
     location = PointFilter()
+    structure = django_filters.CharFilter(lookup_expr="asr__exact")
     comments = django_filters.CharFilter(lookup_expr="icontains")
 
     class Meta:
@@ -101,4 +103,13 @@ class AttachmentFilter(HelpedFilterSet):
     class Meta:
         model = models.Attachment
         formhelper_class = AttachmentFilterFormHelper
+        fields = discover_fields(formhelper_class.layout)
+
+
+class StructureFilter(HelpedFilterSet):
+    location = PointFilter()
+
+    class Meta:
+        model = models.Structure
+        formhelper_class = StructureFilterFormHelper
         fields = discover_fields(formhelper_class.layout)

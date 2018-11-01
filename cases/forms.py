@@ -4,7 +4,7 @@ from django import forms
 
 from dal import autocomplete
 
-from cases.models import Case, Facility, LetterTemplate
+from cases.models import Case, Facility, LetterTemplate, Structure
 from .form_helpers import LetterFormHelper
 
 
@@ -45,3 +45,20 @@ class LetterTemplateForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(LetterTemplateForm, self).__init__(*args, **kwargs)
         self.helper = LetterFormHelper()
+
+
+class StructureForm(forms.ModelForm):
+    class Meta:
+        model = Structure
+        fields = (
+            "asr",
+            "file_num",
+            "location",
+            "faa_circ_num",
+            "faa_study_num",
+            "issue_date",
+            "height",
+            # "owner",
+            # "contact",
+            # "facility",
+        )
