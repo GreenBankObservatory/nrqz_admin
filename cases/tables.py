@@ -69,6 +69,7 @@ class FacilityTable(tables.Table):
     class Meta:
         model = models.Facility
         fields = FacilityFilter.Meta.fields
+        order_by = ["nrqz_id"]
 
     def render_location(self, value):
         """Render a coordinate as DD MM SS.sss"""
@@ -93,6 +94,7 @@ class CaseTable(tables.Table):
     class Meta:
         model = models.Case
         fields = CaseFilter.Meta.fields
+        order_by = ["-case_num"]
 
 
 class BatchTable(tables.Table):

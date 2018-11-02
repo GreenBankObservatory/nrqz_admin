@@ -290,22 +290,28 @@ class Case(IsActiveModel, TrackedModel, Model):
     attachments = ManyToManyField("Attachment", related_name="cases", blank=True)
 
     # From Access
-    completed = BooleanField(default=False, blank=True)
-    shutdown = BooleanField(default=False, blank=True)
-    completed_on = DateTimeField(null=True, blank=True)
-    sgrs_notify = BooleanField(default=False, blank=True)
-    sgrs_notified_on = DateTimeField(null=True, blank=True)
-    radio_service = CharField(max_length=256, blank=True)
-    call_sign = CharField(max_length=256, blank=True)
-    fcc_freq_coord = CharField(max_length=256, blank=True)
-    fcc_file_num = CharField(max_length=256, blank=True)
-    num_freqs = PositiveIntegerField(null=True, blank=True)
-    num_sites = PositiveIntegerField(null=True, blank=True)
-    num_outside = PositiveIntegerField(null=True, blank=True)
-    erpd_limit = BooleanField(default=False, blank=True)
-    si_waived = BooleanField(default=False, blank=True)
-    si = BooleanField(default=False, blank=True)
-    si_done = DateTimeField(null=True, blank=True)
+    completed = BooleanField(default=False, blank=True, verbose_name="Completed")
+    shutdown = BooleanField(default=False, blank=True, verbose_name="Shut Down")
+    completed_on = DateTimeField(null=True, blank=True, verbose_name="Completed On")
+    sgrs_notify = BooleanField(default=False, blank=True, verbose_name="SGRS Notified")
+    sgrs_notified_on = DateTimeField(
+        null=True, blank=True, verbose_name="SGRS Notified On"
+    )
+    radio_service = CharField(max_length=256, blank=True, verbose_name="Radio Service")
+    call_sign = CharField(max_length=256, blank=True, verbose_name="Call Sign")
+    fcc_freq_coord = CharField(
+        max_length=256, blank=True, verbose_name="FCC Freq. Coord."
+    )
+    fcc_file_num = CharField(max_length=256, blank=True, verbose_name="FCC File Num.")
+    num_freqs = PositiveIntegerField(null=True, blank=True, verbose_name="Num. Freq.")
+    num_sites = PositiveIntegerField(null=True, blank=True, verbose_name="Num Sites")
+    num_outside = PositiveIntegerField(
+        null=True, blank=True, verbose_name="Num. Sites Outside NRQZ"
+    )
+    erpd_limit = BooleanField(default=False, blank=True, verbose_name="ERPD Limit")
+    si_waived = BooleanField(default=False, blank=True, verbose_name="SI Waived")
+    si = BooleanField(default=False, blank=True, verbose_name="SI")
+    si_done = DateTimeField(null=True, blank=True, verbose_name="SI Done")
 
     slug = SlugField(unique=True)
 
@@ -313,7 +319,7 @@ class Case(IsActiveModel, TrackedModel, Model):
         return f"{self.case_num}"
 
     def get_absolute_url(self):
-        return reverse("case_detail", args=[str(self.id)])
+        return reverse("case_detail", args=[str(self.case_num)])
 
     def as_kml(self):
         return kml_to_string(case_as_kml(self))

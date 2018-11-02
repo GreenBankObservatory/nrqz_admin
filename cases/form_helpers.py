@@ -15,6 +15,7 @@ class CollapsibleFilterFormLayout(Layout):
                 FormActions(
                     Submit("submit", "Filter"),
                     Reset("reset", "Reset"),
+                    Submit("show-all", "Show All"),
                     *extra_buttons,
                     css_class="filter-form-buttons",
                 ),
@@ -73,8 +74,9 @@ class FacilityFilterFormHelper(FormHelper):
     layout = CollapsibleFilterFormLayout(
         Div(
             Div("nrqz_id", "site_name", css_class="col-sm-2"),
-            Div("freq_high", "freq_low", css_class="col-sm-5"),
-            Div("structure", "comments", css_class="col-sm-5"),
+            Div("freq_low", "freq_high", css_class="col-sm-5"),
+            Div("structure", "comments", css_class="col-sm-2"),
+            Div("main_beam_orientation", "antenna_model_number", css_class="col-sm-2"),
             Div("location", css_class="col-sm-12"),
             css_class="row",
         ),
@@ -97,7 +99,7 @@ class CaseFilterFormHelper(FormHelper):
     layout = CollapsibleFilterFormLayout(
         Div(
             Div("case_num", "applicant", "contact", css_class="col"),
-            Div("radio_service", "call_sign", "fcc_file_num", css_class="col"),
+            Div("call_sign", "fcc_freq_coord", "fcc_file_num", css_class="col"),
             Div("completed", "shutdown", "comments", css_class="col"),
             css_class="row",
         ),

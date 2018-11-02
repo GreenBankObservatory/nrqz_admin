@@ -10,12 +10,10 @@ if __name__ == "__main__":
 
     for user in users:
         try:
-            User.objects.create_user(username=user, password=user, is_staff=True)
+            User.objects.create_user(
+                username=user, password=user, is_staff=True, is_superuser=True
+            )
         except django.db.utils.IntegrityError:
             print(f"{user} already exists!")
         else:
             print(f"{user} created")
-
-    tchamber = User.objects.get(username="tchamber")
-    tchamber.is_superuser = True
-    tchamber.save()

@@ -50,6 +50,12 @@ class FilterTableView(SingleTableMixin, FilterView):
     table_class = None
     filterset_class = None
     object_list = NotImplemented
+    # table_pagination = True
+
+    def get(self, request, *args, **kwargs):
+        if "show-all" in request.GET:
+            self.table_pagination = False
+        return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         # If there are no query params, then no results are
