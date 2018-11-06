@@ -71,6 +71,8 @@ class FacilityFilter(HelpedFilterSet):
     agl = django_filters.NumericRangeFilter()
     location = PointFilter()
     structure = django_filters.CharFilter(lookup_expr="asr__exact")
+    main_beam_orientation = django_filters.CharFilter(lookup_expr="icontains")
+    antenna_model_number = django_filters.CharFilter(lookup_expr="icontains")
     comments = django_filters.CharFilter(lookup_expr="icontains")
 
     class Meta:
