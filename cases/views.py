@@ -308,7 +308,7 @@ class CaseDetailView(DetailView):
         context["application_info"] = [
             "radio_service",
             "call_sign",
-            "fcc_freq_coord",
+            "freq_coord",
             "fcc_file_num",
             "num_freqs",
             "num_sites",

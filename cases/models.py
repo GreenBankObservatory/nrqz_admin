@@ -299,8 +299,8 @@ class Case(IsActiveModel, TrackedModel, Model):
     )
     radio_service = CharField(max_length=256, blank=True, verbose_name="Radio Service")
     call_sign = CharField(max_length=256, blank=True, verbose_name="Call Sign")
-    fcc_freq_coord = CharField(
-        max_length=256, blank=True, verbose_name="FCC Freq. Coord."
+    freq_coord = CharField(
+        max_length=256, blank=True, verbose_name="Freq. Coord."
     )
     fcc_file_num = CharField(max_length=256, blank=True, verbose_name="FCC File Num.")
     num_freqs = PositiveIntegerField(null=True, blank=True, verbose_name="Num. Freq.")

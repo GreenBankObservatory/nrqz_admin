@@ -85,6 +85,8 @@ class CaseFilter(HelpedFilterSet):
     applicant = django_filters.CharFilter(lookup_expr="name__icontains")
     contact = django_filters.CharFilter(lookup_expr="name__icontains")
     comments = django_filters.CharFilter(lookup_expr="icontains")
+    freq_coord = django_filters.CharFilter(lookup_expr="icontains")
+    fcc_file_num = django_filters.CharFilter(lookup_expr="icontains")
 
     class Meta:
         model = models.Case

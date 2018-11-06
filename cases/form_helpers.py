@@ -99,7 +99,7 @@ class CaseFilterFormHelper(FormHelper):
     layout = CollapsibleFilterFormLayout(
         Div(
             Div("case_num", "applicant", "contact", css_class="col"),
-            Div("call_sign", "fcc_freq_coord", "fcc_file_num", css_class="col"),
+            Div("call_sign", "freq_coord", "fcc_file_num", css_class="col"),
             Div("completed", "shutdown", "comments", css_class="col"),
             css_class="row",
         ),
