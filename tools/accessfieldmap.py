@@ -84,7 +84,7 @@ case_field_mappers = [
     ),
     FieldMap(to_field="radio_service", converter=None, from_field="RADIOSRV"),
     FieldMap(to_field="call_sign", converter=None, from_field="CALLSIGN"),
-    FieldMap(to_field="fcc_freq_coord", converter=None, from_field="FCNUMBER"),
+    FieldMap(to_field="freq_coord", converter=None, from_field="FCNUMBER"),
     FieldMap(to_field="fcc_file_num", converter=None, from_field="FCCNUMBER"),
     FieldMap(
         to_field="num_freqs", converter=coerce_positive_int, from_field="NO_FREQS"

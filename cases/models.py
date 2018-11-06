@@ -280,7 +280,7 @@ class Case(IsActiveModel, TrackedModel, Model):
         blank=True,
     )
     comments = TextField(blank=True)
-    case_num = PositiveIntegerField(unique=True, db_index=True)
+    case_num = PositiveIntegerField(unique=True, db_index=True, verbose_name="Case Num.")
     name = CharField(max_length=256, blank=True, null=True)
 
     batch = ForeignKey(
