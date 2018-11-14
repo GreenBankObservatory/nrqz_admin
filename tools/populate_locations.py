@@ -1,3 +1,4 @@
+from django.contrib.gis.geos import GEOSGeometry
 from django.contrib.gis.geos.error import GEOSException
 
 from cases.models import Facility
