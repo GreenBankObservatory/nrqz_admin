@@ -4,7 +4,6 @@ from django.db.models import (
     CharField,
     DateField,
     DateTimeField,
-    DecimalField,
     EmailField,
     FileField,
     FloatField,
@@ -23,13 +22,6 @@ from django.contrib.gis.db.models import PointField
 from utils.coord_utils import dd_to_dms
 from .kml import facility_as_kml, case_as_kml, kml_to_string
 from .mixins import IsActiveModel, TrackedModel
-
-
-class CoordinateField(DecimalField):
-    def value_to_string(self, obj):
-        value = self.value_from_object(obj)
-        d, m, s = dd_to_dms(value)
-        return f"{d:03d} {m:02d} {s:2.3f}"
 
 
 class Structure(IsActiveModel, TrackedModel, Model):
@@ -57,12 +49,11 @@ class Structure(IsActiveModel, TrackedModel, Model):
 class Facility(IsActiveModel, TrackedModel, Model):
     """Describes a single, physical antenna"""
 
-    freq_low = DecimalField(
-        max_digits=10,
-        decimal_places=2,
+    freq_low = FloatField(
         verbose_name="Freq Low (MHz)",
         help_text="Frequency specific or lower part of band.",
         null=True,
+        blank=True,
     )
     site_name = CharField(
         max_length=256,
@@ -85,60 +76,53 @@ class Facility(IsActiveModel, TrackedModel, Model):
         verbose_name="FCC File Number",
         help_text="(if known)",
     )
-    location = PointField(null=True, spatial_index=True, geography=True)
-    latitude = CoordinateField(
+    location = PointField(blank=True, null=True, spatial_index=True, geography=True)
+    latitude = CharField(
+        blank=True,
         null=True,
-        max_digits=10,
-        decimal_places=8,
+        max_length=256,
         verbose_name="Latitude",
         help_text="Latitude of site, in degrees",
     )
-    longitude = CoordinateField(
+    longitude = CharField(
+        blank=True,
         null=True,
-        max_digits=10,
-        decimal_places=8,
+        max_length=256,
         verbose_name="Longitude",
         help_text="Longitude of site, in degrees",
     )
-    amsl = DecimalField(
-        max_digits=10,
-        decimal_places=2,
+    amsl = FloatField(
         verbose_name="AMSL (meters)",
         help_text="Ground elevation",
+        blank=True,
         null=True,
     )
-    agl = DecimalField(
-        max_digits=10,
-        decimal_places=2,
+    agl = FloatField(
         verbose_name="AGL (meters)",
         help_text="Facility height to center above ground level",
+        blank=True,
         null=True,
     )
-    freq_high = DecimalField(
-        max_digits=10,
-        decimal_places=2,
+    freq_high = FloatField(
         verbose_name="Freq High (MHz)",
         help_text="Frequency specific or upper part of band.",
+        blank=True,
         null=True,
     )
-    bandwidth = DecimalField(
-        max_digits=10,
-        decimal_places=2,
+    bandwidth = FloatField(
         verbose_name="Bandwidth (MHz)",
         help_text="Minimum utilized per TX (i.e. 11K0F0E is a value of 0.011)",
+        blank=True,
         null=True,
     )
-    max_output = DecimalField(
-        max_digits=10,
-        decimal_places=2,
+    max_output = FloatField(
         verbose_name="Max Output Pwr (W)",
         help_text="Per Transmitter or RRH (remote radio head) polarization",
+        blank=True,
         null=True,
     )
-    antenna_gain = DecimalField(
-        max_digits=10, decimal_places=2, verbose_name="Antenna Gain (dBi)", null=True
-    )
-    system_loss = IntegerField(verbose_name="System Loss (dB)", blank=True, null=True)
+    antenna_gain = FloatField(verbose_name="Antenna Gain (dBi)", blank=True, null=True)
+    system_loss = FloatField(verbose_name="System Loss (dB)", blank=True, null=True)
     main_beam_orientation = CharField(
         max_length=256,
         verbose_name="Main Beam Orientation",
@@ -207,28 +191,62 @@ class Facility(IsActiveModel, TrackedModel, Model):
         null=True,
         verbose_name="Number of Quad or Octal ports with feed power",
     )
-    tx_power_pos_45 = DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        null=True,
-        blank=True,
-        verbose_name="Max TX output PWR at +45 degrees",
+    tx_power_pos_45 = FloatField(
+        null=True, blank=True, verbose_name="Max TX output PWR at +45 degrees"
     )
-    tx_power_neg_45 = DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        null=True,
-        blank=True,
-        verbose_name="Max TX output PWR at -45 degrees",
+    tx_power_neg_45 = FloatField(
+        null=True, blank=True, verbose_name="Max TX output PWR at -45 degrees"
     )
     asr_is_from_applicant = BooleanField(null=True, blank=True)
     comments = TextField(
-        help_text="Additional information or comments from the applicant"
+        null=True,
+        blank=True,
+        help_text="Additional information or comments from the applicant",
     )
 
     case = ForeignKey("Case", on_delete=PROTECT, related_name="facilities")
     structure = ForeignKey(
-        "Structure", null=True, on_delete=SET_NULL, related_name="facilities"
+        "Structure",
+        blank=True,
+        null=True,
+        on_delete=SET_NULL,
+        related_name="facilities",
+    )
+
+    # From Working Data
+    band_allowance = FloatField(null=True, blank=True, verbose_name="Band Allowance")
+    distance_to_first_obstacle = CharField(
+        max_length=256, null=True, blank=True, verbose_name="Distance to First Obstacle"
+    )
+    dominant_path = CharField(max_length=256, blank=True, verbose_name="Dominant Path")
+    erpd_per_num_tx = CharField(
+        max_length=256, blank=True, verbose_name="ERPd per # of Transmitters"
+    )
+    height_of_first_obstacle = FloatField(
+        null=True, blank=True, verbose_name="Height of First Obstacle (ft)"
+    )
+    loc = CharField(max_length=256, blank=True, verbose_name="LOC")
+    msl = CharField(max_length=256, blank=True, verbose_name="MSL (m)")
+    max_aerpd = FloatField(null=True, blank=True, verbose_name="Max AERPd (dBm)")
+    max_erp_per_tx = FloatField(
+        null=True, blank=True, verbose_name="Max ERP per TX (W)"
+    )
+    max_gain = FloatField(null=True, blank=True, verbose_name="Max Gain (dBi)")
+    max_tx_power = FloatField(null=True, blank=True, verbose_name="Max TX Pwr (W)")
+    nrao_aerpd = FloatField(null=True, blank=True, verbose_name="NRAO AERPd (W)")
+    power_density_limit = FloatField(
+        null=True, blank=True, verbose_name="Power Density Limit"
+    )
+    sgrs_approval = BooleanField(null=True, blank=True)
+    tap_file = CharField(max_length=256, blank=True)
+    tap = CharField(max_length=256, blank=True)
+    tx_power = FloatField(null=True, blank=True, verbose_name="TX Power (dBm)")
+    aeirp_to_gbt = FloatField(null=True, blank=True, verbose_name="AEiRP to GBT")
+    az_bearing = CharField(
+        max_length=256, null=True, blank=True, verbose_name="AZ bearing degrees True"
+    )
+    num_tx_per_facility = IntegerField(
+        null=True, blank=True, verbose_name="# of TX per facility"
     )
 
     class Meta:
@@ -280,7 +298,9 @@ class Case(IsActiveModel, TrackedModel, Model):
         blank=True,
     )
     comments = TextField(blank=True)
-    case_num = PositiveIntegerField(unique=True, db_index=True, verbose_name="Case Num.")
+    case_num = PositiveIntegerField(
+        unique=True, db_index=True, verbose_name="Case Num."
+    )
     name = CharField(max_length=256, blank=True, null=True)
 
     batch = ForeignKey(
@@ -299,9 +319,7 @@ class Case(IsActiveModel, TrackedModel, Model):
     )
     radio_service = CharField(max_length=256, blank=True, verbose_name="Radio Service")
     call_sign = CharField(max_length=256, blank=True, verbose_name="Call Sign")
-    freq_coord = CharField(
-        max_length=256, blank=True, verbose_name="Freq. Coord."
-    )
+    freq_coord = CharField(max_length=256, blank=True, verbose_name="Freq. Coord.")
     fcc_file_num = CharField(max_length=256, blank=True, verbose_name="FCC File Num.")
     num_freqs = PositiveIntegerField(null=True, blank=True, verbose_name="Num. Freq.")
     num_sites = PositiveIntegerField(null=True, blank=True, verbose_name="Num Sites")
@@ -313,6 +331,7 @@ class Case(IsActiveModel, TrackedModel, Model):
     si = BooleanField(default=False, blank=True, verbose_name="SI")
     si_done = DateTimeField(null=True, blank=True, verbose_name="SI Done")
 
+    # Misc.
     slug = SlugField(unique=True)
 
     def __str__(self):

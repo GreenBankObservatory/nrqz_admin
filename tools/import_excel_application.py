@@ -15,7 +15,7 @@ from collections import namedtuple, OrderedDict
 from itertools import chain
 import json
 import os
-from pprint import pprint
+from pprint import pprint, pformat
 import re
 import sys
 import traceback
@@ -30,74 +30,42 @@ import pyexcel
 from tqdm import tqdm
 
 from cases.models import Attachment, Batch, Case, Facility
+from cases.forms import FacilityForm
 from tools.excelfieldmap import facility_field_map
 from tools.import_report import ImportReport
 
 
-INTERACTIVE = False
+DEFAULT_THRESHOLD = 0.7
 
 
 class ManualRollback(Exception):
     pass
 
 
-def load_rows(path, import_reporter):
-    sheet = pyexcel.get_sheet(file_name=path)
+def load_excel_data(path, import_reporter):
+    """Given path to Excel file, extract data and return"""
 
+    book = pyexcel.get_book(file_name=path)
+
+    primary_sheet = "Working Data"
+
+    try:
+        sheet = book.sheet_by_name(primary_sheet)
+    except KeyError:
+        sheet = book.sheet_by_index(0)
+        import_reporter.add_sheet_name_error(
+            f"Sheet {primary_sheet!r} not found; used first sheet instead: {sheet.name!r}"
+        )
+
+    # try:
+    #     from_applicant = book.sheet_by_name("From Applicant")
+    # except KeyError:
+    #     import ipdb
+
+    #     ipdb.set_trace()
+
+    # sheet = working_data
     return sheet.array
-
-
-def derive_field_from_validation_error(tb):
-    """Examine ValidationError traceback, derive triggering field"""
-
-    # Get the last frame in the traceback (list of tuples)
-    frame = list(traceback.walk_tb(tb))[-1][0]
-    # If this frame contains a "self" object that is an instance of a Django Field...
-    if "self" in frame.f_locals and isinstance(frame.f_locals["self"], models.Field):
-        # ...then we can examine it to determine which field it is
-        return frame.f_locals["self"]
-    else:
-        raise ValueError("Cannot derive field!")
-
-
-def excepthook(type_, value, tb):
-    if type_ == ManualRollback:
-        return
-
-    # Print the exception, as we would expect
-    traceback.print_exception(type_, value, tb)
-    # Then grab the last frame from it
-    field = derive_field_from_validation_error(tb)
-    if field:
-        tqdm.write(f"Error ocurred in relation to field: {field}", file=sys.stderr)
-    # Otherwise we might drop into an interactive shell...
-    else:
-        # ...if we have indicated we want to
-        if INTERACTIVE:
-            import ipdb
-
-            ipdb.post_mortem(tb)
-
-
-def indentify_invalid_rows(rows, threshold=None):
-    if threshold is None:
-        threshold = 0.7
-
-    invalid_row_indices = []
-    for ri, row in enumerate(rows):
-        invalid_cells = 0
-        for cell in row:
-            if not str(cell):
-                # tqdm.write(f"Found invalid cell: {cell!r}")
-                invalid_cells += 1
-
-        if invalid_cells / len(row) > threshold:
-            tqdm.write(
-                f"Found invalid row {ri} (>{threshold * 100}% cells invalid): {row}"
-            )
-            invalid_row_indices.append(ri)
-
-    return invalid_row_indices
 
 
 def gen_header_field_map(headers):
@@ -118,63 +86,24 @@ def create_facility_dict_from_row(header_field_map, row, import_reporter, row_nu
                 facility_dict[importer.to_field] = importer.converter(cell)
             except (ValueError) as error:
                 import_reporter.add_row_error(
-                    header,
-                    row_num,
+                    "conversion_error",
                     {
+                        "row": row_num,
+                        "header": header,
                         "converter": importer.converter.__name__,
                         "field": importer.to_field,
-                        "error_type": "conversion",
                         "error": str(error),
                         "value": cell,
                     },
                 )
         else:
-            tqdm.write(
-                "Either no field importer or no importer.to_field; skipping "
-                f"value {cell!r} for header {header!r}!"
-            )
+            # tqdm.write(
+            #     "Either no field importer or no importer.to_field; skipping "
+            #     f"value {cell!r} for header {header!r}!"
+            # )
             continue
 
     return facility_dict
-
-
-SheetError = namedtuple("SheetError", ["type", "description"])
-# HeaderError = namedtuple("")
-
-
-def create_facility(header_field_map, facility_dict, case):
-    try:
-        facility = Facility(**facility_dict, case=case)
-    except TypeError:
-        pprint(facility_dict)
-        raise
-    try:
-        with transaction.atomic():
-            facility.save()
-    except (django.core.exceptions.ValidationError, ValueError, TypeError) as error:
-        field = derive_field_from_validation_error(error.__traceback__)
-        field_header_map = {
-            value.to_field: key
-            for key, value in header_field_map.items()
-            if value is not None
-        }
-        value = facility_dict[field.name]
-        derived_header = field_header_map[field.name]
-        error_ = (
-            derived_header,
-            {
-                "converter": facility_field_map[derived_header].converter.__name__,
-                "field": field.name,
-                "error_type": "validation",
-                "error": str(error.args),
-                "value": str(value),
-            },
-        )
-    else:
-        error_ = None
-        # tqdm.write(f"Created {facility}")
-
-    return error_
 
 
 # https://regex101.com/r/gRPTN8/1
@@ -208,6 +137,16 @@ def create_case_map(header_field_map, data, nrqz_id_field, import_reporter):
     for row in data:
         # Pull out the row number from the row...
         row_num = row[-1]
+        try:
+            row_num = int(row_num)
+        except ValueError:
+            import_reporter.add_row_error(
+                "invalid_row_num",
+                {
+                    "row": row_num,
+                    "error": f"Could not convert {row_num} to a number! Check original Excel file for issues",
+                },
+            )
         facility_dict = create_facility_dict_from_row(
             header_field_map, row, import_reporter, row_num
         )
@@ -224,7 +163,13 @@ def create_case_map(header_field_map, data, nrqz_id_field, import_reporter):
             header = field_header_map[nrqz_id_field]
             # ...consider it a "data" error and report it
             import_reporter.add_row_error(
-                header, row_num, {"error": str(error), "converter": None, "value": None}
+                "nrqz_id_error",
+                {
+                    "row": row_num,
+                    "header": header,
+                    "error": str(error),
+                    "value": facility_dict[nrqz_id_field],
+                },
             )
         else:
             # If there's not an error, add the new facility_dict to our case_dict
@@ -280,12 +225,113 @@ def get_unmapped_headers(header_field_map):
     return [header for header, field in header_field_map.items() if field is None]
 
 
+def get_unmapped_fields():
+    excluded_fields = ["location", "asr_is_from_applicant", "case", "structure"]
+    facility_fields = [
+        field for field in FacilityForm.Meta.fields if field not in excluded_fields
+    ]
+
+    mapped_fields = [
+        importer.to_field
+        for importer in facility_field_map.values()
+        if importer is not None
+    ]
+    unmapped_fields = [field for field in facility_fields if field not in mapped_fields]
+    return unmapped_fields
+
+
+class BatchImportException(Exception):
+    pass
+
+
+class BatchImportError(BatchImportException):
+    pass
+
+
+class BatchRejectionError(BatchImportError):
+    pass
+
+
+class DuplicateCaseError(BatchRejectionError):
+    pass
+
+
+class UnmappedFieldError(BatchRejectionError):
+    pass
+
+
+class MissingNrqzIdError(BatchRejectionError):
+    pass
+
+
+class FacilityValidationError(BatchRejectionError):
+    pass
+
+
+class TooManyUnmappedHeadersError(BatchRejectionError):
+    pass
+
+
+# TODO: Probably not needed here...
 @transaction.atomic
-def process_excel_file(excel_path, threshold=None):
-    """Create objects from given path"""
+def create_facility(facility_dict, case, import_reporter, durable=False):
+    import_reporter.facilities_processed += 1
+    # TODO: Alter FacilityForm so that it uses case num instead of ID somehow
+    facility_dict = {**facility_dict, "case": case.id if case else None}
+    facility_form = FacilityForm(facility_dict)
+    if facility_form.is_valid():
+        facility = facility_form.save()
+        import_reporter.audit_facility_success(facility)
+        import_reporter.facilities_created.append(facility)
+        return None
+    else:
+        if durable:
+            import_reporter.audit_facility_error(
+                case, facility_dict, facility_form.errors.as_data()
+            )
+        else:
+            raise FacilityValidationError(
+                f"Facility {facility_dict} failed validation:\n{pformat(facility_form.errors.as_data())}"
+            )
 
-    import_reporter = ImportReport(excel_path)
+        import_reporter.facilities_not_created.append(facility_dict)
+        useful_errors = {
+            field: {"value": facility_dict[field], "errors": errors}
+            for field, errors in facility_form.errors.as_data().items()
+        }
+        return useful_errors
 
+
+@transaction.atomic
+def create_case(batch, case_num, row_to_facility_map, import_reporter, durable=False):
+    import_reporter.cases_processed += 1
+    # Create the case...
+    try:
+        case = Case.objects.create(batch=batch, case_num=case_num)
+    # ...or report an error if we can't
+    except django.db.utils.IntegrityError as error:
+        dce = DuplicateCaseError(
+            f"Batch '{batch}' rejected due to duplicate case: {case_num}"
+        )
+        import_reporter.add_case_error("IntegrityError", error)
+        import_reporter.cases_not_created.append(case_num)
+        if not durable:
+            raise dce from error
+        case = None
+    # If the case is created, we now need to create all of its Facilities
+    else:
+        import_reporter.cases_created.append(case)
+    # For every Facility dict...
+    for row_num, facility_dict in row_to_facility_map.items():
+        facility_errors = create_facility(facility_dict, case, import_reporter, durable)
+        if facility_errors:
+            import_reporter.add_row_error(
+                "validation_error", {"row": row_num, "error": facility_errors}
+            )
+
+
+@transaction.atomic
+def create_batch(excel_path):
     # A Batch representing this Excel file
     batch = Batch.objects.create(
         name=os.path.basename(excel_path), comments=f"Created by {__file__}"
@@ -296,7 +342,24 @@ def process_excel_file(excel_path, threshold=None):
         Attachment.objects.create(path=excel_path, comments=f"Attached by {__file__}")
     )
 
-    rows = load_rows(excel_path, import_reporter)
+    return batch
+
+
+def process_case_map(batch, case_map, import_reporter, durable):
+    for case_num, row_to_facility_map in case_map.items():
+        create_case(batch, case_num, row_to_facility_map, import_reporter, durable)
+
+
+@transaction.atomic
+def process_excel_file(
+    excel_path, import_reporter, durable=False, threshold=DEFAULT_THRESHOLD
+):
+    """Create objects from given path"""
+
+    batch = create_batch(excel_path)
+    import_reporter.batch = batch
+
+    rows = load_excel_data(excel_path, import_reporter)
     # A list of the headers actually in the file
     headers = rows[0][:-1]
     # A list of rows containing data
@@ -313,126 +376,235 @@ def process_excel_file(excel_path, threshold=None):
     if unmapped_headers:
         import_reporter.set_unmapped_headers(unmapped_headers)
 
+    unmapped_header_ratio = len(unmapped_headers) / len(headers)
+    if unmapped_header_ratio > threshold:
+        import_reporter.add_too_many_unmapped_headers_error(
+            f"{unmapped_header_ratio * 100:.2f}% of headers are not mapped; batch rejected"
+        )
+        if not durable:
+            raise TooManyUnmappedHeadersError(
+                f"{unmapped_header_ratio * 100:.2f}% of headers are not mapped; batch rejected"
+            )
+
+    unmapped_fields = get_unmapped_fields()
+    if unmapped_fields:
+        import_reporter.set_unmapped_fields(unmapped_fields)
+        if not durable:
+            raise UnmappedFieldError(
+                f"Batch '{batch}' rejected due to unmapped DB fields: {unmapped_fields}"
+            )
+
     # Determine the field in which our NRQZ ID string has been stored
     # This will be used later to parse out the case number
     nrqz_id_field = derive_nrqz_id_field(header_field_map)
-    # If we can't find it, add an error
-    if not nrqz_id_field:
-        import_reporter.add_sheet_error(
-            {
-                "error_type": "nrqz_id_header_not_found",
-                "error": "No NRQZ ID header found; tried site_name and nrqz_id",
-            }
-        )
-    else:
+    if nrqz_id_field:
         # Create our case->row_num->facility map
         case_map = create_case_map(
             header_field_map, data, nrqz_id_field, import_reporter
         )
-        # For every case...
-        for case_num, row_to_facility_map in case_map.items():
-            with transaction.atomic():
-                # Create the case...
-                try:
-                    case = Case.objects.create(batch=batch, case_num=case_num)
-                # ...or report an error if we can't
-                except django.db.utils.IntegrityError as error:
-                    import_reporter.add_sheet_error(
-                        {"error_type": "IntegrityError", "error": str(error)}
-                    )
-                # If the case is created, we now need to create all of its Facilities
-                else:
-                    # For every Facility dict...
-                    for row_num, facility_dict in row_to_facility_map.items():
-                        # ...create the Facility in the DB...
-                        facility_error = create_facility(
-                            header_field_map, facility_dict, case
-                        )
-                        # ...and report an error if it fails
-                        if facility_error:
-                            header, error = facility_error
-                            import_reporter.add_row_error(header, row_num, error)
+        # Create all Cases and Facilities in the case_map
+        process_case_map(batch, case_map, import_reporter, durable)
+    else:
+        import_reporter.add_case_error(
+            "MissingNrqzIdError", MissingNrqzIdError("Could not derive NRQZ ID!")
+        )
+        if not durable:
+            raise MissingNrqzIdError("Could not derive NRQZ ID!")
 
     if import_reporter.report:
-        error_summary = import_reporter.generate_error_summary()
+        error_summary = import_reporter.get_non_fatal_errors()
         batch.import_error_summary = json.dumps(error_summary, indent=2)
+        tqdm.write(excel_path)
         tqdm.write(batch.import_error_summary)
         batch.save()
+
+    if import_reporter.has_fatal_errors():
+        raise BatchRejectionError("One or more fatal errors has occurred!")
 
     return import_reporter
 
 
-def process_excel_directory(dir_path, threshold=None, pattern=r".*\.(xls.?|csv)$"):
-    """Import each file in the given dir_path matching the given pattern"""
+def determine_files_to_process(paths, pattern=r".*\.(xls.?|csv)$"):
+    files = []
+    for path in paths:
+        if os.path.isfile(path):
+            files.append(path)
+        elif os.path.isdir(path):
+            files.extend(
+                [
+                    os.path.join(path, file)
+                    for file in os.listdir(path)
+                    if re.search(pattern, file)
+                ]
+            )
+        else:
+            raise ValueError(f"Given path {path!r} is not a directory or file!")
 
-    files = [
-        os.path.join(dir_path, f) for f in os.listdir(dir_path) if re.search(pattern, f)
-    ]
-    max_fn_len = max([len(os.path.basename(filename)) for filename in files])
+    return sorted(files)
+
+
+# @transaction.atomic()
+def process_excel_files(files, durable=False, threshold=DEFAULT_THRESHOLD):
+    """Import each file in the given dir_path matching the given pattern"""
+    longest_filename = max([len(os.path.basename(filename)) for filename in files])
     report = {}
-    sorted_files = tqdm(sorted(files), unit="files")
-    for file_path in sorted_files:
-        sorted_files.set_description(
-            f"Processing {os.path.basename(file_path):{max_fn_len}}"
+    files_tqdm = tqdm(sorted(files), unit="files")
+    for file_path in files_tqdm:
+        files_tqdm.set_description(
+            f"Processing {os.path.basename(file_path):{longest_filename}}"
         )
-        import_reporter = process_excel_file(file_path, threshold)
-        if import_reporter:
-            report[os.path.basename(file_path)] = import_reporter
+
+        import_reporter = ImportReport(file_path)
+        try:
+            # with transaction.atomic():
+            process_excel_file(file_path, import_reporter, durable, threshold)
+        except BatchRejectionError as error:
+            # This is a sanity check to ensure that the Batch has in fact been
+            # rolled back. Since we are tracking the Batch object inside our
+            # import_reporter, we can attempt to refresh it from the DB. We
+            # expect that this will fail, but if for some reason it succeeds
+            # then we treat this as a fatal error
+            try:
+                import_reporter.batch.refresh_from_db()
+            except Batch.DoesNotExist:
+                tqdm.write(f"Successfully rejected Batch {file_path}: {error}")
+            else:
+                raise ValueError("Batch should have been rolled back, but wasn't!")
+        else:
+            # Similarly, we want to ensure that the Batch has been committed
+            # if there are no fatal errors in importing it
+            try:
+                import_reporter.batch.refresh_from_db()
+            except Batch.DoesNotExist as error:
+                raise ValueError(
+                    "Batch should have been committed, but wasn't!"
+                ) from error
+
+        report[os.path.basename(file_path)] = import_reporter
     return report
+
+
+def process_reports(processed_files, reports):
+
+    total_files_processed = len(processed_files)
+    print(f"Processed {total_files_processed} files")
+    total_cases_created = 0
+    total_cases_processed = 0
+    total_facilities_created = 0
+    total_facilities_processed = 0
+    total_files_without_any_errors = 0
+    total_files_without_fatal_errors = 0
+
+    report_summary = {}
+    # all_unmapped_headers = set()
+    # all_unmapped_fields = set()
+    # all_duplicate_headers = set()
+    for filename, import_reporter in reports.items():
+        for error_category, errors_by_type in import_reporter.report.items():
+            if error_category not in ["batch_errors", "sheet_errors"]:
+                continue
+            if error_category not in report_summary:
+                report_summary[error_category] = {}
+            for error_type, errors_ in errors_by_type.items():
+
+                if error_type in report_summary[error_category]:
+                    report_summary[error_category][error_type].update(errors_)
+                else:
+                    report_summary[error_category][error_type] = set(errors_)
+
+        total_cases_processed += import_reporter.cases_processed
+        total_cases_created += len(import_reporter.cases_created)
+        total_facilities_created += len(import_reporter.facilities_created)
+        total_facilities_processed += import_reporter.facilities_processed
+        if not import_reporter.has_errors():
+            total_files_without_any_errors += 1
+        if not import_reporter.has_fatal_errors():
+            total_files_without_fatal_errors += 1
+
+        # else:
+        #     print(f"One or more errors while importing {filename!r}")
+
+    successful_import_reporters = [
+        report for report in reports.values() if not report.has_fatal_errors()
+    ]
+    total_batches_created = len(successful_import_reporters)
+    print("Totals:")
+    print(
+        f"  Successfully created {total_batches_created}/{len(reports)} Batches, "
+        f"{total_cases_created}/{total_cases_processed} Cases, "
+        f"and {total_facilities_created}/{total_facilities_processed} Facilities:"
+    )
+    # for filename, import_reporter in reports.items():
+    #     print(f"  Batch {filename}:")
+    #     print("     Cases created:")
+    #     for case in import_reporter.cases_created:
+    #         print(f"      Case {case}: {case.facilities.count()} Facilities")
+
+    #     print("     Cases not created:")
+    #     for case in import_reporter.cases_not_created:
+    #         print(f"      Case {case}: {case.facilities.count()} Facilities")
+
+    print(f"  Total cases processed: {total_cases_processed}")
+    print(f"  Total facilities created: {total_facilities_created}")
+    print(f"  Total facilities processed: {total_facilities_processed}")
+    print(
+        f"{total_files_without_any_errors}/{total_files_processed} "
+        f"({total_files_without_any_errors / total_files_processed * 100:.2f}%) files imported without any errors"
+    )
+
+    print("-" * 80)
+    print("Summary:")
+    for error_category, errors_by_type in report_summary.items():
+        print(f"  Summary of ALL {error_category!r}:")
+        for error_type, errors_ in errors_by_type.items():
+            print(f"    Unique {error_type!r}:")
+            for error_ in sorted(errors_):
+                formatted_error = "\n".join(
+                    [f"      {line}" for line in pformat(error_).split("\n")]
+                )
+                print(formatted_error)
+
+    print("-" * 80)
+    print("Report:")
+    for filename, import_reporter in reports.items():
+        fatal_errors = import_reporter.get_fatal_errors()
+        if import_reporter.has_errors(fatal_errors):
+            print(f"  Batch {filename} rejected:")
+            for error_category, errors_by_type in fatal_errors.items():
+                print(f"    {error_category!r} errors by type:")
+                for error_type, errors_ in errors_by_type.items():
+                    print(f"      {error_type!r}:")
+                    for error_ in errors_:
+                        formatted_error = "\n".join(
+                            [f"        {line}" for line in pformat(error_).split("\n")]
+                        )
+                        print(formatted_error)
+        else:
+            non_fatal_errors = import_reporter.get_non_fatal_errors()
+            if import_reporter.has_errors(non_fatal_errors):
+                print(f"  Batch {filename} created with the following caveats:")
+                formatted_summary = "\n".join(
+                    [
+                        f"        {line}"
+                        for line in pformat(non_fatal_errors).split("\n")
+                    ]
+                )
+                print(formatted_summary)
+            else:
+                print(f"  Batch {filename} created without any issues")
 
 
 @transaction.atomic
 def main():
-    sys.excepthook = excepthook
+    # sys.excepthook = excepthook
     args = parse_args()
-    if args.interactive:
-        global INTERACTIVE
-        INTERACTIVE = True
-
-    if os.path.isdir(args.path):
-        reports = process_excel_directory(
-            args.path, threshold=args.threshold, pattern=args.pattern
-        )
-    elif os.path.isfile(args.path):
-        reports = process_excel_file(args.path, threshold=args.threshold)
-    else:
-        raise ValueError(f"Given path {args.path!r} is not a directory or file!")
-
-    print("Reports:")
-    # print(json.dumps(reports, indent=2, sort_keys=True))
-
-    print("-" * 80)
-
-    total_processed = len(reports)
-    total_without_errors = 0
-    all_unmapped_headers = set()
-    all_duplicate_headers = set()
-    for filename, report in reports.items():
-        if not report.has_errors():
-            total_without_errors += 1
-        else:
-            print(f"One or more errors while importing {filename!r}")
-
-        all_unmapped_headers.update(report.report["header_errors"]["unmapped_headers"])
-        all_duplicate_headers.update(
-            report.report["header_errors"]["duplicate_headers"]
-        )
-
-        # pprint(report.report)
-
-    print("Summary:")
-    print(
-        f"{total_without_errors}/{total_processed} "
-        f"({total_without_errors / total_processed * 100:.2f}%) files imported without any errors"
+    files_to_process = determine_files_to_process(args.paths, pattern=args.pattern)
+    reports = process_excel_files(
+        files_to_process, durable=args.durable, threshold=args.threshold
     )
 
-    print("All unmapped headers:")
-    for header in sorted(all_unmapped_headers, key=str):
-        print(repr(header))
-
-    print("All duplicate headers:")
-    for header in sorted(all_duplicate_headers, key=str):
-        print(repr(header))
+    print("-" * 80)
+    process_reports(files_to_process, reports)
 
     if args.dry_run:
         raise ManualRollback("DRY RUN; ROLLING BACK CHANGES")
@@ -443,10 +615,11 @@ def parse_args():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument(
-        "path",
+        "paths",
+        nargs="+",
         help=(
-            "The path to an Excel application "
-            "(or .csv representation), or a directory thereof"
+            "The paths to Excel applications to process "
+            "(or .csv representation), or a directories thereof"
         ),
     )
     parser.add_argument(
@@ -465,13 +638,6 @@ def parse_args():
         help="If given, drop into an interactive shell upon unhandled exception",
     )
     parser.add_argument(
-        "-t",
-        "--threshold",
-        type=float,
-        default=0.7,
-        help="Threshold of invalid cells which constitute an invalid row.",
-    )
-    parser.add_argument(
         "-p",
         "--pattern",
         default=r".*\.(xls.?|csv)$",
@@ -480,8 +646,27 @@ def parse_args():
             "Used only when a directory is given in path"
         ),
     )
+    parser.add_argument(
+        "-D",
+        "--durable",
+        default=False,
+        action="store_true",
+        help=(
+            "If set, processing on a given batch will continue past all possible errors"
+        ),
+    )
+    parser.add_argument(
+        "-t",
+        "--threshold",
+        type=float,
+        default=DEFAULT_THRESHOLD,
+        help="Threshold of invalid headers which constitute an invalid sheet.",
+    )
 
-    return parser.parse_args()
+    parsed_args = parser.parse_args()
+    if not 0 <= parsed_args.threshold <= 1:
+        parser.error("--threshold must be between 0 and 1")
+    return parsed_args
 
 
 if __name__ == "__main__":

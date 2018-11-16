@@ -41,11 +41,19 @@ def coerce_bool(value):
         raise ValueError("Could not determine truthiness of value {!r}".format(value))
 
 
+def cooerce_str(value):
+    clean_value = str(value).strip().lower()
+    if clean_value in ["", "na", "n/a", "#n/a"]:
+        return None
+    else:
+        return value
+
+
 def coerce_num(value):
     """Coerce a string to a number, or to None"""
 
     clean_value = str(value).strip().lower()
-    if clean_value in ["", "na", "n/a", "no"]:
+    if clean_value in ["", "na", "n/a", "no", "#n/a"]:
         return None
 
     if clean_value == "quad":
@@ -64,7 +72,7 @@ def cooerce_coords(value):
     """Given a coordinate in DD MM SS.sss format, return it in DD.ddd format"""
     clean_value = str(value).strip().lower()
 
-    if clean_value in ["", "None"]:
+    if clean_value in ["", "none", "#n/a"]:
         return None
 
     match = re.match(COORD_PATTERN, clean_value)

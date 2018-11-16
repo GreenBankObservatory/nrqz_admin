@@ -1,6 +1,13 @@
 import re
 
-from tools.fieldmap import FieldMap, coerce_num, cooerce_lat, cooerce_long, coerce_bool
+from tools.fieldmap import (
+    FieldMap,
+    coerce_num,
+    cooerce_lat,
+    cooerce_long,
+    coerce_bool,
+    cooerce_str,
+)
 
 
 # TODO: FieldMap must be able to map a single header to multiple fields. Need to have
@@ -39,21 +46,25 @@ field_mappers = [
     ),
     FieldMap(
         to_field="latitude",
-        converter=cooerce_lat,
+        converter=None,
         from_fields=[
             "LAT (dd mm ss.ss)",
             "LatN (dd mm ss.ss) Pay close attention to formatting. Spaces required, and NO symbols or special characters!",
             "LatN. Correct submission format is dd mm ss.ss (space seperated).              No symbols or special characters!",
+            # Working Data
+            "Lat (dd mm ss.ss)N",
         ],
     ),
     FieldMap(
         to_field="longitude",
-        converter=cooerce_long,
+        converter=None,
         from_fields=[
             "LON (-dd mm ss.ss)",
             "LON (dd mm ss.ss)",
             "LonW (dd mm ss.ss)  Pay close attention to formatting. Spaces required, and NO symbols or special characters!",
             "LonW. Correct submission format is dd mm ss.ss (space seperated).                 No symbols or special characters!",
+            # Working Data
+            "Lon (dd mm ss.ss)W",
         ],
     ),
     FieldMap(
@@ -68,6 +79,8 @@ field_mappers = [
             "AGL (m)",
             "AGL (meters)",
             "AGL (meters) Antenna height to center above ground level",
+            # Working Data
+            "AGL",
         ],
     ),
     FieldMap(
@@ -111,7 +124,9 @@ field_mappers = [
         ],
     ),
     FieldMap(
-        to_field="system_loss", converter=coerce_num, from_fields=["System Loss (dB)"]
+        to_field="system_loss",
+        converter=coerce_num,
+        from_fields=["System Loss (dB)", "System Loss (dBi)"],
     ),
     FieldMap(
         to_field="main_beam_orientation",
@@ -138,7 +153,12 @@ field_mappers = [
     FieldMap(
         to_field="antenna_model_number",
         converter=None,
-        from_fields=["Antenna Model #", "11036 ANTenna Model #", "Antenna Model No."],
+        from_fields=[
+            "Antenna Model #",
+            "11036 ANTenna Model #",
+            "Antenna Model No.",
+            "Antenna Model",
+        ],
     ),
     # TODO:
     FieldMap(
@@ -159,6 +179,8 @@ field_mappers = [
             "Total number of TXers (or No. of RRH's ports with feed power) per sector",
             "Number of TXers per sector",
             "Number of TX (or RH's) per sector",
+            # From Working Data
+            "No TX per facility",
         ],
     ),
     FieldMap(
@@ -250,6 +272,55 @@ field_mappers = [
             "Name of Applicant",
         ],
     ),
+    # From Working Data
+    FieldMap(
+        to_field="num_tx_per_facility",
+        converter=None,
+        from_fields=["# of TX per facility", "# TX per facility", "No TX per facility"],
+    ),
+    FieldMap(to_field="aeirp_to_gbt", converter=None, from_fields=["AEiRP to GBT"]),
+    FieldMap(
+        to_field="az_bearing", converter=None, from_fields=["AZ bearing degrees True"]
+    ),
+    FieldMap(to_field="band_allowance", converter=None, from_fields=["Band Allowance"]),
+    FieldMap(
+        to_field="distance_to_first_obstacle",
+        converter=None,
+        from_fields=["Distance to 1st obstacle (km)"],
+    ),
+    FieldMap(
+        to_field="dominant_path",
+        converter=None,
+        from_fields=["Dominant path", "Dominant Path", "Domanant path (D or S)"],
+    ),
+    FieldMap(
+        to_field="erpd_per_num_tx",
+        converter=None,
+        from_fields=["ERPd per # of Transmitters", "ERPd per TX"],
+    ),
+    FieldMap(
+        to_field="height_of_first_obstacle",
+        converter=None,
+        from_fields=["Height of 1st obstacle (ft)"],
+    ),
+    FieldMap(to_field="loc", converter=None, from_fields=["LOC"]),
+    FieldMap(to_field="msl", converter=None, from_fields=["MSL (m)", "MSL"]),
+    FieldMap(to_field="max_aerpd", converter=None, from_fields=["Max AERPd (dBm)"]),
+    FieldMap(
+        to_field="max_erp_per_tx", converter=None, from_fields=["Max ERP per TX (W)"]
+    ),
+    FieldMap(to_field="max_gain", converter=None, from_fields=["Max Gain (dBi)"]),
+    FieldMap(to_field="max_tx_power", converter=None, from_fields=["Max TX Pwr (W)"]),
+    FieldMap(to_field="nrao_aerpd", converter=None, from_fields=["NRAO AERPd (W)"]),
+    FieldMap(
+        to_field="power_density_limit",
+        converter=None,
+        from_fields=["Power Density Limit"],
+    ),
+    FieldMap(to_field="sgrs_approval", converter=None, from_fields=["SGRS Approval"]),
+    FieldMap(to_field="tap_file", converter=None, from_fields=["TAP file"]),
+    FieldMap(to_field="tap", converter=None, from_fields=["TAP", "TPA"]),
+    FieldMap(to_field="tx_power", converter=None, from_fields=["TX Pwr (dBm)"]),
 ]
 
 # Generate a map of known_header->importer by "expanding" the from_fields of each FieldMap
