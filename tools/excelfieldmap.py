@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import re
 
 from tools.fieldmap import (
@@ -330,6 +331,15 @@ facility_field_map = {}
 for importer in field_mappers:
     for header in importer.from_fields:
         facility_field_map[header] = importer
+
+def gen_header_field_map(headers):
+    header_field_map = OrderedDict(
+        [(header, facility_field_map.get(header, None)) for header in headers]
+    )
+    return header_field_map
+
+def get_unmapped_headers(header_field_map):
+    return [header for header, field in header_field_map.items() if field is None]
 
 
 if __name__ == "__main__":

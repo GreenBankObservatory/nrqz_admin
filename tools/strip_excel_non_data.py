@@ -18,10 +18,16 @@ import re
 
 import pyexcel
 from tqdm import tqdm
+from xlrd.xldate import XLDateAmbiguous
 
 DEFAULT_PATTERN = r".*\.(xls.?|csv)$"
 DEFAULT_THRESHOLD = 0.7
 DEFAULT_OVERWRITE = False
+
+MBFACTOR = float(1<<20)
+
+def get_total_bytes(files):
+    return sum(os.path.getsize(file) for file in files)
 
 
 def strip_excel_directory(
@@ -36,9 +42,18 @@ def strip_excel_directory(
         for f in os.listdir(input_path)
         if re.search(pattern, f)
     ]
-    for input_file_path in tqdm(sorted(files), unit="files"):
+    total_megabytes = get_total_bytes(files) / MBFACTOR
+    progress = tqdm(total=total_megabytes, unit="MB")
+    errors = []
+    for input_file_path in files:
         tqdm.write(f"Processing {input_file_path}")
-        strip_excel_file(input_file_path, output_path, threshold, overwrite=overwrite)
+        try:
+            strip_excel_file(input_file_path, output_path, threshold, overwrite=overwrite)
+        except ValueError as error:
+            errors.append(error)
+        file_megabytes = os.path.getsize(input_file_path) / MBFACTOR
+        progress.update(file_megabytes)
+    print(f"Errors: {errors}")
 
 
 def indentify_invalid_rows(rows, threshold=DEFAULT_THRESHOLD):
@@ -112,13 +127,19 @@ def strip_excel_file(
         return False
 
     tqdm.write("Opening workbook")
-    book = pyexcel.get_book(file_name=input_path)
+    try:
+        book = pyexcel.get_book(file_name=input_path)
+    except ValueError as error:
+        tqdm.write(f"Error reading {full_output_path}; skipping")
+        raise ValueError(f"Error reading {full_output_path}") from error
+
     tqdm.write("...done")
     for sheet in book:
         strip_excel_sheet(sheet, threshold=threshold)
 
     book.save_as(full_output_path)
     tqdm.write(f"Wrote {full_output_path}")
+    return True
 
 
 def main():

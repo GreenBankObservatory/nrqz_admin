@@ -1,6 +1,184 @@
 import json
 from collections import namedtuple, OrderedDict
-from pprint import pprint
+from pprint import pformat
+
+
+def format_total(num_created, num_processed):
+    return f"{num_created}/{num_processed} " f"({(num_created/num_processed)*100:.3f}%)"
+
+
+class ExcelCollectionImportReport:
+    def __init__(self, excel_collection_importer):
+        self.excel_collection_importer = excel_collection_importer
+        self.import_reporters = [
+            ei.report for ei in self.excel_collection_importer.excel_importers
+        ]
+
+    def print_summary(self, summary):
+        print("Summary:")
+        for error_category, errors_by_type in summary.items():
+            print(f"  Summary of ALL {error_category!r}:")
+            for error_type, errors_ in errors_by_type.items():
+                print(f"    Unique {error_type!r}:")
+                for error_ in sorted(errors_):
+                    formatted_error = "\n".join(
+                        [f"      {line}" for line in pformat(error_).split("\n")]
+                    )
+                    print(formatted_error)
+
+    def print_report(self):
+        print("Report:")
+        for import_reporter in self.import_reporters:
+            fatal_errors = import_reporter.get_fatal_errors()
+            if import_reporter.has_errors(fatal_errors):
+                print(f"  Batch {import_reporter.filename} rejected:")
+                for error_category, errors_by_type in fatal_errors.items():
+                    print(f"    {error_category!r} errors by type:")
+                    for error_type, errors_ in errors_by_type.items():
+                        print(f"      {error_type!r}:")
+                        for error_ in errors_:
+                            formatted_error = "\n".join(
+                                [
+                                    f"        {line}"
+                                    for line in pformat(error_).split("\n")
+                                ]
+                            )
+                            print(formatted_error)
+            else:
+                non_fatal_errors = import_reporter.get_non_fatal_errors()
+                if import_reporter.has_errors(non_fatal_errors):
+                    print(
+                        f"  Batch {import_reporter.filename} created with the following caveats:"
+                    )
+                    formatted_summary = "\n".join(
+                        [
+                            f"        {line}"
+                            for line in pformat(non_fatal_errors).split("\n")
+                        ]
+                    )
+                    print(formatted_summary)
+                else:
+                    print(
+                        f"  Batch {import_reporter.filename} created without any issues"
+                    )
+
+    def print_totals(self, totals):
+        print("Totals:")
+
+        print("  Batches:")
+        formatted_batches = format_total(
+            totals["batches"]["created"], totals["batches"]["processed"]
+        )
+        print(f"    Created: {formatted_batches}")
+        formatted_batches_rolled_back = format_total(
+            totals["batches"]["created_but_rolled_back"], totals["batches"]["processed"]
+        )
+        print(f"    Created but rolled back: {formatted_batches_rolled_back}")
+
+        print("  Cases:")
+        formatted_cases = format_total(
+            totals["cases"]["created"], totals["cases"]["processed"]
+        )
+        print(f"    Created: {formatted_cases}")
+        formatted_cases_rolled_back = format_total(
+            totals["cases"]["created_but_rolled_back"], totals["cases"]["processed"]
+        )
+        print(f"    Created but rolled back: {formatted_cases_rolled_back}")
+
+        cases_with_errors = (
+            totals["cases"]["processed"]
+            - totals["cases"]["created_but_rolled_back"]
+            - totals["cases"]["created"]
+        )
+        formatted_cases_with_errors = format_total(
+            cases_with_errors, totals["cases"]["processed"]
+        )
+        print(f"    Errors: {formatted_cases_with_errors}")
+
+        print("  Facilities:")
+        formatted_facilities = format_total(
+            totals["facilities"]["created"], totals["facilities"]["processed"]
+        )
+        print(f"    Created: {formatted_facilities}")
+
+        # formatted_batches_no_errors = format_total(
+        #     totals["batches"]["created_no_errors"], totals["batches"]["processed"]
+        # )
+        # print(f"    with NO errors: {formatted_batches_no_errors}")
+
+        formatted_facilities_rolled_back = format_total(
+            totals["facilities"]["created_but_rolled_back"],
+            totals["facilities"]["processed"],
+        )
+        print(f"    Created but rolled back: {formatted_facilities_rolled_back}")
+
+        facilities_with_errors = (
+            totals["facilities"]["processed"]
+            - totals["facilities"]["created_but_rolled_back"]
+            - totals["facilities"]["created"]
+        )
+        formatted_facilities_with_errors = format_total(
+            facilities_with_errors, totals["facilities"]["processed"]
+        )
+        print(f"    Errors: {formatted_facilities_with_errors}")
+        # print(
+        #     f"  Successfully created {total_batches_created}/{total_files_processed} Batches, "
+        #     f"{total_cases_created}/{total_cases_processed} Cases, "
+        #     f"and {total_facilities_created}/{total_facilities_processed} Facilities:"
+        # )
+
+    def process(self):
+        totals = {
+            "batches": {
+                "created": 0,
+                "created_but_rolled_back": 0,
+                "created_no_errors": 0,
+                "processed": 0,
+            },
+            "cases": {"created": 0, "created_but_rolled_back": 0, "processed": 0},
+            "facilities": {"created": 0, "created_but_rolled_back": 0, "processed": 0},
+        }
+        report_summary = {}
+        for importer in self.excel_collection_importer.excel_importers:
+            import_reporter = importer.report
+            if importer.rolled_back:
+                creation_key = "created_but_rolled_back"
+            else:
+                creation_key = "created"
+            totals["batches"]["processed"] += 1
+            # if not import_reporter.has_errors():
+            #     totals["batches"]["created_no_errors"] += 1
+            # if not import_reporter.has_fatal_errors():
+            totals["batches"][creation_key] += 1
+
+            for error_category, errors_by_type in import_reporter.report.items():
+                if error_category not in ["batch_errors", "sheet_errors"]:
+                    continue
+                if error_category not in report_summary:
+                    report_summary[error_category] = {}
+                for error_type, errors_ in errors_by_type.items():
+
+                    if error_type in report_summary[error_category]:
+                        report_summary[error_category][error_type].update(errors_)
+                    else:
+                        report_summary[error_category][error_type] = set(errors_)
+
+            totals["cases"]["processed"] += import_reporter.cases_processed
+            totals["facilities"]["processed"] += import_reporter.facilities_processed
+
+            totals["cases"][creation_key] += len(import_reporter.cases_created)
+            totals["facilities"][creation_key] += len(
+                import_reporter.facilities_created
+            )
+
+        print("-" * 80)
+        self.print_summary(report_summary)
+
+        print("-" * 80)
+        self.print_report()
+
+        print("-" * 80)
+        self.print_totals(totals)
 
 
 class ImportReport:
@@ -203,3 +381,4 @@ class ImportReport:
     #                 pass
 
     #     return False
+    # TODO: Probably not needed here...

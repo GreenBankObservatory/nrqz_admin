@@ -34,6 +34,7 @@ def filter_table(context, table=None, filter_=None):
     model_name_plural = table.Meta.model._meta.verbose_name_plural.lower()
     total_objects = table.Meta.model.objects.count()
     current_objects = len(table.data)
+    percent_shown = current_objects / total_objects * 100 if total_objects else 0.0
 
     return dict(
         request=context["request"],
@@ -43,7 +44,7 @@ def filter_table(context, table=None, filter_=None):
         form_id=f"{model_name}-filter-form",
         total_objects=total_objects,
         current_objects=current_objects,
-        percent_shown=f"{current_objects / total_objects * 100:.2f}%",
+        percent_shown=f"{percent_shown:.2f}%",
     )
 
 
