@@ -3,10 +3,12 @@ import tempfile
 
 import pypandoc
 
+from django.contrib import messages
 from django.views.generic import UpdateView
 from django.views.generic.detail import DetailView
 from django.views.generic.base import TemplateView
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
+from django.urls import reverse
 from django.db.models import Min, Max
 from django.shortcuts import get_object_or_404
 from django.template import Template, Context
@@ -79,11 +81,21 @@ class BatchReimportView(UpdateView):
     model = Batch
     fields = []
 
+    def get(self, request, *args, **kwargs):
+        batch = self.get_object()
+        return HttpResponseRedirect(reverse("batch_detail", args=[str(batch.id)]))
+
     def post(self, request, *args, **kwargs):
         batch = self.get_object()
         print(f"Re-importing myself, from {batch.imported_from}")
-        import_excel_file(batch.imported_from)
-        return super().post(request, *args, **kwargs)
+        try:
+            import_excel_file(batch.imported_from)
+        except FileNotFoundError as error:
+            messages.error(request, f"Failed to re-import Batch: {error}")
+        else:
+            messages.success(request, f"Successfully re-imported Batch")
+
+        return HttpResponseRedirect(reverse("batch_detail", args=[str(batch.id)]))
 
 
 class BatchDetailView(DetailView):
