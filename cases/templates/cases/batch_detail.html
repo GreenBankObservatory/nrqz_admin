@@ -24,6 +24,7 @@
 
 {% if batch.import_error_summary %}
 <h2>Import Errors</h2>
+<a href={% url 'batch_audit_detail' batch.batchaudit_set.first.id %}>View Batch Audit</a>
 <p>Map of column headers to list of unique invalid values (values that caused errors)</p>
 {{ batch.import_error_summary|json|safe }}
 {% endif %}

@@ -47,3 +47,15 @@ we simply disable the offending attributes here.*/
     margin-right: 10px;
     margin-bottom: 10px;
 }
+
+.batch-created-clean-msg {
+    color: green;
+}
+
+.batch-created-dirty-msg {
+    color: orange;
+}
+
+.batch-rejected-msg {
+    color: red;
+}

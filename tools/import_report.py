@@ -178,7 +178,7 @@ class ExcelCollectionImportReport:
         self.print_report()
 
         print("-" * 80)
-        self.print_totals(totals)
+        # self.print_totals(totals)
 
 
 class ImportReport:
@@ -281,34 +281,49 @@ class ImportReport:
         """Generate a more concise error report"""
 
         error_summary = {}
-        error_summary["unmapped_headers"] = self.report["sheet_errors"][
-            "unmapped_headers"
-        ]
+        if (
+            "sheet_errors" in self.report
+            and "unmapped_headers" in self.report["sheet_errors"]
+        ):
+            error_summary["Unmapped Headers"] = self.report["sheet_errors"][
+                "unmapped_headers"
+            ]
 
-        # column_error_summary = {}
-        # for row_num, errors_by_type in self.report["row_errors"].items():
-        #     for error_type, row_errors in errors_by_type.items():
-        #         for field, row_error in row_errors.items():
+        column_error_summary = {}
+        if "row_errors" in self.report:
+            for error_type, errors in self.report["row_errors"].items():
+                for error in errors:
+                    if "field" not in error:
+                        import ipdb
 
-        #             if field in column_error_summary:
-        #                 if (
-        #                     row_error["value"]
-        #                     not in column_error_summary[field]["Invalid Values"]
-        #                 ):
-        #                     column_error_summary[field]["Invalid Values"].append(
-        #                         str(row_error["value"])
+                        ipdb.set_trace()
+                    field = error["field"]
+                    if field in column_error_summary:
+                        column_error_summary[field].append(error["row"])
+                    else:
+                        column_error_summary[field] = [error["row"]]
+
+        #                 if field in column_error_summary:
+        #                     if (
+        #                         row_error["value"]
+        #                         not in column_error_summary[field]["Invalid Values"]
+        #                     ):
+        #                         column_error_summary[field]["Invalid Values"].append(
+        #                             str(row_error["value"])
+        #                         )
+        #                 else:
+        #                     column_error_summary[field] = OrderedDict(
+        #                         (
+        #                             ("Field", field),
+        #                             ("Invalid Values", [str(row_error["value"])]),
+        #                         )
         #                     )
-        #             else:
-        #                 column_error_summary[field] = OrderedDict(
-        #                     (
-        #                         ("Field", field),
-        #                         ("Invalid Values", [str(row_error["value"])]),
-        #                     )
-        #                 )
-        # if column_error_summary:
-        #     error_summary["Column Errors"] = sorted(
-        #         column_error_summary.values(), key=lambda x: x["Field"]
-        #     )
+        if column_error_summary:
+            # error_summary["Column Errors"] = sorted(
+            #     column_error_summary.values(), key=lambda x: x["Field"]
+            # )
+
+            error_summary["by_field"] = column_error_summary
 
         return error_summary
 

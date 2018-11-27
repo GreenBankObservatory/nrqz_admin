@@ -9,7 +9,7 @@ from tqdm import tqdm
 from django.db import transaction
 from django.db.utils import IntegrityError
 
-from audit.models import FacilityAudit
+from audits.models import BatchAudit
 from cases.models import Attachment, Batch, Case, Facility
 from cases.forms import FacilityForm
 from tools.excelfieldmap import (
@@ -97,7 +97,11 @@ class ExcelCollectionImporter:
 
     def process(self):
 
-        longest_filename = max([len(os.path.basename(path)) for path in self.paths])
+        longest_filename = (
+            max([len(os.path.basename(path)) for path in self.paths])
+            if self.paths
+            else 0
+        )
         progress = tqdm(self.excel_importers, unit="files")
         for excel_importer in progress:
             progress.set_description(
@@ -105,13 +109,15 @@ class ExcelCollectionImporter:
             )
 
             try:
-                excel_importer.process()
+                report = excel_importer.process()
             except BatchRejectionError as error:
                 # This is a sanity check to ensure that the Batch has in fact been
                 # rolled back. Since we are tracking the Batch object inside our
                 # import_reporter, we can attempt to refresh it from the DB. We
                 # expect that this will fail, but if for some reason it succeeds
                 # then we treat this as a fatal error
+                # TODO: Can we clean this up? report as direct att?
+                report = error.args[1]
                 try:
                     excel_importer.batch.refresh_from_db()
                 except Batch.DoesNotExist:
@@ -119,7 +125,9 @@ class ExcelCollectionImporter:
                         f"Successfully rejected Batch {excel_importer.path}: {error}"
                     )
                 else:
-                    raise ValueError("Batch should have been rolled back, but wasn't!")
+                    raise AssertionError(
+                        "Batch should have been rolled back, but wasn't!"
+                    )
                 excel_importer.rolled_back = True
             else:
                 # Similarly, we want to ensure that the Batch has been committed
@@ -127,9 +135,17 @@ class ExcelCollectionImporter:
                 try:
                     excel_importer.batch.refresh_from_db()
                 except Batch.DoesNotExist as error:
-                    raise ValueError(
+                    raise AssertionError(
                         "Batch should have been committed, but wasn't!"
                     ) from error
+
+            linked_object = None if excel_importer.rolled_back else excel_importer.batch
+            batch_audit = BatchAudit.objects.create(
+                linked_object=linked_object,
+                errors=report.report,
+                original_file=excel_importer.path,
+                error_summary=report.generate_error_summary(),
+            )
 
     # def process_report(self):
     #     self.
@@ -264,27 +280,26 @@ class ExcelImporter:
         # TODO: Alter FacilityForm so that it uses case num instead of ID somehow
         facility_dict = {**facility_dict, "case": case.id if case else None}
         facility_form = FacilityForm(facility_dict)
-        facility_audit = FacilityAudit.objects.create_with_audit(facility_form)
-        facility = facility_audit.linked_object
-        if facility:
+        if facility_form.is_valid():
+            facility = facility_form.save()
             self.report.audit_facility_success(facility)
             self.report.facilities_created.append(facility)
             return None
         else:
+            useful_errors = [
+                {"field": field, "value": facility_dict[field], "errors": errors}
+                for field, errors in facility_form.errors.as_data().items()
+            ]
             if self.durable:
                 self.report.audit_facility_error(
                     case, facility_dict, facility_form.errors.as_data()
                 )
             else:
                 raise FacilityValidationError(
-                    f"Facility {facility_dict} failed validation:\n{pformat(facility_form.errors.as_data())}"
+                    f"Facility {facility_dict} failed validation", useful_errors
                 )
 
             self.report.facilities_not_created.append(facility_dict)
-            useful_errors = {
-                field: {"value": facility_dict[field], "errors": errors}
-                for field, errors in facility_form.errors.as_data().items()
-            }
             return useful_errors
 
     @transaction.atomic
@@ -309,10 +324,12 @@ class ExcelImporter:
         # For every Facility dict...
         for row_num, facility_dict in row_to_facility_map.items():
             facility_errors = self.create_facility(facility_dict, case)
+
             if facility_errors:
-                self.report.add_row_error(
-                    "validation_error", {"row": row_num, "error": facility_errors}
-                )
+                for error in facility_errors:
+                    self.report.add_row_error(
+                        "validation_error", {"row": row_num, **error}
+                    )
 
     @transaction.atomic
     def create_batch(self):
@@ -371,6 +388,7 @@ class ExcelImporter:
                         "row": row_num,
                         "header": header,
                         "error": str(error),
+                        "field": nrqz_id_field,
                         "value": facility_dict[nrqz_id_field],
                     },
                 )
@@ -451,6 +469,8 @@ class ExcelImporter:
             self.batch.save()
 
         if self.report.has_fatal_errors():
-            raise BatchRejectionError("One or more fatal errors has occurred!")
+            raise BatchRejectionError(
+                "One or more fatal errors has occurred!", self.report
+            )
 
         return self.report

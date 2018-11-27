@@ -1,0 +1,44 @@
+{% extends "cases/base.html" %}
+{% load cases_tags %}
+{% load audits_tags %}
+
+{% block content %}
+<h1>Batch Audit {{ batchaudit.id }}</h1>
+<a href=file://{{ batchaudit.original_file }}>Open original Excel file: {{batchaudit.original_file|basename}}</a>
+
+{% if batchaudit.exists %}
+{% if batchaudit.status.created_clean %}
+<p class="batch-created-clean-msg">
+    Batch <a href={% url "batch_detail" batchaudit.linked_object.id %}>{{ batchaudit.linked_object }}</a> was successfully created
+
+</p>
+{% else %}
+<p class="batch-created-dirty-msg">
+    Batch <a href={% url "batch_detail" batchaudit.linked_object.id %}>{{ batchaudit.linked_object }}</a> was successfully created, but had some minor errors
+</p>
+{% endif %}
+{% else %}
+<p class="batch-rejected-msg">No Batch created due to errors!</p>
+{% endif %}
+
+<h2>Error Summary</h2>
+<p>Displays a summary of import errors</p>
+{% for error_category, errors_by_type in batchaudit.error_summary.items %}
+{% if error_category == "by_field" %}
+Errors by field:
+<ul>
+    {% for error_type, errors in batchaudit.error_summary.by_field.items %}
+        <li>Field '{{error_type}}' had errors in rows: {{errors|range_notation}}</li>
+    {% endfor %}
+</ul>
+{% else %}
+{{error_category}}: {{errors_by_type|json|safe}}
+{% endif %}
+{% endfor %}
+
+<h2>Error Report</h2>
+<p>Displays every error recorded during import</p>
+<div class="container-fluid" style="border:1px solid #D3D3D3; border-radius: 10px">
+    {{ batchaudit.errors|json|safe }}
+</div>
+{% endblock %}

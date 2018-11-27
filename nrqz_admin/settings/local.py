@@ -33,7 +33,7 @@ SECRET_KEY = "nw20&ip%@lhstow7-u6!dx_+f@a#&93z3784$0_@_m-#@@dher"
 ALLOWED_HOSTS = ["galileo", "galileo.gb.nrao.edu"]
 
 # django-debug-toolbar
-INTERNAL_IPS = ["10.16.96.146"]
+INTERNAL_IPS = ["10.16.96.146", "10.16.96.90"]
 
 # Enable DB logging
 # LOGGING["loggers"].update(

@@ -27,7 +27,7 @@ INSTALLED_APPS = [
     "crispy_forms",
     "explorer",
     "cases",
-    "audit",
+    "audits",
 ]
 
 MIDDLEWARE = [
