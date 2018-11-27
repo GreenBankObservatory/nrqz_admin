@@ -5,7 +5,13 @@
 
 {% block content %}
 <h1>Batch {{ batch.id }}</h1>
-<p>{{ batch.name }}</p>
+
+<p><a href=file://{{ batch.imported_from }}>Open original Excel file: {{batch.name}}</a></p>
+
+<form action={% url "batch_reimport" batch.id %} method="post">
+    {% csrf_token %}
+    <input type="submit" name="reimport" value="Re-import" />
+</form>
 
 <p>Created on: {{ batch.created_on }}</p>
 

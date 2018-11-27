@@ -103,6 +103,7 @@ class ExcelCollectionImporter:
             else 0
         )
         progress = tqdm(self.excel_importers, unit="files")
+        batch_audits = []
         for excel_importer in progress:
             progress.set_description(
                 f"Processing {os.path.basename(excel_importer.path):{longest_filename}}"
@@ -146,6 +147,9 @@ class ExcelCollectionImporter:
                 original_file=excel_importer.path,
                 error_summary=report.generate_error_summary(),
             )
+            batch_audits.append(batch_audit)
+
+        return batch_audits
 
     # def process_report(self):
     #     self.
@@ -284,6 +288,7 @@ class ExcelImporter:
             facility = facility_form.save()
             self.report.audit_facility_success(facility)
             self.report.facilities_created.append(facility)
+            tqdm.write(f"Created Facility {facility} {facility.id}")
             return None
         else:
             useful_errors = [
@@ -321,6 +326,7 @@ class ExcelImporter:
         # If the case is created, we now need to create all of its Facilities
         else:
             self.report.cases_created.append(case)
+
         # For every Facility dict...
         for row_num, facility_dict in row_to_facility_map.items():
             facility_errors = self.create_facility(facility_dict, case)
@@ -334,17 +340,58 @@ class ExcelImporter:
     @transaction.atomic
     def create_batch(self):
         # A Batch representing this Excel file
+        batch_name = os.path.basename(self.path)
+        batch_name = batch_name.replace(" ", "_")
+        if not batch_name.startswith("stripped_data_only_"):
+            batch_name = f"stripped_data_only_{batch_name}"
+        tqdm.write(f"Maybe I'll create batch {batch_name}")
+        try:
+            existing_batch = Batch.objects.get(name=batch_name)
+        except Batch.DoesNotExist:
+            existing_batch = None
+
+        if existing_batch:
+            existing_batch_id = existing_batch.id
+            tqdm.write(
+                f"Detected existing batch: {existing_batch} <{existing_batch.id}>; it will be deleted"
+            )
+            cases_to_delete = existing_batch.cases.all()
+            tqdm.write(
+                f"Deleting {len(cases_to_delete)} cases: {cases_to_delete.values_list('id', flat=True)}"
+            )
+            facilities_to_delete = Facility.objects.filter(case__in=cases_to_delete)
+            tqdm.write(
+                f"Deleting {len(facilities_to_delete)} facilities: {facilities_to_delete.values_list('id', flat=True)}"
+            )
+            existing_batch.delete()
+            for case in cases_to_delete:
+                try:
+                    case.refresh_from_db()
+                except Case.DoesNotExist as error:
+                    pass
+                else:
+                    raise ValueError(f"Failed to delete Case {case}!") from error
+
+            for facility in facilities_to_delete:
+                try:
+                    facility.refresh_from_db()
+                except Facility.DoesNotExist as error:
+                    pass
+                else:
+                    raise ValueError(
+                        f"Failed to delete Facility {facility}!"
+                    ) from error
+        else:
+            existing_batch_id = None
+
         batch = Batch.objects.create(
-            name=os.path.basename(self.path), comments=f"Created by {__file__}"
+            id=existing_batch_id,
+            name=batch_name,
+            comments=f"Created by {__file__}",
+            imported_from=self.path,
         )
         self.batch = batch
-
-        # An attachment referencing the original Excel (or .csv) file
-        batch.attachments.add(
-            Attachment.objects.create(
-                path=self.path, comments=f"Attached by {__file__}"
-            )
-        )
+        tqdm.write(f"Created Batch {batch} <{batch.id}>")
 
         return batch
 

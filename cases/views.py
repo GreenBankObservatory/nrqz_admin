@@ -3,6 +3,7 @@ import tempfile
 
 import pypandoc
 
+from django.views.generic import UpdateView
 from django.views.generic.detail import DetailView
 from django.views.generic.base import TemplateView
 from django.http import HttpResponse
@@ -44,6 +45,7 @@ from .kml import (
     cases_as_kml,
     kml_to_string,
 )
+from tools.import_original_excel_application import import_excel_file
 
 
 class FilterTableView(SingleTableMixin, FilterView):
@@ -71,6 +73,17 @@ class BatchListView(FilterTableView):
     table_class = BatchTable
     filterset_class = BatchFilter
     template_name = "cases/batch_list.html"
+
+
+class BatchReimportView(UpdateView):
+    model = Batch
+    fields = []
+
+    def post(self, request, *args, **kwargs):
+        batch = self.get_object()
+        print(f"Re-importing myself, from {batch.imported_from}")
+        import_excel_file(batch.imported_from)
+        return super().post(request, *args, **kwargs)
 
 
 class BatchDetailView(DetailView):

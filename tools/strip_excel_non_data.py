@@ -24,7 +24,8 @@ DEFAULT_PATTERN = r".*\.(xls.?|csv)$"
 DEFAULT_THRESHOLD = 0.7
 DEFAULT_OVERWRITE = False
 
-MBFACTOR = float(1<<20)
+MBFACTOR = float(1 << 20)
+
 
 def get_total_bytes(files):
     return sum(os.path.getsize(file) for file in files)
@@ -48,7 +49,9 @@ def strip_excel_directory(
     for input_file_path in files:
         tqdm.write(f"Processing {input_file_path}")
         try:
-            strip_excel_file(input_file_path, output_path, threshold, overwrite=overwrite)
+            strip_excel_file(
+                input_file_path, output_path, threshold, overwrite=overwrite
+            )
         except ValueError as error:
             errors.append(error)
         file_megabytes = os.path.getsize(input_file_path) / MBFACTOR
@@ -119,12 +122,12 @@ def strip_excel_file(
 ):
     """Save a new Excel file containing only headers and data rows"""
 
-    output_filename = f"stripped_{os.path.basename(input_path)}"
+    output_filename = f"{os.path.basename(input_path)}"
     full_output_path = os.path.join(output_path, output_filename)
 
     if os.path.isfile(full_output_path) and not overwrite:
         tqdm.write(f"{full_output_path} already exists; skipping")
-        return False
+        return None
 
     tqdm.write("Opening workbook")
     try:
@@ -139,7 +142,7 @@ def strip_excel_file(
 
     book.save_as(full_output_path)
     tqdm.write(f"Wrote {full_output_path}")
-    return True
+    return full_output_path
 
 
 def main():

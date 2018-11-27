@@ -13,6 +13,7 @@ from django.db.models import (
     Model,
     PositiveIntegerField,
     TextField,
+    CASCADE,
     PROTECT,
     SET_NULL,
     SlugField,
@@ -204,7 +205,7 @@ class Facility(IsActiveModel, TrackedModel, Model):
         help_text="Additional information or comments from the applicant",
     )
 
-    case = ForeignKey("Case", on_delete=PROTECT, related_name="facilities")
+    case = ForeignKey("Case", on_delete=CASCADE, related_name="facilities")
     structure = ForeignKey(
         "Structure",
         blank=True,
@@ -269,8 +270,9 @@ class Facility(IsActiveModel, TrackedModel, Model):
 class Batch(IsActiveModel, TrackedModel, Model):
     comments = TextField(blank=True)
     attachments = ManyToManyField("Attachment")
-    name = CharField(max_length=256, blank=True, null=True)
+    name = CharField(max_length=256, unique=True)
     import_error_summary = TextField()
+    imported_from = CharField(max_length=512, unique=True)
 
     def __str__(self):
         return self.name
@@ -304,7 +306,7 @@ class Case(IsActiveModel, TrackedModel, Model):
     name = CharField(max_length=256, blank=True, null=True)
 
     batch = ForeignKey(
-        "Batch", related_name="cases", on_delete=SET_NULL, null=True, blank=True
+        "Batch", related_name="cases", on_delete=CASCADE, null=True, blank=True
     )
 
     attachments = ManyToManyField("Attachment", related_name="cases", blank=True)
@@ -375,7 +377,7 @@ class Attachment(IsActiveModel, TrackedModel, Model):
     """Holds the path to a file along with some metadata"""
 
     # TODO: This will need to be a proper FileField eventually...
-    path = CharField(max_length=256)
+    path = CharField(max_length=256, unique=True)
     # path = FileField(max_length=256, upload_to="attachments/")
     comments = TextField()
 
