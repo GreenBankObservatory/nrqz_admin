@@ -9,7 +9,7 @@ from tqdm import tqdm
 from django.db import transaction
 from django.db.utils import IntegrityError
 
-
+from audit.models import FacilityAudit
 from cases.models import Attachment, Batch, Case, Facility
 from cases.forms import FacilityForm
 from tools.excelfieldmap import (
@@ -264,8 +264,9 @@ class ExcelImporter:
         # TODO: Alter FacilityForm so that it uses case num instead of ID somehow
         facility_dict = {**facility_dict, "case": case.id if case else None}
         facility_form = FacilityForm(facility_dict)
-        if facility_form.is_valid():
-            facility = facility_form.save()
+        facility_audit = FacilityAudit.objects.create_with_audit(facility_form)
+        facility = facility_audit.linked_object
+        if facility:
             self.report.audit_facility_success(facility)
             self.report.facilities_created.append(facility)
             return None
