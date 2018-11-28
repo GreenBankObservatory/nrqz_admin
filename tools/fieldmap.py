@@ -74,12 +74,14 @@ def cooerce_coords(value):
 
     if clean_value in ["", "none", "#n/a"]:
         return None
+    try:
+        dd = float(value)
+    except ValueError:
+        match = re.match(COORD_PATTERN, clean_value)
+        if not match:
+            raise ValueError(f"Regex {COORD_PATTERN_STR} did not match value {value}")
 
-    match = re.match(COORD_PATTERN, clean_value)
-    if not match:
-        raise ValueError(f"Regex {COORD_PATTERN_STR} did not match value {value}")
-
-    dd = dms_to_dd(**match.groupdict())
+        dd = dms_to_dd(**match.groupdict())
     return dd
 
 
