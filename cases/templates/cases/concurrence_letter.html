@@ -9,7 +9,11 @@
 
 <a href={% url "admin:cases_lettertemplate_changelist" %}>Edit Letter Templates</a>
 
+{% if template_form %}
 {% crispy template_form %}
+{% else %}
+<p class="error">No letter templates defined! You must create one via the admin page!</p>
+{% endif %}
 
 <h3>Summary:</h3>
 <div class="row">

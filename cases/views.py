@@ -247,29 +247,31 @@ class LetterView(TemplateView):
         letter_context["facilities_table"] = table
 
         if "template" in context:
-            letter_template_text = get_object_or_404(
+            letter_template = get_object_or_404(
                 LetterTemplate, name=context["template"]
-            ).template
+            )
         else:
             try:
-                letter_template_text = LetterTemplate.objects.get(
-                    name="default"
-                ).template
-                kwargs["template"] = "default"
+                letter_template = LetterTemplate.objects.get(name="default")
             except LetterTemplate.DoesNotExist:
-                lt = LetterTemplate.objects.first()
-                letter_template_text = lt.template
-                kwargs["template"] = lt.name
-        # print(letter_template_text)
-        form_values = {
-            field: value
-            for field, value in kwargs.items()
-            if field in ["cases", "facilities", "batches", "template"]
-        }
-        context["template_form"] = LetterTemplateForm(form_values)
-        context["letter_template"] = Template(letter_template_text).render(
-            Context(letter_context)
-        )
+                letter_template = LetterTemplate.objects.first()
+
+        if letter_template:
+            kwargs["template"] = letter_template.name
+            form_values = {
+                field: value
+                for field, value in kwargs.items()
+                if field in ["cases", "facilities", "batches", "template"]
+            }
+            context["template_form"] = LetterTemplateForm(form_values)
+            context["letter_template"] = Template(letter_template.template).render(
+                Context(letter_context)
+            )
+        else:
+            kwargs["template"] = None
+            context["template_form"] = None
+            context["letter_template"] = None
+
         # Create queryset of specified facilities that are not included in any
         # of the specified cases (should be useful as a sanity check)
         context["non_case_facilities"] = facilities.exclude(case__in=cases)
