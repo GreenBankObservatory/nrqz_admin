@@ -26,16 +26,13 @@ class AuditGroup(IsActiveModel, TrackedModel, models.Model):
     status = models.CharField(
         max_length=16,
         choices=(
-            ("rejected", "Rejected (fatal errors)"),
-            ("created_dirty", "Created: Some Errors"),
-            ("created_clean", "Created: No Errors"),
+            ("rejected", "Rejected: Fatal Errors"),
+            ("created_dirty", "Imported: Some Errors"),
+            ("created_clean", "Imported: No Errors"),
             ("pending", "Pending"),
         ),
         default="pending",
     )
-    # @property
-    # def status(self):
-    #     return self.audits.first().status
 
 
 class BatchAuditGroup(AuditGroup):
@@ -60,9 +57,9 @@ class ObjectAudit(IsActiveModel, TrackedModel, models.Model):
     status = models.CharField(
         max_length=16,
         choices=(
-            ("rejected", "Rejected (fatal errors)"),
-            ("created_dirty", "Created: Some Errors"),
-            ("created_clean", "Created: No Errors"),
+            ("rejected", "Rejected: Fatal Errors"),
+            ("created_dirty", "Imported: Some Errors"),
+            ("created_clean", "Imported: No Errors"),
             ("pending", "Pending"),
         ),
         default="pending",

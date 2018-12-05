@@ -1,14 +1,19 @@
+"""Audits Table definitions"""
+
 import os
 
-import django_tables2 as tables
 from django.utils.safestring import mark_safe
+
+import django_tables2 as tables
 
 from . import models
 from .filters import BatchAuditFilter, BatchAuditGroupFilter
+from .columns import AuditStatusColumn
 
 
 class BatchAuditTable(tables.Table):
     original_file = tables.Column(linkify=True, verbose_name="Batch Audit")
+    status = AuditStatusColumn()
 
     class Meta:
         model = models.BatchAudit
@@ -21,6 +26,7 @@ class BatchAuditTable(tables.Table):
 class BatchAuditGroupTable(tables.Table):
     id = tables.Column(linkify=True)
     batch = tables.Column(linkify=True)
+    status = AuditStatusColumn()
 
     class Meta:
         model = models.BatchAuditGroup
