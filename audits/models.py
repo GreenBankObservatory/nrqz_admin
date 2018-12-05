@@ -15,24 +15,46 @@ class DjangoErrorJSONEncoder(DjangoJSONEncoder):
         return super().default(obj)
 
 
-class ObjectAuditManager(models.Manager):
-    def create_with_audit(self, form):
-        """Create `linked_object` from `form` and save any errors"""
+class AuditGroup(IsActiveModel, TrackedModel, models.Model):
+    """Groups a set of ObjectAudits together
 
-        if form.is_valid():
-            linked_object = form.save()
-        else:
-            linked_object = None
-        useful_errors = {
-            field: {"value": form[field].value(), "errors": errors}
-            for field, errors in form.errors.as_data().items()
-        }
+    Consider this case: A series of ObjectAudits are created,
+    but no linked_object ever gets created. How are these to be
+    associated with one another?
+    """
 
-        return self.create(linked_object=linked_object, errors=useful_errors)
+    status = models.CharField(
+        max_length=16,
+        choices=(
+            ("rejected", "Rejected (fatal errors)"),
+            ("created_dirty", "Created: Some Errors"),
+            ("created_clean", "Created: No Errors"),
+            ("pending", "Pending"),
+        ),
+        default="pending",
+    )
+    # @property
+    # def status(self):
+    #     return self.audits.first().status
+
+
+class BatchAuditGroup(AuditGroup):
+    batch = models.OneToOneField(
+        "cases.Batch",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="audit_group",
+    )
+
+    def get_absolute_url(self):
+        return reverse("batch_audit_group_detail", args=[str(self.id)])
 
 
 class ObjectAudit(IsActiveModel, TrackedModel, models.Model):
-    linked_object = NotImplemented
+    audit_group = models.ForeignKey(
+        "BatchAuditGroup", related_name="audits", on_delete=models.CASCADE
+    )
     errors = JSONField(encoder=DjangoErrorJSONEncoder)
     error_summary = JSONField(encoder=DjangoErrorJSONEncoder)
     status = models.CharField(
@@ -41,36 +63,25 @@ class ObjectAudit(IsActiveModel, TrackedModel, models.Model):
             ("rejected", "Rejected (fatal errors)"),
             ("created_dirty", "Created: Some Errors"),
             ("created_clean", "Created: No Errors"),
+            ("pending", "Pending"),
         ),
-        blank=True,
+        default="pending",
     )
 
-    objects = ObjectAuditManager()
+    # objects = ObjectAuditManager()
 
     class Meta:
         abstract = True
-
-    @property
-    def exists(self):
-        """Indicates whether the linked_object actually exists or not"""
-
-        return bool(self.linked_object)
+        ordering = ["-created_on"]
 
     def save(self, *args, **kwargs):
-        if self.linked_object:
-            if self.errors:
-                self.status = "created_dirty"
-            else:
-                self.status = "created_clean"
-        else:
-            self.status = "rejected"
+        # TODO: This is a little weird, but alright...
+        self.audit_group.status = self.status
+        self.audit_group.save()
         super(ObjectAudit, self).save(*args, **kwargs)
 
 
 class BatchAudit(ObjectAudit):
-    linked_object = models.ForeignKey(
-        "cases.Batch", on_delete=models.SET_NULL, null=True, blank=True
-    )
     original_file = models.CharField(max_length=512)
 
     def __str__(self):
@@ -78,21 +89,3 @@ class BatchAudit(ObjectAudit):
 
     def get_absolute_url(self):
         return reverse("batch_audit_detail", args=[str(self.id)])
-
-
-class CaseAudit(ObjectAudit):
-    linked_object = models.ForeignKey(
-        "cases.Case", on_delete=models.SET_NULL, null=True, blank=True
-    )
-
-
-class FacilityAudit(ObjectAudit):
-    linked_object = models.ForeignKey(
-        "cases.Facility", on_delete=models.SET_NULL, null=True, blank=True
-    )
-
-
-class AttachmentAudit(ObjectAudit):
-    linked_object = models.ForeignKey(
-        "cases.Attachment", on_delete=models.SET_NULL, null=True, blank=True
-    )

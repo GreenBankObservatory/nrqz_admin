@@ -4,22 +4,39 @@
 
 {% block content %}
 <h1>Batch Audit {{ batchaudit.id }}</h1>
-<a href=file://{{ batchaudit.original_file }}>Open original Excel file: {{batchaudit.original_file|basename}}</a>
+<p><a href=file://{{ batchaudit.original_file }}>Open original Excel file: {{batchaudit.original_file|basename}}</a></p>
 
-{% if batchaudit.exists %}
-{% if batchaudit.status.created_clean %}
+<p><a href={% url "batch_audit_group_detail" batchaudit.audit_group.id %}>Audit Group</a></p>
+
+<p>Status: {{ batchaudit.status }} </p>
+{% if batchaudit.status == "created_clean" %}
 <p class="batch-created-clean-msg">
-    Batch <a href={% url "batch_detail" batchaudit.linked_object.id %}>{{ batchaudit.linked_object }}</a> was successfully created
+    Batch <a href={% url "batch_detail" batchaudit.audit_group.batch.id %}>{{ batchaudit.audit_group.batch }}</a> was successfully created
 
 </p>
-{% else %}
+{% elif batchaudit.status == "created_dirty" %}
 <p class="batch-created-dirty-msg">
-    Batch <a href={% url "batch_detail" batchaudit.linked_object.id %}>{{ batchaudit.linked_object }}</a> was successfully created, but had some minor errors
+    Batch <a href={% url "batch_detail" batchaudit.audit_group.batch.id %}>{{ batchaudit.audit_group.batch }}</a> was successfully created, but had some minor errors
+</p>
+{% else %}
+<p>
+    <span class="batch-rejected-msg">
+        No Batch created due to errors!
+    </span>
+    {% if batchaudit.exists %}
+    <span class="batch-created-dirty-msg">
+        However, a Batch has been successfully created subsequently: Batch <a href={% url "batch_detail" batchaudit.audit_group.batch.id %}> {{ batchaudit.audit_group.batch }}</a>
+    </span>
+    {% endif %}
 </p>
 {% endif %}
-{% else %}
-<p class="batch-rejected-msg">No Batch created due to errors!</p>
-{% endif %}
+
+<form action={% url "batch_audit_create" %} method="post">
+    {% csrf_token %}
+    <input name="original_file" value={{ batchaudit.original_file }}>
+    <input type="hidden" name="audit_group" value={{ batchaudit.audit_group.id }}>
+    <input type="submit" name="reimport" value="Re-import" />
+</form>
 
 <h2>Error Summary</h2>
 <p>Displays a summary of import errors</p>

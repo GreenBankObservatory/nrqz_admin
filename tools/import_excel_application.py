@@ -18,7 +18,11 @@ from django.db import transaction
 
 django.setup()
 
-from tools.excel_importer import ExcelCollectionImporter, DEFAULT_THRESHOLD
+from tools.excel_importer import (
+    ExcelCollectionImporter,
+    DEFAULT_THRESHOLD,
+    DEFAULT_PREPROCESS,
+)
 
 
 class ManualRollback(Exception):
@@ -50,7 +54,10 @@ def main():
     args = parse_args()
     files_to_process = determine_files_to_process(args.paths, pattern=args.pattern)
     eci = ExcelCollectionImporter(
-        files_to_process, durable=args.durable, threshold=args.threshold
+        files_to_process,
+        durable=args.durable,
+        threshold=args.threshold,
+        preprocess=not bool(args.no_preprocess),
     )
 
     eci.process()
@@ -113,6 +120,12 @@ def parse_args():
         type=float,
         default=DEFAULT_THRESHOLD,
         help="Threshold of invalid headers which constitute an invalid sheet.",
+    )
+    parser.add_argument(
+        "--no-preprocess",
+        default=not DEFAULT_PREPROCESS,
+        action="store_true",
+        help="Indicate that no pre-processing needs to be done on the given input file(s)",
     )
 
     parsed_args = parser.parse_args()

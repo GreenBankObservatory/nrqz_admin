@@ -8,8 +8,11 @@
 
 <p><a href=file://{{ batch.imported_from }}>Open original Excel file: {{batch.name}}</a></p>
 
-<form action={% url "batch_reimport" batch.id %} method="post">
+<form action={% url "batch_audit_create" %} method="post">
     {% csrf_token %}
+    <input name="original_file" value={{ batch.imported_from }} />
+    <input type="hidden" name="audit_group" value={{ batch.audit_group.id }}>
+
     <input type="submit" name="reimport" value="Re-import" />
 </form>
 
@@ -28,9 +31,20 @@
     {% filter_table case_table case_filter %}
 </div>
 
+<h2>Import History</h2>
+<ul>
+{% for batchaudit in batch.audit_group.audits.all %}
+    <li>
+        <a class="batch-{{batchaudit.status}} {% if forloop.first %}first-batch {% endif %}" href={% url 'batch_audit_detail' batchaudit.id %}>
+            Batch Audit {{batchaudit.id}}, imported on {{batchaudit.created_on}}: {{batchaudit.status}}
+        </a>
+    </li>
+{% endfor %}
+</ul>
+
 {% if batch.import_error_summary %}
-<h2>Import Errors</h2>
-<a href={% url 'batch_audit_detail' batch.batchaudit_set.first.id %}>View Batch Audit</a>
+<h2>Current Import Errors</h2>
+
 <p>Map of column headers to list of unique invalid values (values that caused errors)</p>
 {{ batch.import_error_summary|json|safe }}
 {% endif %}

@@ -117,6 +117,26 @@ def strip_excel_sheet(sheet, threshold=DEFAULT_THRESHOLD):
     )
 
 
+def strip_excel_book(book, threshold=DEFAULT_THRESHOLD):
+    """Strip non-data rows from a Book -- done in-place!"""
+
+    for sheet in book:
+        strip_excel_sheet(sheet, threshold=threshold)
+
+
+def open_excel_book(input_path):
+    try:
+        book = pyexcel.get_book(file_name=input_path)
+    except ValueError as error:
+        raise ValueError(f"Error reading {input_path}") from error
+
+    return book
+
+
+def save_excel_book(book, output_path):
+    return book.save_as(output_path)
+
+
 def strip_excel_file(
     input_path, output_path, threshold=DEFAULT_THRESHOLD, overwrite=DEFAULT_OVERWRITE
 ):
@@ -130,17 +150,12 @@ def strip_excel_file(
         return None
 
     tqdm.write("Opening workbook")
-    try:
-        book = pyexcel.get_book(file_name=input_path)
-    except ValueError as error:
-        tqdm.write(f"Error reading {full_output_path}; skipping")
-        raise ValueError(f"Error reading {full_output_path}") from error
-
+    book = open_excel_book(input_path)
     tqdm.write("...done")
-    for sheet in book:
-        strip_excel_sheet(sheet, threshold=threshold)
 
-    book.save_as(full_output_path)
+    strip_excel_book(book, threshold=threshold)
+
+    save_excel_book(book, full_output_path)
     tqdm.write(f"Wrote {full_output_path}")
     return full_output_path
 

@@ -1,0 +1,29 @@
+{% extends "cases/base.html" %}
+{% load cases_tags %}
+{% load audits_tags %}
+
+{% block content %}
+<h1>Batch Audit Group {{ batchauditgroup.id }}</h1>
+<a href=file://{{ batchauditgroup.audits.first.original_file }}>Open original Excel file: {{batchauditgroup.audits.first.original_file|basename}}</a>
+
+<p>Most recent import status: {{ batchauditgroup.status }} </p>
+{{batchauditgroup.audits.first.original_file}}
+<form action={% url "batch_audit_create" %} method="post">
+    {% csrf_token %}
+    <input name="original_file" value={{ batchauditgroup.audits.first.original_file }} />
+    <input type="hidden" name="audit_group" value={{ batchauditgroup.id }}>
+    <input type="submit" name="reimport" value="Re-import" />
+</form>
+
+<h2>Import History</h2>
+<ul>
+{% for batchaudit in batchauditgroup.audits.all %}
+    <li>
+        <a class="batch-{{batchaudit.status}} {% if forloop.first %}first-batch {% endif %}" href={% url 'batch_audit_detail' batchaudit.id %}>
+            Batch Audit {{batchaudit.id}}, imported on {{batchaudit.created_on}}: {{batchaudit.status}}
+        </a>
+    </li>
+{% endfor %}
+</ul>
+
+{% endblock %}

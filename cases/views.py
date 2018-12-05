@@ -47,7 +47,7 @@ from .kml import (
     cases_as_kml,
     kml_to_string,
 )
-from tools.import_original_excel_application import import_excel_file
+from tools.excel_importer import ExcelCollectionImporter
 
 
 class FilterTableView(SingleTableMixin, FilterView):
@@ -77,25 +77,25 @@ class BatchListView(FilterTableView):
     template_name = "cases/batch_list.html"
 
 
-class BatchReimportView(UpdateView):
-    model = Batch
-    fields = []
+# class BatchReimportView(UpdateView):
+#     model = Batch
+#     fields = []
 
-    def get(self, request, *args, **kwargs):
-        batch = self.get_object()
-        return HttpResponseRedirect(reverse("batch_detail", args=[str(batch.id)]))
+#     def get(self, request, *args, **kwargs):
+#         batch = self.get_object()
+#         return HttpResponseRedirect(reverse("batch_detail", args=[str(batch.id)]))
 
-    def post(self, request, *args, **kwargs):
-        batch = self.get_object()
-        print(f"Re-importing myself, from {batch.imported_from}")
-        try:
-            import_excel_file(batch.imported_from)
-        except FileNotFoundError as error:
-            messages.error(request, f"Failed to re-import Batch: {error}")
-        else:
-            messages.success(request, f"Successfully re-imported Batch")
-
-        return HttpResponseRedirect(reverse("batch_detail", args=[str(batch.id)]))
+#     def post(self, request, *args, **kwargs):
+#         batch = self.get_object()
+#         print(f"Re-importing myself, from {batch.imported_from}")
+#         ec = ExcelCollectionImporter(paths=[batch.imported_from])
+#         try:
+#             ec.process()
+#         except FileNotFoundError as error:
+#             messages.error(request, f"Failed to re-import Batch: {error}")
+#         else:
+#             messages.success(request, f"Successfully re-imported Batch")
+#         return HttpResponseRedirect(reverse("batch_detail", args=[str(batch.id)]))
 
 
 class BatchDetailView(DetailView):

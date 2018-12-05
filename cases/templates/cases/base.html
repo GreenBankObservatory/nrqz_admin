@@ -25,30 +25,43 @@
           <li class="nav-item">
             <a class="nav-link" href={% url "case_index" %}>Cases</a>
           </li>
+
           <li class="nav-item">
             <a class="nav-link" href={% url "facility_index" %}>Facilities</a>
           </li>
+
           <li class="nav-item">
             <a class="nav-link" href={% url "structure_index" %}>Structures</a>
           </li>
+
           <li class="nav-item">
             <a class="nav-link" href={% url "batch_index" %}>Batches</a>
           </li>
+
+          <li class="nav-item">
+            <a class="nav-link" href={% url "batch_audit_group_index" %}>Batch Audit Groups</a>
+          </li>
+
           <li class="nav-item">
             <a class="nav-link" href={% url "batch_audit_index" %}?status=rejected>Batch Audits</a>
           </li>
+
           <li class="nav-item">
             <a class="nav-link" href={% url "person_index" %}>People</a>
           </li>
+
           <li class="nav-item">
             <a class="nav-link" href={% url "attachment_index" %}>Attachments</a>
           </li>
+
           <li class="nav-item">
             <a class="nav-link" href={% url "letters" %}>Letters</a>
           </li>
+
           <li class="nav-item">
             <a class="nav-link text-info" href={% url "explorer_index" %}>SQL Explorer</a>
           </li>
+
           <li class="nav-item">
             <a class="nav-link text-info" href={% url "admin:index" %}>Admin</a>
           </li>

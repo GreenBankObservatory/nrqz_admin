@@ -48,16 +48,20 @@ we simply disable the offending attributes here.*/
     margin-bottom: 10px;
 }
 
-.batch-created-clean-msg {
+.batch-created-clean-msg, .batch-created_clean {
     color: green;
 }
 
-.batch-created-dirty-msg {
+.batch-created-dirty-msg, .batch-created_dirty {
     color: orange;
 }
 
-.batch-rejected-msg {
+.batch-rejected-msg, .batch-rejected{
     color: red;
+}
+
+.first-batch {
+    font-weight: bold;
 }
 
 /* MESSAGES & ERRORS */

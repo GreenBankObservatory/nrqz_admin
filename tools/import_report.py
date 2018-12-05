@@ -20,7 +20,7 @@ class ExcelCollectionImportReport:
             print(f"  Summary of ALL {error_category!r}:")
             for error_type, errors_ in errors_by_type.items():
                 print(f"    Unique {error_type!r}:")
-                for error_ in sorted(errors_):
+                for error_ in sorted([str(e) for e in errors_]):
                     formatted_error = "\n".join(
                         [f"      {line}" for line in pformat(error_).split("\n")]
                     )

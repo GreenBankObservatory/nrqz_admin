@@ -9,7 +9,7 @@ from tqdm import tqdm
 from django.db import transaction
 from django.db.utils import IntegrityError
 
-from audits.models import BatchAudit
+from audits.models import BatchAudit, BatchAuditGroup
 from cases.models import Attachment, Batch, Case, Facility
 from cases.forms import FacilityForm
 from tools.excelfieldmap import (
@@ -18,10 +18,18 @@ from tools.excelfieldmap import (
     get_unmapped_headers,
 )
 from tools.import_report import ExcelCollectionImportReport, ImportReport
-
+from tools.strip_excel_non_data import strip_excel_sheet
 
 DEFAULT_DURABLE = False
 DEFAULT_THRESHOLD = 0.7
+DEFAULT_PREPROCESS = True
+
+
+def log_commit():
+    tqdm.write("Transaction committed")
+
+
+transaction.on_commit(log_commit)
 
 
 class BatchImportException(Exception):
@@ -81,22 +89,33 @@ def derive_case_num_from_nrqz_id(nrqz_id):
 
 
 class ExcelCollectionImporter:
-    def __init__(self, paths, durable=DEFAULT_DURABLE, threshold=DEFAULT_THRESHOLD):
+    def __init__(
+        self,
+        paths,
+        durable=DEFAULT_DURABLE,
+        threshold=DEFAULT_THRESHOLD,
+        preprocess=DEFAULT_PREPROCESS,
+    ):
         self.paths = sorted(paths)
         self.durable = durable
         self.threshold = threshold
+        self.preprocess = preprocess
         self.excel_importers = self._gen_excel_importers(self.paths)
         self.report = ExcelCollectionImportReport(self)
 
     def _gen_excel_importers(self, paths):
         excel_importers = [
-            ExcelImporter(path, durable=self.durable, threshold=self.threshold)
+            ExcelImporter(
+                path,
+                durable=self.durable,
+                threshold=self.threshold,
+                preprocess=self.preprocess,
+            )
             for path in paths
         ]
         return excel_importers
 
     def process(self):
-
         longest_filename = (
             max([len(os.path.basename(path)) for path in self.paths])
             if self.paths
@@ -108,46 +127,7 @@ class ExcelCollectionImporter:
             progress.set_description(
                 f"Processing {os.path.basename(excel_importer.path):{longest_filename}}"
             )
-
-            try:
-                report = excel_importer.process()
-            except BatchRejectionError as error:
-                # This is a sanity check to ensure that the Batch has in fact been
-                # rolled back. Since we are tracking the Batch object inside our
-                # import_reporter, we can attempt to refresh it from the DB. We
-                # expect that this will fail, but if for some reason it succeeds
-                # then we treat this as a fatal error
-                # TODO: Can we clean this up? report as direct att?
-                report = error.args[1]
-                try:
-                    excel_importer.batch.refresh_from_db()
-                except Batch.DoesNotExist:
-                    tqdm.write(
-                        f"Successfully rejected Batch {excel_importer.path}: {error}"
-                    )
-                else:
-                    raise AssertionError(
-                        "Batch should have been rolled back, but wasn't!"
-                    )
-                excel_importer.rolled_back = True
-            else:
-                # Similarly, we want to ensure that the Batch has been committed
-                # if there are no fatal errors in importing it
-                try:
-                    excel_importer.batch.refresh_from_db()
-                except Batch.DoesNotExist as error:
-                    raise AssertionError(
-                        "Batch should have been committed, but wasn't!"
-                    ) from error
-
-            linked_object = None if excel_importer.rolled_back else excel_importer.batch
-            batch_audit = BatchAudit.objects.create(
-                linked_object=linked_object,
-                errors=report.report,
-                original_file=excel_importer.path,
-                error_summary=report.generate_error_summary(),
-            )
-            batch_audits.append(batch_audit)
+            batch_audits.append(excel_importer.process())
 
         return batch_audits
 
@@ -156,7 +136,14 @@ class ExcelCollectionImporter:
 
 
 class ExcelImporter:
-    def __init__(self, path, durable=DEFAULT_DURABLE, threshold=DEFAULT_THRESHOLD):
+    def __init__(
+        self,
+        path,
+        durable=DEFAULT_DURABLE,
+        threshold=DEFAULT_THRESHOLD,
+        preprocess=DEFAULT_PREPROCESS,
+        batch_audit_group=None,
+    ):
         # The path to the Excel file to import
         self.path = path
         # The Batch representation of the Excel file
@@ -166,6 +153,8 @@ class ExcelImporter:
         self.durable = durable
         self.threshold = threshold
         self.rolled_back = False
+        self.preprocess = preprocess
+        self.batch_audit_group = batch_audit_group
 
     def load_excel_data(self):
         """Given path to Excel file, extract data and return"""
@@ -190,6 +179,9 @@ class ExcelImporter:
         #     ipdb.set_trace()
 
         # sheet = working_data
+        if self.preprocess:
+            tqdm.write("Pre-processing sheet")
+            strip_excel_sheet(sheet)
         return sheet.array
 
     def create_facility_dict_from_row(self, header_field_map, row, row_num):
@@ -288,7 +280,7 @@ class ExcelImporter:
             facility = facility_form.save()
             self.report.audit_facility_success(facility)
             self.report.facilities_created.append(facility)
-            tqdm.write(f"Created Facility {facility} {facility.id}")
+            # tqdm.write(f"Created Facility {facility} {facility.id}")
             return None
         else:
             useful_errors = [
@@ -338,20 +330,9 @@ class ExcelImporter:
                     )
 
     @transaction.atomic
-    def create_batch(self):
-        # A Batch representing this Excel file
-        batch_name = os.path.basename(self.path)
-        batch_name = batch_name.replace(" ", "_")
-        if not batch_name.startswith("stripped_data_only_"):
-            batch_name = f"stripped_data_only_{batch_name}"
-        tqdm.write(f"Maybe I'll create batch {batch_name}")
-        try:
-            existing_batch = Batch.objects.get(name=batch_name)
-        except Batch.DoesNotExist:
-            existing_batch = None
-
+    def handle_existing_batch(self):
+        existing_batch = self.batch_audit_group.batch
         if existing_batch:
-            existing_batch_id = existing_batch.id
             tqdm.write(
                 f"Detected existing batch: {existing_batch} <{existing_batch.id}>; it will be deleted"
             )
@@ -381,18 +362,24 @@ class ExcelImporter:
                     raise ValueError(
                         f"Failed to delete Facility {facility}!"
                     ) from error
-        else:
-            existing_batch_id = None
+        return existing_batch
+
+    def create_batch(self):
+        # Purge any existing batch
+        existing_batch = self.handle_existing_batch()
 
         batch = Batch.objects.create(
-            id=existing_batch_id,
-            name=batch_name,
+            id=existing_batch.id if existing_batch else None,
+            name=(
+                existing_batch.name
+                if existing_batch
+                else os.path.basename(self.path).replace(" ", "_")
+            ),
             comments=f"Created by {__file__}",
             imported_from=self.path,
         )
         self.batch = batch
         tqdm.write(f"Created Batch {batch} <{batch.id}>")
-
         return batch
 
     def create_case_map(self, header_field_map, data, nrqz_id_field):
@@ -454,6 +441,70 @@ class ExcelImporter:
 
     @transaction.atomic
     def process(self):
+        if not self.batch_audit_group:
+            self.batch_audit_group = BatchAuditGroup.objects.create()
+            tqdm.write(
+                f"Created audit_group {self.batch_audit_group} linked to {self.batch}"
+            )
+        else:
+            tqdm.write(
+                f"Got audit_group {self.batch_audit_group} linked to {self.batch}"
+            )
+
+        batch_audit = BatchAudit.objects.create(
+            audit_group=self.batch_audit_group,
+            errors=self.report.report,
+            original_file=self.path,
+            error_summary=self.report.generate_error_summary(),
+        )
+        tqdm.write(
+            f"Created batch_audit {batch_audit.id} linked to audit_group {self.batch_audit_group}"
+        )
+
+        self._process()
+
+        if self.report.has_fatal_errors():
+            # This is a sanity check to ensure that the Batch has in fact been
+            # rolled back. Since we are tracking the Batch object inside our
+            # import_reporter, we can attempt to refresh it from the DB. We
+            # expect that this will fail, but if for some reason it succeeds
+            # then we treat this as a fatal error
+            try:
+                self.batch.refresh_from_db()
+            except Batch.DoesNotExist:
+                tqdm.write(f"Successfully rejected Batch {self.path}")
+            else:
+                raise AssertionError("Batch should have been rolled back, but wasn't!")
+            self.rolled_back = True
+        else:
+            # Similarly, we want to ensure that the Batch has been committed
+            # if there are no fatal errors in importing it
+            try:
+                self.batch.refresh_from_db()
+            except Batch.DoesNotExist as error:
+                raise AssertionError(
+                    "Batch should have been committed, but wasn't!"
+                ) from error
+            else:
+                self.batch_audit_group.batch = self.batch
+                self.batch_audit_group.save()
+
+        if not self.rolled_back:
+            if self.report.has_errors():
+                status = "created_dirty"
+            else:
+                status = "created_clean"
+        else:
+            status = "rejected"
+
+        batch_audit.status = status
+        batch_audit.save()
+        tqdm.write(f"ba status: {batch_audit.status}")
+        tqdm.write(f"bag status: {batch_audit.audit_group.status}")
+        return batch_audit
+
+    @transaction.atomic
+    def _process(self):
         """Create objects from given path"""
 
         self.create_batch()
@@ -516,8 +567,11 @@ class ExcelImporter:
             self.batch.save()
 
         if self.report.has_fatal_errors():
-            raise BatchRejectionError(
-                "One or more fatal errors has occurred!", self.report
-            )
+            # TODO: Do we want this instead of an error still?
+            transaction.set_rollback(True)
+
+        #     raise BatchRejectionError(
+        #         "One or more fatal errors has occurred!", self.report
+        #     )
 
         return self.report
