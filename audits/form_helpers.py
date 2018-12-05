@@ -19,7 +19,7 @@ class BatchAuditFilterFormHelper(FormHelper):
 class BatchAuditGroupFilterFormHelper(FormHelper):
     layout = CollapsibleFilterFormLayout(
         Div(
-            Div("id", css_class="col"),
+            Div("last_imported_path", css_class="col"),
             Div("batch", css_class="col"),
             Div("status", css_class="col"),
             css_class="row",

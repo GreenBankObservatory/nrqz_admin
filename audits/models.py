@@ -43,6 +43,7 @@ class BatchAuditGroup(AuditGroup):
         blank=True,
         related_name="audit_group",
     )
+    last_imported_path = models.CharField(max_length=512)
 
     def get_absolute_url(self):
         return reverse("batch_audit_group_detail", args=[str(self.id)])
@@ -64,8 +65,7 @@ class ObjectAudit(IsActiveModel, TrackedModel, models.Model):
         ),
         default="pending",
     )
-
-    # objects = ObjectAuditManager()
+    original_file = models.CharField(max_length=512)
 
     class Meta:
         abstract = True
@@ -74,13 +74,12 @@ class ObjectAudit(IsActiveModel, TrackedModel, models.Model):
     def save(self, *args, **kwargs):
         # TODO: This is a little weird, but alright...
         self.audit_group.status = self.status
+        self.audit_group.last_imported_path = self.original_file
         self.audit_group.save()
         super(ObjectAudit, self).save(*args, **kwargs)
 
 
 class BatchAudit(ObjectAudit):
-    original_file = models.CharField(max_length=512)
-
     def __str__(self):
         return os.path.basename(self.original_file)
 
