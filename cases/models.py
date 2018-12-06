@@ -280,9 +280,16 @@ class Batch(IsActiveModel, TrackedModel, Model):
     def get_absolute_url(self):
         return reverse("batch_detail", args=[str(self.id)])
 
+    class Meta:
+        verbose_name_plural = "Batches"
+
 
 class PreliminaryCaseGroup(IsActiveModel, TrackedModel, Model):
     comments = TextField(blank=True)
+
+    class Meta:
+        verbose_name = "Preliminary Case Group"
+        verbose_name_plural = "Preliminary Case Groups"
 
 
 class PreliminaryCase(IsActiveModel, TrackedModel, Model):
@@ -337,6 +344,10 @@ class PreliminaryCase(IsActiveModel, TrackedModel, Model):
     def save(self, *args, **kwargs):
         self.slug = str(self.case_num)
         super().save(*args, **kwargs)
+
+    class Meta:
+        verbose_name = "Preliminary Case"
+        verbose_name_plural = "Preliminary Cases"
 
 
 class Case(IsActiveModel, TrackedModel, Model):
@@ -430,6 +441,9 @@ class Person(IsActiveModel, TrackedModel, Model):
     def get_absolute_url(self):
         return reverse("person_detail", args=[str(self.id)])
 
+    class Meta:
+        verbose_name_plural = "People"
+
 
 class Attachment(IsActiveModel, TrackedModel, Model):
     """Holds the path to a file along with some metadata"""
@@ -452,3 +466,7 @@ class LetterTemplate(IsActiveModel, TrackedModel, Model):
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        verbose_name = "Letter Template"
+        verbose_name_plural = "Letter Templates"

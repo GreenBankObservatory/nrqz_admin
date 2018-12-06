@@ -46,7 +46,14 @@ class BatchAuditGroup(AuditGroup):
         blank=True,
         related_name="audit_group",
     )
-    last_imported_path = models.CharField(max_length=512)
+    last_imported_path = models.CharField(max_length=512, unique=True)
+
+    class Meta:
+        verbose_name = "Batch Audit Group"
+        verbose_name_plural = "Batch Audit Groups"
+
+    def __str__(self):
+        return os.path.basename(self.last_imported_path)
 
     def get_absolute_url(self):
         return reverse("batch_audit_group_detail", args=[str(self.id)])
@@ -88,3 +95,7 @@ class BatchAudit(ObjectAudit):
 
     def get_absolute_url(self):
         return reverse("batch_audit_detail", args=[str(self.id)])
+
+    class Meta:
+        verbose_name = "Batch Audit"
+        verbose_name_plural = "Batch Audits"

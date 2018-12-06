@@ -7,6 +7,8 @@
 <h2>Comments</h2>
 <p>{{ attachment.comments }}</p>
 
+<p><a href={% url "admin:cases_attachment_change" attachment.id %}>Edit</a></p>
+
 <h2>Cases</h2>
 {% if case_table.data %}
 <div class="container-fluid" style="border:1px solid #D3D3D3; border-radius: 10px">

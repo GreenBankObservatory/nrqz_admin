@@ -7,6 +7,9 @@
 {% if facility.structure %}
 | <a href={% url "structure_detail" facility.structure.id %}>View structure</a>
 {% endif %}
+
+<p><a href={% url "admin:cases_facility_change" facility.id %}>Edit</a></p>
+
 <h1>{{ facility }}</h1>
 <div class="row">
     <div class="col-sm">

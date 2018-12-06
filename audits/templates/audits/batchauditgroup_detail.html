@@ -6,6 +6,8 @@
 <h1>Batch Audit Group {{ batchauditgroup.id }}</h1>
 <a href=file://{{ batchauditgroup.audits.first.original_file }}>Open original Excel file: {{batchauditgroup.audits.first.original_file|basename}}</a>
 
+<p><a href={% url "admin:cases_batchauditgroup_change" batchauditgroup.id %}>Edit</a></p>
+
 <p>Most recent import status: {{ batchauditgroup.status }} </p>
 {{batchauditgroup.audits.first.original_file}}
 <form action={% url "batch_audit_create" %} method="post">
