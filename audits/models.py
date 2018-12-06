@@ -34,6 +34,9 @@ class AuditGroup(IsActiveModel, TrackedModel, models.Model):
         default="pending",
     )
 
+    class Meta:
+        abstract = True
+
 
 class BatchAuditGroup(AuditGroup):
     batch = models.OneToOneField(
