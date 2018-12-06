@@ -1,0 +1,46 @@
+{% extends "cases/base.html" %}
+{% load cases_tags %}
+{% load render_table from django_tables2 %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<h1>Preliminary Case Group {{ preliminarycasegroup.id }}</h1>
+
+<p><a href={% url "admin:cases_preliminarycasegroup_change" preliminarycasegroup.id %}>Edit</a></p>
+
+
+<p>Created on: {{ preliminarycasegroup.created_on }}</p>
+
+<h2>Preliminary Cases</h2>
+{% if preliminarycasegroup.prelim_cases.exists %}
+<ul>
+    {% for pc in preliminarycasegroup.prelim_cases.all %}
+    <li>
+        <a href="{% url "prelim_case_detail" pc.case_num %}">{{ pc }}</a>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>No PCases</p>
+{% endif %}
+
+<h2>Comments</h2>
+{% if preliminarycasegroup.comments %}
+{{ preliminarycasegroup.comments | linebreaks}}
+{% else %}
+<p>No comments</p>
+{% endif %}
+
+
+
+<h2>Attachments</h2>
+{% if attachment_table.data %}
+<div class="container-fluid">
+    {% filter_table attachment_table attachment_filter %}
+</div>
+{% else %}
+<p>No attachments</p>
+{% endif %}
+
+{% endblock %}

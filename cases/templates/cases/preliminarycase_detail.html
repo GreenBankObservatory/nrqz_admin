@@ -41,6 +41,19 @@
     </div>
 </div>
 
+<h2>Related PCases</h2>
+{% if preliminarycase.pcase_group.prelim_cases.exists %}
+<ul>
+    {% for pc in preliminarycase.pcase_group.prelim_cases.all %}
+    <li>
+        <a href="{% url "prelim_case_detail" pc.case_num %}">{{ pc }}</a>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>No related PCases</p>
+{% endif %}
+
 <h2>Comments</h2>
 {% if preliminarycase.comments %}
 {{ preliminarycase.comments | linebreaks}}
@@ -58,3 +71,5 @@
 {% else %}
 <p>No attachments</p>
 {% endif %}
+
+{% endblock %}

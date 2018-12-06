@@ -93,6 +93,18 @@ class FacilityFilterFormHelper(FormHelper):
     )
 
 
+class PreliminaryCaseGroupFilterFormHelper(FormHelper):
+    """Provides layout information for PreliminaryCaseGroupFilter.form"""
+
+    layout = CollapsibleFilterFormLayout(
+        Div(
+            Div("id", css_class="col"),
+            Div("comments", css_class="col"),
+            css_class="row",
+        )
+    )
+
+
 class PreliminaryCaseFilterFormHelper(FormHelper):
     """Provides layout information for PreliminaryCaseFilter.form"""
 

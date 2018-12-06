@@ -12,6 +12,7 @@ from .form_helpers import (
     PersonFilterFormHelper,
     AttachmentFilterFormHelper,
     StructureFilterFormHelper,
+    PreliminaryCaseGroupFilterFormHelper,
     PreliminaryCaseFilterFormHelper,
 )
 from .fields import PointField
@@ -79,6 +80,15 @@ class FacilityFilter(HelpedFilterSet):
     class Meta:
         model = models.Facility
         formhelper_class = FacilityFilterFormHelper
+        fields = discover_fields(formhelper_class.layout)
+
+
+class PreliminaryCaseGroupFilter(HelpedFilterSet):
+    comments = django_filters.CharFilter(lookup_expr="icontains")
+
+    class Meta:
+        model = models.PreliminaryCaseGroup
+        formhelper_class = PreliminaryCaseGroupFilterFormHelper
         fields = discover_fields(formhelper_class.layout)
 
 

@@ -7,6 +7,7 @@
 import argparse
 import csv
 from pprint import pprint
+import re
 
 import django
 
@@ -15,7 +16,7 @@ from django.db import transaction
 
 from tqdm import tqdm
 
-from cases.models import Attachment, PreliminaryCase, Person
+from cases.models import Attachment, Case, PreliminaryCase, PreliminaryCaseGroup, Person
 from tools.prelim_accessfieldmap import (
     applicant_field_mappers,
     contact_field_mappers,
@@ -37,6 +38,32 @@ def load_rows(path):
 
 _letters = [f"letter{i}" for i in range(1, 9)]
 
+case_regex_str = r"[Cc]ase\s*(?P<case_num>\d+)"
+case_regex = re.compile(case_regex_str)
+
+pcase_regex_str = r"NRQZ#P(\d+)"
+pcase_regex = re.compile(pcase_regex_str)
+
+
+def derive_case_num(pcase):
+    m = case_regex.search(pcase.comments)
+    if m:
+        case_num = int(m.groupdict()["case_num"])
+    else:
+        case_num = None
+
+    return case_num
+
+
+def derive_related_pcases(pcase):
+    m = pcase_regex.findall(pcase.comments)
+    if m:
+        pcase_nums = [int(pcase_num) for pcase_num in m]
+    else:
+        pcase_nums = []
+
+    return pcase_nums
+
 
 @transaction.atomic
 def handle_row(field_importers, row):
@@ -55,7 +82,7 @@ def handle_row(field_importers, row):
             else:
                 raise ValueError("Shouldn't be possible")
 
-    found_report = dict(applicant=False, contact=False, case=False)
+    found_report = dict(applicant=False, contact=False, pcase=False)
     applicant = None
     if any(applicant_dict.values()):
         try:
@@ -105,23 +132,92 @@ def handle_row(field_importers, row):
                 stripped_case_dict[key] = value
 
         try:
-            case = PreliminaryCase.objects.get(case_num=case_dict["case_num"])
-            case.applicant = applicant
-            case.contact = contact
-            case.save()
-            tqdm.write(f"Found case {case}")
-            found_report["case"] = True
+            pcase = PreliminaryCase.objects.get(case_num=case_dict["case_num"])
+            pcase.applicant = applicant
+            pcase.contact = contact
+            pcase.save()
+            tqdm.write(f"Found Pcase {pcase}")
+            found_report["pcase"] = True
         except PreliminaryCase.DoesNotExist:
-            case = PreliminaryCase.objects.create(
+            pcase = PreliminaryCase.objects.create(
                 **stripped_case_dict, applicant=applicant, contact=contact
             )
-            tqdm.write(f"Created case {case}")
+            # tqdm.write(f"Created pcase {pcase}")
 
-        case.attachments.add(*attachments)
+        pcase.attachments.add(*attachments)
     else:
-        tqdm.write("No case data; skipping")
+        tqdm.write("No pcase data; skipping")
 
     return found_report
+
+
+def derive_stuff():
+    for pcase in tqdm(PreliminaryCase.objects.all(), unit="cases"):
+        case_num = derive_case_num(pcase)
+        if case_num:
+            try:
+                pcase.case = Case.objects.get(case_num=case_num)
+            except Case.DoesNotExist:
+                tqdm.write(
+                    f"Found case ID {case_num} in PCase {pcase} comments, but no matching Case found"
+                )
+                tqdm.write(pcase.comments)
+                tqdm.write("\n")
+            else:
+                tqdm.write(
+                    f"Successfully derived case {pcase.case} from {pcase} comments"
+                )
+
+        related_pcase_nums = derive_related_pcases(pcase)
+        if related_pcase_nums:
+            related_pcases = PreliminaryCase.objects.filter(
+                case_num__in=related_pcase_nums
+            )
+            if len(related_pcases) != len(related_pcase_nums):
+                diff = set(related_pcase_nums).difference(
+                    set([pid for pid in related_pcases.all()])
+                )
+                tqdm.write(
+                    f"One or more PreliminaryCases not found! Failed to find: {diff}"
+                )
+
+            existing_pcase_groups = (
+                related_pcases.order_by("pcase_group")
+                .values_list("pcase_group", flat=True)
+                .distinct()
+            )
+            existing_pcase_groups = [g for g in existing_pcase_groups if g]
+            if len(existing_pcase_groups) == 0:
+                pcase.pcase_group = PreliminaryCaseGroup.objects.create()
+                tqdm.write(f"Created PCG {pcase.pcase_group}")
+            elif len(existing_pcase_groups) == 1:
+                pcase.pcase_group = PreliminaryCaseGroup.objects.get(
+                    id=existing_pcase_groups[0]
+                )
+                tqdm.write(f"Found PCG {pcase.pcase_group}")
+                pcase.save()
+            else:
+                raise ValueError("fdfskfjasdl")
+
+            for related_pcase in related_pcases.all():
+                if (
+                    not related_pcase.pcase_group
+                    or related_pcase.pcase_group == pcase.pcase_group
+                ):
+                    related_pcase.pcase_group = pcase.pcase_group
+                    related_pcase.save()
+                else:
+                    raise ValueError("Oh shit")
+
+            tqdm.write(
+                f"PCG {pcase.pcase_group} now contains pcases: {pcase.pcase_group.prelim_cases.all()}"
+            )
+        else:
+            pcase.pcase_group = PreliminaryCaseGroup.objects.create()
+            pcase.save()
+
+        if case_num or related_pcase_nums:
+            pcase.save()
 
 
 @transaction.atomic
@@ -141,7 +237,7 @@ def main():
     found_counts = {
         "applicant": 0,
         "contact": 0,
-        "case": 0,
+        "pcase": 0,
         "technical_with_no_case": 0,
     }
     data_with_progress = tqdm(data, unit="rows")
@@ -156,12 +252,14 @@ def main():
         else:
             found_counts["applicant"] += bool(found_report["applicant"])
             found_counts["contact"] += bool(found_report["contact"])
-            found_counts["case"] += bool(found_report["case"])
+            found_counts["pcase"] += bool(found_report["pcase"])
             if (
                 not (found_report["applicant"] or found_report["contact"])
-                and found_report["case"]
+                and found_report["pcase"]
             ):
                 found_counts["technical_with_no_case"] += 1
+
+    derive_stuff()
 
     pprint(found_counts)
 

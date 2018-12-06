@@ -281,6 +281,10 @@ class Batch(IsActiveModel, TrackedModel, Model):
         return reverse("batch_detail", args=[str(self.id)])
 
 
+class PreliminaryCaseGroup(IsActiveModel, TrackedModel, Model):
+    comments = TextField(blank=True)
+
+
 class PreliminaryCase(IsActiveModel, TrackedModel, Model):
     applicant = ForeignKey(
         "Person",
@@ -296,9 +300,16 @@ class PreliminaryCase(IsActiveModel, TrackedModel, Model):
         null=True,
         blank=True,
     )
+    pcase_group = ForeignKey(
+        "PreliminaryCaseGroup",
+        on_delete=CASCADE,
+        null=True,
+        blank=True,
+        related_name="prelim_cases",
+    )
     comments = TextField(blank=True)
     case_num = PositiveIntegerField(
-        unique=True, db_index=True, verbose_name="Case Num."
+        unique=True, db_index=True, verbose_name="Prelim. Case Num."
     )
     name = CharField(max_length=256, blank=True, null=True)
 

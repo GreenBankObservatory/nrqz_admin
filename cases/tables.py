@@ -12,6 +12,7 @@ from .filters import (
     CaseFilter,
     StructureFilter,
     PreliminaryCaseFilter,
+    PreliminaryCaseGroupFilter,
 )
 from .columns import SelectColumn, TrimmedTextColumn
 
@@ -86,6 +87,18 @@ class FacilityTableWithConcur(FacilityTable):
         fields = FacilityFilter.Meta.fields + ["selected"]
 
 
+class PreliminaryCaseGroupTable(tables.Table):
+    comments = TrimmedTextColumn()
+
+    class Meta:
+        model = models.PreliminaryCaseGroup
+        fields = PreliminaryCaseGroupFilter.Meta.fields
+        # order_by = ["-case_num"]
+
+    # def render_case_num(self, value):
+    #     return f"P{value}"
+
+
 class PreliminaryCaseTable(tables.Table):
     case_num = tables.Column(linkify=True)
     applicant = tables.Column(linkify=True)
@@ -96,6 +109,9 @@ class PreliminaryCaseTable(tables.Table):
         model = models.PreliminaryCase
         fields = PreliminaryCaseFilter.Meta.fields
         order_by = ["-case_num"]
+
+    def render_case_num(self, value):
+        return f"P{value}"
 
 
 class CaseTable(tables.Table):

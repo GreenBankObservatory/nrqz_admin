@@ -24,12 +24,14 @@ from .models import (
     Person,
     LetterTemplate,
     Structure,
+    PreliminaryCaseGroup,
 )
 from .filters import (
     AttachmentFilter,
     BatchFilter,
     FacilityFilter,
     PersonFilter,
+    PreliminaryCaseGroupFilter,
     PreliminaryCaseFilter,
     CaseFilter,
     StructureFilter,
@@ -40,12 +42,12 @@ from .tables import (
     FacilityTable,
     FacilityTableWithConcur,
     PersonTable,
+    PreliminaryCaseGroupTable,
     PreliminaryCaseTable,
     CaseTable,
     LetterFacilityTable,
     StructureTable,
 )
-
 from .kml import (
     facility_as_kml,
     facilities_as_kml,
@@ -106,6 +108,12 @@ class BatchDetailView(DetailView):
             context["case_table"] = table
 
         return context
+
+
+class PreliminaryCaseGroupListView(FilterTableView):
+    table_class = PreliminaryCaseGroupTable
+    filterset_class = PreliminaryCaseGroupFilter
+    template_name = "cases/prelim_case_group_list.html"
 
 
 class PreliminaryCaseListView(FilterTableView):
@@ -299,6 +307,33 @@ class LetterView(TemplateView):
             return super(LetterView, self).render_to_response(
                 context, **response_kwargs
             )
+
+
+class PreliminaryCaseGroupDetailView(DetailView):
+    model = PreliminaryCaseGroup
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.prelim_case_filter = None
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Prelim case table
+        if self.prelim_case_filter is None:
+            self.prelim_case_filter = PreliminaryCaseFilter(
+                self.request.GET,
+                queryset=PreliminaryCase.objects.filter(pcase_group=self.object),
+                form_helper_kwargs={"form_class": "collapse"},
+            )
+            context["prelim_case_filter"] = self.prelim_case_filter
+
+        if "prelim_case_table" not in context:
+            table = PreliminaryCaseTable(data=self.prelim_case_filter.qs)
+            table.paginate(page=self.request.GET.get("page", 1), per_page=10)
+            context["prelim_case_table"] = table
+
+        return context
 
 
 class PreliminaryCaseDetailView(DetailView):
