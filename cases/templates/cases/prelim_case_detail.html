@@ -1,0 +1,60 @@
+{% extends "cases/base.html" %}
+{% load cases_tags %}
+{% load render_table from django_tables2 %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<h1>Preliminary Case {{ preliminarycase.case_num }}</h1>
+
+<p>Created on: {{ preliminarycase.created_on }}</p>
+<h2>Applicant Info</h2>
+<table class="table">
+    <tr>
+        <th>Applicant</th>
+        <td>
+            {% if preliminarycase.applicant %}
+            <a href={% url "person_detail" preliminarycase.applicant.id %}>{{ preliminarycase.applicant.name }}</a>
+            {% else %}
+            <p>None</p>
+            {% endif %}
+        </td>
+    </tr>
+    <tr>
+        <th>Contact</th>
+        <td>
+            {% if preliminarycase.contact %}
+            <a href={% url "person_detail" preliminarycase.contact.id %}>{{ preliminarycase.contact.name }}</a>
+            {% else %}
+            <p>None</p>
+            {% endif %}
+        </td>
+    </tr>
+</table>
+
+<div class="row">
+    <div class="col-sm">
+        {% info_table preliminarycase "Application" application_info %}
+    </div>
+    <div class="col-sm">
+        {% info_table preliminarycase "Status Info" status_info %}
+    </div>
+</div>
+
+<h2>Comments</h2>
+{% if preliminarycase.comments %}
+{{ preliminarycase.comments | linebreaks}}
+{% else %}
+<p>No comments</p>
+{% endif %}
+
+
+
+<h2>Attachments</h2>
+{% if attachment_table.data %}
+<div class="container-fluid">
+    {% filter_table attachment_table attachment_filter %}
+</div>
+{% else %}
+<p>No attachments</p>
+{% endif %}

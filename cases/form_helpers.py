@@ -93,6 +93,18 @@ class FacilityFilterFormHelper(FormHelper):
     )
 
 
+class PreliminaryCaseFilterFormHelper(FormHelper):
+    """Provides layout information for PreliminaryCaseFilter.form"""
+
+    layout = CollapsibleFilterFormLayout(
+        Div(
+            Div("case_num", "applicant", "contact", css_class="col"),
+            Div("radio_service", "completed", "comments", css_class="col"),
+            css_class="row",
+        )
+    )
+
+
 class CaseFilterFormHelper(FormHelper):
     """Provides layout information for CaseFilter.form"""
 

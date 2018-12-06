@@ -12,6 +12,7 @@ from .form_helpers import (
     PersonFilterFormHelper,
     AttachmentFilterFormHelper,
     StructureFilterFormHelper,
+    PreliminaryCaseFilterFormHelper,
 )
 from .fields import PointField
 
@@ -81,6 +82,19 @@ class FacilityFilter(HelpedFilterSet):
         fields = discover_fields(formhelper_class.layout)
 
 
+class PreliminaryCaseFilter(HelpedFilterSet):
+    created_on = django_filters.DateFromToRangeFilter(lookup_expr="range")
+    name = django_filters.CharFilter(lookup_expr="icontains")
+    applicant = django_filters.CharFilter(lookup_expr="name__icontains")
+    contact = django_filters.CharFilter(lookup_expr="name__icontains")
+    comments = django_filters.CharFilter(lookup_expr="icontains")
+
+    class Meta:
+        model = models.PreliminaryCase
+        formhelper_class = PreliminaryCaseFilterFormHelper
+        fields = discover_fields(formhelper_class.layout)
+
+
 class CaseFilter(HelpedFilterSet):
     created_on = django_filters.DateFromToRangeFilter(lookup_expr="range")
     name = django_filters.CharFilter(lookup_expr="icontains")
@@ -89,7 +103,7 @@ class CaseFilter(HelpedFilterSet):
     comments = django_filters.CharFilter(lookup_expr="icontains")
     freq_coord = django_filters.CharFilter(lookup_expr="icontains")
     fcc_file_num = django_filters.CharFilter(lookup_expr="icontains")
-    call_sign  = django_filters.CharFilter(lookup_expr="icontains")
+    call_sign = django_filters.CharFilter(lookup_expr="icontains")
 
     class Meta:
         model = models.Case

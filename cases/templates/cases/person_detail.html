@@ -17,4 +17,12 @@
     {% filter_table case_table case_filter %}
 </div>
 
+<h2>Preliminary Cases</h2>
+<p>Preliminary Cases where <b>{{ person.name }}</b> is either an applicant or a contact</p>
+<div class="container-fluid" style="border:1px solid #D3D3D3; border-radius: 10px">
+    {% filter_table prelim_case_table prelim_case_filter %}
+</div>
+
+
+
 {% endblock %}

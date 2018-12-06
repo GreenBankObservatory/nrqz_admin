@@ -281,6 +281,53 @@ class Batch(IsActiveModel, TrackedModel, Model):
         return reverse("batch_detail", args=[str(self.id)])
 
 
+class PreliminaryCase(IsActiveModel, TrackedModel, Model):
+    applicant = ForeignKey(
+        "Person",
+        on_delete=SET_NULL,
+        related_name="applicant_for_prelim_cases",
+        null=True,
+        blank=True,
+    )
+    contact = ForeignKey(
+        "Person",
+        on_delete=SET_NULL,
+        related_name="contact_for_prelim_cases",
+        null=True,
+        blank=True,
+    )
+    comments = TextField(blank=True)
+    case_num = PositiveIntegerField(
+        unique=True, db_index=True, verbose_name="Case Num."
+    )
+    name = CharField(max_length=256, blank=True, null=True)
+
+    case = ForeignKey(
+        "Case", related_name="prelim_cases", on_delete=SET_NULL, null=True, blank=True
+    )
+
+    attachments = ManyToManyField("Attachment", related_name="prelim_cases", blank=True)
+
+    completed = BooleanField(default=False, blank=True, verbose_name="Completed")
+    completed_on = DateTimeField(null=True, blank=True, verbose_name="Completed On")
+    radio_service = CharField(max_length=256, blank=True, verbose_name="Radio Service")
+    num_freqs = PositiveIntegerField(null=True, blank=True, verbose_name="Num. Freq.")
+    num_sites = PositiveIntegerField(null=True, blank=True, verbose_name="Num Sites")
+
+    # Misc.
+    slug = SlugField(unique=True)
+
+    def __str__(self):
+        return f"P{self.case_num}"
+
+    def get_absolute_url(self):
+        return reverse("prelim_case_detail", args=[str(self.case_num)])
+
+    def save(self, *args, **kwargs):
+        self.slug = str(self.case_num)
+        super().save(*args, **kwargs)
+
+
 class Case(IsActiveModel, TrackedModel, Model):
     """Defines a given NRQZ Application"""
 

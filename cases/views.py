@@ -1,31 +1,36 @@
 from datetime import date
 import tempfile
 
-import pypandoc
-
-from django.contrib import messages
-from django.views.generic import UpdateView
 from django.views.generic.detail import DetailView
 from django.views.generic.base import TemplateView
-from django.http import HttpResponse, HttpResponseRedirect
-from django.urls import reverse
+from django.http import HttpResponse
 from django.db.models import Min, Max
 from django.shortcuts import get_object_or_404
 from django.template import Template, Context
 from django.db.models import Q
 
-from crispy_forms.layout import Submit
+import pypandoc
 from dal import autocomplete
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 
 from .forms import LetterTemplateForm
-from .models import Attachment, Batch, Case, Facility, Person, LetterTemplate, Structure
+from .models import (
+    Attachment,
+    Batch,
+    PreliminaryCase,
+    Case,
+    Facility,
+    Person,
+    LetterTemplate,
+    Structure,
+)
 from .filters import (
     AttachmentFilter,
     BatchFilter,
     FacilityFilter,
     PersonFilter,
+    PreliminaryCaseFilter,
     CaseFilter,
     StructureFilter,
 )
@@ -35,6 +40,7 @@ from .tables import (
     FacilityTable,
     FacilityTableWithConcur,
     PersonTable,
+    PreliminaryCaseTable,
     CaseTable,
     LetterFacilityTable,
     StructureTable,
@@ -77,27 +83,6 @@ class BatchListView(FilterTableView):
     template_name = "cases/batch_list.html"
 
 
-# class BatchReimportView(UpdateView):
-#     model = Batch
-#     fields = []
-
-#     def get(self, request, *args, **kwargs):
-#         batch = self.get_object()
-#         return HttpResponseRedirect(reverse("batch_detail", args=[str(batch.id)]))
-
-#     def post(self, request, *args, **kwargs):
-#         batch = self.get_object()
-#         print(f"Re-importing myself, from {batch.imported_from}")
-#         ec = ExcelCollectionImporter(paths=[batch.imported_from])
-#         try:
-#             ec.process()
-#         except FileNotFoundError as error:
-#             messages.error(request, f"Failed to re-import Batch: {error}")
-#         else:
-#             messages.success(request, f"Successfully re-imported Batch")
-#         return HttpResponseRedirect(reverse("batch_detail", args=[str(batch.id)]))
-
-
 class BatchDetailView(DetailView):
     model = Batch
 
@@ -121,6 +106,12 @@ class BatchDetailView(DetailView):
             context["case_table"] = table
 
         return context
+
+
+class PreliminaryCaseListView(FilterTableView):
+    table_class = PreliminaryCaseTable
+    filterset_class = PreliminaryCaseFilter
+    template_name = "cases/prelim_case_list.html"
 
 
 class CaseListView(FilterTableView):
@@ -310,6 +301,36 @@ class LetterView(TemplateView):
             )
 
 
+class PreliminaryCaseDetailView(DetailView):
+    model = PreliminaryCase
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.attachment_filter = None
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context["status_info"] = ["completed", "completed_on"]
+
+        context["application_info"] = ["radio_service", "num_freqs", "num_sites"]
+
+        if not self.attachment_filter:
+            self.attachment_filter = AttachmentFilter(
+                self.request.GET,
+                queryset=self.object.attachments.all(),
+                form_helper_kwargs={"form_class": "collapse"},
+            )
+            context["attachment_filter"] = self.attachment_filter
+
+        if "attachment_table" not in context:
+            table = AttachmentTable(data=self.attachment_filter.qs)
+            table.paginate(page=self.request.GET.get("page", 1), per_page=10)
+            context["attachment_table"] = table
+
+        return context
+
+
 class CaseDetailView(DetailView):
     model = Case
 
@@ -460,6 +481,7 @@ class PersonDetailView(DetailView):
     def __init__(self, *args, **kwargs):
         super(PersonDetailView, self).__init__(*args, **kwargs)
         self.case_filter = None
+        self.prelim_case_filter = None
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -477,6 +499,7 @@ class PersonDetailView(DetailView):
             "zipcode",
         ]
 
+        # Case table
         if self.case_filter is None:
             self.case_filter = CaseFilter(
                 self.request.GET,
@@ -491,6 +514,22 @@ class PersonDetailView(DetailView):
             table = CaseTable(data=self.case_filter.qs)
             table.paginate(page=self.request.GET.get("page", 1), per_page=10)
             context["case_table"] = table
+
+        # Prelim case table
+        if self.prelim_case_filter is None:
+            self.prelim_case_filter = PreliminaryCaseFilter(
+                self.request.GET,
+                queryset=PreliminaryCase.objects.filter(
+                    Q(applicant=self.object) | Q(contact=self.object)
+                ),
+                form_helper_kwargs={"form_class": "collapse"},
+            )
+            context["prelim_case_filter"] = self.prelim_case_filter
+
+        if "prelim_case_table" not in context:
+            table = PreliminaryCaseTable(data=self.prelim_case_filter.qs)
+            table.paginate(page=self.request.GET.get("page", 1), per_page=10)
+            context["prelim_case_table"] = table
 
         return context
 

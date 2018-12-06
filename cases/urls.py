@@ -7,13 +7,14 @@ from . import views
 urlpatterns = [
     path("batches/", views.BatchListView.as_view(), name="batch_index"),
     path("batches/<int:pk>/", views.BatchDetailView.as_view(), name="batch_detail"),
-    # path(
-    #     "batches/<int:pk>/reimport",
-    #     views.BatchReimportView.as_view(),
-    #     name="batch_reimport",
-    # ),
     path("cases/", views.CaseListView.as_view(), name="case_index"),
     path("cases/<int:slug>/", views.CaseDetailView.as_view(), name="case_detail"),
+    path("pcases/", views.PreliminaryCaseListView.as_view(), name="prelim_case_index"),
+    path(
+        "pcases/<int:slug>/",
+        views.PreliminaryCaseDetailView.as_view(),
+        name="prelim_case_detail",
+    ),
     path("structures/", views.StructureListView.as_view(), name="structure_index"),
     path(
         "structures/<int:pk>/",

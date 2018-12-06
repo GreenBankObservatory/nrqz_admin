@@ -2,7 +2,6 @@ from datetime import datetime
 import pytz
 
 from tools.fieldmap import FieldMap, coerce_num
-from cases.models import Person, Case
 
 
 def coerce_case(value):
