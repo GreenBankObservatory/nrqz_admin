@@ -71,7 +71,12 @@ field_mappers = [
     FieldMap(
         to_field="amsl",
         converter=coerce_num,
-        from_fields=["AMSL (m)", "AMSL  (meters)", "AMSL  (meters) Ground elevation"],
+        from_fields=[
+            "AMSL (m)",
+            "AMSL  (meters)",
+            "AMSL  (meters) Ground elevation",
+            "MSL (m)",
+        ],
     ),
     FieldMap(
         to_field="agl",
@@ -305,7 +310,6 @@ field_mappers = [
         from_fields=["Height of 1st obstacle (ft)"],
     ),
     FieldMap(to_field="loc", converter=None, from_fields=["LOC"]),
-    FieldMap(to_field="msl", converter=None, from_fields=["MSL (m)", "MSL"]),
     FieldMap(to_field="max_aerpd", converter=None, from_fields=["Max AERPd (dBm)"]),
     FieldMap(
         to_field="max_erp_per_tx", converter=None, from_fields=["Max ERP per TX (W)"]
@@ -332,11 +336,13 @@ for importer in field_mappers:
     for header in importer.from_fields:
         facility_field_map[header] = importer
 
+
 def gen_header_field_map(headers):
     header_field_map = OrderedDict(
         [(header, facility_field_map.get(header, None)) for header in headers]
     )
     return header_field_map
+
 
 def get_unmapped_headers(header_field_map):
     return [header for header, field in header_field_map.items() if field is None]

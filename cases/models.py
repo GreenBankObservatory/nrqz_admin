@@ -227,7 +227,6 @@ class Facility(IsActiveModel, TrackedModel, Model):
         null=True, blank=True, verbose_name="Height of First Obstacle (ft)"
     )
     loc = CharField(max_length=256, blank=True, verbose_name="LOC")
-    msl = CharField(max_length=256, blank=True, verbose_name="MSL (m)")
     max_aerpd = FloatField(null=True, blank=True, verbose_name="Max AERPd (dBm)")
     max_erp_per_tx = FloatField(
         null=True, blank=True, verbose_name="Max ERP per TX (W)"

@@ -54,7 +54,7 @@ def main():
     args = parse_args()
     files_to_process = determine_files_to_process(args.paths, pattern=args.pattern)
     eci = ExcelCollectionImporter(
-        files_to_process,
+        paths=files_to_process,
         durable=args.durable,
         threshold=args.threshold,
         preprocess=not bool(args.no_preprocess),

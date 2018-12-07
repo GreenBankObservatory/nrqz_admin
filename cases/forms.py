@@ -142,7 +142,6 @@ class FacilityForm(forms.ModelForm):
             "erpd_per_num_tx",
             "height_of_first_obstacle",
             "loc",
-            "msl",
             "max_aerpd",
             "max_erp_per_tx",
             "max_gain",

@@ -6,7 +6,7 @@
 <h1>Batch Audit {{ batchaudit.id }}</h1>
 <p><a href=file://{{ batchaudit.original_file }}>Open original Excel file: {{batchaudit.original_file|basename}}</a></p>
 
-<p><a href={% url "admin:cases_batchaudit_change" batchaudit.id %}>Edit</a></p>
+
 
 <p><a href={% url "batch_audit_group_detail" batchaudit.audit_group.id %}>Audit Group</a></p>
 

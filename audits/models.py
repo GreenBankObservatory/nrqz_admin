@@ -86,7 +86,7 @@ class ObjectAudit(IsActiveModel, TrackedModel, models.Model):
         self.audit_group.status = self.status
         self.audit_group.last_imported_path = self.original_file
         self.audit_group.save()
-        super(ObjectAudit, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
 
 class BatchAudit(ObjectAudit):

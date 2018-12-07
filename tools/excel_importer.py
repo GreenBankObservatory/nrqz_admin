@@ -146,8 +146,6 @@ class ExcelImporter:
     ):
         # The path to the Excel file to import
         self.path = path
-        # The Batch representation of the Excel file
-        self.batch = None
         # Our import reporter object
         self.report = ImportReport(path)
         self.durable = durable
@@ -304,11 +302,13 @@ class ExcelImporter:
         self.report.cases_processed += 1
         # Create the case...
         try:
-            case = Case.objects.create(batch=self.batch, case_num=case_num)
+            case = Case.objects.create(
+                batch=self.batch_audit_group.batch, case_num=case_num
+            )
         # ...or report an error if we can't
         except IntegrityError as error:
             dce = DuplicateCaseError(
-                f"Batch '{self.batch}' rejected due to duplicate case: {case_num}"
+                f"Batch '{self.batch_audit_group.batch}' rejected due to duplicate case: {case_num}"
             )
             self.report.add_case_error("IntegrityError", error)
             self.report.cases_not_created.append(case_num)
@@ -330,7 +330,7 @@ class ExcelImporter:
                     )
 
     @transaction.atomic
-    def handle_existing_batch(self):
+    def delete_existing_batch(self):
         existing_batch = self.batch_audit_group.batch
         if existing_batch:
             tqdm.write(
@@ -362,23 +362,22 @@ class ExcelImporter:
                     raise ValueError(
                         f"Failed to delete Facility {facility}!"
                     ) from error
-        return existing_batch
 
     def create_batch(self):
+        if self.batch_audit_group.batch:
+            batch_id = self.batch_audit_group.batch.id
+            batch_name = self.batch_audit_group.batch.name
+        else:
+            batch_id = None
+            batch_name = os.path.basename(self.path).replace(" ", "_")
         # Purge any existing batch
-        existing_batch = self.handle_existing_batch()
-
+        self.delete_existing_batch()
         batch = Batch.objects.create(
-            id=existing_batch.id if existing_batch else None,
-            name=(
-                existing_batch.name
-                if existing_batch
-                else os.path.basename(self.path).replace(" ", "_")
-            ),
+            id=batch_id,
+            name=batch_name,
             comments=f"Created by {__file__}",
             imported_from=self.path,
         )
-        self.batch = batch
         tqdm.write(f"Created Batch {batch} <{batch.id}>")
         return batch
 
@@ -443,12 +442,10 @@ class ExcelImporter:
     def process(self):
         if not self.batch_audit_group:
             self.batch_audit_group = BatchAuditGroup.objects.create()
-            tqdm.write(
-                f"Created audit_group {self.batch_audit_group} linked to {self.batch}"
-            )
+            tqdm.write(f"Created audit_group {self.batch_audit_group}")
         else:
             tqdm.write(
-                f"Got audit_group {self.batch_audit_group} linked to {self.batch}"
+                f"Got audit_group {self.batch_audit_group} linked to {self.batch_audit_group.batch}"
             )
 
         batch_audit = BatchAudit.objects.create(
@@ -460,8 +457,10 @@ class ExcelImporter:
         tqdm.write(
             f"Created batch_audit {batch_audit.id} linked to audit_group {self.batch_audit_group}"
         )
-
-        self._process()
+        try:
+            self._process()
+        except BatchRejectionError:
+            tqdm.write("Rolling back batch stuff!")
 
         if self.report.has_fatal_errors():
             # This is a sanity check to ensure that the Batch has in fact been
@@ -470,9 +469,13 @@ class ExcelImporter:
             # expect that this will fail, but if for some reason it succeeds
             # then we treat this as a fatal error
             try:
-                self.batch.refresh_from_db()
+                self.batch_audit_group.batch.refresh_from_db()
             except Batch.DoesNotExist:
                 tqdm.write(f"Successfully rejected Batch {self.path}")
+                # Since the batch was rejected, we must remove it from the
+                # BAG, otherwise we'll end up with an IntegrityError
+                self.batch_audit_group.batch = None
+                self.batch_audit_group.save()
             else:
                 raise AssertionError("Batch should have been rolled back, but wasn't!")
             self.rolled_back = True
@@ -480,14 +483,11 @@ class ExcelImporter:
             # Similarly, we want to ensure that the Batch has been committed
             # if there are no fatal errors in importing it
             try:
-                self.batch.refresh_from_db()
+                self.batch_audit_group.batch.refresh_from_db()
             except Batch.DoesNotExist as error:
                 raise AssertionError(
                     "Batch should have been committed, but wasn't!"
                 ) from error
-            else:
-                self.batch_audit_group.batch = self.batch
-                self.batch_audit_group.save()
 
         if not self.rolled_back:
             if self.report.has_errors():
@@ -498,6 +498,7 @@ class ExcelImporter:
             status = "rejected"
 
         batch_audit.status = status
+        self.batch_audit_group.save()
         batch_audit.save()
         tqdm.write(f"ba status: {batch_audit.status}")
         tqdm.write(f"bag status: {batch_audit.audit_group.status}")
@@ -507,7 +508,7 @@ class ExcelImporter:
     def _process(self):
         """Create objects from given path"""
 
-        self.create_batch()
+        self.batch_audit_group.batch = self.create_batch()
 
         rows = self.load_excel_data()
         # A list of the headers actually in the file
@@ -541,7 +542,7 @@ class ExcelImporter:
             self.report.set_unmapped_fields(unmapped_fields)
             if not self.durable:
                 raise UnmappedFieldError(
-                    f"Batch '{self.batch}' rejected due to unmapped DB fields: {unmapped_fields}"
+                    f"Batch '{self.batch_audit_group.batch}' rejected due to unmapped DB fields: {unmapped_fields}"
                 )
 
         # Determine the field in which our NRQZ ID string has been stored
@@ -561,17 +562,16 @@ class ExcelImporter:
 
         if self.report.report:
             error_summary = self.report.get_non_fatal_errors()
-            self.batch.import_error_summary = json.dumps(error_summary, indent=2)
+            self.batch_audit_group.batch.import_error_summary = json.dumps(
+                error_summary, indent=2
+            )
             tqdm.write(self.path)
-            tqdm.write(self.batch.import_error_summary)
-            self.batch.save()
+            tqdm.write(self.batch_audit_group.batch.import_error_summary)
+            self.batch_audit_group.batch.save()
 
         if self.report.has_fatal_errors():
-            # TODO: Do we want this instead of an error still?
-            transaction.set_rollback(True)
-
-        #     raise BatchRejectionError(
-        #         "One or more fatal errors has occurred!", self.report
-        #     )
+            raise BatchRejectionError(
+                "One or more fatal errors has occurred!", self.report
+            )
 
         return self.report
