@@ -41,6 +41,13 @@
     </div>
 </div>
 
+<h2>Related Case</h2>
+{% if preliminarycase.pcase_group.case %}
+<a href="{% url "case_detail" preliminarycase.pcase_group.case.case_num %}">{{ preliminarycase.pcase_group.case }}</a>
+{% else %}
+<p>No related Case</p>
+{% endif %}
+
 <h2>Related PCases</h2>
 {% if preliminarycase.pcase_group.prelim_cases.exists %}
 <ul>

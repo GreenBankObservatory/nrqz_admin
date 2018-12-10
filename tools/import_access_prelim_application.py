@@ -38,11 +38,12 @@ def load_rows(path):
 
 _letters = [f"letter{i}" for i in range(1, 9)]
 
-case_regex_str = r"[Cc]ase\s*(?P<case_num>\d+)"
-case_regex = re.compile(case_regex_str)
+# https://regex101.com/r/g6NM6e/1
+case_regex_str = r"(?:(?:NRQZ ID )|(?:NRQZ#)|(?:Case\s*))(?P<case_num>\d+)"
+case_regex = re.compile(case_regex_str, re.IGNORECASE)
 
 pcase_regex_str = r"NRQZ#P(\d+)"
-pcase_regex = re.compile(pcase_regex_str)
+pcase_regex = re.compile(pcase_regex_str, re.IGNORECASE)
 
 
 def derive_case_num(pcase):
@@ -155,6 +156,8 @@ def derive_stuff():
     for pcase in tqdm(PreliminaryCase.objects.all(), unit="cases"):
         case_num = derive_case_num(pcase)
         if case_num:
+            if pcase.case and pcase.case.case_num != case_num:
+                raise ValueError("aw man")
             try:
                 pcase.case = Case.objects.get(case_num=case_num)
             except Case.DoesNotExist:
