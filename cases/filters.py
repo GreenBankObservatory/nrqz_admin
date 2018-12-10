@@ -3,9 +3,6 @@
 from django.contrib.gis.measure import Distance
 import django_filters
 
-from django.contrib.postgres.search import TrigramSimilarity
-
-
 from utils.layout import discover_fields
 from . import models
 from .form_helpers import (
@@ -46,7 +43,7 @@ class HelpedFilterSet(django_filters.FilterSet):
 
 class BatchFilter(HelpedFilterSet):
     name = django_filters.CharFilter(lookup_expr="icontains")
-    comments = django_filters.CharFilter(lookup_expr="icontains")
+    comments = django_filters.CharFilter(lookup_expr="search")
 
     class Meta:
         model = models.Batch
@@ -78,7 +75,7 @@ class FacilityFilter(HelpedFilterSet):
     structure = django_filters.CharFilter(lookup_expr="asr__exact")
     main_beam_orientation = django_filters.CharFilter(lookup_expr="icontains")
     antenna_model_number = django_filters.CharFilter(lookup_expr="icontains")
-    comments = django_filters.CharFilter(lookup_expr="icontains")
+    comments = django_filters.CharFilter(lookup_expr="search")
 
     class Meta:
         model = models.Facility
@@ -87,7 +84,7 @@ class FacilityFilter(HelpedFilterSet):
 
 
 class PreliminaryCaseGroupFilter(HelpedFilterSet):
-    comments = django_filters.CharFilter(lookup_expr="icontains")
+    comments = django_filters.CharFilter(lookup_expr="search")
 
     class Meta:
         model = models.PreliminaryCaseGroup
@@ -100,7 +97,7 @@ class PreliminaryCaseFilter(HelpedFilterSet):
     name = django_filters.CharFilter(lookup_expr="icontains")
     applicant = django_filters.CharFilter(lookup_expr="name__icontains")
     contact = django_filters.CharFilter(lookup_expr="name__icontains")
-    comments = django_filters.CharFilter(lookup_expr="icontains")
+    comments = django_filters.CharFilter(lookup_expr="search")
 
     class Meta:
         model = models.PreliminaryCase
@@ -111,9 +108,9 @@ class PreliminaryCaseFilter(HelpedFilterSet):
 class CaseFilter(HelpedFilterSet):
     created_on = django_filters.DateFromToRangeFilter(lookup_expr="range")
     name = django_filters.CharFilter(lookup_expr="icontains")
-    applicant = django_filters.CharFilter(lookup_expr="name__trigram_similar")
-    contact = django_filters.CharFilter(lookup_expr="name__trigram_similar")
-    comments = django_filters.CharFilter(lookup_expr="icontains")
+    applicant = django_filters.CharFilter(lookup_expr="name__unaccent__trigram_similar")
+    contact = django_filters.CharFilter(lookup_expr="name__unaccent__trigram_similar")
+    comments = django_filters.CharFilter(lookup_expr="search")
     freq_coord = django_filters.CharFilter(lookup_expr="icontains")
     fcc_file_num = django_filters.CharFilter(lookup_expr="icontains")
     call_sign = django_filters.CharFilter(lookup_expr="icontains")
@@ -132,7 +129,7 @@ class PersonFilter(HelpedFilterSet):
     city = django_filters.CharFilter(lookup_expr="icontains")
     state = django_filters.CharFilter(lookup_expr="icontains")
     zipcode = django_filters.CharFilter(lookup_expr="icontains")
-    comments = django_filters.CharFilter(lookup_expr="icontains")
+    comments = django_filters.CharFilter(lookup_expr="search")
 
     class Meta:
         model = models.Person
@@ -142,7 +139,7 @@ class PersonFilter(HelpedFilterSet):
 
 class AttachmentFilter(HelpedFilterSet):
     path = django_filters.CharFilter(lookup_expr="icontains")
-    comments = django_filters.CharFilter(lookup_expr="icontains")
+    comments = django_filters.CharFilter(lookup_expr="search")
 
     class Meta:
         model = models.Attachment
