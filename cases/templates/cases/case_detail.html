@@ -50,6 +50,20 @@
             <p>None</p>
             {% endif %}
         </td>
+        <td>
+            {% if case.applicant.phone %}
+            <p>{{ case.applicant.phone }}</p>
+            {% else %}
+            <p>No phone</p>
+            {% endif %}
+        </td>
+        <td>
+            {% if case.applicant.email %}
+            <p>{{ case.applicant.email }}</p>
+            {% else %}
+            <p>No email</p>
+            {% endif %}
+        </td>
     </tr>
     <tr>
         <th>Contact</th>
@@ -58,6 +72,20 @@
             <a href={% url "person_detail" case.contact.id %}>{{ case.contact.name }}</a>
             {% else %}
             <p>None</p>
+            {% endif %}
+        </td>
+        <td>
+            {% if case.contact.phone %}
+            <p>{{ case.contact.phone }}</p>
+            {% else %}
+            <p>No phone</p>
+            {% endif %}
+        </td>
+        <td>
+            {% if case.contact.email %}
+            <p>{{ case.contact.email }}</p>
+            {% else %}
+            <p>No email</p>
             {% endif %}
         </td>
     </tr>
