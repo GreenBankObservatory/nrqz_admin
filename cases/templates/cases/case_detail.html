@@ -12,7 +12,7 @@
 
 <p><a href={% url "admin:cases_case_change" case.id %}>Edit</a></p>
 
-<h1>Case {{ case.case_num }}</h1>
+<h1>Case {{ case.case_num }} ({{ case.applicant.name }})</h1>
 
 <p>Created on: {{ case.created_on }}</p>
 
