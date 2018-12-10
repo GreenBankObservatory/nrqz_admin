@@ -106,10 +106,14 @@ def handle_row(field_importers, row):
 
         try:
             case = Case.objects.get(case_num=case_dict["case_num"])
+            tqdm.write(f"Found case {case}")
             case.applicant = applicant
             case.contact = contact
+            for field, value in case_dict.items():
+                if field not in ["case_num", "applicant", "contact"]:
+                    setattr(case, field, value)
+                    # tqdm.write(f"Set {field} to {value}")
             case.save()
-            tqdm.write(f"Found case {case}")
             found_report["case"] = True
         except Case.DoesNotExist:
             case = Case.objects.create(
