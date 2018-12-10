@@ -7,7 +7,10 @@
 
 <h1>Preliminary Case {{ preliminarycase.case_num }}</h1>
 
-<p>Created on: {{ preliminarycase.created_on }}</p>
+<p>Imported on: {{ preliminarycase.created_on }}</p>
+{% if preliminarycase.original_created_on %}
+<p>Originally created on: {{ preliminarycase.original_created_on }}</p>
+{% endif %}
 <h2>Applicant Info</h2>
 <table class="table">
     <tr>

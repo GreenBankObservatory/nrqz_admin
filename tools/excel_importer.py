@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import os
 from pprint import pformat
@@ -23,13 +24,6 @@ from tools.strip_excel_non_data import strip_excel_sheet
 DEFAULT_DURABLE = False
 DEFAULT_THRESHOLD = 0.7
 DEFAULT_PREPROCESS = True
-
-
-def log_commit():
-    tqdm.write("Transaction committed")
-
-
-transaction.on_commit(log_commit)
 
 
 class BatchImportException(Exception):
@@ -64,8 +58,8 @@ class TooManyUnmappedHeadersError(BatchRejectionError):
     pass
 
 
-# https://regex101.com/r/gRPTN8/1
-nrqz_id_regex_str = r"^(?P<case_num>\d+)[\s_\*]+(?:\(.*\)[\s_]+)?(?P<site_name>(?:(?:\w+\s+)?\S{5}|\D+))[\s_]+(?P<facility_name>\S+)$"
+# https://regex101.com/r/gRPTN8/3
+nrqz_id_regex_str = r"^(?P<case_num>\d+)(?:\-\d+)?(?:[\s_\*]+(?:\(.*\)[\s_]+)?(?P<site_name>(?:(?:\w+\s+)?\S{5}|\D+))[\s_]+(?P<facility_name>\S+))?"
 nrqz_id_regex = re.compile(nrqz_id_regex_str)
 nrqz_id_regex_fallback_str = r"^(?P<case_num>\d+).*"
 nrqz_id_regex_fallback = re.compile(nrqz_id_regex_fallback_str)
@@ -363,6 +357,19 @@ class ExcelImporter:
                         f"Failed to delete Facility {facility}!"
                     ) from error
 
+    def get_batch_created_on(self):
+        """NOTE: Behavior here is OS DEPENDENT!
+
+        https://docs.python.org/3.6/library/os.path.html?highlight=ctime#os.path.getctime
+        """
+
+        created_on = datetime.fromtimestamp(os.path.getctime(self.path))
+        return created_on
+
+    def get_batch_modified_on(self):
+        modified_on = datetime.fromtimestamp(os.path.getmtime(self.path))
+        return modified_on
+
     def create_batch(self):
         if self.batch_audit_group.batch:
             batch_id = self.batch_audit_group.batch.id
@@ -370,6 +377,8 @@ class ExcelImporter:
         else:
             batch_id = None
             batch_name = os.path.basename(self.path).replace(" ", "_")
+        batch_created_on = self.get_batch_created_on()
+        batch_modified_on = self.get_batch_modified_on()
         # Purge any existing batch
         self.delete_existing_batch()
         batch = Batch.objects.create(
@@ -377,6 +386,8 @@ class ExcelImporter:
             name=batch_name,
             comments=f"Created by {__file__}",
             imported_from=self.path,
+            original_created_on=batch_created_on,
+            original_modified_on=batch_modified_on,
         )
         tqdm.write(f"Created Batch {batch} <{batch.id}>")
         return batch

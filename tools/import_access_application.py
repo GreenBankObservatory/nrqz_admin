@@ -90,6 +90,7 @@ def handle_row(field_importers, row):
         stripped_case_dict = {}
         attachments = []
         for key, value in case_dict.items():
+            # If item is a Letter, process it here
             if key in _letters:
                 if value:
                     try:
@@ -102,6 +103,7 @@ def handle_row(field_importers, row):
                         # tqdm.write(f"Created attachment: {attachment}")
                     attachments.append(attachment)
             else:
+                # Otherwise just add it straight into our case_dict
                 stripped_case_dict[key] = value
 
         try:
@@ -110,7 +112,13 @@ def handle_row(field_importers, row):
             case.applicant = applicant
             case.contact = contact
             for field, value in case_dict.items():
-                if field not in ["case_num", "applicant", "contact"]:
+                if field not in [
+                    "case_num",
+                    "applicant",
+                    "contact",
+                    "created_on",
+                    "modified_on",
+                ]:
                     setattr(case, field, value)
                     # tqdm.write(f"Set {field} to {value}")
             case.save()

@@ -27,7 +27,9 @@ contact_field_mappers = [
 case_field_mappers = [
     FieldMap(to_field="case_num", converter=coerce_positive_int, from_field="PNRQZ_NO"),
     FieldMap(to_field="comments", converter=None, from_field="COMMENTS"),
-    FieldMap(to_field="created_on", converter=coerce_datetime, from_field="DATEREC"),
+    FieldMap(
+        to_field="original_created_on", converter=coerce_datetime, from_field="DATEREC"
+    ),
     FieldMap(to_field="completed", converter=coerce_bool, from_field="COMPLETED"),
     FieldMap(to_field="completed_on", converter=coerce_datetime, from_field="DATECOMP"),
     FieldMap(to_field="radio_service", converter=None, from_field="RADIOSRV"),

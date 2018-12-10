@@ -11,6 +11,14 @@ class IsActiveModel(models.Model):
         abstract = True
 
 
+class TrackedOriginalModel(models.Model):
+    original_created_on = models.DateTimeField(null=True, blank=True)
+    original_modified_on = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        abstract = True
+
+
 class TrackedModel(models.Model):
     """An abstract class for any models that need to track who
     created or last modified an object and when.

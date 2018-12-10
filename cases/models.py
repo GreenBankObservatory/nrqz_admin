@@ -22,7 +22,7 @@ from django.contrib.gis.db.models import PointField
 
 from utils.coord_utils import dd_to_dms
 from .kml import facility_as_kml, case_as_kml, kml_to_string
-from .mixins import IsActiveModel, TrackedModel
+from .mixins import TrackedOriginalModel, IsActiveModel, TrackedModel
 
 
 class Structure(IsActiveModel, TrackedModel, Model):
@@ -266,7 +266,7 @@ class Facility(IsActiveModel, TrackedModel, Model):
         return kml_to_string(facility_as_kml(self))
 
 
-class Batch(IsActiveModel, TrackedModel, Model):
+class Batch(TrackedOriginalModel, IsActiveModel, TrackedModel, Model):
     comments = TextField(blank=True)
     attachments = ManyToManyField("Attachment")
     name = CharField(max_length=256, unique=True)
@@ -291,7 +291,7 @@ class PreliminaryCaseGroup(IsActiveModel, TrackedModel, Model):
         verbose_name_plural = "Preliminary Case Groups"
 
 
-class PreliminaryCase(IsActiveModel, TrackedModel, Model):
+class PreliminaryCase(TrackedOriginalModel, IsActiveModel, TrackedModel, Model):
     applicant = ForeignKey(
         "Person",
         on_delete=SET_NULL,
@@ -349,7 +349,7 @@ class PreliminaryCase(IsActiveModel, TrackedModel, Model):
         verbose_name_plural = "Preliminary Cases"
 
 
-class Case(IsActiveModel, TrackedModel, Model):
+class Case(TrackedOriginalModel, IsActiveModel, TrackedModel, Model):
     """Defines a given NRQZ Application"""
 
     # sites = ManyToManyField("Site")

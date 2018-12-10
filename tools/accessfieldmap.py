@@ -70,9 +70,13 @@ contact_field_mappers = [
 case_field_mappers = [
     FieldMap(to_field="case_num", converter=coerce_positive_int, from_field="NRQZ_NO"),
     FieldMap(to_field="comments", converter=None, from_field="COMMENTS"),
-    FieldMap(to_field="created_on", converter=coerce_datetime, from_field="DATEREC"),
     FieldMap(
-        to_field="modified_on", converter=coerce_datetime, from_field="DATEALTERED"
+        to_field="original_created_on", converter=coerce_datetime, from_field="DATEREC"
+    ),
+    FieldMap(
+        to_field="original_modified_on",
+        converter=coerce_datetime,
+        from_field="DATEALTERED",
     ),
     FieldMap(to_field="completed", converter=coerce_bool, from_field="COMPLETED"),
     FieldMap(to_field="shutdown", converter=coerce_bool, from_field="SHUTDOWN"),

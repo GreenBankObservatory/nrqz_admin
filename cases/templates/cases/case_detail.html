@@ -14,7 +14,10 @@
 
 <h1>Case {{ case.case_num }} ({{ case.applicant.name }})</h1>
 
-<p>Created on: {{ case.created_on }}</p>
+<p>Imported on: {{ case.created_on }}</p>
+{% if case.original_created_on %}
+<p>Originally created on: {{ case.original_created_on }}</p>
+{% endif %}
 
 <h2>Facilities</h2>
 {% if case.facilities.all %}
