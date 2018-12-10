@@ -145,3 +145,11 @@ DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap4.html"
 # django-crispy-forms
 # Use Bootstrap4 form classes
 CRISPY_TEMPLATE_PACK = "bootstrap4"
+
+
+def FILTERS_VERBOSE_LOOKUPS():
+    from django_filters.conf import DEFAULTS
+
+    verbose_lookups = DEFAULTS["VERBOSE_LOOKUPS"].copy()
+    verbose_lookups.update({"trigram_similar": "is similar to"})
+    return verbose_lookups

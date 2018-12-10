@@ -111,8 +111,8 @@ class PreliminaryCaseFilter(HelpedFilterSet):
 class CaseFilter(HelpedFilterSet):
     created_on = django_filters.DateFromToRangeFilter(lookup_expr="range")
     name = django_filters.CharFilter(lookup_expr="icontains")
-    applicant = django_filters.CharFilter(lookup_expr="name__icontains")
-    contact = django_filters.CharFilter(lookup_expr="name__icontains")
+    applicant = django_filters.CharFilter(lookup_expr="name__trigram_similar")
+    contact = django_filters.CharFilter(lookup_expr="name__trigram_similar")
     comments = django_filters.CharFilter(lookup_expr="icontains")
     freq_coord = django_filters.CharFilter(lookup_expr="icontains")
     fcc_file_num = django_filters.CharFilter(lookup_expr="icontains")
@@ -124,28 +124,8 @@ class CaseFilter(HelpedFilterSet):
         fields = discover_fields(formhelper_class.layout)
 
 
-class FuzzyCharFilter(django_filters.Filter):
-    def __init__(self, *args, threshold=0.7, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.threshold = threshold
-
-    def filter(self, qs, value):
-        if value in django_filters.constants.EMPTY_VALUES:
-            return qs
-        if self.distinct:
-            qs = qs.distinct()
-        annotation_field = f"{self.field_name}_similarity"
-        # Annotate with similarity information so that we can perform
-        qs = qs.annotate(
-            **{annotation_field: TrigramSimilarity(self.field_name, value)}
-        )
-        lookup = f"{annotation_field}__gt"
-        qs = self.get_method(qs)(**{lookup: self.threshold})
-        return qs
-
-
 class PersonFilter(HelpedFilterSet):
-    name = FuzzyCharFilter(label="Name is similar to")
+    name = django_filters.CharFilter(lookup_expr="trigram_similar")
     email = django_filters.CharFilter(lookup_expr="icontains")
     phone = django_filters.CharFilter(lookup_expr="icontains")
     street = django_filters.CharFilter(lookup_expr="icontains")
