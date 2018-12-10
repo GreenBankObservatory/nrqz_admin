@@ -3,6 +3,9 @@
 from django.contrib.gis.measure import Distance
 import django_filters
 
+from django.contrib.postgres.search import TrigramSimilarity
+
+
 from utils.layout import discover_fields
 from . import models
 from .form_helpers import (
@@ -121,8 +124,28 @@ class CaseFilter(HelpedFilterSet):
         fields = discover_fields(formhelper_class.layout)
 
 
+class FuzzyCharFilter(django_filters.Filter):
+    def __init__(self, *args, threshold=0.7, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.threshold = threshold
+
+    def filter(self, qs, value):
+        if value in django_filters.constants.EMPTY_VALUES:
+            return qs
+        if self.distinct:
+            qs = qs.distinct()
+        annotation_field = f"{self.field_name}_similarity"
+        # Annotate with similarity information so that we can perform
+        qs = qs.annotate(
+            **{annotation_field: TrigramSimilarity(self.field_name, value)}
+        )
+        lookup = f"{annotation_field}__gt"
+        qs = self.get_method(qs)(**{lookup: self.threshold})
+        return qs
+
+
 class PersonFilter(HelpedFilterSet):
-    name = django_filters.CharFilter(lookup_expr="icontains")
+    name = FuzzyCharFilter(label="Name is similar to")
     email = django_filters.CharFilter(lookup_expr="icontains")
     phone = django_filters.CharFilter(lookup_expr="icontains")
     street = django_filters.CharFilter(lookup_expr="icontains")

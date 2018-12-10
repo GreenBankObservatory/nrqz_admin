@@ -136,6 +136,7 @@ class BatchTable(tables.Table):
 
 
 class PersonTable(tables.Table):
+    name = tables.Column(linkify=True)
     comments = TrimmedTextColumn()
 
     class Meta:
