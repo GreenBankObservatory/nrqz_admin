@@ -6,11 +6,8 @@
 {% block content %}
 
 <h1>Preliminary Case {{ preliminarycase.case_num }}</h1>
+{% include "cases/base_detail.html" %}
 
-<p>Imported on: {{ preliminarycase.created_on }}</p>
-{% if preliminarycase.original_created_on %}
-<p>Originally created on: {{ preliminarycase.original_created_on }}</p>
-{% endif %}
 <h2>Applicant Info</h2>
 <table class="table">
     <tr>

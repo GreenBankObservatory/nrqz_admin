@@ -4,6 +4,8 @@
 
 {% block content %}
 <h1>Batch Audit Group {{ batchauditgroup.id }}</h1>
+{% include "cases/base_detail.html" %}
+
 <a href=file://{{ batchauditgroup.audits.first.original_file }}>Open original Excel file: {{batchauditgroup.audits.first.original_file|basename}}</a>
 
 

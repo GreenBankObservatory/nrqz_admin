@@ -12,12 +12,9 @@
 
 <p><a href={% url "admin:cases_case_change" case.id %}>Edit</a></p>
 
-<h1>Case {{ case.case_num }} ({{ case.applicant.name }})</h1>
 
-<p>Imported on: {{ case.created_on }}</p>
-{% if case.original_created_on %}
-<p>Originally created on: {{ case.original_created_on }}</p>
-{% endif %}
+<h1>Case {{ case.case_num }} ({{ case.applicant.name }})</h1>
+{% include "cases/base_detail.html" %}
 
 <h2>Facilities</h2>
 {% if case.facilities.all %}

@@ -64,13 +64,14 @@ class LetterFacilityTable(tables.Table):
 
 
 class FacilityTable(tables.Table):
+    id = tables.Column(linkify=True)
     nrqz_id = tables.Column(linkify=True)
     comments = TrimmedTextColumn()
     structure = tables.Column(linkify=True)
 
     class Meta:
         model = models.Facility
-        fields = FacilityFilter.Meta.fields
+        fields = ["id"] + FacilityFilter.Meta.fields
         order_by = ["nrqz_id"]
 
     def render_location(self, value):

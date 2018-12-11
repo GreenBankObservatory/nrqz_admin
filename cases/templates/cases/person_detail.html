@@ -5,6 +5,8 @@
 
 {% block content %}
 <h1>{{ person.name }}</h1>
+{% include "cases/base_detail.html" %}
+
 <div class="row">
     <div class="col-sm">
         {% info_table person "Entity Info" applicant_info %}

@@ -60,14 +60,14 @@ class TooManyUnmappedHeadersError(BatchRejectionError):
     pass
 
 
-# https://regex101.com/r/gRPTN8/3
-nrqz_id_regex_str = r"^(?P<case_num>\d+)(?:\-\d+)?(?:[\s_\*]+(?:\(.*\)[\s_]+)?(?P<site_name>(?:(?:\w+\s+)?\S{5}|\D+))[\s_]+(?P<facility_name>\S+))?"
+# https://regex101.com/r/gRPTN8/5
+nrqz_id_regex_str = r"^(?P<case_num>\d+)(?:[\-\_](?:REV)?(?P<site_num>\d+))?(?:[\s_\*]+(?:\(.*\)[\s_]+)?(?P<site_name>(?:(?:\w+\s+)?\S{5}|\D+))[\s_]+(?P<facility_name>\S+))?"
 nrqz_id_regex = re.compile(nrqz_id_regex_str)
 nrqz_id_regex_fallback_str = r"^(?P<case_num>\d+).*"
 nrqz_id_regex_fallback = re.compile(nrqz_id_regex_fallback_str)
 
 
-def derive_case_num_from_nrqz_id(nrqz_id):
+def derive_case_and_site_num_from_nrqz_id(nrqz_id):
     try:
         match = nrqz_id_regex.match(nrqz_id)
     except TypeError:
@@ -81,7 +81,7 @@ def derive_case_num_from_nrqz_id(nrqz_id):
                 f"Could not parse NRQZ ID '{nrqz_id}' using "
                 f"'{nrqz_id_regex_str}' or '{nrqz_id_regex_fallback_str}'!"
             )
-    return match["case_num"]
+    return match["case_num"], match["site_num"]
 
 
 class ExcelCollectionImporter:
@@ -255,6 +255,7 @@ class ExcelImporter:
             "case",
             "structure",
             "data_source",
+            "site_num",
         ]
         facility_fields = [
             field for field in FacilityForm.Meta.fields if field not in excluded_fields
@@ -427,7 +428,7 @@ class ExcelImporter:
             )
             # Derive the case number from the NRQZ ID (or Site Name, if no NRQZ ID found earlier)
             try:
-                case_num = derive_case_num_from_nrqz_id(
+                case_num, site_num = derive_case_and_site_num_from_nrqz_id(
                     str(facility_dict[nrqz_id_field])
                 )
             except ValueError as error:
@@ -451,6 +452,7 @@ class ExcelImporter:
                 )
             else:
                 # If there's not an error, add the new facility_dict to our case_dict
+                facility_dict["site_num"] = site_num
                 if case_num in case_map:
                     case_map[case_num][row_num] = facility_dict
                 else:
@@ -484,8 +486,8 @@ class ExcelImporter:
         )
         try:
             self._process()
-        except BatchRejectionError:
-            tqdm.write("Rolling back batch stuff!")
+        except BatchRejectionError as error:
+            tqdm.write(f"Rolling back batch stuff! {error}")
 
         if self.report.has_fatal_errors():
             # This is a sanity check to ensure that the Batch has in fact been

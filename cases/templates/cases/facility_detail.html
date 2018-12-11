@@ -2,7 +2,12 @@
 {% load cases_tags %}
 
 {% block content %}
-<a href={% url "batch_detail" facility.case.batch.id %}>View batch</a> |
+{% if facility.case.batch %}
+<a href={% url "batch_detail" facility.case.batch.id %}>View batch</a>
+{% else %}
+<span>No Batch</span>
+{% endif %}
+|
 <a href={% url "case_detail" facility.case.case_num %}>View case</a>
 {% if facility.structure %}
 | <a href={% url "structure_detail" facility.structure.id %}>View structure</a>
@@ -11,6 +16,8 @@
 <p><a href={% url "admin:cases_facility_change" facility.id %}>Edit</a></p>
 
 <h1>{{ facility }}</h1>
+{% include "cases/base_detail.html" %}
+
 <div class="row">
     <div class="col-sm">
         <div class="row">

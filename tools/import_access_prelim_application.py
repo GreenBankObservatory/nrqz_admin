@@ -16,14 +16,7 @@ from django.db import transaction
 
 from tqdm import tqdm
 
-from cases.models import (
-    Attachment,
-    Case,
-    DataSource,
-    PreliminaryCase,
-    PreliminaryCaseGroup,
-    Person,
-)
+from cases.models import Attachment, Case, PreliminaryCase, PreliminaryCaseGroup, Person
 from tools.prelim_accessfieldmap import (
     applicant_field_mappers,
     contact_field_mappers,

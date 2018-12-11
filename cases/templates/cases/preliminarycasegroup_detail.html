@@ -5,12 +5,11 @@
 
 {% block content %}
 
-<h1>Preliminary Case Group {{ preliminarycasegroup.id }}</h1>
-
 <p><a href={% url "admin:cases_preliminarycasegroup_change" preliminarycasegroup.id %}>Edit</a></p>
 
+<h1>Preliminary Case Group {{ preliminarycasegroup.id }}</h1>
+{% include "cases/base_detail.html" %}
 
-<p>Created on: {{ preliminarycasegroup.created_on }}</p>
 
 <h2>Preliminary Cases</h2>
 {% if preliminarycasegroup.prelim_cases.exists %}

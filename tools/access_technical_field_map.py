@@ -9,6 +9,16 @@ from utils.coord_utils import dms_to_dd
 sci_regex_str = r"(?P<digits>\d+.?\d*)(?:(?:X10\^)|(?:E))(?P<exponent>\-?\d+)"
 sci_regex = re.compile(sci_regex_str, re.IGNORECASE)
 
+FEET_IN_A_METER = 0.3048
+
+
+def coerce_feet_to_meters(value):
+    if value in [None, ""]:
+        return value
+
+    feet = float(value)
+    return feet * FEET_IN_A_METER
+
 
 def coerce_scientific_notation(value):
     if not value.strip():
@@ -98,12 +108,13 @@ facility_field_mappers = [
         converter=coerce_scientific_notation,
         from_field="PWD_LIMIT",
     ),
+    FieldMap(to_field="site_num", converter=coerce_positive_int, from_field="SITE."),
     # TODO: hmmmm
     FieldMap(to_field="site_name", converter=None, from_field="LOCATION"),
     FieldMap(to_field="latitude", converter=coerce_none, from_field="LATITUDE"),
     FieldMap(to_field="longitude", converter=coerce_none, from_field="LONGITUDE"),
-    FieldMap(to_field="amsl", converter=None, from_field="GND_ELEV"),
-    FieldMap(to_field="agl", converter=None, from_field="ANT_HEIGHT"),
+    FieldMap(to_field="amsl", converter=coerce_feet_to_meters, from_field="GND_ELEV"),
+    FieldMap(to_field="agl", converter=coerce_feet_to_meters, from_field="ANT_HEIGHT"),
     FieldMap(to_field="comments", converter=None, from_field="REMARKS"),
 ]
 

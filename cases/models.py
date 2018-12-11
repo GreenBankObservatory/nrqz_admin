@@ -250,6 +250,7 @@ class Facility(
     num_tx_per_facility = IntegerField(
         null=True, blank=True, verbose_name="# of TX per facility"
     )
+    site_num = PositiveIntegerField(verbose_name="Site #", blank=True, null=True)
 
     class Meta:
         verbose_name_plural = "Facilities"

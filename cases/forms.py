@@ -107,6 +107,7 @@ class FacilityForm(forms.ModelForm):
         model = Facility
         fields = (
             "data_source",
+            "site_num",
             "freq_low",
             "site_name",
             "call_sign",

@@ -73,11 +73,16 @@ class FacilityFilterFormHelper(FormHelper):
 
     layout = CollapsibleFilterFormLayout(
         Div(
-            Div("nrqz_id", "site_name", css_class="col-sm-2"),
+            Div("nrqz_id", "site_num", css_class="col-sm-2"),
             Div("freq_low", "freq_high", css_class="col-sm-5"),
-            Div("structure", "comments", css_class="col-sm-2"),
+            Div("structure", "site_name", css_class="col-sm-2"),
             Div("main_beam_orientation", "antenna_model_number", css_class="col-sm-3"),
-            Div("location", css_class="col-sm-12"),
+            css_class="row",
+        ),
+        Div(
+            Div("location", css_class="col-sm-8"),
+            Div("comments", css_class="col-sm-2"),
+            Div("data_source", css_class="col-sm-2"),
             css_class="row",
         ),
         extra_buttons=[

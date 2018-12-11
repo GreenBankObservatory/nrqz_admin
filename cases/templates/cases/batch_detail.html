@@ -8,6 +8,7 @@
 <p><a href={% url "admin:cases_batch_change" batch.id %}>Edit</a></p>
 
 <h1>Batch {{ batch.id }}</h1>
+{% include "cases/base_detail.html" %}
 
 <p><a href=file://{{ batch.imported_from }}>Open original Excel file: {{batch.name}}</a></p>
 
@@ -18,8 +19,6 @@
 
     <input type="submit" name="reimport" value="Re-import" />
 </form>
-
-<p>Created on: {{ batch.created_on }}</p>
 
 <h2>Comments</h2>
 {% if batch.comments %}
