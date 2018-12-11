@@ -153,3 +153,13 @@ def FILTERS_VERBOSE_LOOKUPS():
     verbose_lookups = DEFAULTS["VERBOSE_LOOKUPS"].copy()
     verbose_lookups.update({"trigram_similar": "is similar to"})
     return verbose_lookups
+
+
+SHELL_PLUS = "ipython"
+SHELL_PLUS_PRE_IMPORTS = [
+    (
+        "django.contrib.gis.db.models.functions",
+        ("Area", "Distance", "Length", "Perimeter"),
+    )
+]
+SHELL_PLUS_POST_IMPORTS = [("cases.models", ("Case",))]
