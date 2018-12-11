@@ -47,7 +47,7 @@ class Structure(IsActiveModel, TrackedModel, Model):
         return reverse("structure_detail", args=[str(self.id)])
 
 
-class Facility(IsActiveModel, TrackedModel, Model):
+class Facility(TrackedOriginalModel, IsActiveModel, TrackedModel, Model):
     """Describes a single, physical antenna"""
 
     freq_low = FloatField(
@@ -128,6 +128,7 @@ class Facility(IsActiveModel, TrackedModel, Model):
         max_length=256,
         verbose_name="Main Beam Orientation",
         help_text="or sectorized AZ bearings (in ° True NOT ° Magnetic)",
+        blank=True,
     )
     mechanical_downtilt = CharField(
         verbose_name="Mechanical Downtilt", max_length=256, blank=True, null=True
@@ -136,7 +137,6 @@ class Facility(IsActiveModel, TrackedModel, Model):
         verbose_name="Electrical Downtilt Sector",
         max_length=256,
         blank=True,
-        null=True,
         help_text="Specific and/or RET range",
     )
     antenna_model_number = CharField(
@@ -442,6 +442,14 @@ class Person(IsActiveModel, TrackedModel, Model):
 
     class Meta:
         verbose_name_plural = "People"
+
+
+class AlsoKnownAs(IsActiveModel, TrackedModel, Model):
+    person = ForeignKey("Person", on_delete=CASCADE, related_name="aka")
+    name = CharField(max_length=256)
+
+    def __str__(self):
+        return self.name
 
 
 class Attachment(IsActiveModel, TrackedModel, Model):

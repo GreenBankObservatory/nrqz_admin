@@ -41,7 +41,7 @@ def coerce_bool(value):
         raise ValueError("Could not determine truthiness of value {!r}".format(value))
 
 
-def cooerce_str(value):
+def coerce_str(value):
     clean_value = str(value).strip().lower()
     if clean_value in ["", "na", "n/a", "#n/a"]:
         return None
@@ -68,7 +68,7 @@ def coerce_num(value):
     return float(clean_value)
 
 
-def cooerce_coords(value):
+def coerce_coords(value):
     """Given a coordinate in DD MM SS.sss format, return it in DD.ddd format"""
     clean_value = str(value).strip().lower()
 
@@ -85,13 +85,13 @@ def cooerce_coords(value):
     return dd
 
 
-def cooerce_lat(value):
-    return cooerce_coords(value)
+def coerce_lat(value):
+    return coerce_coords(value)
 
 
-def cooerce_long(value):
+def coerce_long(value):
     # Need to invert this because all of our longitudes will be W
-    longitude = cooerce_coords(value)
+    longitude = coerce_coords(value)
     if longitude is not None:
         return -1 * longitude
     else:

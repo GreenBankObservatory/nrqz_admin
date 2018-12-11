@@ -13,16 +13,35 @@
 
 <h2>Cases</h2>
 <p>Cases where <b>{{ person.name }}</b> is either an applicant or a contact</p>
+{% if case_filter.qs %}
 <div class="container-fluid" style="border:1px solid #D3D3D3; border-radius: 10px">
     {% filter_table case_table case_filter %}
 </div>
+{% else %}
+<p>None</p>
+{% endif %}
+
 
 <h2>Preliminary Cases</h2>
 <p>Preliminary Cases where <b>{{ person.name }}</b> is either an applicant or a contact</p>
+{% if prelim_case_filter.qs %}
 <div class="container-fluid" style="border:1px solid #D3D3D3; border-radius: 10px">
     {% filter_table prelim_case_table prelim_case_filter %}
 </div>
+{% else %}
+<p>None</p>
+{% endif %}
 
-
+<h2>Also Known As</h2>
+<p>Other names linked to this Person</p>
+{% if person.aka.all %}
+<ul>
+    {% for name in person.aka.all %}
+    <li>{{ name }}</li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>None</p>
+{% endif %}
 
 {% endblock %}

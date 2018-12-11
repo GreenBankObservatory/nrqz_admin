@@ -4,10 +4,10 @@ import re
 from tools.fieldmap import (
     FieldMap,
     coerce_num,
-    cooerce_lat,
-    cooerce_long,
+    coerce_lat,
+    coerce_long,
     coerce_bool,
-    cooerce_str,
+    coerce_str,
 )
 
 

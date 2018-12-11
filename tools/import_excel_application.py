@@ -14,9 +14,18 @@ import argparse
 import os
 import re
 import django
-from django.db import transaction
 
 django.setup()
+
+from django.db import transaction
+from tqdm import tqdm
+
+from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.gis.geos.error import GEOSException
+
+from cases.models import Facility
+from tools.fieldmap import coerce_long, coerce_lat
+
 
 from tools.excel_importer import (
     ExcelCollectionImporter,
@@ -48,6 +57,26 @@ def determine_files_to_process(paths, pattern=r".*\.(xls.?|csv)$"):
     return sorted(files)
 
 
+def populate_locations():
+    for facility in tqdm(
+        Facility.objects.filter(longitude__isnull=False, latitude__isnull=False),
+        unit="facilities",
+    ):
+        try:
+            longitude = coerce_long(facility.longitude)
+            latitude = coerce_lat(facility.latitude)
+        except ValueError:
+            print(f"Error parsing {facility}")
+        else:
+            point_str = f"Point({longitude} {latitude})"
+
+            try:
+                facility.location = GEOSGeometry(point_str)
+                facility.save()
+            except GEOSException as error:
+                print(f"Error saving {point_str}: {error}")
+
+
 @transaction.atomic
 def main():
     # sys.excepthook = excepthook
@@ -64,6 +93,8 @@ def main():
 
     print("-" * 80)
     eci.report.process()
+    # TODO: Include in report somehow
+    populate_locations()
 
     if args.dry_run:
         raise ManualRollback("DRY RUN; ROLLING BACK CHANGES")
