@@ -25,6 +25,8 @@ DEFAULT_DURABLE = False
 DEFAULT_THRESHOLD = 0.7
 DEFAULT_PREPROCESS = True
 
+EXCEL = "excel"
+
 
 class BatchImportException(Exception):
     pass
@@ -247,7 +249,13 @@ class ExcelImporter:
 
     @staticmethod
     def get_unmapped_fields():
-        excluded_fields = ["location", "asr_is_from_applicant", "case", "structure"]
+        excluded_fields = [
+            "location",
+            "asr_is_from_applicant",
+            "case",
+            "structure",
+            "data_source",
+        ]
         facility_fields = [
             field for field in FacilityForm.Meta.fields if field not in excluded_fields
         ]
@@ -266,7 +274,11 @@ class ExcelImporter:
     def create_facility(self, facility_dict, case):
         self.report.facilities_processed += 1
         # TODO: Alter FacilityForm so that it uses case num instead of ID somehow
-        facility_dict = {**facility_dict, "case": case.id if case else None}
+        facility_dict = {
+            **facility_dict,
+            "case": case.id if case else None,
+            "data_source": EXCEL,
+        }
         facility_form = FacilityForm(facility_dict)
         if facility_form.is_valid():
             facility = facility_form.save()
@@ -297,7 +309,7 @@ class ExcelImporter:
         # Create the case...
         try:
             case = Case.objects.create(
-                batch=self.batch_audit_group.batch, case_num=case_num
+                batch=self.batch_audit_group.batch, case_num=case_num, data_source=EXCEL
             )
         # ...or report an error if we can't
         except IntegrityError as error:
@@ -388,6 +400,7 @@ class ExcelImporter:
             imported_from=self.path,
             original_created_on=batch_created_on,
             original_modified_on=batch_modified_on,
+            data_source=EXCEL,
         )
         tqdm.write(f"Created Batch {batch} <{batch.id}>")
         return batch
@@ -452,7 +465,7 @@ class ExcelImporter:
     @transaction.atomic
     def process(self):
         if not self.batch_audit_group:
-            self.batch_audit_group = BatchAuditGroup.objects.create()
+            self.batch_audit_group = BatchAuditGroup.objects.create(data_source=EXCEL)
             tqdm.write(f"Created audit_group {self.batch_audit_group}")
         else:
             tqdm.write(
@@ -464,6 +477,7 @@ class ExcelImporter:
             errors=self.report.report,
             original_file=self.path,
             error_summary=self.report.generate_error_summary(),
+            data_source=EXCEL,
         )
         tqdm.write(
             f"Created batch_audit {batch_audit.id} linked to audit_group {self.batch_audit_group}"

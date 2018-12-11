@@ -46,3 +46,21 @@ class TrackedModel(models.Model):
     #         self.created_by = profile
     #     if not hasattr(self, 'modified_by') or self.modified_by is None:
     #         self.modified_by = profile
+
+
+class DataSourceModel(models.Model):
+    data_source = models.CharField(
+        max_length=25,
+        choices=(
+            ("web", "Web"),
+            ("excel", "Excel"),
+            ("access_prelim_technical", "Access Prelim. Technical Table"),
+            ("access_technical", "Access Technical Table"),
+            ("access_prelim_application", "Access Prelim. Application Table"),
+            ("access_application", "Access Application Table"),
+        ),
+        help_text="The source that this object was created from",
+    )
+
+    class Meta:
+        abstract = True

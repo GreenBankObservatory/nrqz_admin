@@ -30,6 +30,8 @@ from tools.access_technical_field_map import (
 
 field_map = get_combined_field_map()
 
+ACCESS_TECHNICAL = "access_technical"
+
 
 class ManualRollback(Exception):
     pass
@@ -75,8 +77,16 @@ def handle_row(field_importers, row):
     case_num = facility_dict.pop("case_num")
     if case_num is None:
         raise ValueError("Null case_num!")
-    case, case_created = Case.objects.get_or_create(case_num=case_num)
-    found_report["case"] = not case_created
+
+    try:
+        case = Case.objects.get(case_num=case_num)
+    except Case.DoesNotExist:
+        case = Case.objects.create(case_num=case_num, data_source=ACCESS_TECHNICAL)
+        case_created = True
+        found_report["case"] = False
+    else:
+        case_created = False
+        found_report["case"] = True
 
     # If we found a Case (i.e. didn't create one),
     # and that case has an applicant,
@@ -100,11 +110,15 @@ def handle_row(field_importers, row):
                     # Don't create a new AKA if one already exists for this Case's Applicants
                     if not case.applicant.aka.filter(name=applicant_name).exists():
                         AlsoKnownAs.objects.create(
-                            person=case.applicant, name=applicant_name
+                            person=case.applicant,
+                            name=applicant_name,
+                            data_source=ACCESS_TECHNICAL,
                         )
                     if not case.applicant.aka.filter(name=case.applicant.name).exists():
                         AlsoKnownAs.objects.create(
-                            person=case.applicant, name=case.applicant.name
+                            person=case.applicant,
+                            name=case.applicant.name,
+                            data_source=ACCESS_TECHNICAL,
                         )
                     tqdm.write(
                         f"  Applicant {case.applicant} is now linked to names: "
@@ -135,7 +149,9 @@ def handle_row(field_importers, row):
                 tqdm.write(f"Found applicant {applicant}")
                 found_report["applicant"] = True
             except Person.DoesNotExist:
-                applicant = Person.objects.create(**applicant_dict)
+                applicant = Person.objects.create(
+                    **applicant_dict, data_source=ACCESS_TECHNICAL
+                )
                 tqdm.write(f"Created applicant {applicant}")
             except Person.MultipleObjectsReturned:
                 raise ValueError(applicant_dict)
@@ -152,7 +168,9 @@ def handle_row(field_importers, row):
         for key, value in facility_dict.items():
             stripped_facility_dict[key] = value
 
-        form = FacilityForm({**stripped_facility_dict, "case": case.id})
+        form = FacilityForm(
+            {**stripped_facility_dict, "case": case.id, "data_source": ACCESS_TECHNICAL}
+        )
         if form.is_valid():
             facility = form.save()
             # tqdm.write(f"Created Facility {facility} <{facility.id}>")

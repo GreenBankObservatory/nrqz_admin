@@ -51,6 +51,7 @@ class StructureForm(forms.ModelForm):
     class Meta:
         model = Structure
         fields = (
+            "data_source",
             "asr",
             "file_num",
             "location",
@@ -68,6 +69,7 @@ class CaseForm(forms.ModelForm):
     class Meta:
         model = Case
         fields = (
+            "data_source",
             "applicant",
             "contact",
             "comments",
@@ -97,13 +99,14 @@ class CaseForm(forms.ModelForm):
 class BatchForm(forms.ModelForm):
     class Meta:
         model = Batch
-        fields = ("comments", "attachments", "name")
+        fields = ("data_source", "comments", "attachments", "name")
 
 
 class FacilityForm(forms.ModelForm):
     class Meta:
         model = Facility
         fields = (
+            "data_source",
             "freq_low",
             "site_name",
             "call_sign",

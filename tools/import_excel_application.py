@@ -57,7 +57,7 @@ def determine_files_to_process(paths, pattern=r".*\.(xls.?|csv)$"):
     return sorted(files)
 
 
-def populate_locations():
+def populate_locations(durable=False):
     for facility in tqdm(
         Facility.objects.filter(longitude__isnull=False, latitude__isnull=False),
         unit="facilities",
@@ -65,8 +65,12 @@ def populate_locations():
         try:
             longitude = coerce_long(facility.longitude)
             latitude = coerce_lat(facility.latitude)
-        except ValueError:
-            print(f"Error parsing {facility}")
+        except ValueError as error:
+            if not durable:
+                raise
+            print(
+                f"Error parsing {facility} ({facility.latitude}, {facility.longitude}): {error}"
+            )
         else:
             point_str = f"Point({longitude} {latitude})"
 
@@ -94,7 +98,7 @@ def main():
     print("-" * 80)
     eci.report.process()
     # TODO: Include in report somehow
-    populate_locations()
+    populate_locations(durable=args.durable)
 
     if args.dry_run:
         raise ManualRollback("DRY RUN; ROLLING BACK CHANGES")

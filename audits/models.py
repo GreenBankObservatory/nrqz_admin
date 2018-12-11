@@ -5,7 +5,7 @@ from django.db import models
 from django.contrib.postgres.fields import JSONField
 from django.core.serializers.json import DjangoJSONEncoder
 
-from cases.mixins import IsActiveModel, TrackedModel
+from cases.mixins import DataSourceModel, IsActiveModel, TrackedModel
 
 
 class DjangoErrorJSONEncoder(DjangoJSONEncoder):
@@ -15,7 +15,7 @@ class DjangoErrorJSONEncoder(DjangoJSONEncoder):
         return super().default(obj)
 
 
-class AuditGroup(IsActiveModel, TrackedModel, models.Model):
+class AuditGroup(IsActiveModel, TrackedModel, DataSourceModel, models.Model):
     """Groups a set of ObjectAudits together
 
     Consider this case: A series of ObjectAudits are created,
@@ -59,7 +59,7 @@ class BatchAuditGroup(AuditGroup):
         return reverse("batch_audit_group_detail", args=[str(self.id)])
 
 
-class ObjectAudit(IsActiveModel, TrackedModel, models.Model):
+class ObjectAudit(IsActiveModel, TrackedModel, DataSourceModel, models.Model):
     audit_group = models.ForeignKey(
         "BatchAuditGroup", related_name="audits", on_delete=models.CASCADE
     )

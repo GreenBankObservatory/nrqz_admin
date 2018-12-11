@@ -25,6 +25,8 @@ from tools.accessfieldmap import (
 
 field_map = get_combined_field_map()
 
+ACCESS_APPLICATION = "access_application"
+
 
 class ManualRollback(Exception):
     pass
@@ -63,7 +65,9 @@ def handle_row(field_importers, row):
             # tqdm.write(f"Found applicant {applicant}")
             found_report["applicant"] = True
         except Person.DoesNotExist:
-            applicant = Person.objects.create(**applicant_dict)
+            applicant = Person.objects.create(
+                **applicant_dict, data_source=ACCESS_APPLICATION
+            )
             # tqdm.write(f"Created applicant {applicant}")
         except Person.MultipleObjectsReturned:
             raise ValueError(applicant_dict)
@@ -78,7 +82,9 @@ def handle_row(field_importers, row):
             # tqdm.write(f"Found contact {contact}")
             found_report["contact"] = True
         except Person.DoesNotExist:
-            contact = Person.objects.create(**contact_dict)
+            contact = Person.objects.create(
+                **contact_dict, data_source=ACCESS_APPLICATION
+            )
             # tqdm.write(f"Created contact {contact}")
         except Person.MultipleObjectsReturned:
             raise ValueError(contact_dict)
@@ -98,7 +104,9 @@ def handle_row(field_importers, row):
                         # tqdm.write(f"Found attachment: {attachment}")
                     except Attachment.DoesNotExist:
                         attachment = Attachment.objects.create(
-                            path=value, comments=f"Imported by {__file__}"
+                            path=value,
+                            comments=f"Imported by {__file__}",
+                            data_source=ACCESS_APPLICATION,
                         )
                         # tqdm.write(f"Created attachment: {attachment}")
                     attachments.append(attachment)
@@ -125,7 +133,10 @@ def handle_row(field_importers, row):
             found_report["case"] = True
         except Case.DoesNotExist:
             case = Case.objects.create(
-                **stripped_case_dict, applicant=applicant, contact=contact
+                **stripped_case_dict,
+                applicant=applicant,
+                contact=contact,
+                data_source=ACCESS_APPLICATION,
             )
             tqdm.write(f"Created case {case}")
 

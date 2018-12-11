@@ -55,7 +55,6 @@ from .kml import (
     cases_as_kml,
     kml_to_string,
 )
-from tools.excel_importer import ExcelCollectionImporter
 
 
 class FilterTableView(SingleTableMixin, FilterView):

@@ -22,10 +22,10 @@ from django.contrib.gis.db.models import PointField
 
 from utils.coord_utils import dd_to_dms
 from .kml import facility_as_kml, case_as_kml, kml_to_string
-from .mixins import TrackedOriginalModel, IsActiveModel, TrackedModel
+from .mixins import DataSourceModel, TrackedOriginalModel, IsActiveModel, TrackedModel
 
 
-class Structure(IsActiveModel, TrackedModel, Model):
+class Structure(IsActiveModel, TrackedModel, DataSourceModel, Model):
     asr = PositiveIntegerField(
         unique=True, verbose_name="Antenna Registration Number", db_index=True
     )
@@ -47,7 +47,9 @@ class Structure(IsActiveModel, TrackedModel, Model):
         return reverse("structure_detail", args=[str(self.id)])
 
 
-class Facility(TrackedOriginalModel, IsActiveModel, TrackedModel, Model):
+class Facility(
+    TrackedOriginalModel, IsActiveModel, TrackedModel, DataSourceModel, Model
+):
     """Describes a single, physical antenna"""
 
     freq_low = FloatField(
@@ -266,7 +268,7 @@ class Facility(TrackedOriginalModel, IsActiveModel, TrackedModel, Model):
         return kml_to_string(facility_as_kml(self))
 
 
-class Batch(TrackedOriginalModel, IsActiveModel, TrackedModel, Model):
+class Batch(TrackedOriginalModel, IsActiveModel, TrackedModel, DataSourceModel, Model):
     comments = TextField(blank=True)
     attachments = ManyToManyField("Attachment")
     name = CharField(max_length=256, unique=True)
@@ -283,7 +285,7 @@ class Batch(TrackedOriginalModel, IsActiveModel, TrackedModel, Model):
         verbose_name_plural = "Batches"
 
 
-class PreliminaryCaseGroup(IsActiveModel, TrackedModel, Model):
+class PreliminaryCaseGroup(IsActiveModel, TrackedModel, DataSourceModel, Model):
     comments = TextField(blank=True)
 
     class Meta:
@@ -291,7 +293,9 @@ class PreliminaryCaseGroup(IsActiveModel, TrackedModel, Model):
         verbose_name_plural = "Preliminary Case Groups"
 
 
-class PreliminaryCase(TrackedOriginalModel, IsActiveModel, TrackedModel, Model):
+class PreliminaryCase(
+    TrackedOriginalModel, IsActiveModel, TrackedModel, DataSourceModel, Model
+):
     applicant = ForeignKey(
         "Person",
         on_delete=SET_NULL,
@@ -349,7 +353,7 @@ class PreliminaryCase(TrackedOriginalModel, IsActiveModel, TrackedModel, Model):
         verbose_name_plural = "Preliminary Cases"
 
 
-class Case(TrackedOriginalModel, IsActiveModel, TrackedModel, Model):
+class Case(TrackedOriginalModel, IsActiveModel, TrackedModel, DataSourceModel, Model):
     """Defines a given NRQZ Application"""
 
     # sites = ManyToManyField("Site")
@@ -418,7 +422,7 @@ class Case(TrackedOriginalModel, IsActiveModel, TrackedModel, Model):
         super(Case, self).save(*args, **kwargs)
 
 
-class Person(IsActiveModel, TrackedModel, Model):
+class Person(IsActiveModel, TrackedModel, DataSourceModel, Model):
     """A single, physical person"""
 
     name = CharField(max_length=256, blank=True)
@@ -444,7 +448,7 @@ class Person(IsActiveModel, TrackedModel, Model):
         verbose_name_plural = "People"
 
 
-class AlsoKnownAs(IsActiveModel, TrackedModel, Model):
+class AlsoKnownAs(IsActiveModel, TrackedModel, DataSourceModel, Model):
     person = ForeignKey("Person", on_delete=CASCADE, related_name="aka")
     name = CharField(max_length=256)
 
@@ -452,7 +456,7 @@ class AlsoKnownAs(IsActiveModel, TrackedModel, Model):
         return self.name
 
 
-class Attachment(IsActiveModel, TrackedModel, Model):
+class Attachment(IsActiveModel, TrackedModel, DataSourceModel, Model):
     """Holds the path to a file along with some metadata"""
 
     # TODO: This will need to be a proper FileField eventually...

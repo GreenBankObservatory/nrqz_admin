@@ -16,7 +16,14 @@ from django.db import transaction
 
 from tqdm import tqdm
 
-from cases.models import Attachment, Case, PreliminaryCase, PreliminaryCaseGroup, Person
+from cases.models import (
+    Attachment,
+    Case,
+    DataSource,
+    PreliminaryCase,
+    PreliminaryCaseGroup,
+    Person,
+)
 from tools.prelim_accessfieldmap import (
     applicant_field_mappers,
     contact_field_mappers,
@@ -25,6 +32,8 @@ from tools.prelim_accessfieldmap import (
 )
 
 field_map = get_combined_field_map()
+
+ACCESS_PRELIM_APPLICATION = "access_prelim_application"
 
 
 class ManualRollback(Exception):
@@ -91,7 +100,9 @@ def handle_row(field_importers, row):
             # tqdm.write(f"Found applicant {applicant}")
             found_report["applicant"] = True
         except Person.DoesNotExist:
-            applicant = Person.objects.create(**applicant_dict)
+            applicant = Person.objects.create(
+                **applicant_dict, data_source=ACCESS_PRELIM_APPLICATION
+            )
             # tqdm.write(f"Created applicant {applicant}")
         except Person.MultipleObjectsReturned:
             raise ValueError(applicant_dict)
@@ -106,7 +117,9 @@ def handle_row(field_importers, row):
             # tqdm.write(f"Found contact {contact}")
             found_report["contact"] = True
         except Person.DoesNotExist:
-            contact = Person.objects.create(**contact_dict)
+            contact = Person.objects.create(
+                **contact_dict, data_source=ACCESS_PRELIM_APPLICATION
+            )
             # tqdm.write(f"Created contact {contact}")
         except Person.MultipleObjectsReturned:
             raise ValueError(contact_dict)
@@ -125,7 +138,9 @@ def handle_row(field_importers, row):
                         # tqdm.write(f"Found attachment: {attachment}")
                     except Attachment.DoesNotExist:
                         attachment = Attachment.objects.create(
-                            path=value, comments=f"Imported by {__file__}"
+                            path=value,
+                            comments=f"Imported by {__file__}",
+                            data_source=ACCESS_PRELIM_APPLICATION,
                         )
                         # tqdm.write(f"Created attachment: {attachment}")
                     attachments.append(attachment)
@@ -141,7 +156,10 @@ def handle_row(field_importers, row):
             found_report["pcase"] = True
         except PreliminaryCase.DoesNotExist:
             pcase = PreliminaryCase.objects.create(
-                **stripped_case_dict, applicant=applicant, contact=contact
+                **stripped_case_dict,
+                applicant=applicant,
+                contact=contact,
+                data_source=ACCESS_PRELIM_APPLICATION,
             )
             # tqdm.write(f"Created pcase {pcase}")
 
@@ -191,7 +209,9 @@ def derive_stuff():
             )
             existing_pcase_groups = [g for g in existing_pcase_groups if g]
             if len(existing_pcase_groups) == 0:
-                pcase.pcase_group = PreliminaryCaseGroup.objects.create()
+                pcase.pcase_group = PreliminaryCaseGroup.objects.create(
+                    data_source=ACCESS_PRELIM_APPLICATION
+                )
                 tqdm.write(f"Created PCG {pcase.pcase_group}")
             elif len(existing_pcase_groups) == 1:
                 pcase.pcase_group = PreliminaryCaseGroup.objects.get(
@@ -216,7 +236,9 @@ def derive_stuff():
                 f"PCG {pcase.pcase_group} now contains pcases: {pcase.pcase_group.prelim_cases.all()}"
             )
         else:
-            pcase.pcase_group = PreliminaryCaseGroup.objects.create()
+            pcase.pcase_group = PreliminaryCaseGroup.objects.create(
+                data_source=ACCESS_PRELIM_APPLICATION
+            )
             pcase.save()
 
         if case_num or related_pcase_nums:
