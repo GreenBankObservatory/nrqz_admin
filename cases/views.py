@@ -462,7 +462,12 @@ class FacilityDetailView(DetailView):
             "tx_power_neg_45",
         ]
 
-        context["other_info"] = ["site_name", "call_sign", "fcc_file_number"]
+        context["other_info"] = [
+            "site_num",
+            "site_name",
+            "call_sign",
+            "fcc_file_number",
+        ]
 
         return context
 
