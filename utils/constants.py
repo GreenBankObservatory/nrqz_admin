@@ -1,0 +1,1 @@
+FEET_IN_A_METER = 0.3048
