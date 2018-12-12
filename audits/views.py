@@ -11,7 +11,7 @@ from .models import BatchAudit, BatchAuditGroup
 from .filters import BatchAuditFilter, BatchAuditGroupFilter
 from .tables import BatchAuditTable, BatchAuditGroupTable
 
-from tools.excel_importer import ExcelImporter
+from importers.excel.excel_importer import ExcelImporter
 
 
 class BatchAuditGroupListView(FilterTableView):

@@ -20,7 +20,7 @@ from tqdm import tqdm
 
 from cases.forms import FacilityForm
 from cases.models import Attachment, Case, Facility, Person, AlsoKnownAs
-from tools.access_technical_field_map import (
+from importers.access_technical.fieldmap import (
     applicant_field_mappers,
     facility_field_mappers,
     get_combined_field_map,

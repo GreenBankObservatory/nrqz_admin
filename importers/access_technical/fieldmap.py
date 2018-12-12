@@ -1,9 +1,9 @@
-from datetime import datetime
-import pytz
+"""Field mappings for Access Technical Data"""
+
 import re
 
-from tools.fieldmap import FieldMap, coerce_num
-from tools.accessfieldmap import coerce_datetime, coerce_positive_int
+from importers.fieldmap import FieldMap
+from importers.access_application.fieldmap import coerce_datetime, coerce_positive_int
 from utils.coord_utils import dms_to_dd
 
 sci_regex_str = r"(?P<digits>\d+.?\d*)(?:(?:X10\^)|(?:E))(?P<exponent>\-?\d+)"

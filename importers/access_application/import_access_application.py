@@ -16,7 +16,7 @@ from django.db import transaction
 from tqdm import tqdm
 
 from cases.models import Attachment, Case, Person
-from tools.accessfieldmap import (
+from importers.access_application.fieldmap import (
     applicant_field_mappers,
     contact_field_mappers,
     case_field_mappers,

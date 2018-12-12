@@ -1,22 +1,9 @@
+"""Field mappings for Access Application Data"""
+
 from datetime import datetime
 import pytz
 
-from tools.fieldmap import FieldMap, coerce_num
-
-
-def coerce_case(value):
-    clean_value = value.strip()
-    if clean_value in [None, ""]:
-        return None
-    float_value = float(value)
-    int_value = int(float_value)
-    if int_value == float_value:
-        try:
-            return Case.objects.get(case_num=int_value)
-        except Case.DoesNotExist:
-            return None
-    else:
-        raise ValueError(f"{value} cannot be coerced to an int!")
+from importers.fieldmap import FieldMap, coerce_num
 
 
 def coerce_datetime(value):

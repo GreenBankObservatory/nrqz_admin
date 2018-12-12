@@ -24,10 +24,10 @@ from django.contrib.gis.geos import GEOSGeometry
 from django.contrib.gis.geos.error import GEOSException
 
 from cases.models import Facility
-from tools.fieldmap import coerce_long, coerce_lat
+from importers.fieldmap import coerce_long, coerce_lat
 
 
-from tools.excel_importer import (
+from importers.excel.excel_importer import (
     ExcelCollectionImporter,
     DEFAULT_THRESHOLD,
     DEFAULT_PREPROCESS,

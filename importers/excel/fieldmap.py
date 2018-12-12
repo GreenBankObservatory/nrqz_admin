@@ -1,14 +1,8 @@
-from collections import OrderedDict
-import re
+"""Field mappings for Excel Data"""
 
-from tools.fieldmap import (
-    FieldMap,
-    coerce_num,
-    coerce_lat,
-    coerce_long,
-    coerce_bool,
-    coerce_str,
-)
+from collections import OrderedDict
+
+from importers.fieldmap import FieldMap, coerce_num, coerce_bool
 
 
 # TODO: FieldMap must be able to map a single header to multiple fields. Need to have

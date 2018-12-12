@@ -13,13 +13,9 @@ from django.db.utils import IntegrityError
 from audits.models import BatchAudit, BatchAuditGroup
 from cases.models import Attachment, Batch, Case, Facility
 from cases.forms import FacilityForm
-from tools.excelfieldmap import (
-    facility_field_map,
-    gen_header_field_map,
-    get_unmapped_headers,
-)
-from tools.import_report import ExcelCollectionImportReport, ImportReport
-from tools.strip_excel_non_data import strip_excel_sheet
+from .fieldmap import facility_field_map, gen_header_field_map, get_unmapped_headers
+from .import_report import ExcelCollectionImportReport, ImportReport
+from .strip_excel_non_data import strip_excel_sheet
 
 DEFAULT_DURABLE = False
 DEFAULT_THRESHOLD = 0.7

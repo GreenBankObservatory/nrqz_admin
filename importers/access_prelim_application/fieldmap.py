@@ -1,7 +1,7 @@
-import pytz
+"""Field mappings for Access Preliminary Application Data"""
 
-from tools.fieldmap import FieldMap
-from .accessfieldmap import (
+from importers.fieldmap import FieldMap
+from importers.access_application.fieldmap import (
     coerce_positive_int,
     coerce_bool,
     coerce_path,
