@@ -61,6 +61,25 @@
 <p>No related PCases</p>
 {% endif %}
 
+<h2>Preliminary Facilities</h2>
+{% if preliminarycase.pfacilities.all %}
+<div class="container-fluid" style="border:1px solid #D3D3D3; border-radius: 10px">
+    {% if pfacility_filter %}
+    {% crispy pfacility_filter.form %}
+    <button class="btn btn-info btn-sm filter-button" type="button" data-toggle="collapse" data-target="#facility-filter-form" aria-expanded="true" aria-controls="facility-filter-form">
+        Show Filters
+    </button>
+    <p>{{ pfacility_table.data|length }} facilities</p>
+    {% endif %}
+    <form method="get" action={% url 'letters' %}>
+        {% render_table pfacility_table %}
+    </form>
+
+</div>
+{% else %}
+<p>No Preliminary Facilities</p>
+{% endif %}
+
 <h2>Comments</h2>
 {% if preliminarycase.comments %}
 {{ preliminarycase.comments | linebreaks}}

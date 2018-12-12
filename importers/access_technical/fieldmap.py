@@ -1,94 +1,12 @@
 """Field mappings for Access Technical Data"""
 
-import re
-
 from importers.fieldmap import FieldMap
 from importers.access_application.fieldmap import coerce_datetime, coerce_positive_int
-from utils.coord_utils import dms_to_dd
-
-sci_regex_str = r"(?P<digits>\d+.?\d*)(?:(?:X10\^)|(?:E))(?P<exponent>\-?\d+)"
-sci_regex = re.compile(sci_regex_str, re.IGNORECASE)
-
-FEET_IN_A_METER = 0.3048
-
-
-def coerce_feet_to_meters(value):
-    if value in [None, ""]:
-        return value
-
-    feet = float(value)
-    return feet * FEET_IN_A_METER
-
-
-def coerce_scientific_notation(value):
-    if not value.strip():
-        return None
-    m = sci_regex.search(value)
-    if m:
-        digits = m.groupdict()["digits"]
-        exponent = m.groupdict()["exponent"]
-    else:
-        raise ValueError(f"Failed to parse {value} with regex {sci_regex_str}")
-
-    return float(digits) * 10 ** float(exponent)
-
-
-def coerce_none(value):
-    clean = value.strip().lower()
-    if clean in ["", "None"]:
-        return None
-    else:
-        return value
-
-
-def coerce_coords(value):
-    clean = value.strip()
-    if clean in ["", "None"]:
-        return None
-
-    if "." in clean:
-        number, remain = clean.split(".")
-    else:
-        number = clean
-        remain = None
-
-    if number.startswith("-"):
-        negative = True
-        number = number[1:]
-    else:
-        negative = False
-
-    # Yes, I agree that this is incredibly stupid. But so is
-    # storing coordinates as D,M,S in a float field
-    if len(number) == 7:
-        decimal = number[:3]
-        minutes = number[3:5]
-        seconds = number[5:8]
-    elif len(number) == 6:
-        decimal = number[:2]
-        minutes = number[2:4]
-        seconds = number[4:7]
-    elif len(number) == 5:
-        decimal = number[:2]
-        minutes = number[2:4]
-        seconds = number[4:6]
-    elif len(number) == 4:
-        decimal = number[:2]
-        minutes = number[2:4]
-        seconds = 0
-    elif len(number) == 2:
-        decimal = number[:2]
-        minutes = 0
-        seconds = 0
-    else:
-        raise ValueError(f"Invalid coords ({value!r}); {len(number)}")
-
-    if negative:
-        decimal = "-" + decimal
-    if remain:
-        seconds = f"{seconds}.{remain}"
-    # print(f"Parsed {value} into {decimal}, {minutes}, {seconds}")
-    return dms_to_dd(decimal, minutes, seconds)
+from importers.converters import (
+    coerce_scientific_notation,
+    coerce_none,
+    coerce_feet_to_meters,
+)
 
 
 applicant_field_mappers = [
@@ -118,7 +36,7 @@ facility_field_mappers = [
     FieldMap(to_field="comments", converter=None, from_field="REMARKS"),
 ]
 
-
+# TODO: Consolidate!
 def expand_field_mappers(field_mappers):
     """Generate a map of known_header->importer by "expanding" the from_fields of each FieldMap
     In this way we can easily and efficiently look up a given header and find its associated importer
@@ -131,6 +49,7 @@ def expand_field_mappers(field_mappers):
     return field_map
 
 
+# TODO: Consolidate!
 def get_combined_field_map():
     return expand_field_mappers([*applicant_field_mappers, *facility_field_mappers])
 
@@ -142,11 +61,3 @@ def print_field_map(field_map):
     from_field_len = max(len(from_field) for from_field in field_map) + 3
     for from_field, importer in field_map.items():
         print(f"{from_field!r:{from_field_len}}: {importer.to_field!r}")
-
-
-if __name__ == "__main__":
-    print("Case field map:")
-    print_field_map(expand_field_mappers(facility_field_mappers))
-    print()
-    print("Person field map:")
-    print_field_map(expand_field_mappers(person_field_mappers))

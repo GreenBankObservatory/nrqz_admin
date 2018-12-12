@@ -4,7 +4,14 @@ from django import forms
 
 from dal import autocomplete
 
-from cases.models import Batch, Case, Facility, LetterTemplate, Structure
+from cases.models import (
+    Batch,
+    Case,
+    PreliminaryFacility,
+    Facility,
+    LetterTemplate,
+    Structure,
+)
 from .form_helpers import LetterFormHelper
 
 
@@ -100,6 +107,27 @@ class BatchForm(forms.ModelForm):
     class Meta:
         model = Batch
         fields = ("data_source", "comments", "attachments", "name")
+
+
+class PreliminaryFacilityForm(forms.ModelForm):
+    class Meta:
+        model = PreliminaryFacility
+        fields = (
+            "site_num",
+            "original_created_on",
+            "freq_low",
+            "antenna_model_number",
+            "power_density_limit",
+            "site_name",
+            "latitude",
+            "longitude",
+            "amsl",
+            "agl",
+            "comments",
+            "location",
+            "pcase",
+            "data_source",
+        )
 
 
 class FacilityForm(forms.ModelForm):

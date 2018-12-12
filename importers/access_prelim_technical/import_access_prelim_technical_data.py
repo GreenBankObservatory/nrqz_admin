@@ -169,7 +169,7 @@ def handle_row(field_importers, row):
         form = PreliminaryFacilityForm(
             {
                 **prelim_facility_dict,
-                "case": pcase.id,
+                "pcase": pcase.id,
                 "data_source": ACCESS_PRELIM_TECHNICAL,
             }
         )

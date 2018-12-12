@@ -7,6 +7,7 @@ from . import models
 from .filters import (
     AttachmentFilter,
     BatchFilter,
+    PreliminaryFacilityFilter,
     FacilityFilter,
     PersonFilter,
     CaseFilter,
@@ -63,6 +64,21 @@ class LetterFacilityTable(tables.Table):
         return coords_to_string(latitude=latitude, longitude=longitude)
 
 
+class PreliminaryFacilityTable(tables.Table):
+    id = tables.Column(linkify=True)
+    comments = TrimmedTextColumn()
+
+    class Meta:
+        model = models.PreliminaryFacility
+        fields = ["id"] + PreliminaryFacilityFilter.Meta.fields
+
+    # TODO: Consolidate!
+    def render_location(self, value):
+        """Render a coordinate as DD MM SS.sss"""
+        longitude, latitude = value.coords
+        return coords_to_string(latitude=latitude, longitude=longitude)
+
+
 class FacilityTable(tables.Table):
     id = tables.Column(linkify=True)
     nrqz_id = tables.Column(linkify=True)
@@ -74,6 +90,7 @@ class FacilityTable(tables.Table):
         fields = ["id"] + FacilityFilter.Meta.fields
         order_by = ["nrqz_id"]
 
+    # TODO: Consolidate!
     def render_location(self, value):
         """Render a coordinate as DD MM SS.sss"""
         longitude, latitude = value.coords

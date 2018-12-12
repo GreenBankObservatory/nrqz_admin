@@ -24,8 +24,8 @@ from importers.access_technical.fieldmap import (
     applicant_field_mappers,
     facility_field_mappers,
     get_combined_field_map,
-    coerce_coords,
 )
+from importers.converters import coerce_coords
 
 
 field_map = get_combined_field_map()
@@ -47,7 +47,7 @@ def load_rows(path):
 
 def person_is_similar_to(person, name):
     # More than 0.3 similar
-    similar = Person.objects.filter(id=person.id).filter(name__trigram_similar=person)
+    similar = Person.objects.filter(id=person.id).filter(name__trigram_similar=name)
     assert similar.count() <= 1
     # Yes, this works even if there are no items in similar
     return similar.first()
@@ -138,8 +138,7 @@ def handle_row(field_importers, row):
                     # Regardless
                 else:
                     # TODO: Create applicant here
-                    pass
-                    raise ValueError("balls")
+                    print("Not similar applicant; do something!")
 
     else:
         applicant = None

@@ -20,6 +20,7 @@ from .models import (
     Batch,
     PreliminaryCase,
     Case,
+    PreliminaryFacility,
     Facility,
     Person,
     LetterTemplate,
@@ -30,6 +31,7 @@ from .filters import (
     AttachmentFilter,
     BatchFilter,
     FacilityFilter,
+    PreliminaryFacilityFilter,
     PersonFilter,
     PreliminaryCaseGroupFilter,
     PreliminaryCaseFilter,
@@ -39,6 +41,7 @@ from .filters import (
 from .tables import (
     AttachmentTable,
     BatchTable,
+    PreliminaryFacilityTable,
     FacilityTable,
     FacilityTableWithConcur,
     PersonTable,
@@ -138,6 +141,12 @@ class CaseListView(FilterTableView):
             return response
         else:
             return super(CaseListView, self).get(request, *args, **kwargs)
+
+
+class PreliminaryFacilityListView(FilterTableView):
+    table_class = PreliminaryFacilityTable
+    filterset_class = PreliminaryFacilityFilter
+    template_name = "cases/prelim_facility_list.html"
 
 
 class FacilityListView(FilterTableView):
@@ -341,6 +350,7 @@ class PreliminaryCaseDetailView(DetailView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.attachment_filter = None
+        self.pfacility_filter = None
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -348,6 +358,19 @@ class PreliminaryCaseDetailView(DetailView):
         context["status_info"] = ["completed", "completed_on"]
 
         context["application_info"] = ["radio_service", "num_freqs", "num_sites"]
+
+        if not self.pfacility_filter:
+            self.pfacility_filter = PreliminaryFacilityFilter(
+                self.request.GET,
+                queryset=self.object.pfacilities.all(),
+                form_helper_kwargs={"form_class": "collapse"},
+            )
+            context["pfacility_filter"] = self.pfacility_filter
+
+        if "pfacility_table" not in context:
+            table = PreliminaryFacilityTable(data=self.pfacility_filter.qs)
+            table.paginate(page=self.request.GET.get("page", 1), per_page=10)
+            context["pfacility_table"] = table
 
         if not self.attachment_filter:
             self.attachment_filter = AttachmentFilter(
@@ -428,6 +451,21 @@ class CaseDetailView(DetailView):
 
     def as_kml(self):
         case_as_kml(self.object)
+
+
+class PreliminaryFacilityDetailView(DetailView):
+    model = PreliminaryFacility
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["meta_info"] = ["id", "created_on", "modified_on"]
+
+        context["location_info"] = ["latitude", "longitude", "amsl", "agl"]
+        context["antenna_info"] = ["freq_low", "antenna_model_number"]
+
+        context["other_info"] = ["site_num", "site_name"]
+
+        return context
 
 
 class FacilityDetailView(DetailView):

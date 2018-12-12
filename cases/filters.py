@@ -7,13 +7,14 @@ from utils.layout import discover_fields
 from . import models
 from .form_helpers import (
     BatchFilterFormHelper,
+    PreliminaryFacilityFilterFormHelper,
     FacilityFilterFormHelper,
+    PreliminaryCaseFilterFormHelper,
     CaseFilterFormHelper,
     PersonFilterFormHelper,
     AttachmentFilterFormHelper,
     StructureFilterFormHelper,
     PreliminaryCaseGroupFilterFormHelper,
-    PreliminaryCaseFilterFormHelper,
 )
 from .fields import PointField
 
@@ -61,6 +62,26 @@ class PointFilter(django_filters.Filter):
             return qs.filter(location__distance_lte=(point, Distance(**{unit: radius})))
         else:
             return super().filter(qs, value)
+
+
+class PreliminaryFacilityFilter(HelpedFilterSet):
+    site_name = django_filters.CharFilter(lookup_expr="icontains")
+    nrqz_id = django_filters.CharFilter(lookup_expr="icontains")
+    call_sign = django_filters.CharFilter(lookup_expr="icontains")
+    freq_low = django_filters.NumericRangeFilter()
+    freq_high = django_filters.NumericRangeFilter()
+    amsl = django_filters.NumericRangeFilter()
+    agl = django_filters.NumericRangeFilter()
+    location = PointFilter()
+    structure = django_filters.CharFilter(lookup_expr="asr__exact")
+    main_beam_orientation = django_filters.CharFilter(lookup_expr="icontains")
+    antenna_model_number = django_filters.CharFilter(lookup_expr="icontains")
+    comments = django_filters.CharFilter(lookup_expr="search")
+
+    class Meta:
+        model = models.PreliminaryFacility
+        formhelper_class = PreliminaryFacilityFilterFormHelper
+        fields = discover_fields(formhelper_class.layout)
 
 
 class FacilityFilter(HelpedFilterSet):

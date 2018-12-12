@@ -68,6 +68,26 @@ class BatchFilterFormHelper(FormHelper):
     )
 
 
+class PreliminaryFacilityFilterFormHelper(FormHelper):
+    """Provides layout information for PreliminaryFacilityFilter.form"""
+
+    layout = CollapsibleFilterFormLayout(
+        Div(
+            Div("site_num", css_class="col-sm-2"),
+            Div("freq_low", css_class="col-sm-5"),
+            Div("site_name", css_class="col-sm-2"),
+            Div("antenna_model_number", css_class="col-sm-3"),
+            css_class="row",
+        ),
+        Div(
+            Div("location", css_class="col-sm-8"),
+            Div("comments", css_class="col-sm-2"),
+            Div("data_source", css_class="col-sm-2"),
+            css_class="row",
+        ),
+    )
+
+
 class FacilityFilterFormHelper(FormHelper):
     """Provides layout information for FacilityFilter.form"""
 

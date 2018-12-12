@@ -47,6 +47,76 @@ class Structure(IsActiveModel, TrackedModel, DataSourceModel, Model):
         return reverse("structure_detail", args=[str(self.id)])
 
 
+class PreliminaryFacility(
+    TrackedOriginalModel, IsActiveModel, TrackedModel, DataSourceModel, Model
+):
+    # From Access
+    site_num = PositiveIntegerField(verbose_name="Site #", blank=True, null=True)
+    freq_low = FloatField(
+        verbose_name="Freq Low (MHz)",
+        help_text="Frequency specific or lower part of band.",
+        null=True,
+        blank=True,
+    )
+    antenna_model_number = CharField(
+        verbose_name="Antenna Model No.", max_length=256, blank=True, null=True
+    )
+    power_density_limit = FloatField(
+        null=True, blank=True, verbose_name="Power Density Limit"
+    )
+    site_name = CharField(
+        max_length=256,
+        blank=True,
+        null=True,
+        verbose_name="Site Name",
+        help_text="What you call it! Include MCN and eNB information.",
+    )
+    latitude = CharField(
+        blank=True,
+        null=True,
+        max_length=256,
+        verbose_name="Latitude",
+        help_text="Latitude of site, in degrees",
+    )
+    longitude = CharField(
+        blank=True,
+        null=True,
+        max_length=256,
+        verbose_name="Longitude",
+        help_text="Longitude of site, in degrees",
+    )
+    amsl = FloatField(
+        verbose_name="AMSL (meters)",
+        help_text="Ground elevation",
+        blank=True,
+        null=True,
+    )
+    agl = FloatField(
+        verbose_name="AGL (meters)",
+        help_text="Facility height to center above ground level",
+        blank=True,
+        null=True,
+    )
+    comments = TextField(
+        null=True,
+        blank=True,
+        help_text="Additional information or comments from the applicant",
+    )
+
+    location = PointField(blank=True, null=True, spatial_index=True, geography=True)
+    pcase = ForeignKey("PreliminaryCase", on_delete=CASCADE, related_name="pfacilities")
+
+    class Meta:
+        verbose_name = "Preliminary Facility"
+        verbose_name_plural = "Preliminary Facilities"
+
+    def __str__(self):
+        return f"{self.antenna_model_number} <{self.id}>"
+
+    def get_absolute_url(self):
+        return reverse("prelim_facility_detail", args=[str(self.id)])
+
+
 class Facility(
     TrackedOriginalModel, IsActiveModel, TrackedModel, DataSourceModel, Model
 ):
