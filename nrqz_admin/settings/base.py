@@ -133,8 +133,10 @@ LOGGING = {
 
 
 # django-explorer
-EXPLORER_CONNECTIONS = {"Default": "readonly"}
-EXPLORER_DEFAULT_CONNECTION = "readonly"
+# EXPLORER_CONNECTIONS = {"Default": "readonly"}
+# EXPLORER_DEFAULT_CONNECTION = "readonly"
+EXPLORER_CONNECTIONS = {"Default": "default"}
+EXPLORER_DEFAULT_CONNECTION = "default"
 
 
 # django-tables2

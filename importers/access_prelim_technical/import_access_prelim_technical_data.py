@@ -12,11 +12,12 @@ from tqdm import tqdm
 import django
 
 django.setup()
+from django.contrib.postgres.search import TrigramSimilarity
 from django.db import transaction
 from django.contrib.gis.geos import GEOSGeometry
 from django.contrib.gis.geos.error import GEOSException
 
-from cases.forms import PreliminaryFacilityForm
+from cases.forms import PersonForm, PreliminaryCaseForm, PreliminaryFacilityForm
 from cases.models import (
     # Attachment,
     PreliminaryCase,
@@ -25,163 +26,144 @@ from cases.models import (
     AlsoKnownAs,
 )
 from importers.access_prelim_technical.fieldmap import (
-    applicant_field_mappers,
-    case_field_mappers,
-    facility_field_mappers,
-    get_combined_field_map,
+    APPLICANT_FORM_MAP,
+    PCASE_FORM_MAP,
+    PFACILITY_FORM_MAP,
 )
 from importers.converters import coerce_coords
 
 
-field_map = get_combined_field_map()
+# field_map = get_combined_field_map()
 
 ACCESS_PRELIM_TECHNICAL = "access_prelim_technical"
 
 
 def load_rows(path):
     with open(path, newline="", encoding="latin1") as file:
-        return list(csv.reader(file))
+        lines = file.readlines()
+
+    return csv.DictReader(lines)
 
 
 # TODO: Consolidate, and this has been changed slightly from other
-def person_is_similar_to(person, name):
+def get_person_similarity(person, name):
+    # TODO: Need to be 0.7+ similar!
     # More than 0.3 similar
-    similar = Person.objects.filter(id=person.id).filter(name__trigram_similar=name)
-    assert similar.count() <= 1
-    # Yes, this works even if there are no items in similar
-    return similar.first()
+    person_ = Person.objects.filter(id=person.id).annotate(
+        name_similarity=TrigramSimilarity("name", name)
+    )
+    assert person_.count() <= 1
+    return person_.first().name_similarity
 
 
-@transaction.atomic
-def handle_row(field_importers, row):
-    applicant_dict = {}
-    prelim_facility_dict = {}
-    prelim_case_dict = {}
-
-    for fi, value in zip(field_importers, row):
-        if fi:
-            if fi in applicant_field_mappers:
-                applicant_dict[fi.to_field] = fi.converter(value)
-            elif fi in facility_field_mappers:
-                try:
-                    prelim_facility_dict[fi.to_field] = fi.converter(value)
-                except ValueError as error:
-                    tqdm.write(str(error))
-                    prelim_facility_dict[fi.to_field] = None
-            elif fi in case_field_mappers:
-                prelim_case_dict[fi.to_field] = fi.converter(value)
-            else:
-                raise ValueError("Shouldn't be possible")
-
-    found_report = dict(applicant=False, pfacility=False, pcase=False)
-    pcase_num = prelim_case_dict["case_num"]
-    if pcase_num is None:
-        raise ValueError("case_num is None!")
+def handle_pcase(row,):
+    pcase_form = PCASE_FORM_MAP.render(row)
+    pcase_num = pcase_form["case_num"].value()
     try:
         pcase = PreliminaryCase.objects.get(case_num=pcase_num)
     except PreliminaryCase.DoesNotExist:
-        pcase = PreliminaryCase.objects.create(
-            **prelim_case_dict, data_source=ACCESS_PRELIM_TECHNICAL
+        # If this doesn't work just let it blow up; that's fine
+        pcase_form.save()
+        pcase_created = True
+    else:
+        pcase_created = False
+
+    return pcase, pcase_created
+
+
+def handle_applicant(row, pcase):
+    applicant_form = APPLICANT_FORM_MAP.render(row)
+    if pcase.applicant:
+        applicant_name = applicant_form["name"].value()
+        similarity = get_person_similarity(pcase.applicant, applicant_name)
+        is_similar = similarity > 0.7
+        is_substring = (
+            applicant_name.lower() in pcase.applicant.name.lower()
+            or pcase.applicant.name.lower() in applicant_name.lower()
         )
-        case_created = True
-        found_report["pcase"] = False
-    else:
-        case_created = False
-        found_report["pcase"] = True
+        if is_similar or is_substring:
+            # If the PreliminaryCase's existing Applicant exists and is sufficiently
+            # similar to this row's, then we assume that they are the same Person.
+            # We consider this safe because we are only dealing with a single Person.
+            if is_similar:
+                similar_str = f" is {similarity * 100:.2f}% similar to "
+            else:
+                similar_str = ""
 
-    # If we found a PreliminaryCase (i.e. didn't create one),
-    # and that pcase has an applicant,
-    # and that applicant's name doesn't exactly match this row's,
-    # then we need to handle this!
-    if not case_created:
-        if pcase.applicant:
-            applicant_name = applicant_dict["name"]
-            if pcase.applicant.name != applicant_name:
-                # tqdm.write(
-                #     f"Found pcase {pcase}; its applicant {pcase.applicant.name!r} differs "
-                #     f"from our applicant {applicant_name!r}"
-                # )
-                # If the PreliminaryCase's existing Applicant is sufficiently similar to this row's,
-                # then we don't need to create a new Applicant
-                if person_is_similar_to(pcase.applicant, applicant_name):
-                    # tqdm.write(
-                    #     "  However, the names are very similar, so we will link "
-                    #     "this new name to the existing applicant!"
-                    # )
-                    # Don't create a new AKA if one already exists for this PreliminaryCase's Applicants
-                    if not pcase.applicant.aka.filter(name=applicant_name).exists():
-                        AlsoKnownAs.objects.create(
-                            person=pcase.applicant,
-                            name=applicant_name,
-                            data_source=ACCESS_PRELIM_TECHNICAL,
-                        )
-                    if not pcase.applicant.aka.filter(
-                        name=pcase.applicant.name
-                    ).exists():
-                        AlsoKnownAs.objects.create(
-                            person=pcase.applicant,
-                            name=pcase.applicant.name,
-                            data_source=ACCESS_PRELIM_TECHNICAL,
-                        )
-                    # tqdm.write(
-                    #     f"  Applicant {pcase.applicant} is now linked to names: "
-                    #     f"{list(pcase.applicant.aka.values_list('name', flat=True))}"
-                    # )
-                    # Further, if our new applicant name is longer, then we switch
-                    # to it (the assumption being that longer is better/more specific,
-                    # which I've just made up)
-                    if len(applicant_name) > len(pcase.applicant.name):
-                        # tqdm.write(
-                        #     "  Additionally, we will update this Applicant's name because the new name is longer"
-                        # )
-                        pcase.applicant.name = applicant_name
-                        pcase.save()
+            if is_substring:
+                substring_str = f" is a sub- or super-string of "
+            else:
+                substring_str = ""
 
-                    # pcase.applicant.aka.add(name=applicant_name)
-                    # Regardless
-                else:
-                    # TODO: Create applicant here
-                    print("Not similar applicant; do something!")
+            if is_similar and is_substring:
+                conjunction_str = "and"
+            else:
+                conjunction_str = ""
+            tqdm.write(
+                f"Applicant {pcase.applicant.name.strip()!r}{similar_str}{conjunction_str}"
+                f"{substring_str}{applicant_name.strip()!r}; re-using"
+            )
 
-    else:
-        applicant = None
-        if any(applicant_dict.values()):
-            try:
-                applicant = Person.objects.get(name=applicant_dict["name"])
-                tqdm.write(f"Found applicant {applicant}")
-                found_report["applicant"] = True
-            except Person.DoesNotExist:
-                applicant = Person.objects.create(
-                    **applicant_dict, data_source=ACCESS_PRELIM_TECHNICAL
+            # tqdm.write(
+            #     "  However, the names are very similar, so we will link "
+            #     "this new name to the existing applicant!"
+            # )
+            # Don't create a new AKA if one already exists for this PreliminaryCase's Applicants
+            if not pcase.applicant.aka.filter(name=applicant_name).exists():
+                AlsoKnownAs.objects.create(
+                    person=pcase.applicant,
+                    name=applicant_name,
+                    data_source=ACCESS_PRELIM_TECHNICAL,
                 )
-                tqdm.write(f"Created applicant {applicant}")
-            except Person.MultipleObjectsReturned:
-                raise ValueError(applicant_dict)
-        else:
-            tqdm.write("No applicant data; skipping")
+            if not pcase.applicant.aka.filter(name=pcase.applicant.name).exists():
+                AlsoKnownAs.objects.create(
+                    person=pcase.applicant,
+                    name=pcase.applicant.name,
+                    data_source=ACCESS_PRELIM_TECHNICAL,
+                )
+            # tqdm.write(
+            #     f"  Applicant {pcase.applicant} is now linked to names: "
+            #     f"{list(pcase.applicant.aka.values_list('name', flat=True))}"
+            # )
 
-        pcase.applicant = applicant
-        pcase.save()
+            # NOTE: We do not change the applicant name here -- the Access Applicant
+            # DB is the source of truth for Applicant names
 
-    assert pcase
-    if any(prelim_facility_dict.values()):
+            return pcase.applicant, False
 
-        form = PreliminaryFacilityForm(
-            {
-                **prelim_facility_dict,
-                "pcase": pcase.id,
-                "data_source": ACCESS_PRELIM_TECHNICAL,
-            }
-        )
-        if form.is_valid():
-            pfacility = form.save()
-            # TODO: Check for PFacility existence somewhere?
+    applicant = applicant_form.save()
+    tqdm.write(f"Created applicant {applicant}")
 
-            # tqdm.write(f"Created PreliminaryFacility {pfacility} <{pfacility.id}>")
-        else:
-            raise ValueError(form.errors.as_data())
+    # TODO: Let Person handle the addition of AKA in default case?
+    pcase.applicant = applicant
+    pcase.save()
+    return pcase, True
+
+
+def handle_pfacility(row, pcase):
+    pfacility_form = PFACILITY_FORM_MAP.render(row, extra={"pcase": pcase.id})
+    if pfacility_form.is_valid():
+        pfacility = pfacility_form.save()
+        return pfacility, True
+        # TODO: Check for PFacility existence somewhere?
+
+        # tqdm.write(f"Created PreliminaryFacility {pfacility} <{pfacility.id}>")
     else:
-        tqdm.write("No pfacility data; skipping")
+        raise ValueError(pfacility_form.errors.as_data())
+
+
+@transaction.atomic
+def handle_row(row):
+    found_report = dict(applicant=False, pfacility=False, pcase=False)
+
+    pcase, pcase_created = handle_pcase(row)
+    found_report["pcase"] = pcase_created
+
+    applicant, applicant_created = handle_applicant(row, pcase)
+    found_report["applicant"] = applicant_created
+
+    pfacility, pfacility_created = handle_pfacility(row, pcase)
+    found_report["pfacility"] = pfacility_created
 
     return found_report
 
@@ -197,7 +179,7 @@ def populate_locations():
             longitude = coerce_coords(pfacility.longitude)
             latitude = coerce_coords(pfacility.latitude)
         except ValueError as error:
-            print(
+            tqdm.write(
                 f"Error parsing {pfacility} ({pfacility.latitude}, {pfacility.longitude}): {error}"
             )
         else:
@@ -207,29 +189,18 @@ def populate_locations():
                 pfacility.location = GEOSGeometry(point_str)
                 pfacility.save()
             except GEOSException as error:
-                print(f"Error saving {point_str}: {error}")
+                tqdm.write(f"Error saving {point_str}: {error}")
 
 
 @transaction.atomic
 def main():
     args = parse_args()
-    rows = load_rows(args.path)
-    headers = rows[0]
-    data = rows[1:]
-
-    field_importers = []
-    for header in headers:
-        try:
-            field_importers.append(field_map[header])
-        except KeyError:
-            field_importers.append(None)
-
+    rows = list(load_rows(args.path))
     found_counts = {"applicant": 0, "pfacility": 0, "pcase": 0}
     row_failures = 0
-    data_with_progress = tqdm(data, unit="rows")
-    for row in data_with_progress:
+    for row in tqdm(rows, unit="rows"):
         try:
-            found_report = handle_row(field_importers, row)
+            found_report = handle_row(row)
         except Exception as error:
             if not args.durable:
                 raise
@@ -242,8 +213,8 @@ def main():
             found_counts["pfacility"] += bool(found_report["pfacility"])
 
     pprint(found_counts)
-    print(f"Failed rows: {row_failures}")
-    print(f"Total rows: {len(data)}")
+    tqdm.write(f"Failed rows: {row_failures}")
+    tqdm.write(f"Total rows: {len(data)}")
 
     populate_locations()
 

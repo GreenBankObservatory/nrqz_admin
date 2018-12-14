@@ -98,32 +98,130 @@ def coerce_long(value):
         return None
 
 
+class FieldMapError(ValueError):
+    pass
+
+
+class FormMap:
+    """Simple mapping of ModelForm -> field-mapped data"""
+
+    def __init__(
+        self, field_maps, form_class=None, form_defaults=None, form_kwargs=None
+    ):
+        # super().__init__(field_maps)
+        self.field_maps = field_maps
+        self.form_class = form_class
+        if form_defaults:
+            self.form_defaults = form_defaults
+        else:
+            form_defaults = {}
+        if form_kwargs:
+            self.form_kwargs = form_kwargs
+        else:
+            self.form_kwargs = {}
+        # self.form = form_class() if self.form_class else None
+
+    def render(self, data, extra=None):
+        if extra is None:
+            extra = {}
+
+        rendered = {}
+        for field_map in self.field_maps:
+            # aliases = field_map.from_field_aliases
+            from_fields = field_map.from_fields
+            to_fields = field_map.to_fields
+            # converter = field_map.converter
+
+            # TODO: Seems weird that this isn't used...
+            for to_field in to_fields:
+                try:
+                    from_field_data = {
+                        from_field: data[from_field] for from_field in from_fields
+                    }
+                except KeyError as error:
+                    continue
+                    raise KeyError("All to_fields must be mapped!")
+
+                rendered.update(field_map.map(**from_field_data))
+
+        if self.form_class:
+            return self.form_class(
+                {**self.form_defaults, **extra, **rendered}, **self.form_kwargs
+            )
+        return rendered
+
+    def __repr__(self):
+        field_maps_str = "\n  ".join([str(field_map) for field_map in self.field_maps])
+        return f"FormMap {{\n  {field_maps_str}\n}}"
+
+
 class FieldMap:
     """Map field to its associated headers and to a converter"""
 
     def __init__(
-        self, to_field, converter, from_fields=None, from_field=None, to_fields=None
+        self,
+        to_field=None,
+        to_fields=None,
+        converter=None,
+        from_fields=None,
+        from_field=None,
     ):
         if to_fields and to_field:
             raise ValueError("Cannot provide both to_fields and to_field")
 
         # Headers the to_field could potentially be associated with
-        self.to_field = to_field
-        self.to_fields = to_fields
+        if to_field:
+            self.to_fields = [to_field]
+        else:
+            self.to_fields = to_fields
+        if not self.to_fields:
+            raise ValueError("Either to_field or to_fields must be provided!")
+
+        if from_field:
+            self.from_fields = [from_field]
+        else:
+            self.from_fields = from_fields
+        if not self.from_fields:
+            raise ValueError("Either from_field or from_fields must be provided!")
+
+        if not converter and (len(self.to_fields) > 1 or len(self.from_fields) > 1):
+            raise ValueError(
+                "A custom converter must be given if either to_fields or "
+                "from_fields has more than one value!"
+            )
         # Function to convert/clean data
         self.converter = converter if converter else self.nop_converter
-        if from_fields and from_field:
-            raise ValueError("Cannot provide both from_fields and from_field")
-        elif not (from_fields or from_field):
-            raise ValueError("Must provide exactly one of from_fields or from_field")
 
-        self.from_field = from_field
-        self.from_fields = from_fields
-
-    @staticmethod
-    def nop_converter(value):
+    def nop_converter(self, value):
         """Perform no conversion; simply return value"""
         return value
 
     def __repr__(self):
-        return f"{self.to_field} <{self.converter.__name__}>: {self.from_fields}"
+        if len(self.from_fields) == 1:
+            from_ = "1"
+            from_fields = self.from_fields[0]
+        else:
+            from_ = "*"
+            from_fields = self.from_fields
+
+        if len(self.to_fields) == 1:
+            to = "1"
+            to_fields = self.to_fields[0]
+        else:
+            to = "*"
+            to_fields = self.to_fields
+
+        return f"FieldMap: {from_fields!r} [{from_}]—({self.converter.__name__})—[{to}] {to_fields!r}"
+        # return f"FieldMap: {self.converter.__name__}({from_fields!r}) -> {to_fields!r}"
+
+    def map(self, *args, **kwargs):
+        # Handle the simple 1:1 case here to save on boilerplate externally
+        # That is, by handling this case here we avoid similar logic
+        # propagating to all of our simple converter functions
+        if len(self.to_fields) == 1 and len(self.from_fields) == 1:
+            to_field = self.to_fields[0]
+            from_field_value = next(iter(kwargs.values()))
+            return {to_field: self.converter(from_field_value)}
+
+        # For all other cases, expect the converter to be smart enough
+        return self.converter(*args, **kwargs)

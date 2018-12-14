@@ -7,7 +7,9 @@ from dal import autocomplete
 from cases.models import (
     Batch,
     Case,
+    Person,
     PreliminaryFacility,
+    PreliminaryCase,
     Facility,
     LetterTemplate,
     Structure,
@@ -72,6 +74,45 @@ class StructureForm(forms.ModelForm):
         )
 
 
+class PersonForm(forms.ModelForm):
+    class Meta:
+        model = Person
+        fields = (
+            "data_source",
+            "name",
+            "phone",
+            "fax",
+            "email",
+            "street",
+            "city",
+            "county",
+            "state",
+            "zipcode",
+            "comments",
+        )
+
+
+class PreliminaryCaseForm(forms.ModelForm):
+    class Meta:
+        model = PreliminaryCase
+        fields = (
+            "data_source",
+            "applicant",
+            "contact",
+            "pcase_group",
+            "comments",
+            "case_num",
+            "name",
+            "case",
+            "attachments",
+            "completed",
+            "completed_on",
+            "radio_service",
+            "num_freqs",
+            "num_sites",
+        )
+
+
 class CaseForm(forms.ModelForm):
     class Meta:
         model = Case
@@ -113,6 +154,7 @@ class PreliminaryFacilityForm(forms.ModelForm):
     class Meta:
         model = PreliminaryFacility
         fields = (
+            "data_source",
             "site_num",
             "original_created_on",
             "freq_low",
@@ -126,7 +168,6 @@ class PreliminaryFacilityForm(forms.ModelForm):
             "comments",
             "location",
             "pcase",
-            "data_source",
         )
 
 

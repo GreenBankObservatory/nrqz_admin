@@ -9,22 +9,22 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 INSTALLED_APPS += ["django_extensions", "django-resetdb", "debug_toolbar"]
 
 DATABASES = {
-    "readonly": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": f"nrqz_{user}_dev",
-        "USER": "readonly",
-        "PASSWORD": "",
-        "HOST": "galileo.gb.nrao.edu",
-        "PORT": "5432",
-    },
+    # "readonly": {
+    #     "ENGINE": "django.db.backends.postgresql",
+    #     "NAME": f"nrqz_{user}_dev",
+    #     "USER": "postgres",
+    #     "PASSWORD": "",
+    #     "HOST": "galileo.gb.nrao.edu",
+    #     "PORT": "5432",
+    # },
     "default": {
         "ENGINE": "django.contrib.gis.db.backends.postgis",
         "NAME": f"nrqz_{user}_dev",
-        "USER": user,
+        "USER": "postgres",
         "PASSWORD": "",
         "HOST": "galileo.gb.nrao.edu",
         "PORT": "5432",
-    },
+    }
 }
 
 # SECURITY WARNING: keep the secret key used in production secret!

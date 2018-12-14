@@ -1,6 +1,7 @@
 """Field mappings for Access Preliminary Technical Data"""
+from cases.forms import PersonForm, PreliminaryCaseForm, PreliminaryFacilityForm
 
-from importers.fieldmap import FieldMap
+from importers.fieldmap import FieldMap, FormMap
 from importers.converters import (
     coerce_scientific_notation,
     coerce_none,
@@ -8,54 +9,58 @@ from importers.converters import (
 )
 from importers.access_application.fieldmap import coerce_datetime, coerce_positive_int
 
+ACCESS_PRELIM_TECHNICAL = "access_prelim_technical"
 
-applicant_field_mappers = [
-    FieldMap(to_field="name", converter=None, from_field="APPLICANT")
-]
+APPLICANT_FORM_MAP = FormMap(
+    field_maps=[FieldMap(to_field="name", converter=None, from_field="APPLICANT")],
+    form_class=PersonForm,
+    form_defaults={"data_source": ACCESS_PRELIM_TECHNICAL},
+)
 
-case_field_mappers = [
-    FieldMap(to_field="case_num", converter=coerce_positive_int, from_field="PNRQZ_NO")
-]
+PCASE_FORM_MAP = FormMap(
+    field_maps=[
+        FieldMap(
+            to_field="case_num", converter=coerce_positive_int, from_field="PNRQZ_NO"
+        )
+    ],
+    form_class=PreliminaryCaseForm,
+    form_defaults={"data_source": ACCESS_PRELIM_TECHNICAL},
+)
 
-facility_field_mappers = [
-    FieldMap(to_field="site_num", converter=None, from_field="Site Number"),
-    FieldMap(
-        to_field="original_created_on", converter=coerce_datetime, from_field="DATE"
-    ),
-    FieldMap(to_field="freq_low", converter=None, from_field="FREQUENCY"),
-    FieldMap(to_field="antenna_model_number", converter=None, from_field="ANT_MODEL"),
-    FieldMap(
-        to_field="power_density_limit",
-        converter=coerce_scientific_notation,
-        from_field="PWD_LIMIT",
-    ),
-    FieldMap(to_field="site_name", converter=None, from_field="LOCATION"),
-    FieldMap(to_field="latitude", converter=coerce_none, from_field="LATITUDE"),
-    FieldMap(to_field="longitude", converter=coerce_none, from_field="LONGITUDE"),
-    FieldMap(to_field="amsl", converter=coerce_feet_to_meters, from_field="GND_ELEV"),
-    FieldMap(to_field="agl", converter=coerce_feet_to_meters, from_field="ANT_HEIGHT"),
-    FieldMap(to_field="comments", converter=None, from_field="REMARKS"),
-]
-
-# TODO: Consolidate!
-def expand_field_mappers(field_mappers):
-    """Generate a map of known_header->importer by "expanding" the from_fields of each FieldMap
-    In this way we can easily and efficiently look up a given header and find its associated importer
-    """
-
-    field_map = {}
-    for importer in field_mappers:
-        field_map[importer.from_field] = importer
-
-    return field_map
+PFACILITY_FORM_MAP = FormMap(
+    field_maps=[
+        FieldMap(to_field="site_num", converter=None, from_field="Site Number"),
+        FieldMap(
+            to_field="original_created_on", converter=coerce_datetime, from_field="DATE"
+        ),
+        FieldMap(to_field="freq_low", converter=None, from_field="FREQUENCY"),
+        FieldMap(
+            to_field="antenna_model_number", converter=None, from_field="ANT_MODEL"
+        ),
+        FieldMap(
+            to_field="power_density_limit",
+            converter=coerce_scientific_notation,
+            from_field="PWD_LIMIT",
+        ),
+        FieldMap(to_field="site_name", converter=None, from_field="LOCATION"),
+        FieldMap(to_field="latitude", converter=coerce_none, from_field="LATITUDE"),
+        FieldMap(to_field="longitude", converter=coerce_none, from_field="LONGITUDE"),
+        FieldMap(
+            to_field="amsl", converter=coerce_feet_to_meters, from_field="GND_ELEV"
+        ),
+        FieldMap(
+            to_field="agl", converter=coerce_feet_to_meters, from_field="ANT_HEIGHT"
+        ),
+        FieldMap(to_field="comments", converter=None, from_field="REMARKS"),
+    ],
+    form_class=PreliminaryFacilityForm,
+    form_defaults={"data_source": ACCESS_PRELIM_TECHNICAL},
+)
 
 
-# TODO: Consolidate!
-def get_combined_field_map():
-    return expand_field_mappers(
-        [*applicant_field_mappers, *case_field_mappers, *facility_field_mappers]
-    )
-
+print(f"APPLICANT_FORM_MAP:\n{APPLICANT_FORM_MAP}\n---\n")
+print(f"PCASE_FORM_MAP:\n{PCASE_FORM_MAP}\n---\n")
+print(f"PFACILITY_FORM_MAP:\n{PFACILITY_FORM_MAP}\n---\n")
 
 todo = [
     "REQ_ERP",
