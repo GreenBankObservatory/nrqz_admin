@@ -178,7 +178,6 @@ class FieldMap:
         converter=None,
         from_fields=None,
         from_field=None,
-        from_field_aliases=None,
     ):
         if isinstance(to_fields, str) or isinstance(from_fields, str):
             raise ValueError("to_fields and from_fields should not be strings!")
@@ -198,10 +197,18 @@ class FieldMap:
             self.from_fields = [from_field]
         else:
             self.from_fields = from_fields
+
         if not self.from_fields:
-            # self.from_fields = self.to_fields
-            self.from_fields = []
-            # raise ValueError("Either from_field or from_fields must be provided!")
+            raise ValueError("Either from_field or from_fields must be provided!")
+
+        if isinstance(from_fields, dict):
+            self.aliases = {
+                alias: to_field
+                for to_field, aliases in from_fields.items()
+                for alias in aliases
+            }
+        else:
+            self.aliases = {}
 
         if not converter and (len(self.to_fields) > 1 or len(self.from_fields) > 1):
             raise ValueError(
@@ -211,17 +218,7 @@ class FieldMap:
         # Function to convert/clean data
         self.converter = converter if converter else self.nop_converter
 
-        if from_field_aliases:
-            if not isinstance(from_field_aliases, dict) and len(self.to_fields) == 1:
-                self.from_field_aliases = {self.to_fields[0]: from_field_aliases}
-            else:
-                self.from_field_aliases = from_field_aliases
-        else:
-            self.from_field_aliases = {}
-
-        from_many = not (
-            len(self.from_fields) == 1 or len(self.from_field_aliases) == 1
-        )
+        from_many = not len(self.from_fields) == 1
         to_many = not len(self.to_fields) == 1
         if from_many and to_many:
             self.map_type = self.MANY_TO_MANY
@@ -255,17 +252,15 @@ class FieldMap:
         # return f"FieldMap: {self.converter.__name__}({from_fields!r}) -> {to_fields!r}"
 
     def map(self, **kwargs):
-        inverted_aliases = chain(*self.from_field_aliases.values())
-        if self.from_field_aliases and any(
-            [key not in inverted_aliases for key in kwargs]
-        ):
-            raise ValueError(f"Found unknown alias. Known aliases: {inverted_aliases}")
+        if self.aliases:
+            unmapped_from_fields = [key not in self.aliases for key in kwargs]
+            if any(unmapped_from_fields):
+                raise ValueError(
+                    f"Found fields {unmapped_from_fields} with no known alias."
+                    f"Known aliases: {self.aliases}"
+                )
 
-        d = {}
-        for from_field, aliases in self.from_field_aliases.items():
-            d.update({alias: from_field for alias in aliases})
-
-        ret = {d.get(key, key): value for key, value in kwargs.items()}
+        ret = {self.aliases.get(key, key): value for key, value in kwargs.items()}
 
         # Handle the simple 1:1 case here to save on boilerplate externally
         # That is, by handling this case here we avoid similar logic

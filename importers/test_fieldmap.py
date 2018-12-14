@@ -124,7 +124,6 @@ class FieldMapTestCase(TestCase):
 
     def test_from_field_to_field(self):
         fm = FieldMap(from_field="case_num", to_field="case_num")
-        print(fm)
 
     def test_from_fields_to_field_default_converter(self):
         with self.assertRaises(ValueError):
@@ -147,7 +146,6 @@ class FieldMapTestCase(TestCase):
             converter=lambda latitude, longitude: dict(location=(latitude, longitude)),
             to_field="location",
         )
-        print(field_map)
         actual = field_map.map(latitude="11 22 33", longitude="44 55 66")
         expected = dict(location=("11 22 33", "44 55 66"))
         self.assertEqual(actual, expected)
@@ -160,7 +158,6 @@ class FieldMapTestCase(TestCase):
             ),
             to_fields=("case_num", "site_name"),
         )
-        print(field_map)
         actual = field_map.map(nrqz_id="1111 Mr. Tower")
         expected = dict(case_num="1111", site_name="Mr. Tower")
         self.assertEqual(actual, expected)
@@ -178,7 +175,6 @@ class FieldMapTestCase(TestCase):
             ),
             to_fields=("lat_m", "lat_s", "long_d", "long_m", "long_s"),
         )
-        print(field_map)
         actual = field_map.map(latitude="112233", longitude="445566")
         expected = dict(
             lat_d="11", lat_m="22", lat_s="33", long_d="44", long_m="55", long_s="66"
@@ -187,7 +183,7 @@ class FieldMapTestCase(TestCase):
 
     def test_aliases_simple(self):
         data = {"Bar": "baz"}
-        field_map = FieldMap(to_field="foo", from_field_aliases=("Foo", "Bar"))
+        field_map = FieldMap(to_field="foo", from_fields={"foo": ("Foo", "Bar")})
         actual = field_map.map(**data)
         expected = {"foo": data["Bar"]}
         self.assertEqual(actual, expected)
@@ -199,7 +195,7 @@ class FieldMapTestCase(TestCase):
 
     def test_aliases_errors(self):
         data = {"Non-existent": "baz"}
-        field_map = FieldMap(to_field="foo", from_field_aliases=("Foo", "Bar"))
+        field_map = FieldMap(to_field="foo", from_fields={"foo": ("Foo", "Bar")})
         with self.assertRaises(ValueError):
             field_map.map(**data)
 
@@ -209,13 +205,9 @@ class FieldMapTestCase(TestCase):
 
         data = {"lat": "11 22 33", "long": "44 55 66"}
         field_map = FieldMap(
-            from_fields=("latitude", "longitude"),
             to_field="location",
             converter=handle_location,
-            from_field_aliases={
-                "latitude": ["lat", "LAT"],
-                "longitude": ["long", "LONG"],
-            },
+            from_fields={"latitude": ["lat", "LAT"], "longitude": ["long", "LONG"]},
         )
         actual = field_map.map(**data)
         expected = {"location": (data["lat"], data["long"])}
@@ -227,13 +219,9 @@ class FieldMapTestCase(TestCase):
 
         data = {"LAT": 30.1, "long": 30.2}
         field_map = FieldMap(
-            from_fields=("latitude", "longitude"),
             converter=handle_location,
             to_field="location",
-            from_field_aliases={
-                "latitude": ["lat", "LAT"],
-                "longitude": ["long", "LONG"],
-            },
+            from_fields={"latitude": ["lat", "LAT"], "longitude": ["long", "LONG"]},
         )
         actual = field_map.map(**data)
         expected = {"location": (data["LAT"], data["long"])}
