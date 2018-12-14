@@ -15,6 +15,7 @@ as well as an dictionary of every known header to its mapped field -- "expanded"
 from the list of FieldMap instances
 """
 
+from itertools import chain
 import re
 import string
 
@@ -121,6 +122,9 @@ class FormMap:
             self.form_kwargs = {}
         # self.form = form_class() if self.form_class else None
 
+    # def foo(self, data):
+    #     self.from_fields = data.keys()
+
     def render(self, data, extra=None):
         if extra is None:
             extra = {}
@@ -128,6 +132,10 @@ class FormMap:
         rendered = {}
         for field_map in self.field_maps:
             # aliases = field_map.from_field_aliases
+            if field_map.from_fields is None:
+                import ipdb
+
+                ipdb.set_trace()
             from_fields = field_map.from_fields
             to_fields = field_map.to_fields
             # converter = field_map.converter
@@ -158,6 +166,11 @@ class FormMap:
 class FieldMap:
     """Map field to its associated headers and to a converter"""
 
+    ONE_TO_ONE = "1:1"
+    ONE_TO_MANY = "1:*"
+    MANY_TO_ONE = "*:1"
+    MANY_TO_MANY = "*:*"
+
     def __init__(
         self,
         to_field=None,
@@ -165,7 +178,11 @@ class FieldMap:
         converter=None,
         from_fields=None,
         from_field=None,
+        from_field_aliases=None,
     ):
+        if isinstance(to_fields, str) or isinstance(from_fields, str):
+            raise ValueError("to_fields and from_fields should not be strings!")
+
         if to_fields and to_field:
             raise ValueError("Cannot provide both to_fields and to_field")
 
@@ -182,7 +199,9 @@ class FieldMap:
         else:
             self.from_fields = from_fields
         if not self.from_fields:
-            raise ValueError("Either from_field or from_fields must be provided!")
+            # self.from_fields = self.to_fields
+            self.from_fields = []
+            # raise ValueError("Either from_field or from_fields must be provided!")
 
         if not converter and (len(self.to_fields) > 1 or len(self.from_fields) > 1):
             raise ValueError(
@@ -191,6 +210,27 @@ class FieldMap:
             )
         # Function to convert/clean data
         self.converter = converter if converter else self.nop_converter
+
+        if from_field_aliases:
+            if not isinstance(from_field_aliases, dict) and len(self.to_fields) == 1:
+                self.from_field_aliases = {self.to_fields[0]: from_field_aliases}
+            else:
+                self.from_field_aliases = from_field_aliases
+        else:
+            self.from_field_aliases = {}
+
+        from_many = not (
+            len(self.from_fields) == 1 or len(self.from_field_aliases) == 1
+        )
+        to_many = not len(self.to_fields) == 1
+        if from_many and to_many:
+            self.map_type = self.MANY_TO_MANY
+        elif from_many:
+            self.map_type = self.MANY_TO_ONE
+        elif to_many:
+            self.map_type = self.ONE_TO_MANY
+        else:
+            self.map_type = self.ONE_TO_ONE
 
     def nop_converter(self, value):
         """Perform no conversion; simply return value"""
@@ -214,14 +254,26 @@ class FieldMap:
         return f"FieldMap: {from_fields!r} [{from_}]—({self.converter.__name__})—[{to}] {to_fields!r}"
         # return f"FieldMap: {self.converter.__name__}({from_fields!r}) -> {to_fields!r}"
 
-    def map(self, *args, **kwargs):
+    def map(self, **kwargs):
+        inverted_aliases = chain(*self.from_field_aliases.values())
+        if self.from_field_aliases and any(
+            [key not in inverted_aliases for key in kwargs]
+        ):
+            raise ValueError(f"Found unknown alias. Known aliases: {inverted_aliases}")
+
+        d = {}
+        for from_field, aliases in self.from_field_aliases.items():
+            d.update({alias: from_field for alias in aliases})
+
+        ret = {d.get(key, key): value for key, value in kwargs.items()}
+
         # Handle the simple 1:1 case here to save on boilerplate externally
         # That is, by handling this case here we avoid similar logic
         # propagating to all of our simple converter functions
-        if len(self.to_fields) == 1 and len(self.from_fields) == 1:
+        if self.map_type == self.ONE_TO_ONE:
             to_field = self.to_fields[0]
-            from_field_value = next(iter(kwargs.values()))
+            from_field_value = next(iter(ret.values()))
             return {to_field: self.converter(from_field_value)}
 
         # For all other cases, expect the converter to be smart enough
-        return self.converter(*args, **kwargs)
+        return self.converter(**ret)
