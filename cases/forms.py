@@ -147,7 +147,16 @@ class CaseForm(forms.ModelForm):
 class BatchForm(forms.ModelForm):
     class Meta:
         model = Batch
-        fields = ("data_source", "comments", "attachments", "name")
+        fields = (
+            "attachments",
+            "comments",
+            "data_source",
+            "id",
+            "imported_from",
+            "name",
+            "original_created_on",
+            "original_modified_on",
+        )
 
 
 class PreliminaryFacilityForm(forms.ModelForm):

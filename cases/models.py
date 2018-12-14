@@ -341,7 +341,7 @@ class Facility(
 
 class Batch(TrackedOriginalModel, IsActiveModel, TrackedModel, DataSourceModel, Model):
     comments = TextField(blank=True)
-    attachments = ManyToManyField("Attachment")
+    attachments = ManyToManyField("Attachment", blank=True)
     name = CharField(max_length=256, unique=True)
     import_error_summary = TextField()
     imported_from = CharField(max_length=512, unique=True)

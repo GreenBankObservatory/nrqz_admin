@@ -1,3 +1,4 @@
+from pprint import pprint
 from datetime import datetime
 import json
 import os
@@ -12,8 +13,8 @@ from django.db.utils import IntegrityError
 
 from audits.models import BatchAudit, BatchAuditGroup
 from cases.models import Attachment, Batch, Case, Facility
-from cases.forms import FacilityForm
-from .fieldmap import facility_field_map, gen_header_field_map, get_unmapped_headers
+from cases.forms import FacilityForm, CaseForm, BatchForm
+from .fieldmap import CASE_FORM_MAP, FACILITY_FORM_MAP
 from .import_report import ExcelCollectionImportReport, ImportReport
 from .strip_excel_non_data import strip_excel_sheet
 
@@ -172,167 +173,13 @@ class ExcelImporter:
         if self.preprocess:
             tqdm.write("Pre-processing sheet")
             strip_excel_sheet(sheet)
-        return sheet.array
 
-    def create_facility_dict_from_row(self, header_field_map, row, row_num):
+        # Create a new sheet, this time with the column names mapped
+        # We couldn't do this before because we weren't sure that our
+        # headers were on the first row, but they should be now
+        sheet = pyexcel.Sheet(sheet.array, name_columns_by_row=0)
+        return sheet.records
 
-        facility_dict = {}
-        for header, importer, cell in zip(
-            header_field_map.keys(), header_field_map.values(), row
-        ):
-            if importer and importer.to_field:
-                try:
-                    facility_dict[importer.to_field] = importer.converter(cell)
-                except (ValueError) as error:
-                    self.report.add_row_error(
-                        "conversion_error",
-                        {
-                            "row": row_num,
-                            "header": header,
-                            "converter": importer.converter.__name__,
-                            "field": importer.to_field,
-                            "error": str(error),
-                            "value": cell,
-                        },
-                    )
-            else:
-                # tqdm.write(
-                #     "Either no field importer or no importer.to_field; skipping "
-                #     f"value {cell!r} for header {header!r}!"
-                # )
-                continue
-
-        return facility_dict
-
-    def get_duplicate_headers(self, header_field_map):
-        to_fields = [
-            importer.to_field for importer in header_field_map.values() if importer
-        ]
-
-        if len(set(to_fields)) != len(to_fields):
-            dups = {}
-            for header, importer in header_field_map.items():
-                if importer and to_fields.count(importer.to_field) > 1:
-                    if importer.to_field in dups:
-                        dups[importer.to_field].append(header)
-                    else:
-                        dups[importer.to_field] = [header]
-
-                # There are _a lot_ of sheets that use a blank header as the
-                # comments column. Generally this is fine, but sometimes there
-                # is an explicit comments header _and_ a blank header. Since these
-                # both map to the comments field, we need to reconcile this somehow
-                # to avoid duplicate detection from being triggered.
-                # So: If we have detected duplicates in the comments field, AND
-                # a blank header is one of the duplicates...
-                if "comments" in dups and "" in dups["comments"]:
-                    # ...remove it from the comments
-                    dups["comments"].remove("")
-
-            return dups
-        else:
-            return None
-
-    @staticmethod
-    def derive_nrqz_id_field(header_field_map):
-        to_fields = [fm.to_field for fm in header_field_map.values() if fm]
-        nrqz_id_fields = ["nrqz_id", "site_name"]
-        for nrqz_id_field in nrqz_id_fields:
-            if nrqz_id_field in to_fields:
-                return nrqz_id_field
-
-        return None
-
-    @staticmethod
-    def get_unmapped_fields():
-        excluded_fields = [
-            "location",
-            "asr_is_from_applicant",
-            "case",
-            "structure",
-            "data_source",
-            "site_num",
-        ]
-        facility_fields = [
-            field for field in FacilityForm.Meta.fields if field not in excluded_fields
-        ]
-
-        mapped_fields = [
-            importer.to_field
-            for importer in facility_field_map.values()
-            if importer is not None
-        ]
-        unmapped_fields = [
-            field for field in facility_fields if field not in mapped_fields
-        ]
-        return unmapped_fields
-
-    @transaction.atomic
-    def create_facility(self, facility_dict, case):
-        self.report.facilities_processed += 1
-        # TODO: Alter FacilityForm so that it uses case num instead of ID somehow
-        facility_dict = {
-            **facility_dict,
-            "case": case.id if case else None,
-            "data_source": EXCEL,
-        }
-        facility_form = FacilityForm(facility_dict)
-        if facility_form.is_valid():
-            facility = facility_form.save()
-            self.report.audit_facility_success(facility)
-            self.report.facilities_created.append(facility)
-            # tqdm.write(f"Created Facility {facility} {facility.id}")
-            return None
-        else:
-            useful_errors = [
-                {"field": field, "value": facility_dict[field], "errors": errors}
-                for field, errors in facility_form.errors.as_data().items()
-            ]
-            if self.durable:
-                self.report.audit_facility_error(
-                    case, facility_dict, facility_form.errors.as_data()
-                )
-            else:
-                raise FacilityValidationError(
-                    f"Facility {facility_dict} failed validation", useful_errors
-                )
-
-            self.report.facilities_not_created.append(facility_dict)
-            return useful_errors
-
-    @transaction.atomic
-    def create_case(self, case_num, row_to_facility_map):
-        self.report.cases_processed += 1
-        # Create the case...
-        try:
-            case = Case.objects.create(
-                batch=self.batch_audit_group.batch, case_num=case_num, data_source=EXCEL
-            )
-        # ...or report an error if we can't
-        except IntegrityError as error:
-            dce = DuplicateCaseError(
-                f"Batch '{self.batch_audit_group.batch}' rejected due to duplicate case: {case_num}"
-            )
-            self.report.add_case_error("IntegrityError", error)
-            self.report.cases_not_created.append(case_num)
-            if not self.durable:
-                raise dce from error
-            case = None
-        # If the case is created, we now need to create all of its Facilities
-        else:
-            self.report.cases_created.append(case)
-
-        # For every Facility dict...
-        for row_num, facility_dict in row_to_facility_map.items():
-            facility_errors = self.create_facility(facility_dict, case)
-
-            if facility_errors:
-                for error in facility_errors:
-                    self.report.add_row_error(
-                        "validation_error", {"row": row_num, **error}
-                    )
-
-    @transaction.atomic
     def delete_existing_batch(self):
         existing_batch = self.batch_audit_group.batch
         if existing_batch:
@@ -390,75 +237,25 @@ class ExcelImporter:
         batch_modified_on = self.get_batch_modified_on()
         # Purge any existing batch
         self.delete_existing_batch()
-        batch = Batch.objects.create(
-            id=batch_id,
-            name=batch_name,
-            comments=f"Created by {__file__}",
-            imported_from=self.path,
-            original_created_on=batch_created_on,
-            original_modified_on=batch_modified_on,
-            data_source=EXCEL,
+        batch_form = BatchForm(
+            {
+                "id": batch_id,
+                "name": batch_name,
+                "comments": f"Created by {__file__}",
+                "imported_from": self.path,
+                "original_created_on": batch_created_on,
+                "original_modified_on": batch_modified_on,
+                "data_source": EXCEL,
+            }
         )
+        if batch_form.is_valid():
+            batch = batch_form.save()
+        else:
+            raise BatchRejectionError(
+                f"Batch is invalid! {batch_form.errors.as_data()}"
+            )
         tqdm.write(f"Created Batch {batch} <{batch.id}>")
         return batch
-
-    def create_case_map(self, header_field_map, data, nrqz_id_field):
-        """Create map of { case_num: { row_num: facility_dict } } and return"""
-
-        case_map = {}
-        for row in data:
-            # Pull out the row number from the row...
-            row_num = row[-1]
-            try:
-                row_num = int(row_num)
-            except ValueError:
-                self.report.add_row_error(
-                    "invalid_row_num",
-                    {
-                        "row": row_num,
-                        "error": f"Could not convert {row_num} to a number! Check original Excel file for issues",
-                    },
-                )
-            facility_dict = self.create_facility_dict_from_row(
-                header_field_map, row, row_num
-            )
-            # Derive the case number from the NRQZ ID (or Site Name, if no NRQZ ID found earlier)
-            try:
-                case_num, site_num = derive_case_and_site_num_from_nrqz_id(
-                    str(facility_dict[nrqz_id_field])
-                )
-            except ValueError as error:
-                # If there's an error...
-                field_header_map = {
-                    value.to_field: key
-                    for key, value in header_field_map.items()
-                    if value is not None
-                }
-                header = field_header_map[nrqz_id_field]
-                # ...consider it a "data" error and report it
-                self.report.add_row_error(
-                    "nrqz_id_error",
-                    {
-                        "row": row_num,
-                        "header": header,
-                        "error": str(error),
-                        "field": nrqz_id_field,
-                        "value": facility_dict[nrqz_id_field],
-                    },
-                )
-            else:
-                # If there's not an error, add the new facility_dict to our case_dict
-                facility_dict["site_num"] = site_num
-                if case_num in case_map:
-                    case_map[case_num][row_num] = facility_dict
-                else:
-                    case_map[case_num] = {row_num: facility_dict}
-
-        return case_map
-
-    def process_case_map(self, case_map):
-        for case_num, row_to_facility_map in case_map.items():
-            self.create_case(case_num, row_to_facility_map)
 
     @transaction.atomic
     def process(self):
@@ -485,7 +282,7 @@ class ExcelImporter:
         except BatchRejectionError as error:
             tqdm.write(f"Rolling back batch stuff! {error}")
 
-        if self.report.has_fatal_errors():
+            # if self.report.has_fatal_errors():
             # This is a sanity check to ensure that the Batch has in fact been
             # rolled back. Since we are tracking the Batch object inside our
             # import_reporter, we can attempt to refresh it from the DB. We
@@ -512,89 +309,87 @@ class ExcelImporter:
                     "Batch should have been committed, but wasn't!"
                 ) from error
 
-        if not self.rolled_back:
-            if self.report.has_errors():
-                status = "created_dirty"
-            else:
-                status = "created_clean"
-        else:
-            status = "rejected"
-
-        batch_audit.status = status
-        self.batch_audit_group.save()
-        batch_audit.save()
-        tqdm.write(f"ba status: {batch_audit.status}")
-        tqdm.write(f"bag status: {batch_audit.audit_group.status}")
         return batch_audit
+
+    def handle_case(self, row):
+        case_form = CASE_FORM_MAP.render(
+            row,
+            extra={"batch": self.batch_audit_group.batch.id, "data_source": EXCEL},
+            allow_unprocessed=True,
+        )
+        case_num = case_form["case_num"].value()
+        import ipdb
+
+        ipdb.set_trace()
+        try:
+            case = Case.objects.get(case_num=case_num)
+        except Case.DoesNotExist:
+            if case_form.is_valid():
+                case = case_form.save()
+            else:
+                raise BatchRejectionError(
+                    "Case is invalid!", case_form.errors.as_data()
+                )
+            case_created = True
+        else:
+            if not self.durable:
+                raise DuplicateCaseError("Aw snap we already got a case in there bro")
+            self.report.add_case_error("IntegrityError", "hmmm")
+            self.report.fatal_error_ocurred = True
+            case_created = False
+
+        return case, case_created
+
+    def handle_facility(self, row, case):
+        # TODO: Alter FacilityForm so that it uses case num instead of ID somehow
+        facility_form = FACILITY_FORM_MAP.render(
+            row, extra={"case": case.id}, allow_unprocessed=True
+        )
+        if facility_form.is_valid():
+            facility = facility_form.save()
+        else:
+            if not self.durable:
+                raise BatchRejectionError(
+                    "Facility is invalid!", facility_form.errors.as_data()
+                )
+            row_num = row["Original Row"]
+            # TODO: Eliminate the type here; should only be one type of row error
+            self.report.add_row_error(
+                "validation_error", {"row": row_num, **facility_form.errors.as_data()}
+            )
+            self.report.fatal_error_ocurred = True
+            facility = None
+        facility_created = True
+
+        return facility, facility_created
+
+    def handle_row(self, row):
+        case, case_created = self.handle_case(row)
+        facility, facility_created = self.handle_facility(row, case)
+        print(f"Case {case_created}: {case}")
+        print(f"Facility {facility_created}: {facility}")
 
     @transaction.atomic
     def _process(self):
         """Create objects from given path"""
 
+        fatal_error_ocurred = False
+
         self.batch_audit_group.batch = self.create_batch()
 
         rows = self.load_excel_data()
-        # A list of the headers actually in the file
-        headers = rows[0][:-1]
-        # A list of rows containing data
-        data = rows[1:]
-        # Generate a map of headers to field importers
-        header_field_map = gen_header_field_map(headers)
-        # If multiple headers map to the same field, report this as an error
-        duplicate_headers = self.get_duplicate_headers(header_field_map)
-        if duplicate_headers:
-            self.report.set_duplicate_headers(duplicate_headers)
 
-        # If some headers don't map to anything, report this as an error
-        unmapped_headers = get_unmapped_headers(header_field_map)
-        if unmapped_headers:
-            self.report.set_unmapped_headers(unmapped_headers)
+        for row in rows:
+            try:
+                self.handle_row(row)
+            except ValueError as error:
+                if not self.durable:
+                    raise BatchRejectionError(
+                        "One or more fatal errors has occurred!", error
+                    ) from error
+                fatal_error_ocurred = True
+            else:
+                tqdm.write(f"Successfully created a thing")
 
-        unmapped_header_ratio = len(unmapped_headers) / len(headers)
-        if unmapped_header_ratio > self.threshold:
-            self.report.add_too_many_unmapped_headers_error(
-                f"{unmapped_header_ratio * 100:.2f}% of headers are not mapped; batch rejected"
-            )
-            if not self.durable:
-                raise TooManyUnmappedHeadersError(
-                    f"{unmapped_header_ratio * 100:.2f}% of headers are not mapped; batch rejected"
-                )
-
-        unmapped_fields = self.get_unmapped_fields()
-        if unmapped_fields:
-            self.report.set_unmapped_fields(unmapped_fields)
-            if not self.durable:
-                raise UnmappedFieldError(
-                    f"Batch '{self.batch_audit_group.batch}' rejected due to unmapped DB fields: {unmapped_fields}"
-                )
-
-        # Determine the field in which our NRQZ ID string has been stored
-        # This will be used later to parse out the case number
-        nrqz_id_field = self.derive_nrqz_id_field(header_field_map)
-        if nrqz_id_field:
-            # Create our case->row_num->facility map
-            case_map = self.create_case_map(header_field_map, data, nrqz_id_field)
-            # Create all Cases and Facilities in the case_map
-            self.process_case_map(case_map)
-        else:
-            self.report.add_case_error(
-                "MissingNrqzIdError", MissingNrqzIdError("Could not derive NRQZ ID!")
-            )
-            if not self.durable:
-                raise MissingNrqzIdError("Could not derive NRQZ ID!")
-
-        if self.report.report:
-            error_summary = self.report.get_non_fatal_errors()
-            self.batch_audit_group.batch.import_error_summary = json.dumps(
-                error_summary, indent=2
-            )
-            tqdm.write(self.path)
-            tqdm.write(self.batch_audit_group.batch.import_error_summary)
-            self.batch_audit_group.batch.save()
-
-        if self.report.has_fatal_errors():
-            raise BatchRejectionError(
-                "One or more fatal errors has occurred!", self.report
-            )
-
-        return self.report
+        if fatal_error_ocurred:
+            raise BatchRejectionError("One or more fatal errors ocurred!")

@@ -4,28 +4,6 @@ from importers.fieldmap import FormMap, FieldMap, FieldMapError
 
 
 class FormMapTestCase(TestCase):
-    # def test_multiple_from_fields_with_non_callable_to_fields(self):
-    #     """If multiple from_fields are given, to_fields must be callable"""
-
-    #     data = {"latitude": 30.1, "longitude": 30.2}
-    #     fm = FormMap(FieldMap(from_fields=("latitude", "longitude"), to_field="potato"))
-    #     with self.assertRaises(FieldMapError):
-    #         fm.render(data)
-
-    # def test_callable_from_fields(self):
-    #     """from_fields cannot be or contain any callable"""
-
-    #     # If from_fields is a callable, this should be an error
-    #     data = {"location_from": (30.1, 30.2)}
-    #     fm = FormMap({lambda x: "foo": "location_to"})
-    #     with self.assertRaises(FieldMapError):
-    #         fm.render(data)
-
-    #     # Same thing, but in a tuple...
-    #     fm = FormMap({(lambda x: "foo",): "location_to"})
-    #     with self.assertRaises(KeyError):
-    #         fm.render(data)
-
     def test_1_to_1(self):
         data = {"location_from": (30.1, 30.2)}
 
@@ -86,6 +64,40 @@ class FormMapTestCase(TestCase):
         )
         form_map = FormMap(field_maps=[field_map])
         actual = form_map.render(data)
+        expected = {
+            "lat_d": "30",
+            "lat_m": "31",
+            "lat_s": "32",
+            "long_d": "33",
+            "long_m": "34",
+            "long_s": "35",
+        }
+        self.assertEqual(actual, expected)
+
+    def test_n_to_n_with_aliases(self):
+        def handle_dms(latitude, longitude):
+            lat_d, lat_m, lat_s = latitude.split(" ")
+            long_d, long_m, long_s = longitude.split(" ")
+            return {
+                "lat_d": lat_d,
+                "lat_m": lat_m,
+                "lat_s": lat_s,
+                "long_d": long_d,
+                "long_m": long_m,
+                "long_s": long_s,
+            }
+
+        data = {"potato": "POTATO", "LAT": "30 31 32", "long": "33 34 35"}
+        field_map = FieldMap(
+            from_fields={"latitude": ("LAT", "lat"), "longitude": ("long", "LONG")},
+            converter=handle_dms,
+            to_fields=("lat_d", "lat_m", "lat_s", "long_d", "long_m", "long_s"),
+        )
+        form_map = FormMap(field_maps=[field_map])
+        with self.assertRaises(ValueError):
+            # This should fail because we have an un-mapped header
+            form_map.render(data, allow_unprocessed=False)
+        actual = form_map.render(data, allow_unprocessed=True)
         expected = {
             "lat_d": "30",
             "lat_m": "31",
