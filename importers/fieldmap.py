@@ -112,14 +112,18 @@ class FormMap:
     ):
         self.field_maps = field_maps
         self.form_class = form_class
+
         if form_defaults:
             self.form_defaults = form_defaults
         else:
-            form_defaults = {}
+            self.form_defaults = {}
+
         if form_kwargs:
             self.form_kwargs = form_kwargs
         else:
             self.form_kwargs = {}
+
+        self.unaliased_map = None
 
     def unalias(self, data):
         """Unalias!"""
@@ -134,46 +138,71 @@ class FormMap:
 
         return unaliased
 
-    def render(self, data, extra=None, allow_unprocessed=True):
-        if extra is None:
-            extra = {}
-
+    def render_dict(self, data, allow_unprocessed=True, allow_missing=True):
         rendered = {}
         processed = set()
 
-        # TODO: Cache
-        unaliased_map = self.unalias(data)
+        if not self.unaliased_map:
+            self.unaliased_map = self.unalias(data)
 
         for field_map in self.field_maps:
-            for __ in field_map.to_fields:
-                from_field_data = {}
+            from_field_data = {}
 
-                for from_field in field_map.from_fields:
-                    data_key = unaliased_map.get(from_field, from_field)
+            for from_field in field_map.from_fields:
+                # Either get the unaliased value of from_field, or, if one isn't
+                # found, just use from_field itself
+                data_key = self.unaliased_map.get(from_field, from_field)
+                try:
                     from_field_data[data_key] = data[data_key]
+                except KeyError as error:
+                    if not allow_missing:
+                        raise error
+                    else:
+                        # print(
+                        # f"WARNING: Expected key {data_key!r} is missing "
+                        # f"from data: {data.keys()}"
+                        # )
+                        pass
 
-                print(f"update {from_field_data}")
-                import ipdb
+            # print(f"update {from_field_data}")
+            rendered.update(field_map.map(**from_field_data))
+            processed.update(from_field_data.keys())
 
-                ipdb.set_trace()
-                rendered.update(field_map.map(**from_field_data))
-                processed.update(from_field_data.keys())
-
-        print("processed")
-        pprint(processed)
+        # print("processed")
+        # pprint(processed)
 
         unprocessed = set(data.keys()).difference(processed)
         if unprocessed:
             message = f"Did not process the following data items: {unprocessed}"
             if not allow_unprocessed:
                 raise ValueError(message)
-            print(f"WARNING: {message}")
+            # print(f"WARNING: {message}")
 
-        if self.form_class:
-            return self.form_class(
-                {**self.form_defaults, **extra, **rendered}, **self.form_kwargs
-            )
         return rendered
+
+    def render(self, data, extra=None, allow_unprocessed=True, allow_missing=True):
+        if extra is None:
+            extra = {}
+        rendered = self.render_dict(data, allow_unprocessed, allow_missing)
+        return self.form_class(
+            {**self.form_defaults, **extra, **rendered}, **self.form_kwargs
+        )
+
+    def get_known_from_fields(self):
+        """Return set of all known from_fields, including aliases thereof"""
+
+        return {
+            from_field
+            for field_map in self.field_maps
+            for from_field in list(field_map.aliases.keys()) + field_map.from_fields
+        }
+
+    def get_known_to_fields(self):
+        return {
+            to_field
+            for field_map in self.field_maps
+            for to_field in field_map.to_fields
+        }
 
     def __repr__(self):
         field_maps_str = "\n  ".join([str(field_map) for field_map in self.field_maps])
@@ -181,7 +210,7 @@ class FormMap:
 
 
 class FieldMap:
-    """Map field to its associated headers and to a converter"""
+    """Map a to_field to its associated from_fields, a converter function, and any aliases"""
 
     ONE_TO_ONE = "1:1"
     ONE_TO_MANY = "1:*"
@@ -195,6 +224,7 @@ class FieldMap:
         converter=None,
         from_fields=None,
         from_field=None,
+        # aliases=None,
     ):
         if isinstance(to_fields, str) or isinstance(from_fields, str):
             raise ValueError("to_fields and from_fields should not be strings!")
@@ -215,19 +245,17 @@ class FieldMap:
         else:
             self.from_fields = from_fields
 
+        # if aliases:
+        #     self.aliases = self._invert_aliases(aliases)
+
+        self.aliases = {from_field: from_field for from_field in self.from_fields}
         if isinstance(self.from_fields, dict):
-            self.aliases = {
-                alias: to_field
-                for to_field, aliases in from_fields.items()
-                for alias in aliases
-            }
+            self.aliases.update(self._invert_aliases(self.from_fields))
             self.from_fields = list(self.from_fields.keys())
-        else:
-            self.aliases = {}
 
         if not self.from_fields:
             raise ValueError("Either from_field or from_fields must be provided!")
-        print("aliases", self.aliases)
+        # print("aliases", self.aliases)
 
         if not converter and (len(self.to_fields) > 1 or len(self.from_fields) > 1):
             raise ValueError(
@@ -251,6 +279,26 @@ class FieldMap:
     def nop_converter(self, value):
         """Perform no conversion; simply return value"""
         return value
+
+    @staticmethod
+    def _invert_aliases(fields_to_aliases):
+        """Given dict of {field: aliases}, return dict of {alias: field}
+
+        For example, if fields_to_aliases={
+            "latitude": ("LAT", "lat."), "longitude": ("LONG", "long.")
+        }, then we return:
+        {
+            'LAT': 'latitude',
+            'lat.': 'latitude',
+            'LONG': 'longitude',
+            'long.': 'longitude'
+        }
+        """
+        return {
+            alias: field
+            for field, aliases in fields_to_aliases.items()
+            for alias in aliases
+        }
 
     def __repr__(self):
         if len(self.from_fields) == 1:
@@ -282,18 +330,26 @@ class FieldMap:
                     f"Known aliases: {self.aliases}"
                 )
 
+        # print("kwargs", kwargs)
         ret = {self.aliases.get(key, key): value for key, value in kwargs.items()}
-        print("ret", ret)
+        # print("ret", ret)
         if not ret:
-            print(f"WARNING: Failed to produce value for {kwargs}")
+            # print(f"WARNING: Failed to produce value for {kwargs}")
             return {}
-        # Handle the simple 1:1 case here to save on boilerplate externally
-        # That is, by handling this case here we avoid similar logic
-        # propagating to all of our simple converter functions
-        if self.map_type == self.ONE_TO_ONE:
+        # Handle the simple 1:1/n:1 cases here to save on boilerplate externally
+        # That is, allow for the existence of converters that don't return
+        # {to_field: converted values} dicts, and instead simply return
+        # converted values
+        if self.map_type in (self.ONE_TO_ONE, self.MANY_TO_ONE):
             to_field = self.to_fields[0]
+            if self.map_type == self.MANY_TO_ONE:
+                converted = self.converter(**ret)
+                if not isinstance(converted, dict):
+                    return {to_field: converted}
+                return converted
+
             from_field_value = next(iter(ret.values()))
-            return self.converter(from_field_value)
+            return {to_field: self.converter(from_field_value)}
 
         # For all other cases, expect the converter to be smart enough
         return self.converter(**ret)

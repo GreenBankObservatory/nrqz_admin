@@ -277,12 +277,9 @@ class ExcelImporter:
         tqdm.write(
             f"Created batch_audit {batch_audit.id} linked to audit_group {self.batch_audit_group}"
         )
-        try:
-            self._process()
-        except BatchRejectionError as error:
-            tqdm.write(f"Rolling back batch stuff! {error}")
+        self._process()
 
-            # if self.report.has_fatal_errors():
+        if self.report.has_fatal_errors():
             # This is a sanity check to ensure that the Batch has in fact been
             # rolled back. Since we are tracking the Batch object inside our
             # import_reporter, we can attempt to refresh it from the DB. We
@@ -309,6 +306,17 @@ class ExcelImporter:
                     "Batch should have been committed, but wasn't!"
                 ) from error
 
+        if not self.rolled_back:
+            if self.report.has_errors():
+                status = "created_dirty"
+            else:
+                status = "created_clean"
+        else:
+            status = "rejected"
+
+        batch_audit.status = status
+        batch_audit.save()
+
         return batch_audit
 
     def handle_case(self, row):
@@ -318,9 +326,6 @@ class ExcelImporter:
             allow_unprocessed=True,
         )
         case_num = case_form["case_num"].value()
-        import ipdb
-
-        ipdb.set_trace()
         try:
             case = Case.objects.get(case_num=case_num)
         except Case.DoesNotExist:
@@ -332,10 +337,10 @@ class ExcelImporter:
                 )
             case_created = True
         else:
-            if not self.durable:
-                raise DuplicateCaseError("Aw snap we already got a case in there bro")
-            self.report.add_case_error("IntegrityError", "hmmm")
-            self.report.fatal_error_ocurred = True
+            # if not self.durable:
+            #     raise DuplicateCaseError("Aw snap we already got a case in there bro")
+            # self.report.add_case_error("IntegrityError", "hmmm")
+            # self.report.fatal_error_ocurred = True
             case_created = False
 
         return case, case_created
@@ -366,30 +371,94 @@ class ExcelImporter:
     def handle_row(self, row):
         case, case_created = self.handle_case(row)
         facility, facility_created = self.handle_facility(row, case)
-        print(f"Case {case_created}: {case}")
-        print(f"Facility {facility_created}: {facility}")
+        tqdm.write(f"Case {case_created}: {case}")
+        tqdm.write(f"Facility {facility_created}: {facility}")
+
+    # def get_duplicate_headers(self, headers):
+    #     # Generate a map of header: from_field for all field_maps
+    #     header_field_map = {
+    #         header: from_field
+    #         for fm in [CASE_FORM_MAP, FACILITY_FORM_MAP]
+    #         for from_field, header in fm.unalias(headers).items()
+    #     }
+
+    #     if len(set(header_field_map.values())) != len(header_field_map.values()):
+    #         dups = {}
+    #         for header, from_fields in header_field_map.items():
+    #             if to_fields.count(importer.to_field) > 1:
+    #                 if importer.to_field in dups:
+    #                     dups[importer.to_field].append(header)
+    #                 else:
+    #                     dups[importer.to_field] = [header]
+
+    #             # There are _a lot_ of sheets that use a blank header as the
+    #             # comments column. Generally this is fine, but sometimes there
+    #             # is an explicit comments header _and_ a blank header. Since these
+    #             # both map to the comments field, we need to reconcile this somehow
+    #             # to avoid duplicate detection from being triggered.
+    #             # So: If we have detected duplicates in the comments field, AND
+    #             # a blank header is one of the duplicates...
+    #             if "comments" in dups and "" in dups["comments"]:
+    #                 # ...remove it from the comments
+    #                 dups["comments"].remove("")
+
+    #         return dups
+    #     else:
+    #         return None
 
     @transaction.atomic
     def _process(self):
         """Create objects from given path"""
 
-        fatal_error_ocurred = False
-
         self.batch_audit_group.batch = self.create_batch()
 
-        rows = self.load_excel_data()
+        rows = list(self.load_excel_data())
+        if not rows:
+            if not self.durable:
+                raise BatchRejectionError("No rows!")
+            else:
+                return
+        headers = rows[0].keys()
+
+        # If multiple headers map to the same field, report this as an error
+        # duplicate_headers = self.get_duplicate_headers(headers)
+        # if duplicate_headers:
+        #     self.report.set_duplicate_headers(duplicate_headers)
+
+        # If some headers don't map to anything, report this as an error
+        known_headers = {
+            *CASE_FORM_MAP.get_known_from_fields(),
+            *FACILITY_FORM_MAP.get_known_from_fields(),
+        }
+        unmapped_headers = [header for header in headers if header not in known_headers]
+        if unmapped_headers:
+            self.report.set_unmapped_headers(unmapped_headers)
+
+        unmapped_header_ratio = len(unmapped_headers) / len(headers)
+        if unmapped_header_ratio > self.threshold:
+            self.report.add_too_many_unmapped_headers_error(
+                f"{unmapped_header_ratio * 100:.2f}% of headers are not mapped; batch rejected"
+            )
+            if not self.durable:
+                raise TooManyUnmappedHeadersError(
+                    f"{unmapped_header_ratio * 100:.2f}% of headers are not mapped; batch rejected"
+                )
 
         for row in rows:
             try:
                 self.handle_row(row)
-            except ValueError as error:
+            except Exception as error:
                 if not self.durable:
                     raise BatchRejectionError(
                         "One or more fatal errors has occurred!", error
                     ) from error
-                fatal_error_ocurred = True
-            else:
-                tqdm.write(f"Successfully created a thing")
+                self.report.fatal_error_ocurred = True
+            # else:
+            #     tqdm.write(f"Successfully created a thing")
 
-        if fatal_error_ocurred:
-            raise BatchRejectionError("One or more fatal errors ocurred!")
+        if self.report.has_fatal_errors():
+            if not self.durable:
+                raise BatchRejectionError("One or more fatal errors ocurred!")
+            else:
+                tqdm.write("rollback!")
+                transaction.set_rollback(True)

@@ -1,110 +1,174 @@
+from pprint import pprint
+
 from django.test import TestCase
 
 from importers.fieldmap import FormMap, FieldMap, FieldMapError
+from django.forms import CharField, Form
+
+
+class FooForm(Form):
+    title = CharField()
+    first_name = CharField()
+    middle_name = CharField()
+    last_name = CharField()
+    sector_a = CharField()
+    sector_b = CharField()
+    sector_c = CharField()
+    bar = CharField()
+    flarm = CharField()
+    location = CharField()
+
+
+def handle_sectors(sectors):
+    a, b, c = sectors.split(" ")
+    return {"sector_a": a, "sector_b": b, "sector_c": c}
+
+
+def handle_dms(latitude, longitude):
+    lat_d, lat_m, lat_s = latitude.split(" ")
+    long_d, long_m, long_s = longitude.split(" ")
+    return {
+        "lat_d": lat_d,
+        "lat_m": lat_m,
+        "lat_s": lat_s,
+        "long_d": long_d,
+        "long_m": long_m,
+        "long_s": long_s,
+    }
+
+
+def handle_location(latitude, longitude):
+    return (latitude, longitude)
+
+
+def handle_person(gender, name):
+    title = "Mr." if gender == "male" else "Mrs."
+    first_name, middle_name, last_name = name.split(" ")
+    return {
+        "title": title,
+        "first_name": first_name,
+        "middle_name": middle_name,
+        "last_name": last_name,
+    }
+
+
+def make_uppercase(value):
+    return value.upper()
 
 
 class FormMapTestCase(TestCase):
-    def test_1_to_1(self):
-        data = {"location_from": (30.1, 30.2)}
-
-        field_map = FieldMap(from_field="location_from", to_field="location_to")
-        form_map = FormMap(field_maps=[field_map])
-        actual = form_map.render(data)
-        expected = {"location_to": data["location_from"]}
-        self.assertEqual(actual, expected)
-
-    def test_n_to_1(self):
-        def handle_location(latitude, longitude):
-            return {"location": (latitude, longitude)}
-
-        data = {"latitude": 30.1, "longitude": 30.2}
-        field_map = FieldMap(
-            from_fields=("latitude", "longitude"),
-            converter=handle_location,
-            to_field="location",
+    def setUp(self):
+        self.form_map = FormMap(
+            field_maps=[
+                # n:n
+                FieldMap(
+                    from_fields={"gender": ("gen",), "name": ("name", "n")},
+                    converter=handle_person,
+                    to_fields=("title", "first_name", "middle_name", "last_name"),
+                ),
+                # 1:n
+                FieldMap(
+                    from_field="sectors",
+                    converter=handle_sectors,
+                    to_fields=("sector_a", "sector_b", "sector_c"),
+                ),
+                # n:1
+                FieldMap(
+                    from_fields={
+                        "latitude": ("LAT", "lat"),
+                        "longitude": ("LONG", "long"),
+                    },
+                    converter=handle_location,
+                    to_field="location",
+                ),
+                # 1:1, no converter
+                FieldMap(from_field="foo", to_field="bar"),
+                # 1:1, with converter
+                FieldMap(from_field="flim", to_field="flarm", converter=make_uppercase),
+            ],
+            form_class=FooForm,
         )
-        form_map = FormMap(field_maps=[field_map])
-        actual = form_map.render(data)
-        expected = {"location": (data["latitude"], data["longitude"])}
-        self.assertEqual(actual, expected)
 
-    def test_1_to_n(self):
-        def handle_sectors(sectors):
-            a, b, c = sectors
-            return {"a": a, "b": b, "c": c}
-
-        data = {"sectors": (1, 2, 3)}
-        field_map = FieldMap(
-            from_field="sectors", converter=handle_sectors, to_fields=("a", "b", "c")
-        )
-        form_map = FormMap(field_maps=[field_map])
-        actual = form_map.render(data)
-        expected = {"a": 1, "b": 2, "c": 3}
-        self.assertEqual(actual, expected)
-
-    def test_n_to_n(self):
-        def handle_dms(latitude, longitude):
-
-            lat_d, lat_m, lat_s = latitude.split(" ")
-            long_d, long_m, long_s = longitude.split(" ")
-            return {
-                "lat_d": lat_d,
-                "lat_m": lat_m,
-                "lat_s": lat_s,
-                "long_d": long_d,
-                "long_m": long_m,
-                "long_s": long_s,
-            }
-
-        data = {"latitude": "30 31 32", "longitude": "33 34 35"}
-        field_map = FieldMap(
-            from_fields=("latitude", "longitude"),
-            converter=handle_dms,
-            to_fields=("lat_d", "lat_m", "lat_s", "long_d", "long_m", "long_s"),
-        )
-        form_map = FormMap(field_maps=[field_map])
-        actual = form_map.render(data)
+    def test_complex(self):
+        data = {
+            "gender": "male",
+            "name": "foo bar baz",
+            "sectors": "a1 b2 c3",
+            "foo": "blarg",
+            "lat": "33",
+            "long": "34",
+            "unmapped": "doesn't matter",
+            "flim": "abcd",
+        }
+        # with self.assertRaises(ValueError):
+        #     # This should fail because we have an un-mapped header
+        #     form_map.render_dict(data, allow_unprocessed=False)
+        actual = self.form_map.render_dict(data)
         expected = {
-            "lat_d": "30",
-            "lat_m": "31",
-            "lat_s": "32",
-            "long_d": "33",
-            "long_m": "34",
-            "long_s": "35",
+            "title": "Mr.",
+            "first_name": "foo",
+            "middle_name": "bar",
+            "last_name": "baz",
+            "sector_a": "a1",
+            "sector_b": "b2",
+            "sector_c": "c3",
+            "bar": "blarg",
+            "flarm": "ABCD",
+            "location": ("33", "34"),
         }
         self.assertEqual(actual, expected)
 
-    def test_n_to_n_with_aliases(self):
-        def handle_dms(latitude, longitude):
-            lat_d, lat_m, lat_s = latitude.split(" ")
-            long_d, long_m, long_s = longitude.split(" ")
-            return {
-                "lat_d": lat_d,
-                "lat_m": lat_m,
-                "lat_s": lat_s,
-                "long_d": long_d,
-                "long_m": long_m,
-                "long_s": long_s,
-            }
-
-        data = {"potato": "POTATO", "LAT": "30 31 32", "long": "33 34 35"}
-        field_map = FieldMap(
-            from_fields={"latitude": ("LAT", "lat"), "longitude": ("long", "LONG")},
-            converter=handle_dms,
-            to_fields=("lat_d", "lat_m", "lat_s", "long_d", "long_m", "long_s"),
-        )
-        form_map = FormMap(field_maps=[field_map])
+    def test_complex_with_missing_data(self):
+        data = {
+            "gender": "male",
+            "name": "foo bar baz",
+            "foo": "blarg",
+            "lat": "33",
+            "long": "34",
+            "unmapped": "doesn't matter",
+        }
         with self.assertRaises(ValueError):
             # This should fail because we have an un-mapped header
-            form_map.render(data, allow_unprocessed=False)
-        actual = form_map.render(data, allow_unprocessed=True)
+            self.form_map.render_dict(data, allow_unprocessed=False)
+        actual = self.form_map.render_dict(data)
         expected = {
-            "lat_d": "30",
-            "lat_m": "31",
-            "lat_s": "32",
-            "long_d": "33",
-            "long_m": "34",
-            "long_s": "35",
+            "title": "Mr.",
+            "first_name": "foo",
+            "middle_name": "bar",
+            "last_name": "baz",
+            "bar": "blarg",
+            "location": ("33", "34"),
+        }
+        self.assertEqual(actual, expected)
+
+    def test_get_known_from_fields(self):
+        actual = self.form_map.get_known_from_fields()
+        expected = {
+            "gender",
+            "name",
+            "sectors",
+            "latitude",
+            "longitude",
+            "LAT",
+            "lat",
+            "LONG",
+            "long",
+            "foo",
+            "flim",
+            "n",
+            "gen",
+        }
+        self.assertEqual(actual, expected)
+
+    def test_unalias(self):
+        headers = {"gender", "name", "foo", "lat", "long", "unmapped"}
+        actual = self.form_map.unalias(headers)
+        expected = {
+            "gender": "gender",
+            "name": "name",
+            "latitude": "lat",
+            "longitude": "long",
+            "foo": "foo",
         }
         self.assertEqual(actual, expected)
 
@@ -238,3 +302,45 @@ class FieldMapTestCase(TestCase):
         actual = field_map.map(**data)
         expected = {"location": (data["LAT"], data["long"])}
         self.assertEqual(actual, expected)
+
+    def test_aliases_n_to_n(self):
+        def handle_dms(latitude, longitude):
+            lat_d, lat_m, lat_s = latitude.split(" ")
+            long_d, long_m, long_s = longitude.split(" ")
+            return {
+                "lat_d": lat_d,
+                "lat_m": lat_m,
+                "lat_s": lat_s,
+                "long_d": long_d,
+                "long_m": long_m,
+                "long_s": long_s,
+            }
+
+        data = {"LAT": "30 31 32", "long.": "33 34 35"}
+        field_map = FieldMap(
+            from_fields={"latitude": ("LAT", "lat."), "longitude": ("LONG", "long.")},
+            converter=handle_dms,
+            to_fields=("lat_d", "lat_m", "lat_s", "long_d", "long_m", "long_s"),
+        )
+        actual = field_map.map(**data)
+        expected = {
+            "lat_d": "30",
+            "lat_m": "31",
+            "lat_s": "32",
+            "long_d": "33",
+            "long_m": "34",
+            "long_s": "35",
+        }
+        self.assertEqual(actual, expected)
+
+    def test_invert_aliases(self):
+        aliases = {"latitude": ("LAT", "lat."), "longitude": ("LONG", "long.")}
+        actual = FieldMap._invert_aliases(aliases)
+        expected = {
+            "LAT": "latitude",
+            "lat.": "latitude",
+            "LONG": "longitude",
+            "long.": "longitude",
+        }
+
+        return self.assertEqual(actual, expected)

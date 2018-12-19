@@ -207,6 +207,7 @@ class ImportReport:
 
         self.batch_audit = {}
         self.batch = None
+        self.fatal_error_ocurred = False
 
     def audit_facility_error(self, case, facility_dict, facility_errors):
         if case in self.batch_audit:
@@ -374,6 +375,8 @@ class ImportReport:
         return fatal_errors
 
     def has_fatal_errors(self):
+        if self.fatal_error_ocurred:
+            return True
         return self.has_errors(self.get_fatal_errors())
 
     # def summarize_fatal_errors(self):

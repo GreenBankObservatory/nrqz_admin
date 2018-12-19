@@ -98,7 +98,7 @@ def main():
     print("-" * 80)
     eci.report.process()
     # TODO: Include in report somehow
-    populate_locations(durable=args.durable)
+    # populate_locations(durable=args.durable)
 
     if args.dry_run:
         raise ManualRollback("DRY RUN; ROLLING BACK CHANGES")

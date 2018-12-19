@@ -17,7 +17,7 @@ def coerce_case_num(nrqz_id):
         raise ValueError(
             f"Could not parse NRQZ ID '{nrqz_id}' using '{case_regex_str}'!"
         )
-    return {"case_num": match["case_num"]}
+    return match["case_num"]
 
 
 EXCEL = "excel"
