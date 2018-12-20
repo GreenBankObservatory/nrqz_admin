@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""docstring"""
+"""Importer for Access Preliminary Applicant Data"""
 
 
 import argparse
@@ -18,27 +18,14 @@ from tqdm import tqdm
 
 from cases.models import Attachment, Case, PreliminaryCase, PreliminaryCaseGroup, Person
 from importers.access_prelim_application.fieldmap import (
-    applicant_field_mappers,
-    contact_field_mappers,
-    case_field_mappers,
-    get_combined_field_map,
+    APPLICANT_FORM_MAP,
+    CONTACT_FORM_MAP,
+    PCASE_FORM_MAP,
+    ATTACHMENT_FORM_MAPS,
 )
 
-field_map = get_combined_field_map()
-
-ACCESS_PRELIM_APPLICATION = "access_prelim_application"
-
-
-class ManualRollback(Exception):
-    pass
-
-
-def load_rows(path):
-    with open(path, newline="", encoding="latin1") as file:
-        return list(csv.reader(file))
-
-
-_letters = [f"letter{i}" for i in range(1, 9)]
+from utils.constants import ACCESS_PRELIM_APPLICATION
+from utils.read_access_csv import load_rows
 
 # https://regex101.com/r/g6NM6e/1
 case_regex_str = r"(?:(?:NRQZ ID )|(?:NRQZ#)|(?:Case\s*))(?P<case_num>\d+)"
@@ -68,98 +55,69 @@ def derive_related_pcases(pcase):
     return pcase_nums
 
 
+# TODO: MERGE
+def handle_applicant(row, case):
+    applicant = APPLICANT_FORM_MAP.save(row)
+    # tqdm.write(f"Created applicant {applicant}")
+    case.applicant = applicant
+    case.save()
+
+    return applicant, True
+
+
+# TODO: MERGE
+def handle_contact(row, case):
+    contact = CONTACT_FORM_MAP.save(row)
+    # tqdm.write(f"Created contact {contact}")
+    case.contact = contact
+    case.save()
+
+    return contact, True
+
+
+# TODO: MERGE
+def handle_pcase(row):
+    pcase_form = PCASE_FORM_MAP.render(row)
+    pcase_num = pcase_form["case_num"].value()
+    if PreliminaryCase.objects.filter(case_num=pcase_num).exists():
+        pcase = PreliminaryCase.objects.get(case_num=pcase_num)
+        pcase_created = False
+        tqdm.write(f"Found pcase {pcase}")
+    else:
+        pcase = PCASE_FORM_MAP.save(pcase_form)
+        tqdm.write(f"Created pcase {pcase}")
+        pcase_created = True
+
+    return pcase, pcase_created
+
+
+# TODO: MERGE
+def handle_attachments(row, case):
+    attachments = []
+    for form_map in ATTACHMENT_FORM_MAPS:
+        attachment_form = form_map.render(
+            row, extra={"comments": f"Imported by {__file__}"}
+        )
+        path = attachment_form["path"].value()
+        if path:
+            if Attachment.objects.filter(path=path).exists():
+                attachment = Attachment.objects.get(path=path)
+            else:
+                attachment = form_map.save(attachment_form)
+
+            attachments.append(attachment)
+            case.attachments.add(attachment)
+    return attachments
+
+
 @transaction.atomic
-def handle_row(field_importers, row):
-    applicant_dict = {}
-    contact_dict = {}
-    case_dict = {}
-
-    for fi, value in zip(field_importers, row):
-        if fi:
-            if fi in applicant_field_mappers:
-                applicant_dict[fi.to_field] = fi.converter(value)
-            elif fi in contact_field_mappers:
-                contact_dict[fi.to_field] = fi.converter(value)
-            elif fi in case_field_mappers:
-                case_dict[fi.to_field] = fi.converter(value)
-            else:
-                raise ValueError("Shouldn't be possible")
-
+def handle_row(row):
     found_report = dict(applicant=False, contact=False, pcase=False)
-    applicant = None
-    if any(applicant_dict.values()):
-        try:
-            applicant = Person.objects.get(name=applicant_dict["name"])
-            # tqdm.write(f"Found applicant {applicant}")
-            found_report["applicant"] = True
-        except Person.DoesNotExist:
-            applicant = Person.objects.create(
-                **applicant_dict, data_source=ACCESS_PRELIM_APPLICATION
-            )
-            # tqdm.write(f"Created applicant {applicant}")
-        except Person.MultipleObjectsReturned:
-            raise ValueError(applicant_dict)
-    else:
-        # tqdm.write("No applicant data; skipping")
-        pass
 
-    contact = None
-    if any(contact_dict.values()):
-        try:
-            contact = Person.objects.get(name=contact_dict["name"])
-            # tqdm.write(f"Found contact {contact}")
-            found_report["contact"] = True
-        except Person.DoesNotExist:
-            contact = Person.objects.create(
-                **contact_dict, data_source=ACCESS_PRELIM_APPLICATION
-            )
-            # tqdm.write(f"Created contact {contact}")
-        except Person.MultipleObjectsReturned:
-            raise ValueError(contact_dict)
-    else:
-        # tqdm.write("No contact data; skipping")
-        pass
-
-    if any(case_dict.values()):
-        stripped_case_dict = {}
-        attachments = []
-        for key, value in case_dict.items():
-            if key in _letters:
-                if value:
-                    try:
-                        attachment = Attachment.objects.get(path=value)
-                        # tqdm.write(f"Found attachment: {attachment}")
-                    except Attachment.DoesNotExist:
-                        attachment = Attachment.objects.create(
-                            path=value,
-                            comments=f"Imported by {__file__}",
-                            data_source=ACCESS_PRELIM_APPLICATION,
-                        )
-                        # tqdm.write(f"Created attachment: {attachment}")
-                    attachments.append(attachment)
-            else:
-                stripped_case_dict[key] = value
-
-        try:
-            pcase = PreliminaryCase.objects.get(case_num=case_dict["case_num"])
-            pcase.applicant = applicant
-            pcase.contact = contact
-            pcase.save()
-            tqdm.write(f"Found Pcase {pcase}")
-            found_report["pcase"] = True
-        except PreliminaryCase.DoesNotExist:
-            pcase = PreliminaryCase.objects.create(
-                **stripped_case_dict,
-                applicant=applicant,
-                contact=contact,
-                data_source=ACCESS_PRELIM_APPLICATION,
-            )
-            # tqdm.write(f"Created pcase {pcase}")
-
-        pcase.attachments.add(*attachments)
-    else:
-        tqdm.write("No pcase data; skipping")
-
+    pcase, pcase_created = handle_pcase(row)
+    applicant, applicant_created = handle_applicant(row, pcase)
+    contact, contact_created = handle_contact(row, pcase)
+    attachments = handle_attachments(row, pcase)
     return found_report
 
 
@@ -241,41 +199,21 @@ def derive_stuff():
 @transaction.atomic
 def main():
     args = parse_args()
-    rows = load_rows(args.path)
-    headers = rows[0]
-    data = rows[1:]
+    rows = list(load_rows(args.path))
 
-    field_importers = []
-    for header in headers:
+    found_counts = {"applicant": 0, "contact": 0, "pcase": 0}
+    for row in tqdm(rows, unit="rows"):
         try:
-            field_importers.append(field_map[header])
-        except KeyError:
-            field_importers.append(None)
-
-    found_counts = {
-        "applicant": 0,
-        "contact": 0,
-        "pcase": 0,
-        "technical_with_no_case": 0,
-    }
-    data_with_progress = tqdm(data, unit="rows")
-    for row in data_with_progress:
-        try:
-            found_report = handle_row(field_importers, row)
+            found_report = handle_row(row)
         except Exception as error:
             tqdm.write(f"Failed to handle row: {row}")
+            if not args.durable:
+                raise error
             tqdm.write(str(error))
-            # raise
-            pass
         else:
             found_counts["applicant"] += bool(found_report["applicant"])
             found_counts["contact"] += bool(found_report["contact"])
             found_counts["pcase"] += bool(found_report["pcase"])
-            if (
-                not (found_report["applicant"] or found_report["contact"])
-                and found_report["pcase"]
-            ):
-                found_counts["technical_with_no_case"] += 1
 
     derive_stuff()
 
@@ -299,6 +237,9 @@ def parse_args():
             "Roll back all database changes after execution. Note that "
             "this will leave gaps in the PKs where created objects were rolled back"
         ),
+    )
+    parser.add_argument(
+        "-D", "--durable", action="store_true", help=("Continue past row errors")
     )
     return parser.parse_args()
 

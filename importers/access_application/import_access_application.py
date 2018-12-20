@@ -1,194 +1,126 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""docstring"""
+"""Importer for Access Applicant Data"""
 
 
 import argparse
-import csv
 from pprint import pprint
 
+
 import django
+from django.db import transaction
 
 django.setup()
-from django.db import transaction
 
 from tqdm import tqdm
 
-from cases.models import Attachment, Case, Person
+from cases.models import Attachment, Case
 from importers.access_application.fieldmap import (
-    applicant_field_mappers,
-    contact_field_mappers,
-    case_field_mappers,
-    get_combined_field_map,
+    APPLICANT_FORM_MAP,
+    CONTACT_FORM_MAP,
+    CASE_FORM_MAP,
+    ATTACHMENT_FORM_MAPS,
 )
-
-field_map = get_combined_field_map()
-
-ACCESS_APPLICATION = "access_application"
+from utils.read_access_csv import load_rows
 
 
-class ManualRollback(Exception):
-    pass
+# TODO: MERGE
+def handle_applicant(row, case):
+    applicant = APPLICANT_FORM_MAP.save(row)
+    # tqdm.write(f"Created applicant {applicant}")
+    case.applicant = applicant
+    case.save()
+
+    return applicant, True
 
 
-def load_rows(path):
-    with open(path, newline="", encoding="latin1") as file:
-        return list(csv.reader(file))
+# TODO: MERGE
+def handle_contact(row, case):
+    contact = CONTACT_FORM_MAP.save(row)
+    # tqdm.write(f"Created contact {contact}")
+    case.contact = contact
+    case.save()
+
+    return contact, True
 
 
-_letters = [f"letter{i}" for i in range(1, 9)]
+# TODO: MERGE
+def handle_case(row):
+    case_form = CASE_FORM_MAP.render(row)
+    case_num = case_form["case_num"].value()
+    if Case.objects.filter(case_num=case_num).exists():
+        case = Case.objects.get(case_num=case_num)
+        case_created = False
+        tqdm.write(f"Found case {case}")
+    else:
+        case = CASE_FORM_MAP.save(case_form)
+        tqdm.write(f"Created case {case}")
+        case_created = True
+
+    return case, case_created
+
+
+# TODO: MERGE
+def handle_attachments(row, case):
+    attachments = []
+    for form_map in ATTACHMENT_FORM_MAPS:
+        attachment_form = form_map.render(
+            row, extra={"comments": f"Imported by {__file__}"}
+        )
+        path = attachment_form["path"].value()
+        if path:
+            if Attachment.objects.filter(path=path).exists():
+                attachment = Attachment.objects.get(path=path)
+            else:
+                attachment = form_map.save(attachment_form)
+
+            attachments.append(attachment)
+            case.attachments.add(attachment)
+    return attachments
 
 
 @transaction.atomic
-def handle_row(field_importers, row):
-    applicant_dict = {}
-    contact_dict = {}
-    case_dict = {}
-
-    for fi, value in zip(field_importers, row):
-        if fi:
-            if fi in applicant_field_mappers:
-                applicant_dict[fi.to_field] = fi.converter(value)
-            elif fi in contact_field_mappers:
-                contact_dict[fi.to_field] = fi.converter(value)
-            elif fi in case_field_mappers:
-                case_dict[fi.to_field] = fi.converter(value)
-            else:
-                raise ValueError("Shouldn't be possible")
-
+def handle_row(row):
     found_report = dict(applicant=False, contact=False, case=False)
-    applicant = None
-    if any(applicant_dict.values()):
-        try:
-            applicant = Person.objects.get(name=applicant_dict["name"])
-            # tqdm.write(f"Found applicant {applicant}")
-            found_report["applicant"] = True
-        except Person.DoesNotExist:
-            applicant = Person.objects.create(
-                **applicant_dict, data_source=ACCESS_APPLICATION
-            )
-            # tqdm.write(f"Created applicant {applicant}")
-        except Person.MultipleObjectsReturned:
-            raise ValueError(applicant_dict)
-    else:
-        # tqdm.write("No applicant data; skipping")
-        pass
 
-    contact = None
-    if any(contact_dict.values()):
-        try:
-            contact = Person.objects.get(name=contact_dict["name"])
-            # tqdm.write(f"Found contact {contact}")
-            found_report["contact"] = True
-        except Person.DoesNotExist:
-            contact = Person.objects.create(
-                **contact_dict, data_source=ACCESS_APPLICATION
-            )
-            # tqdm.write(f"Created contact {contact}")
-        except Person.MultipleObjectsReturned:
-            raise ValueError(contact_dict)
-    else:
-        # tqdm.write("No contact data; skipping")
-        pass
+    case, case_created = handle_case(row)
+    found_report["case"] = case_created
 
-    if any(case_dict.values()):
-        stripped_case_dict = {}
-        attachments = []
-        for key, value in case_dict.items():
-            # If item is a Letter, process it here
-            if key in _letters:
-                if value:
-                    try:
-                        attachment = Attachment.objects.get(path=value)
-                        # tqdm.write(f"Found attachment: {attachment}")
-                    except Attachment.DoesNotExist:
-                        attachment = Attachment.objects.create(
-                            path=value,
-                            comments=f"Imported by {__file__}",
-                            data_source=ACCESS_APPLICATION,
-                        )
-                        # tqdm.write(f"Created attachment: {attachment}")
-                    attachments.append(attachment)
-            else:
-                # Otherwise just add it straight into our case_dict
-                stripped_case_dict[key] = value
+    applicant, applicant_created = handle_applicant(row, case)
+    found_report["applicant"] = applicant_created
 
-        try:
-            case = Case.objects.get(case_num=case_dict["case_num"])
-            tqdm.write(f"Found case {case}")
-            case.applicant = applicant
-            case.contact = contact
-            for field, value in case_dict.items():
-                if field not in [
-                    "case_num",
-                    "applicant",
-                    "contact",
-                    "created_on",
-                    "modified_on",
-                ]:
-                    setattr(case, field, value)
-                    # tqdm.write(f"Set {field} to {value}")
-            case.save()
-            found_report["case"] = True
-        except Case.DoesNotExist:
-            case = Case.objects.create(
-                **stripped_case_dict,
-                applicant=applicant,
-                contact=contact,
-                data_source=ACCESS_APPLICATION,
-            )
-            tqdm.write(f"Created case {case}")
+    contact, contact_created = handle_contact(row, case)
+    found_report["contact"] = contact_created
 
-        case.attachments.add(*attachments)
-    else:
-        tqdm.write("No case data; skipping")
-
+    attachments = handle_attachments(row, case)
     return found_report
 
 
 @transaction.atomic
 def main():
     args = parse_args()
-    rows = load_rows(args.path)
-    headers = rows[0]
-    data = rows[1:]
+    rows = list(load_rows(args.path))
 
-    field_importers = []
-    for header in headers:
+    found_counts = {"applicant": 0, "contact": 0, "case": 0}
+    for row in tqdm(rows, unit="rows"):
         try:
-            field_importers.append(field_map[header])
-        except KeyError:
-            field_importers.append(None)
-
-    found_counts = {
-        "applicant": 0,
-        "contact": 0,
-        "case": 0,
-        "technical_with_no_case": 0,
-    }
-    data_with_progress = tqdm(data, unit="rows")
-    for row in data_with_progress:
-        try:
-            found_report = handle_row(field_importers, row)
+            found_report = handle_row(row)
         except Exception as error:
             tqdm.write(f"Failed to handle row: {row}")
+            if not args.durable:
+                raise error
             tqdm.write(str(error))
-            # raise
-            pass
         else:
             found_counts["applicant"] += bool(found_report["applicant"])
             found_counts["contact"] += bool(found_report["contact"])
             found_counts["case"] += bool(found_report["case"])
-            if (
-                not (found_report["applicant"] or found_report["contact"])
-                and found_report["case"]
-            ):
-                found_counts["technical_with_no_case"] += 1
 
     pprint(found_counts)
 
-    # raise ManualRollback()
+    if args.dry_run:
+        tqdm.write("Dry run; rolling back now(ish)")
+        transaction.set_rollback(True)
 
 
 def parse_args():
@@ -196,6 +128,18 @@ def parse_args():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument("path")
+    parser.add_argument(
+        "-d",
+        "--dry-run",
+        action="store_true",
+        help=(
+            "Roll back all database changes after execution. Note that "
+            "this will leave gaps in the PKs where created objects were rolled back"
+        ),
+    )
+    parser.add_argument(
+        "-D", "--durable", action="store_true", help=("Continue past row errors")
+    )
     return parser.parse_args()
 
 

@@ -3,7 +3,8 @@
 import re
 
 from cases.forms import CaseForm, FacilityForm
-from importers.fieldmap import FormMap, FieldMap, coerce_num, coerce_bool
+from importers.fieldmap import FormMap, FieldMap
+from importers.converters import coerce_num, coerce_bool
 
 
 case_regex_str = r"^(?P<case_num>\d+).*"

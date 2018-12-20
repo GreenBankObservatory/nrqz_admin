@@ -1,4 +1,12 @@
 from django.db import models
+from utils.constants import (
+    WEB,
+    EXCEL,
+    ACCESS_PRELIM_TECHNICAL,
+    ACCESS_TECHNICAL,
+    ACCESS_PRELIM_APPLICATION,
+    ACCESS_APPLICATION,
+)
 
 
 class IsActiveModel(models.Model):
@@ -52,12 +60,12 @@ class DataSourceModel(models.Model):
     data_source = models.CharField(
         max_length=25,
         choices=(
-            ("web", "Web"),
-            ("excel", "Excel"),
-            ("access_prelim_technical", "Access Prelim. Technical Table"),
-            ("access_technical", "Access Technical Table"),
-            ("access_prelim_application", "Access Prelim. Application Table"),
-            ("access_application", "Access Application Table"),
+            (WEB, "Web"),
+            (EXCEL, "Excel"),
+            (ACCESS_PRELIM_TECHNICAL, "Access Prelim. Technical Table"),
+            (ACCESS_TECHNICAL, "Access Technical Table"),
+            (ACCESS_PRELIM_APPLICATION, "Access Prelim. Application Table"),
+            (ACCESS_APPLICATION, "Access Application Table"),
         ),
         help_text="The source that this object was created from",
     )

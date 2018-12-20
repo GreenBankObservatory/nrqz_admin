@@ -24,7 +24,7 @@ from django.contrib.gis.geos import GEOSGeometry
 from django.contrib.gis.geos.error import GEOSException
 
 from cases.models import Facility
-from importers.fieldmap import coerce_long, coerce_lat
+from importers.converters import coerce_long, coerce_lat
 
 
 from importers.excel.excel_importer import (

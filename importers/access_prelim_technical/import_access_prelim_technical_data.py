@@ -4,7 +4,6 @@
 """Importer for Access Preliminary Technical Data"""
 
 import argparse
-import csv
 from pprint import pprint
 
 from tqdm import tqdm
@@ -31,18 +30,11 @@ from importers.access_prelim_technical.fieldmap import (
     PFACILITY_FORM_MAP,
 )
 from importers.converters import coerce_coords
-
+from utils.read_access_csv import load_rows
 
 # field_map = get_combined_field_map()
 
 ACCESS_PRELIM_TECHNICAL = "access_prelim_technical"
-
-
-def load_rows(path):
-    with open(path, newline="", encoding="latin1") as file:
-        lines = file.readlines()
-
-    return csv.DictReader(lines)
 
 
 # TODO: Consolidate, and this has been changed slightly from other
@@ -56,14 +48,14 @@ def get_person_similarity(person, name):
     return person_.first().name_similarity
 
 
-def handle_pcase(row,):
+def handle_pcase(row):
     pcase_form = PCASE_FORM_MAP.render(row)
     pcase_num = pcase_form["case_num"].value()
     try:
         pcase = PreliminaryCase.objects.get(case_num=pcase_num)
     except PreliminaryCase.DoesNotExist:
         # If this doesn't work just let it blow up; that's fine
-        pcase_form.save()
+        pcase = pcase_form.save()
         pcase_created = True
     else:
         pcase_created = False
@@ -214,7 +206,7 @@ def main():
 
     pprint(found_counts)
     tqdm.write(f"Failed rows: {row_failures}")
-    tqdm.write(f"Total rows: {len(data)}")
+    tqdm.write(f"Total rows: {len(rows)}")
 
     populate_locations()
 

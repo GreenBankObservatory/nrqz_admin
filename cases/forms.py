@@ -5,6 +5,7 @@ from django import forms
 from dal import autocomplete
 
 from cases.models import (
+    Attachment,
     Batch,
     Case,
     Person,
@@ -142,6 +143,12 @@ class CaseForm(forms.ModelForm):
             "si",
             "si_done",
         )
+
+
+class AttachmentForm(forms.ModelForm):
+    class Meta:
+        model = Attachment
+        fields = ("path", "comments")
 
 
 class BatchForm(forms.ModelForm):

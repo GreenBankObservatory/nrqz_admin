@@ -5,7 +5,11 @@ source and converting/validating it in some way in order to
 make it compatible with a database field
 """
 
+from datetime import datetime
 import re
+import string
+
+import pytz
 
 from utils.coord_utils import dms_to_dd
 
@@ -13,6 +17,11 @@ FEET_IN_A_METER = 0.3048
 
 SCI_REGEX_STR = r"(?P<digits>\d+.?\d*)(?:(?:X10\^)|(?:E))(?P<exponent>\-?\d+)"
 SCI_REGEX = re.compile(SCI_REGEX_STR, re.IGNORECASE)
+
+COORD_PATTERN_STR = (
+    r"^(?P<degrees>\d+)\s+(?P<minutes>\d+)\s+(?P<seconds>\d+(?:\.\d+)?)$"
+)
+COORD_PATTERN = re.compile(COORD_PATTERN_STR)
 
 
 def coerce_feet_to_meters(value):
@@ -91,3 +100,97 @@ def coerce_coords(value):
         seconds = f"{seconds}.{remain}"
     # print(f"Parsed {value} into {decimal}, {minutes}, {seconds}")
     return dms_to_dd(decimal, minutes, seconds)
+
+
+def coerce_datetime(value):
+    if value == "":
+        return None
+    date_str = value.split(" ")[0]
+    month, day, year = date_str.split("/")
+    return datetime(int(year), int(month), int(day), tzinfo=pytz.utc)
+
+
+def coerce_positive_int(value):
+    num = coerce_num(value)
+    if num is None or num < 1:
+        return None
+
+    return int(num)
+
+
+def coerce_path(value):
+    if value == "":
+        return None
+
+    return value.split("#")[1]
+
+
+def coerce_bool(value):
+    """Coerce a string to a bool, or to None"""
+
+    clean_value = str(value).strip().lower()
+    if clean_value in ["yes", "1"]:
+        return True
+    elif clean_value in ["no", "n0", "0"]:
+        return False
+    elif clean_value in ["", "na", "n/a"]:
+        return None
+    else:
+        raise ValueError("Could not determine truthiness of value {!r}".format(value))
+
+
+def coerce_str(value):
+    clean_value = str(value).strip().lower()
+    if clean_value in ["", "na", "n/a", "#n/a"]:
+        return None
+    else:
+        return value
+
+
+def coerce_num(value):
+    """Coerce a string to a number, or to None"""
+
+    clean_value = str(value).strip().lower()
+    if clean_value in ["", "na", "n/a", "no", "#n/a"]:
+        return None
+
+    if clean_value == "quad":
+        clean_value = 4
+    elif clean_value == "hex":
+        clean_value = 6
+    elif clean_value == "deca":
+        clean_value = 10
+    else:
+        clean_value = re.sub(f"[{string.ascii_letters}]", "", clean_value)
+
+    return float(clean_value)
+
+
+def coerce_coords(value):
+    """Given a coordinate in DD MM SS.sss format, return it in DD.ddd format"""
+    clean_value = str(value).strip().lower()
+
+    if clean_value in ["", "none", "#n/a"]:
+        return None
+    try:
+        dd = float(value)
+    except ValueError:
+        match = re.match(COORD_PATTERN, clean_value)
+        if not match:
+            raise ValueError(f"Regex {COORD_PATTERN_STR} did not match value {value}")
+
+        dd = dms_to_dd(**match.groupdict())
+    return dd
+
+
+def coerce_lat(value):
+    return coerce_coords(value)
+
+
+def coerce_long(value):
+    # Need to invert this because all of our longitudes will be W
+    longitude = coerce_coords(value)
+    if longitude is not None:
+        return -1 * longitude
+    else:
+        return None

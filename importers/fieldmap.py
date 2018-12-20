@@ -15,89 +15,7 @@ as well as an dictionary of every known header to its mapped field -- "expanded"
 from the list of FieldMap instances
 """
 
-from itertools import chain
-import re
-import string
-from pprint import pprint
-
-from utils.coord_utils import dms_to_dd
-
-
-COORD_PATTERN_STR = (
-    r"^(?P<degrees>\d+)\s+(?P<minutes>\d+)\s+(?P<seconds>\d+(?:\.\d+)?)$"
-)
-COORD_PATTERN = re.compile(COORD_PATTERN_STR)
-
-
-def coerce_bool(value):
-    """Coerce a string to a bool, or to None"""
-
-    clean_value = str(value).strip().lower()
-    if clean_value in ["yes"]:
-        return True
-    elif clean_value in ["no", "n0"]:
-        return False
-    elif clean_value in ["", "na", "n/a"]:
-        return None
-    else:
-        raise ValueError("Could not determine truthiness of value {!r}".format(value))
-
-
-def coerce_str(value):
-    clean_value = str(value).strip().lower()
-    if clean_value in ["", "na", "n/a", "#n/a"]:
-        return None
-    else:
-        return value
-
-
-def coerce_num(value):
-    """Coerce a string to a number, or to None"""
-
-    clean_value = str(value).strip().lower()
-    if clean_value in ["", "na", "n/a", "no", "#n/a"]:
-        return None
-
-    if clean_value == "quad":
-        clean_value = 4
-    elif clean_value == "hex":
-        clean_value = 6
-    elif clean_value == "deca":
-        clean_value = 10
-    else:
-        clean_value = re.sub(f"[{string.ascii_letters}]", "", clean_value)
-
-    return float(clean_value)
-
-
-def coerce_coords(value):
-    """Given a coordinate in DD MM SS.sss format, return it in DD.ddd format"""
-    clean_value = str(value).strip().lower()
-
-    if clean_value in ["", "none", "#n/a"]:
-        return None
-    try:
-        dd = float(value)
-    except ValueError:
-        match = re.match(COORD_PATTERN, clean_value)
-        if not match:
-            raise ValueError(f"Regex {COORD_PATTERN_STR} did not match value {value}")
-
-        dd = dms_to_dd(**match.groupdict())
-    return dd
-
-
-def coerce_lat(value):
-    return coerce_coords(value)
-
-
-def coerce_long(value):
-    # Need to invert this because all of our longitudes will be W
-    longitude = coerce_coords(value)
-    if longitude is not None:
-        return -1 * longitude
-    else:
-        return None
+from django.forms import ModelForm, ValidationError
 
 
 class FieldMapError(ValueError):
@@ -124,6 +42,7 @@ class FormMap:
             self.form_kwargs = {}
 
         self.unaliased_map = None
+        # self._rendered_form = None
 
     def unalias(self, data):
         """Unalias!"""
@@ -181,11 +100,30 @@ class FormMap:
         return rendered
 
     def render(self, data, extra=None, allow_unprocessed=True, allow_missing=True):
+        if not self.form_class:
+            raise ValueError("No FormMap.form_class defined; cannot render a form!")
         if extra is None:
             extra = {}
         rendered = self.render_dict(data, allow_unprocessed, allow_missing)
         return self.form_class(
             {**self.form_defaults, **extra, **rendered}, **self.form_kwargs
+        )
+
+    def save(self, data, **kwargs):
+        # Assume that if data is a ModelForm instance, it is an already-rendered
+        # Form.
+        if isinstance(data, ModelForm):
+            form = data
+        # Thus, if it is _not_ a ModelForm instance, we need to render it
+        # ourselves
+        else:
+            form = self.render(data, **kwargs)
+
+        if form.is_valid():
+            return form.save()
+
+        raise ValidationError(
+            f"{self.form_class.__name__} is invalid; couldn't be saved! {form.errors.as_data()}"
         )
 
     def get_known_from_fields(self):

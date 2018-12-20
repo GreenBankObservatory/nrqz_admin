@@ -1,235 +1,87 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""docstring"""
+"""Importer for Access Technical Data"""
 
 
 import argparse
-import csv
 from pprint import pprint
-import re
 
+from django.db import transaction
 import django
 
 django.setup()
-from django.db import transaction
-from django.contrib.gis.geos import GEOSGeometry
-from django.contrib.gis.geos.error import GEOSException
 
 from tqdm import tqdm
 
-from cases.forms import FacilityForm
-from cases.models import Attachment, Case, Facility, Person, AlsoKnownAs
+from cases.models import Case
 from importers.access_technical.fieldmap import (
-    applicant_field_mappers,
-    facility_field_mappers,
-    get_combined_field_map,
+    APPLICANT_FORM_MAP,
+    CASE_FORM_MAP,
+    FACILITY_FORM_MAP,
 )
-from importers.converters import coerce_coords
+from utils.read_access_csv import load_rows
 
 
-field_map = get_combined_field_map()
+def handle_case(row):
+    case_form = CASE_FORM_MAP.render(row)
+    case_num = case_form["case_num"].value()
+    if Case.objects.filter(case_num=case_num).exists():
+        case = Case.objects.get(case_num=case_num)
+        tqdm.write(f"Found case {case}")
+        case_created = False
+    else:
+        case = case_form.save()
+        tqdm.write(f"Created case {case}")
+        case_created = True
 
-ACCESS_TECHNICAL = "access_technical"
-
-
-class ManualRollback(Exception):
-    pass
-
-
-def load_rows(path):
-    with open(path, newline="", encoding="latin1") as file:
-        return list(csv.reader(file))
-
-
-# def handle_applicant(name):
+    return case, case_created
 
 
-def person_is_similar_to(person, name):
-    # More than 0.3 similar
-    similar = Person.objects.filter(id=person.id).filter(name__trigram_similar=name)
-    assert similar.count() <= 1
-    # Yes, this works even if there are no items in similar
-    return similar.first()
+def handle_applicant(row, case):
+    applicant = APPLICANT_FORM_MAP.save(row)
+    tqdm.write(f"Created applicant {applicant}")
+    case.applicant = applicant
+    case.save()
+    return applicant, True
 
 
-@transaction.atomic
-def handle_row(field_importers, row):
-    applicant_dict = {}
-    facility_dict = {}
+def handle_facility(row, case):
+    facility = FACILITY_FORM_MAP.save(row, extra={"case": case.id})
+    tqdm.write(f"Created facility {facility}")
+    return facility, True
 
-    for fi, value in zip(field_importers, row):
-        if fi:
-            if fi in applicant_field_mappers:
-                applicant_dict[fi.to_field] = fi.converter(value)
-            elif fi in facility_field_mappers:
-                try:
-                    facility_dict[fi.to_field] = fi.converter(value)
-                except ValueError as error:
-                    tqdm.write(str(error))
-                    facility_dict[fi.to_field] = None
 
-            else:
-                raise ValueError("Shouldn't be possible")
-
+def handle_row(row):
     found_report = dict(applicant=False, facility=False, case=False)
 
-    case_num = facility_dict.pop("case_num")
-    if case_num is None:
-        raise ValueError("Null case_num!")
+    case, case_created = handle_case(row)
+    found_report["case"] = case_created
 
-    try:
-        case = Case.objects.get(case_num=case_num)
-    except Case.DoesNotExist:
-        case = Case.objects.create(case_num=case_num, data_source=ACCESS_TECHNICAL)
-        case_created = True
-        found_report["case"] = False
-    else:
-        case_created = False
-        found_report["case"] = True
+    applicant, applicant_created = handle_applicant(row, case)
+    found_report["applicant"] = applicant_created
 
-    # If we found a Case (i.e. didn't create one),
-    # and that case has an applicant,
-    # and that applicant's name doesn't exactly match this row's,
-    # then we need to handle this!
-    if not case_created:
-        if case.applicant:
-            applicant_name = applicant_dict["name"]
-            if case.applicant.name != applicant_name:
-                tqdm.write(
-                    f"Found case {case}; its applicant {case.applicant.name!r} differs "
-                    f"from our applicant {applicant_name!r}"
-                )
-                # If the Case's existing Applicant is sufficiently similar to this row's,
-                # then we don't need to create a new Applicant
-                if person_is_similar_to(case.applicant, applicant_name):
-                    tqdm.write(
-                        "  However, the names are very similar, so we will link "
-                        "this new name to the existing applicant!"
-                    )
-                    # Don't create a new AKA if one already exists for this Case's Applicants
-                    if not case.applicant.aka.filter(name=applicant_name).exists():
-                        AlsoKnownAs.objects.create(
-                            person=case.applicant,
-                            name=applicant_name,
-                            data_source=ACCESS_TECHNICAL,
-                        )
-                    if not case.applicant.aka.filter(name=case.applicant.name).exists():
-                        AlsoKnownAs.objects.create(
-                            person=case.applicant,
-                            name=case.applicant.name,
-                            data_source=ACCESS_TECHNICAL,
-                        )
-                    tqdm.write(
-                        f"  Applicant {case.applicant} is now linked to names: "
-                        f"{list(case.applicant.aka.values_list('name', flat=True))}"
-                    )
-                    # Further, if our new applicant name is longer, then we switch
-                    # to it (the assumption being that longer is better/more specific,
-                    # which I've just made up)
-                    if len(applicant_name) > len(case.applicant.name):
-                        tqdm.write(
-                            "  Additionally, we will update this Applicant's name because the new name is longer"
-                        )
-                        case.applicant.name = applicant_name
-                        case.save()
-
-                    # case.applicant.aka.add(name=applicant_name)
-                    # Regardless
-                else:
-                    # TODO: Create applicant here
-                    print("Not similar applicant; do something!")
-
-    else:
-        applicant = None
-        if any(applicant_dict.values()):
-            try:
-                applicant = Person.objects.get(name=applicant_dict["name"])
-                tqdm.write(f"Found applicant {applicant}")
-                found_report["applicant"] = True
-            except Person.DoesNotExist:
-                applicant = Person.objects.create(
-                    **applicant_dict, data_source=ACCESS_TECHNICAL
-                )
-                tqdm.write(f"Created applicant {applicant}")
-            except Person.MultipleObjectsReturned:
-                raise ValueError(applicant_dict)
-        else:
-            tqdm.write("No applicant data; skipping")
-            pass
-
-        case.applicant = applicant
-        case.save()
-
-    assert case
-    if any(facility_dict.values()):
-        stripped_facility_dict = {}
-        for key, value in facility_dict.items():
-            stripped_facility_dict[key] = value
-
-        form = FacilityForm(
-            {**stripped_facility_dict, "case": case.id, "data_source": ACCESS_TECHNICAL}
-        )
-        if form.is_valid():
-            facility = form.save()
-            # tqdm.write(f"Created Facility {facility} <{facility.id}>")
-        else:
-            raise ValueError(form.errors.as_data())
-    else:
-        tqdm.write("No facility data; skipping")
+    facility, facility_created = handle_facility(row, case)
+    found_report["facility"] = facility_created
 
     return found_report
-
-
-def populate_locations():
-    for facility in tqdm(
-        Facility.objects.filter(
-            longitude__isnull=False, latitude__isnull=False, location__isnull=True
-        ),
-        unit="facilities",
-    ):
-        try:
-            longitude = coerce_coords(facility.longitude)
-            latitude = coerce_coords(facility.latitude)
-        except ValueError as error:
-            print(
-                f"Error parsing {facility} ({facility.latitude}, {facility.longitude}): {error}"
-            )
-        else:
-            point_str = f"Point({longitude} {latitude})"
-
-            try:
-                facility.location = GEOSGeometry(point_str)
-                facility.save()
-            except GEOSException as error:
-                print(f"Error saving {point_str}: {error}")
 
 
 @transaction.atomic
 def main():
     args = parse_args()
-    rows = load_rows(args.path)
-    headers = rows[0]
-    data = rows[1:]
-
-    field_importers = []
-    for header in headers:
-        try:
-            field_importers.append(field_map[header])
-        except KeyError:
-            field_importers.append(None)
+    rows = list(load_rows(args.path))
 
     found_counts = {"applicant": 0, "facility": 0, "case": 0}
     row_failures = 0
-    data_with_progress = tqdm(data, unit="rows")
-    for row in data_with_progress:
+    for row in tqdm(rows, unit="rows"):
         try:
-            found_report = handle_row(field_importers, row)
+            found_report = handle_row(row)
         except Exception as error:
             tqdm.write(f"Failed to handle row: {row}")
-            tqdm.write(str(error))
             if not args.durable:
                 raise
+            tqdm.write(str(error))
             row_failures += 1
         else:
             found_counts["applicant"] += bool(found_report["applicant"])
@@ -238,9 +90,7 @@ def main():
 
     pprint(found_counts)
     print(f"Failed rows: {row_failures}")
-    print(f"Total rows: {len(data)}")
-
-    populate_locations()
+    print(f"Total rows: {len(rows)}")
 
     if args.dry_run:
         tqdm.write("Dry run; rolling back now(ish)")
