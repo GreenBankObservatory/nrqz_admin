@@ -4,7 +4,7 @@ import re
 
 from cases.forms import CaseForm, FacilityForm
 from importers.fieldmap import FormMap, FieldMap
-from importers.converters import coerce_num, coerce_bool
+from importers.converters import coerce_num, coerce_bool, coerce_location
 
 
 case_regex_str = r"^(?P<case_num>\d+).*"
@@ -86,6 +86,7 @@ FACILITY_FORM_MAP = FormMap(
         FieldMap(
             to_field="latitude",
             converter=None,
+            # TODO: CONSOLIDATE
             from_fields={
                 "latitude": [
                     "LAT (dd mm ss.ss)",
@@ -99,6 +100,7 @@ FACILITY_FORM_MAP = FormMap(
         FieldMap(
             to_field="longitude",
             converter=None,
+            # TODO: CONSOLIDATE
             from_fields={
                 "longitude": [
                     "LON (-dd mm ss.ss)",
@@ -108,6 +110,28 @@ FACILITY_FORM_MAP = FormMap(
                     # Working Data
                     "Lon (dd mm ss.ss)W",
                 ]
+            },
+        ),
+        FieldMap(
+            to_field="location",
+            converter=coerce_location,
+            # TODO: CONSOLIDATE
+            from_fields={
+                "latitude": [
+                    "LAT (dd mm ss.ss)",
+                    "LatN (dd mm ss.ss) Pay close attention to formatting. Spaces required, and NO symbols or special characters!",
+                    "LatN. Correct submission format is dd mm ss.ss (space seperated).              No symbols or special characters!",
+                    # Working Data
+                    "Lat (dd mm ss.ss)N",
+                ],
+                "longitude": [
+                    "LON (-dd mm ss.ss)",
+                    "LON (dd mm ss.ss)",
+                    "LonW (dd mm ss.ss)  Pay close attention to formatting. Spaces required, and NO symbols or special characters!",
+                    "LonW. Correct submission format is dd mm ss.ss (space seperated).                 No symbols or special characters!",
+                    # Working Data
+                    "Lon (dd mm ss.ss)W",
+                ],
             },
         ),
         FieldMap(

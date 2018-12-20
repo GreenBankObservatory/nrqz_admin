@@ -11,6 +11,8 @@ import string
 
 import pytz
 
+from django.contrib.gis.geos import GEOSGeometry
+
 from utils.coord_utils import dms_to_dd
 
 FEET_IN_A_METER = 0.3048
@@ -194,3 +196,9 @@ def coerce_long(value):
         return -1 * longitude
     else:
         return None
+
+
+def coerce_location(latitude, longitude):
+    latitude = coerce_lat(latitude)
+    longitude = coerce_long(longitude)
+    return GEOSGeometry(f"Point({longitude} {latitude})")

@@ -164,4 +164,4 @@ SHELL_PLUS_PRE_IMPORTS = [
         ("Area", "Distance", "Length", "Perimeter"),
     )
 ]
-SHELL_PLUS_POST_IMPORTS = [("cases.models", ("Case",))]
+SHELL_PLUS_POST_IMPORTS = [("cases.models", ("Case",)), ("utils.constants", "*")]

@@ -20,9 +20,6 @@ django.setup()
 from django.db import transaction
 from tqdm import tqdm
 
-from django.contrib.gis.geos import GEOSGeometry
-from django.contrib.gis.geos.error import GEOSException
-
 from cases.models import Facility
 from importers.converters import coerce_long, coerce_lat
 
@@ -55,30 +52,6 @@ def determine_files_to_process(paths, pattern=r".*\.(xls.?|csv)$"):
             raise ValueError(f"Given path {path!r} is not a directory or file!")
 
     return sorted(files)
-
-
-def populate_locations(durable=False):
-    for facility in tqdm(
-        Facility.objects.filter(longitude__isnull=False, latitude__isnull=False),
-        unit="facilities",
-    ):
-        try:
-            longitude = coerce_long(facility.longitude)
-            latitude = coerce_lat(facility.latitude)
-        except ValueError as error:
-            if not durable:
-                raise
-            print(
-                f"Error parsing {facility} ({facility.latitude}, {facility.longitude}): {error}"
-            )
-        else:
-            point_str = f"Point({longitude} {latitude})"
-
-            try:
-                facility.location = GEOSGeometry(point_str)
-                facility.save()
-            except GEOSException as error:
-                print(f"Error saving {point_str}: {error}")
 
 
 @transaction.atomic

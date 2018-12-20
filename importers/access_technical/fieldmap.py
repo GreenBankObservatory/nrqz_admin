@@ -8,6 +8,7 @@ from importers.converters import (
     coerce_scientific_notation,
     coerce_none,
     coerce_feet_to_meters,
+    coerce_location,
 )
 
 
@@ -53,6 +54,11 @@ FACILITY_FORM_MAP = FormMap(
         FieldMap(to_field="site_name", converter=None, from_field="LOCATION"),
         FieldMap(to_field="latitude", converter=coerce_none, from_field="LATITUDE"),
         FieldMap(to_field="longitude", converter=coerce_none, from_field="LONGITUDE"),
+        FieldMap(
+            to_field="location",
+            converter=coerce_location,
+            from_fields=({"latitude": ("LATITUDE",), "longitude": ("LONGITUDE",)}),
+        ),
         FieldMap(
             to_field="amsl", converter=coerce_feet_to_meters, from_field="GND_ELEV"
         ),
