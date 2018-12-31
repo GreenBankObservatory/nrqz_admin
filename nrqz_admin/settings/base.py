@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     "django_filters",
     "crispy_forms",
     "explorer",
+    # "django_import_data",
     "cases",
     "audits",
 ]
