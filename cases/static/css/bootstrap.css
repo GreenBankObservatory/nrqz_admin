@@ -95,3 +95,8 @@ ul.messages li.error {
     background-size: 16px auto;
 }
 /* END MESSAGES & ERRORS */
+
+/* Make sure that JSON display isn't insanely tall */
+.highlight pre {
+    max-height: 300px;
+}

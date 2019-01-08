@@ -11,7 +11,7 @@ import string
 
 import pytz
 
-from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.gis.geos import GEOSGeometry, GEOSException
 
 from utils.coord_utils import dms_to_dd
 
@@ -201,4 +201,7 @@ def coerce_long(value):
 def coerce_location(latitude, longitude):
     latitude = coerce_lat(latitude)
     longitude = coerce_long(longitude)
+    # TODO: Perhaps raise ValueError instead?
+    if latitude is None or longitude is None:
+        raise ValueError(f"Invalid coordinates given: ({latitude}, {longitude})")
     return GEOSGeometry(f"Point({longitude} {latitude})")

@@ -17,9 +17,10 @@ class Command(BaseImportCommand):
     def add_arguments(self, parser):
         self.add_core_arguments(parser)
         parser.add_argument(
-            "--no-resetdb",
-            action="store_true",
-            help="Don't reset the database prior to import",
+            "-c",
+            "--commands",
+            nargs="+",
+            help="Specify a subset of commands (from importer_spec.json) to be executed",
         )
         parser.add_argument(
             "--preview",
@@ -42,13 +43,13 @@ class Command(BaseImportCommand):
             command_info = json.load(file)
 
         preview = options.pop("preview")
-        # If --no-resetdb is NOT given, we DO resetdb
-        if not options.pop("no_resetdb"):
-            if preview:
-                print("resetdb")
-            else:
-                call_command("resetdb")
-
+        commands = options.pop("commands")
+        if commands:
+            command_info = {
+                command: info
+                for command, info in command_info.items()
+                if command in commands
+            }
         if preview:
             print("The following commands would have been executed:")
 

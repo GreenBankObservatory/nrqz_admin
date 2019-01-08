@@ -2,14 +2,20 @@ from django.contrib import messages
 from django.shortcuts import render, get_object_or_404
 from django.views.generic.detail import DetailView
 from django.views.generic import CreateView
+from django.views.generic.base import RedirectView
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
+
+from django_import_data.views import CreateFromAuditView
 
 
 from cases.views import FilterTableView
 from .models import BatchAudit, BatchAuditGroup
 from .filters import BatchAuditFilter, BatchAuditGroupFilter
 from .tables import BatchAuditTable, BatchAuditGroupTable
+
+from cases.models import Person, Case, Facility, PreliminaryFacility
+from cases.forms import PersonForm, CaseForm, FacilityForm, PreliminaryFacilityForm
 
 # from importers.excel.excel_importer import ExcelImporter
 
@@ -89,3 +95,36 @@ class BatchAuditCreateView(CreateView):
             )
         # TODO: Fix this!
         return HttpResponseRedirect(reverse("batch_audit_list"))
+
+
+class PersonCreateFromAuditView(CreateFromAuditView):
+    model = Person
+    form_class = PersonForm
+    template_name = "cases/generic_form.html"
+
+
+class CaseCreateFromAuditView(CreateFromAuditView):
+    model = Case
+    form_class = CaseForm
+    template_name = "cases/generic_form.html"
+
+
+class FacilityCreateFromAuditView(CreateFromAuditView):
+    model = Facility
+    form_class = FacilityForm
+    template_name = "cases/generic_form.html"
+
+
+class PFacilityCreateFromAuditView(CreateFromAuditView):
+    model = PreliminaryFacility
+    form_class = PreliminaryFacilityForm
+    template_name = "cases/generic_form.html"
+
+
+class CreateFromAuditRedirectView(RedirectView):
+    def get_redirect_url(self, *args, **kwargs):
+        return reverse(
+            f"{kwargs['model']}_create_from_audit",
+            kwargs={"audit_pk": kwargs.get("audit_pk", None)},
+        )
+        # return super().get_redirect_url(*args, **kwargs)

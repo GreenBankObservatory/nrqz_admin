@@ -502,7 +502,7 @@ class Case(
         super(Case, self).save(*args, **kwargs)
 
 
-class Person(IsActiveModel, TrackedModel, DataSourceModel, Model):
+class Person(AuditedModel, IsActiveModel, TrackedModel, DataSourceModel, Model):
     """A single, physical person"""
 
     name = CharField(max_length=256, blank=True)
