@@ -8,16 +8,22 @@ from importers.access_prelim_application.fieldmap import (
     ATTACHMENT_FORM_MAPS,
 )
 
-from ._base_import import BaseImportCommand
+from django_import_data import BaseImportCommand
 
 
 class Command(BaseImportCommand):
     help = "Import Access Preliminary Application Data"
 
     def handle_row(self, row):
-        applicant = APPLICANT_FORM_MAP.save(row)
-        contact = CONTACT_FORM_MAP.save(row)
-        pcase, pcase_created = handle_case(
+        applicant, applicant_audit = APPLICANT_FORM_MAP.save_with_audit(row)
+        contact, contact_audit = CONTACT_FORM_MAP.save_with_audit(row)
+        pcase, pcase_audit = handle_case(
             row, PCASE_FORM_MAP, applicant=applicant, contact=contact
         )
         attachments = handle_attachments(row, pcase, ATTACHMENT_FORM_MAPS)
+        audits = {
+            "applicant": applicant_audit,
+            "contact": contact_audit,
+            "pcase": pcase_audit,
+        }
+        return audits

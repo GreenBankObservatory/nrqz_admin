@@ -6,13 +6,21 @@ from importers.access_technical.fieldmap import (
     CASE_FORM_MAP,
     FACILITY_FORM_MAP,
 )
-from ._base_import import BaseImportCommand
+from django_import_data import BaseImportCommand
 
 
 class Command(BaseImportCommand):
     help = "Import Access Technical Data"
 
     def handle_row(self, row):
-        applicant = APPLICANT_FORM_MAP.save(row)
-        case, __ = handle_case(row, CASE_FORM_MAP, applicant=applicant)
-        FACILITY_FORM_MAP.save(row, extra={"case": case.id})
+        applicant, applicant_audit = APPLICANT_FORM_MAP.save_with_audit(row)
+        case, case_audit = handle_case(row, CASE_FORM_MAP, applicant=applicant)
+        facility, facility_audit = FACILITY_FORM_MAP.save_with_audit(
+            row, extra={"case": case.id}
+        )
+        audits = {
+            "applicant": applicant_audit,
+            "case": case_audit,
+            "facility": facility_audit,
+        }
+        return audits

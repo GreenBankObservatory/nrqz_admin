@@ -20,6 +20,8 @@ from django.db.models import (
 )
 from django.contrib.gis.db.models import PointField
 
+from django_import_data.models import AuditedModel
+
 from utils.coord_utils import dd_to_dms
 from .kml import facility_as_kml, case_as_kml, kml_to_string
 from .mixins import DataSourceModel, TrackedOriginalModel, IsActiveModel, TrackedModel
@@ -424,7 +426,14 @@ class PreliminaryCase(
         verbose_name_plural = "Preliminary Cases"
 
 
-class Case(TrackedOriginalModel, IsActiveModel, TrackedModel, DataSourceModel, Model):
+class Case(
+    AuditedModel,
+    TrackedOriginalModel,
+    IsActiveModel,
+    TrackedModel,
+    DataSourceModel,
+    Model,
+):
     """Defines a given NRQZ Application"""
 
     # sites = ManyToManyField("Site")

@@ -323,7 +323,7 @@ class ExcelImporter:
         case_form = CASE_FORM_MAP.render(
             row,
             extra={"batch": self.batch_audit_group.batch.id, "data_source": EXCEL},
-            allow_unprocessed=True,
+            allow_unknown=True,
         )
         case_num = case_form["case_num"].value()
         try:
@@ -348,7 +348,7 @@ class ExcelImporter:
     def handle_facility(self, row, case):
         # TODO: Alter FacilityForm so that it uses case num instead of ID somehow
         facility_form = FACILITY_FORM_MAP.render(
-            row, extra={"case": case.id}, allow_unprocessed=True
+            row, extra={"case": case.id}, allow_unknown=True
         )
         if facility_form.is_valid():
             facility = facility_form.save()

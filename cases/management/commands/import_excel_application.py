@@ -8,7 +8,7 @@ from importers.excel.excel_importer import (
     DEFAULT_THRESHOLD,
     DEFAULT_PREPROCESS,
 )
-from ._base_import import BaseImportCommand
+from django_import_data import BaseImportCommand
 
 
 # TODO: MOVE
@@ -70,6 +70,7 @@ class Command(BaseImportCommand):
         files_to_process = determine_files_to_process(
             [options["path"]], pattern=options["pattern"]
         )
+
         limit = options.get("limit", None)
         if limit is not None:
             files_to_process = self.get_random_rows(files_to_process, limit)

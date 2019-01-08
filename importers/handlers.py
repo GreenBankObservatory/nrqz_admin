@@ -10,12 +10,11 @@ def handle_case(row, form_map, applicant=None, contact=None):
     case_num = case_form["case_num"].value()
     if model.objects.filter(case_num=case_num).exists():
         case = model.objects.get(case_num=case_num)
-        case_created = False
+        case_audit = None
     else:
-        case = form_map.save(case_form)
-        case_created = True
+        case, case_audit = form_map.save_with_audit(case_form)
 
-    return case, case_created
+    return case, case_audit
 
 
 def handle_attachments(row, case, form_maps):
