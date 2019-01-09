@@ -7,8 +7,8 @@ from django_import_data.views import (
     GenericAuditGroupListView,
     GenericAuditListView,
     GenericAuditDetailView,
-    RowAuditListView,
-    RowAuditDetailView,
+    RowDataListView,
+    RowDataDetailView,
 )
 
 from . import views
@@ -44,8 +44,8 @@ urlpatterns = [
         GenericAuditGroupListView.as_view(),
         name="genericauditgroup_list",
     ),
-    path("row-audits", RowAuditListView.as_view(), name="rowaudit_list"),
-    path("row-audits/<int:pk>/", RowAuditDetailView.as_view(), name="rowaudit_detail"),
+    path("row-audits", RowDataListView.as_view(), name="rowaudit_list"),
+    path("row-audits/<int:pk>/", RowDataDetailView.as_view(), name="rowaudit_detail"),
     path(
         "audit-groups/<int:pk>/",
         GenericAuditGroupDetailView.as_view(),

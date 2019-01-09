@@ -1,7 +1,7 @@
 from cases.models import Attachment
 
 
-def handle_case(row, form_map, row_audit, applicant=None, contact=None):
+def handle_case(row, form_map, row_data, applicant=None, contact=None):
     # Derive the case model (Could be Case or PCase) from the form_map
     applicant = getattr(applicant, "id", None)
     contact = getattr(contact, "id", None)
@@ -14,7 +14,7 @@ def handle_case(row, form_map, row_audit, applicant=None, contact=None):
         case = model.objects.get(case_num=case_num)
         case_audit = None
     else:
-        case, case_audit = form_map.save_with_audit(case_form, row_audit=row_audit)
+        case, case_audit = form_map.save_with_audit(case_form, row_data=row_data)
 
     return case, case_audit
 
