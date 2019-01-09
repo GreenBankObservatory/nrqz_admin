@@ -505,7 +505,7 @@ class Case(
 class Person(AuditedModel, IsActiveModel, TrackedModel, DataSourceModel, Model):
     """A single, physical person"""
 
-    name = CharField(max_length=256, blank=True)
+    name = CharField(max_length=256)
     phone = CharField(max_length=256, blank=True)
     fax = CharField(max_length=256, blank=True)
     email = EmailField(null=True, blank=True)

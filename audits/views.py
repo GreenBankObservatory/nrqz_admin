@@ -11,11 +11,17 @@ from django_import_data.views import CreateFromAuditView
 
 from cases.views import FilterTableView
 from .models import BatchAudit, BatchAuditGroup
-from .filters import BatchAuditFilter, BatchAuditGroupFilter
-from .tables import BatchAuditTable, BatchAuditGroupTable
+from .filters import BatchAuditFilter, BatchAuditGroupFilter, RowDataFilter
+from .tables import BatchAuditTable, BatchAuditGroupTable, RowDataTable
 
-from cases.models import Person, Case, Facility, PreliminaryFacility
-from cases.forms import PersonForm, CaseForm, FacilityForm, PreliminaryFacilityForm
+from cases.models import Person, PreliminaryCase, Case, Facility, PreliminaryFacility
+from cases.forms import (
+    PersonForm,
+    PreliminaryCaseForm,
+    CaseForm,
+    FacilityForm,
+    PreliminaryFacilityForm,
+)
 
 # from importers.excel.excel_importer import ExcelImporter
 
@@ -109,6 +115,12 @@ class CaseCreateFromAuditView(CreateFromAuditView):
     template_name = "cases/generic_form.html"
 
 
+class PCaseCreateFromAuditView(CreateFromAuditView):
+    model = PreliminaryCase
+    form_class = PreliminaryCaseForm
+    template_name = "cases/generic_form.html"
+
+
 class FacilityCreateFromAuditView(CreateFromAuditView):
     model = Facility
     form_class = FacilityForm
@@ -128,3 +140,13 @@ class CreateFromAuditRedirectView(RedirectView):
             kwargs={"audit_pk": kwargs.get("audit_pk", None)},
         )
         # return super().get_redirect_url(*args, **kwargs)
+
+
+class RowDataListView(FilterTableView):
+    table_class = RowDataTable
+    filterset_class = RowDataFilter
+    template_name = "audits/rowdata_list.html"
+
+
+# class RowDataDetailView(DetailView):
+#     model = RowData

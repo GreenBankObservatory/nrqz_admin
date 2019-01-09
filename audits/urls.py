@@ -44,20 +44,20 @@ urlpatterns = [
         GenericAuditGroupListView.as_view(),
         name="genericauditgroup_list",
     ),
-    path("row-audits", RowDataListView.as_view(), name="rowaudit_list"),
-    path("row-audits/<int:pk>/", RowDataDetailView.as_view(), name="rowaudit_detail"),
+    path("row-data/", views.RowDataListView.as_view(), name="rowdata_list"),
+    path("row-data/<int:pk>/", RowDataDetailView.as_view(), name="rowdata_detail"),
     path(
         "audit-groups/<int:pk>/",
         GenericAuditGroupDetailView.as_view(),
         name="genericauditgroup_detail",
     ),
+    # path(
+    #     "<str:model>/create-from-audit/<int:audit_pk>/",
+    #     views.CreateFromAuditRedirectView.as_view(),
+    #     name="create_from_audit",
+    # ),
     path(
-        "<str:model>/create-from-audit/<int:audit_pk>",
-        views.CreateFromAuditRedirectView.as_view(),
-        name="create_from_audit",
-    ),
-    path(
-        "people/create-from-audit/<int:audit_pk>/",
+        "person/create-from-audit/<int:audit_pk>/",
         views.PersonCreateFromAuditView.as_view(),
         name="person_create_from_audit",
     ),
@@ -74,6 +74,11 @@ urlpatterns = [
     path(
         "pfacilities/create-from-audit/<int:audit_pk>/",
         views.PFacilityCreateFromAuditView.as_view(),
-        name="pfacility_create_from_audit",
+        name="preliminaryfacility_create_from_audit",
+    ),
+    path(
+        "pcases/create-from-audit/<int:audit_pk>/",
+        views.PCaseCreateFromAuditView.as_view(),
+        name="preliminarycase_create_from_audit",
     ),
 ]

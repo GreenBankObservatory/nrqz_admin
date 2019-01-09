@@ -24,3 +24,13 @@ class BatchAuditGroupFilterFormHelper(FormHelper):
             css_class="row",
         )
     )
+
+
+class RowDataFilterFormHelper(FormHelper):
+    layout = CollapsibleFilterFormLayout(
+        Div(
+            Div("id", css_class="col"),
+            Div("audit_groups__status", css_class="col"),
+            css_class="row",
+        )
+    )
