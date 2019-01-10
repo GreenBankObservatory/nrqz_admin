@@ -7,12 +7,30 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 
 from django_import_data.views import CreateFromAuditView
+from django_import_data.models import (
+    GenericAuditGroupBatch,
+    GenericBatchImport,
+    GenericAuditGroup,
+)
 
 
 from cases.views import FilterTableView
-from .models import BatchAudit, BatchAuditGroup
-from .filters import BatchAuditFilter, BatchAuditGroupFilter, RowDataFilter
-from .tables import BatchAuditTable, BatchAuditGroupTable, RowDataTable
+
+
+from .filters import (
+    GenericAuditGroupBatchFilter,
+    GenericBatchImportFilter,
+    RowDataFilter,
+    GenericAuditGroupFilter,
+    GenericAuditFilter,
+)
+from .tables import (
+    GenericAuditGroupBatchTable,
+    GenericBatchImportTable,
+    RowDataTable,
+    GenericAuditGroupTable,
+    GenericAuditTable,
+)
 
 from cases.models import Person, PreliminaryCase, Case, Facility, PreliminaryFacility
 from cases.forms import (
@@ -22,85 +40,6 @@ from cases.forms import (
     FacilityForm,
     PreliminaryFacilityForm,
 )
-
-# from importers.excel.excel_importer import ExcelImporter
-
-
-class BatchAuditGroupListView(FilterTableView):
-    table_class = BatchAuditGroupTable
-    filterset_class = BatchAuditGroupFilter
-    template_name = "audits/batch_audit_group_list.html"
-
-
-class BatchAuditGroupDetailView(DetailView):
-    model = BatchAuditGroup
-
-
-class BatchAuditListView(FilterTableView):
-    table_class = BatchAuditTable
-    filterset_class = BatchAuditFilter
-    template_name = "audits/batch_audit_list.html"
-
-
-class BatchAuditDetailView(DetailView):
-    model = BatchAudit
-
-
-class BatchAuditCreateView(CreateView):
-    model = BatchAudit
-    fields = ["audit_group", "original_file"]
-    # template_name = "audits/batchaudit_form.html"
-
-    # def __init__(self, *args, **kwargs):
-    #     import ipdb
-
-    #     ipdb.set_trace()
-    #     super().__init__(*args, **kwargs)
-
-    # def get(self, request, *args, **kwargs):
-    #     batch_audit = self.get_object()
-    #     return HttpResponseRedirect(reverse("batch_audit", args=[str(batch_audit.id)]))
-
-    def post(self, request, *args, **kwargs):
-        bag_id = request.POST.get("audit_group", None)
-        path = request.POST.get("original_file", None)
-        print("PATH", path)
-        bag = get_object_or_404(BatchAuditGroup, id=bag_id)
-        ec = ExcelImporter(path=path, durable=True, batch_audit_group=bag)
-        try:
-            batch_audit = ec.process()
-        except FileNotFoundError as error:
-            messages.error(request, f"Failed to create BatchAudit: {error}")
-            batch_audit = None
-        else:
-            messages.success(
-                request,
-                f"Successfully created BatchAudit {batch_audit} <{batch_audit.id}>",
-            )
-            if batch_audit.status == "created_clean":
-                messages.success(
-                    request,
-                    f"Successfully imported Batch {batch_audit.audit_group.batch.id}",
-                )
-            elif batch_audit.status == "created_dirty":
-                messages.warning(
-                    request,
-                    f"Successfully imported Batch {batch_audit.audit_group.batch.id} (with some minor errors)",
-                )
-            elif batch_audit.status == "rejected":
-                messages.error(
-                    request, f"Failed to import Batch from {batch_audit.original_file}"
-                )
-            else:
-                # TODO: FIX this
-                raise ValueError("Something has gone terribly wrong")
-
-        if batch_audit:
-            return HttpResponseRedirect(
-                reverse("batch_audit_detail", args=[str(batch_audit.id)])
-            )
-        # TODO: Fix this!
-        return HttpResponseRedirect(reverse("batch_audit_list"))
 
 
 class PersonCreateFromAuditView(CreateFromAuditView):
@@ -150,3 +89,52 @@ class RowDataListView(FilterTableView):
 
 # class RowDataDetailView(DetailView):
 #     model = RowData
+
+
+class GenericAuditGroupBatchListView(FilterTableView):
+    table_class = GenericAuditGroupBatchTable
+    filterset_class = GenericAuditGroupBatchFilter
+    template_name = "audits/generic_table.html"
+
+
+class GenericBatchImportListView(FilterTableView):
+    table_class = GenericBatchImportTable
+    filterset_class = GenericBatchImportFilter
+    template_name = "audits/generic_table.html"
+
+
+class GenericAuditGroupDetailView(DetailView):
+    model = GenericAuditGroup
+    template_name = "genericauditgroup_detail.html"
+
+
+class GenericAuditGroupBatchDetailView(DetailView):
+    model = GenericAuditGroupBatch
+    template_name = "audits/genericauditgroupbatch_detail.html"
+
+
+class GenericAuditGroupListView(FilterTableView):
+    table_class = GenericAuditGroupTable
+    filterset_class = GenericAuditGroupFilter
+    template_name = "audits/generic_table.html"
+
+
+class GenericAuditListView(FilterTableView):
+    table_class = GenericAuditTable
+    filterset_class = GenericAuditFilter
+    template_name = "audits/generic_table.html"
+
+
+class GenericBatchImportDetailView(DetailView):
+    model = GenericBatchImport
+    template_name = "audits/genericbatchimport_detail.html"
+
+    def get_context_data(self, **kwargs):
+
+        context = super().get_context_data(**kwargs)
+        if "ag_table" not in context:
+            table = GenericAuditGroupTable(data=self.object.audit_groups.all())
+            table.paginate(page=self.request.GET.get("page", 1), per_page=10)
+            context["ag_table"] = table
+
+        return context

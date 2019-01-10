@@ -6,7 +6,6 @@ from dal import autocomplete
 
 from cases.models import (
     Attachment,
-    Batch,
     Case,
     Person,
     PreliminaryFacility,
@@ -124,7 +123,6 @@ class CaseForm(forms.ModelForm):
             "comments",
             "case_num",
             "name",
-            "batch",
             "attachments",
             "completed",
             "shutdown",
@@ -149,21 +147,6 @@ class AttachmentForm(forms.ModelForm):
     class Meta:
         model = Attachment
         fields = ("path", "comments")
-
-
-class BatchForm(forms.ModelForm):
-    class Meta:
-        model = Batch
-        fields = (
-            "attachments",
-            "comments",
-            "data_source",
-            "id",
-            "imported_from",
-            "name",
-            "original_created_on",
-            "original_modified_on",
-        )
 
 
 class PreliminaryFacilityForm(forms.ModelForm):

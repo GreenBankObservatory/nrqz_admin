@@ -4,6 +4,17 @@ from crispy_forms.layout import Div
 from cases.form_helpers import CollapsibleFilterFormLayout
 
 
+class GenericAuditFormHelper(FormHelper):
+    layout = CollapsibleFilterFormLayout(
+        Div(
+            Div("id", css_class="col"),
+            Div("audit_group__content_type", css_class="col"),
+            Div("status", css_class="col"),
+            css_class="row",
+        )
+    )
+
+
 class BatchAuditFilterFormHelper(FormHelper):
     layout = CollapsibleFilterFormLayout(
         Div(
@@ -30,7 +41,35 @@ class RowDataFilterFormHelper(FormHelper):
     layout = CollapsibleFilterFormLayout(
         Div(
             Div("id", css_class="col"),
-            Div("audit_groups__status", css_class="col"),
+            Div("genericauditgroup_audit_groups__status", css_class="col"),
+            css_class="row",
+        )
+    )
+
+
+class GenericAuditGroupBatchFormHelper(FormHelper):
+    layout = CollapsibleFilterFormLayout(
+        Div(
+            Div("id", css_class="col"),
+            Div("last_imported_path", css_class="col"),
+            Div("status", css_class="col"),
+            css_class="row",
+        )
+    )
+
+
+class GenericBatchImportFormHelper(FormHelper):
+    layout = CollapsibleFilterFormLayout(
+        Div(Div("id", css_class="col"), Div("status", css_class="col"), css_class="row")
+    )
+
+
+class GenericAuditGroupFormHelper(FormHelper):
+    layout = CollapsibleFilterFormLayout(
+        Div(
+            Div("id", css_class="col"),
+            Div("content_type", css_class="col"),
+            Div("status", css_class="col"),
             css_class="row",
         )
     )

@@ -1,30 +1,51 @@
 import django_filters
-from django_import_data.models import RowData
+
+from django_import_data.models import (
+    GenericAudit,
+    GenericAuditGroup,
+    GenericAuditGroupBatch,
+    GenericBatchImport,
+    RowData,
+)
 
 from cases.filters import HelpedFilterSet
 from utils.layout import discover_fields
 
-from . import models
+
 from .form_helpers import (
-    BatchAuditFilterFormHelper,
-    BatchAuditGroupFilterFormHelper,
+    GenericAuditFormHelper,
+    GenericAuditGroupBatchFormHelper,
+    GenericAuditGroupFormHelper,
+    GenericBatchImportFormHelper,
     RowDataFilterFormHelper,
 )
 
 
-class BatchAuditFilter(HelpedFilterSet):
+class GenericAuditFilter(HelpedFilterSet):
     class Meta:
-        model = models.BatchAudit
-        formhelper_class = BatchAuditFilterFormHelper
+        model = GenericAudit
+        formhelper_class = GenericAuditFormHelper
         fields = discover_fields(formhelper_class.layout)
 
 
-class BatchAuditGroupFilter(HelpedFilterSet):
-    name = django_filters.CharFilter(lookup_expr="icontains")
-
+class GenericAuditGroupBatchFilter(HelpedFilterSet):
     class Meta:
-        model = models.BatchAuditGroup
-        formhelper_class = BatchAuditGroupFilterFormHelper
+        model = GenericAuditGroupBatch
+        formhelper_class = GenericAuditGroupBatchFormHelper
+        fields = discover_fields(formhelper_class.layout)
+
+
+class GenericAuditGroupFilter(HelpedFilterSet):
+    class Meta:
+        model = GenericAuditGroup
+        formhelper_class = GenericAuditGroupFormHelper
+        fields = discover_fields(formhelper_class.layout)
+
+
+class GenericBatchImportFilter(HelpedFilterSet):
+    class Meta:
+        model = GenericBatchImport
+        formhelper_class = GenericBatchImportFormHelper
         fields = discover_fields(formhelper_class.layout)
 
 

@@ -1,6 +1,5 @@
 from pprint import pprint
 from datetime import datetime
-import json
 import os
 from pprint import pformat
 import re
@@ -11,9 +10,14 @@ from tqdm import tqdm
 from django.db import transaction
 from django.db.utils import IntegrityError
 
-from audits.models import BatchAudit, BatchAuditGroup
-from cases.models import Attachment, Batch, Case, Facility
-from cases.forms import FacilityForm, CaseForm, BatchForm
+from django_import_data.models import (
+    GenericAuditGroupBatch,
+    GenericBatchImport,
+    RowData,
+)
+
+from cases.models import Attachment, Case, Facility
+from cases.forms import FacilityForm, CaseForm
 from .fieldmap import CASE_FORM_MAP, FACILITY_FORM_MAP
 from .import_report import ExcelCollectionImportReport, ImportReport
 from .strip_excel_non_data import strip_excel_sheet
@@ -226,86 +230,52 @@ class ExcelImporter:
         modified_on = datetime.fromtimestamp(os.path.getmtime(self.path))
         return modified_on
 
-    def create_batch(self):
-        if self.batch_audit_group.batch:
-            batch_id = self.batch_audit_group.batch.id
-            batch_name = self.batch_audit_group.batch.name
-        else:
-            batch_id = None
-            batch_name = os.path.basename(self.path).replace(" ", "_")
-        batch_created_on = self.get_batch_created_on()
-        batch_modified_on = self.get_batch_modified_on()
-        # Purge any existing batch
-        self.delete_existing_batch()
-        batch_form = BatchForm(
-            {
-                "id": batch_id,
-                "name": batch_name,
-                "comments": f"Created by {__file__}",
-                "imported_from": self.path,
-                "original_created_on": batch_created_on,
-                "original_modified_on": batch_modified_on,
-                "data_source": EXCEL,
-            }
-        )
-        if batch_form.is_valid():
-            batch = batch_form.save()
-        else:
-            raise BatchRejectionError(
-                f"Batch is invalid! {batch_form.errors.as_data()}"
-            )
-        tqdm.write(f"Created Batch {batch} <{batch.id}>")
-        return batch
-
     @transaction.atomic
     def process(self):
         if not self.batch_audit_group:
-            self.batch_audit_group = BatchAuditGroup.objects.create(data_source=EXCEL)
+            self.batch_audit_group = GenericAuditGroupBatch.objects.create()
             tqdm.write(f"Created audit_group {self.batch_audit_group}")
         else:
             tqdm.write(
                 f"Got audit_group {self.batch_audit_group} linked to {self.batch_audit_group.batch}"
             )
 
-        batch_audit = BatchAudit.objects.create(
-            audit_group=self.batch_audit_group,
-            errors=self.report.report,
-            original_file=self.path,
-            error_summary=self.report.generate_error_summary(),
-            data_source=EXCEL,
+        batch_import = GenericBatchImport.objects.create(
+            batch=self.batch_audit_group, imported_from=self.path
         )
+
         tqdm.write(
-            f"Created batch_audit {batch_audit.id} linked to audit_group {self.batch_audit_group}"
+            f"Created batch_import {batch_import.id} linked to audit_group {self.batch_audit_group}"
         )
-        self._process()
+        self._process(batch_import)
 
-        if self.report.has_fatal_errors():
-            # This is a sanity check to ensure that the Batch has in fact been
-            # rolled back. Since we are tracking the Batch object inside our
-            # import_reporter, we can attempt to refresh it from the DB. We
-            # expect that this will fail, but if for some reason it succeeds
-            # then we treat this as a fatal error
-            try:
-                self.batch_audit_group.batch.refresh_from_db()
-            except Batch.DoesNotExist:
-                tqdm.write(f"Successfully rejected Batch {self.path}")
-                # Since the batch was rejected, we must remove it from the
-                # BAG, otherwise we'll end up with an IntegrityError
-                self.batch_audit_group.batch = None
-                self.batch_audit_group.save()
-            else:
-                raise AssertionError("Batch should have been rolled back, but wasn't!")
-            self.rolled_back = True
-        else:
-            # Similarly, we want to ensure that the Batch has been committed
-            # if there are no fatal errors in importing it
-            try:
-                self.batch_audit_group.batch.refresh_from_db()
-            except Batch.DoesNotExist as error:
-                raise AssertionError(
-                    "Batch should have been committed, but wasn't!"
-                ) from error
-
+        # if self.report.has_fatal_errors():
+        #     # This is a sanity check to ensure that the Batch has in fact been
+        #     # rolled back. Since we are tracking the Batch object inside our
+        #     # import_reporter, we can attempt to refresh it from the DB. We
+        #     # expect that this will fail, but if for some reason it succeeds
+        #     # then we treat this as a fatal error
+        #     try:
+        #         self.batch_audit_group.batch.refresh_from_db()
+        #     except Batch.DoesNotExist:
+        #         tqdm.write(f"Successfully rejected Batch {self.path}")
+        #         # Since the batch was rejected, we must remove it from the
+        #         # BAG, otherwise we'll end up with an IntegrityError
+        #         self.batch_audit_group.batch = None
+        #         self.batch_audit_group.save()
+        #     else:
+        #         raise AssertionError("Batch should have been rolled back, but wasn't!")
+        #     self.rolled_back = True
+        # else:
+        #     # Similarly, we want to ensure that the Batch has been committed
+        #     # if there are no fatal errors in importing it
+        #     try:
+        #         self.batch_audit_group.batch_import.refresh_from_db()
+        #     except Batch.DoesNotExist as error:
+        #         raise AssertionError(
+        #             "Batch should have been committed, but wasn't!"
+        #         ) from error
+        self.rolled_back = False
         if not self.rolled_back:
             if self.report.has_errors():
                 status = "created_dirty"
@@ -314,63 +284,91 @@ class ExcelImporter:
         else:
             status = "rejected"
 
-        batch_audit.status = status
-        batch_audit.save()
+        batch_import.status = status
+        batch_import.save()
 
-        return batch_audit
+        return batch_import
 
-    def handle_case(self, row):
-        case_form = CASE_FORM_MAP.render(
-            row,
-            extra={"batch": self.batch_audit_group.batch.id, "data_source": EXCEL},
-            allow_unknown=True,
+    def handle_case(self, row, row_data, batch_import):
+        tqdm.write("-" * 80)
+        case_form, conversion_errors = CASE_FORM_MAP.render(
+            row, extra={"data_source": EXCEL}, allow_unknown=True
         )
+        if conversion_errors:
+            error_str = f"Failed to convert row for case: {conversion_errors}"
+            if self.durable:
+                tqdm.write(error_str)
+            else:
+                raise BatchRejectionError(error_str)
+
         case_num = case_form["case_num"].value()
         try:
             case = Case.objects.get(case_num=case_num)
         except Case.DoesNotExist:
-            if case_form.is_valid():
-                case = case_form.save()
-            else:
-                raise BatchRejectionError(
-                    "Case is invalid!", case_form.errors.as_data()
-                )
+            case, case_audit = CASE_FORM_MAP.save_with_audit(
+                case_form,
+                extra={"data_source": EXCEL},
+                allow_unknown=True,
+                row_data=row_data,
+                batch_import=batch_import,
+            )
             case_created = True
         else:
             # if not self.durable:
             #     raise DuplicateCaseError("Aw snap we already got a case in there bro")
             # self.report.add_case_error("IntegrityError", "hmmm")
             # self.report.fatal_error_ocurred = True
+            case_audit = None
             case_created = False
 
+        if not case:
+            tqdm.write(str(case_audit.errors))
         return case, case_created
 
-    def handle_facility(self, row, case):
+    def handle_facility(self, row, case, row_data, batch_import):
         # TODO: Alter FacilityForm so that it uses case num instead of ID somehow
-        facility_form = FACILITY_FORM_MAP.render(
-            row, extra={"case": case.id}, allow_unknown=True
+        facility, facility_audit = FACILITY_FORM_MAP.save_with_audit(
+            row,
+            extra={"case": case.id if case else None},
+            allow_unknown=True,
+            row_data=row_data,
+            batch_import=batch_import,
         )
-        if facility_form.is_valid():
-            facility = facility_form.save()
+        if facility:
+            facility_created = True
+            tqdm.write("Created facility")
+            tqdm.write(str(facility))
         else:
-            if not self.durable:
-                raise BatchRejectionError(
-                    "Facility is invalid!", facility_form.errors.as_data()
-                )
-            row_num = row["Original Row"]
-            # TODO: Eliminate the type here; should only be one type of row error
-            self.report.add_row_error(
-                "validation_error", {"row": row_num, **facility_form.errors.as_data()}
-            )
-            self.report.fatal_error_ocurred = True
-            facility = None
-        facility_created = True
+            facility_created = False
+            tqdm.write("Failed to create facility; here's the audit")
+            tqdm.write(str(facility_audit.errors))
+        # if facility_form.is_valid():
+        #     facility = FACILITY_FORM_MAP.save_with_audit(facility_form, row_data=row_data)
+        # else:
+        #     if not self.durable:
+        #         raise BatchRejectionError(
+        #             "Facility is invalid!", facility_form.errors.as_data()
+        #         )
+        #     row_num = row["Original Row"]
+        #     # TODO: Eliminate the type here; should only be one type of row error
+        #     self.report.add_row_error(
+        #         "validation_error", {"row": row_num, **facility_form.errors.as_data()}
+        #     )
+        #     self.report.fatal_error_ocurred = True
+        #     facility = None
 
         return facility, facility_created
 
-    def handle_row(self, row):
-        case, case_created = self.handle_case(row)
-        facility, facility_created = self.handle_facility(row, case)
+    def handle_row(self, row, row_data, batch_import):
+        tqdm.write("handle_row")
+        case, case_created = self.handle_case(
+            row, row_data=row_data, batch_import=batch_import
+        )
+        tqdm.write("case done")
+        facility, facility_created = self.handle_facility(
+            row, case, row_data=row_data, batch_import=batch_import
+        )
+        tqdm.write("fac done")
         tqdm.write(f"Case {case_created}: {case}")
         tqdm.write(f"Facility {facility_created}: {facility}")
 
@@ -407,10 +405,10 @@ class ExcelImporter:
     #         return None
 
     @transaction.atomic
-    def _process(self):
+    def _process(self, batch_import):
         """Create objects from given path"""
 
-        self.batch_audit_group.batch = self.create_batch()
+        # self.batch_audit_group.batch = self.create_batch()
 
         rows = list(self.load_excel_data())
         if not rows:
@@ -445,9 +443,10 @@ class ExcelImporter:
                 )
 
         for row in rows:
+            row_data = RowData.objects.create(data=row)
             try:
-                self.handle_row(row)
-            except Exception as error:
+                self.handle_row(row, row_data=row_data, batch_import=batch_import)
+            except ValueError as error:
                 if not self.durable:
                     raise BatchRejectionError(
                         "One or more fatal errors has occurred!", error

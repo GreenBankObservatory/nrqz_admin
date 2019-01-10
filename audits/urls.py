@@ -3,6 +3,10 @@
 from django.urls import path
 
 from django_import_data.views import (
+    GenericAuditGroupBatchListView,
+    GenericAuditGroupBatchDetailView,
+    GenericBatchImportListView,
+    GenericBatchImportDetailView,
     GenericAuditGroupDetailView,
     GenericAuditGroupListView,
     GenericAuditListView,
@@ -14,48 +18,42 @@ from django_import_data.views import (
 from . import views
 
 urlpatterns = [
-    path("batches/", views.BatchAuditListView.as_view(), name="batch_audit_index"),
     path(
-        "groups/batches/",
-        views.BatchAuditGroupListView.as_view(),
-        name="batch_audit_group_index",
+        "batches/",
+        views.GenericAuditGroupBatchListView.as_view(),
+        name="genericauditgroupbatch_list",
     ),
     path(
         "batches/<int:pk>/",
-        views.BatchAuditDetailView.as_view(),
-        name="batch_audit_detail",
+        GenericAuditGroupBatchDetailView.as_view(),
+        name="genericauditgroupbatch_detail",
     ),
     path(
-        "groups/batches/<int:pk>/",
-        views.BatchAuditGroupDetailView.as_view(),
-        name="batch_audit_group_detail",
+        "batch-imports/",
+        views.GenericBatchImportListView.as_view(),
+        name="genericbatchimport_list",
     ),
     path(
-        "batches/create",
-        views.BatchAuditCreateView.as_view(),
-        name="batch_audit_create",
+        "batch-imports/<int:pk>/",
+        views.GenericBatchImportDetailView.as_view(),
+        name="genericbatchimport_detail",
     ),
-    path("audits/", GenericAuditListView.as_view(), name="genericaudit_list"),
+    path("audits/", views.GenericAuditListView.as_view(), name="genericaudit_list"),
     path(
         "audits/<int:pk>/", GenericAuditDetailView.as_view(), name="genericaudit_detail"
     ),
     path(
         "audit-groups/",
-        GenericAuditGroupListView.as_view(),
+        views.GenericAuditGroupListView.as_view(),
         name="genericauditgroup_list",
     ),
     path("row-data/", views.RowDataListView.as_view(), name="rowdata_list"),
     path("row-data/<int:pk>/", RowDataDetailView.as_view(), name="rowdata_detail"),
     path(
         "audit-groups/<int:pk>/",
-        GenericAuditGroupDetailView.as_view(),
+        views.GenericAuditGroupDetailView.as_view(),
         name="genericauditgroup_detail",
     ),
-    # path(
-    #     "<str:model>/create-from-audit/<int:audit_pk>/",
-    #     views.CreateFromAuditRedirectView.as_view(),
-    #     name="create_from_audit",
-    # ),
     path(
         "person/create-from-audit/<int:audit_pk>/",
         views.PersonCreateFromAuditView.as_view(),

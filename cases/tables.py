@@ -6,7 +6,6 @@ from utils.coord_utils import coords_to_string
 from . import models
 from .filters import (
     AttachmentFilter,
-    BatchFilter,
     PreliminaryFacilityFilter,
     FacilityFilter,
     PersonFilter,
@@ -142,15 +141,6 @@ class CaseTable(tables.Table):
         model = models.Case
         fields = CaseFilter.Meta.fields
         order_by = ["-case_num"]
-
-
-class BatchTable(tables.Table):
-    name = tables.Column(linkify=True)
-    comments = TrimmedTextColumn()
-
-    class Meta:
-        model = models.Batch
-        fields = BatchFilter.Meta.fields
 
 
 class PersonTable(tables.Table):

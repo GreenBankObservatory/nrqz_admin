@@ -6,7 +6,6 @@ import django_filters
 from utils.layout import discover_fields
 from . import models
 from .form_helpers import (
-    BatchFilterFormHelper,
     PreliminaryFacilityFilterFormHelper,
     FacilityFilterFormHelper,
     PreliminaryCaseFilterFormHelper,
@@ -40,16 +39,6 @@ class HelpedFilterSet(django_filters.FilterSet):
 
     class Meta:
         formhelper_class = lambda: NotImplemented
-
-
-class BatchFilter(HelpedFilterSet):
-    name = django_filters.CharFilter(lookup_expr="icontains")
-    comments = django_filters.CharFilter(lookup_expr="search")
-
-    class Meta:
-        model = models.Batch
-        formhelper_class = BatchFilterFormHelper
-        fields = discover_fields(formhelper_class.layout)
 
 
 class PointFilter(django_filters.Filter):

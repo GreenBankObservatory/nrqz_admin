@@ -2,9 +2,10 @@
 
 import json as json_
 
+from django_import_data.models import DjangoErrorJSONEncoder
+
 from django import template
 from django.utils.safestring import mark_safe
-from audits.models import DjangoErrorJSONEncoder
 from pygments import highlight
 from pygments.lexers.data import JsonLexer
 from pygments.formatters import HtmlFormatter

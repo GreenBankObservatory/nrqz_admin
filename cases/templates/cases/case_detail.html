@@ -4,8 +4,8 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
-{% if case.batch %}
-<a href={% url "batch_detail" case.batch.id %}>View batch</a>
+{% if case.audit_group.batch_import %}
+<a href={% url "genericbatchimport_detail" case.audit_group.batch_import.id %}>View batch</a>
 {% else %}
 <p>Not created from an Excel sheet; no batch</p>
 {% endif %}

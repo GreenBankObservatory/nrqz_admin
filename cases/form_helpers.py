@@ -46,28 +46,6 @@ class LetterFormHelper(FormHelper):
     )
 
 
-class BatchFilterFormHelper(FormHelper):
-    """Provides layout information for FacilityFilter.form"""
-
-    layout = CollapsibleFilterFormLayout(
-        Div(
-            Div("name", css_class="col"),
-            Div("comments", css_class="col"),
-            css_class="row",
-        ),
-        extra_buttons=[
-            Submit(
-                "kml",
-                "As .kml",
-                title=(
-                    "Download the locations of all currently-filtered "
-                    "Facilities as a .kml file"
-                ),
-            )
-        ],
-    )
-
-
 class PreliminaryFacilityFilterFormHelper(FormHelper):
     """Provides layout information for PreliminaryFacilityFilter.form"""
 

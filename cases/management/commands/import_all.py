@@ -50,6 +50,11 @@ class Command(BaseImportCommand):
                 for command, info in command_info.items()
                 if command in commands
             }
+            if not command_info:
+                raise ValueError(
+                    f"Given commands ({commands}) did not yield any actual "
+                    "subcommands! Check your spelling, etc., and try again"
+                )
         if preview:
             print("The following commands would have been executed:")
 

@@ -17,7 +17,6 @@ from django_tables2.views import SingleTableMixin
 from .forms import LetterTemplateForm
 from .models import (
     Attachment,
-    Batch,
     PreliminaryCase,
     Case,
     PreliminaryFacility,
@@ -29,7 +28,6 @@ from .models import (
 )
 from .filters import (
     AttachmentFilter,
-    BatchFilter,
     FacilityFilter,
     PreliminaryFacilityFilter,
     PersonFilter,
@@ -40,7 +38,6 @@ from .filters import (
 )
 from .tables import (
     AttachmentTable,
-    BatchTable,
     PreliminaryFacilityTable,
     FacilityTable,
     FacilityTableWithConcur,
@@ -79,37 +76,6 @@ class FilterTableView(SingleTableMixin, FilterView):
             self.object_list = self.table_class.Meta.model.objects.all()
 
         return super().get_context_data(**kwargs)
-
-
-class BatchListView(FilterTableView):
-    table_class = BatchTable
-    filterset_class = BatchFilter
-    template_name = "cases/batch_list.html"
-
-
-class BatchDetailView(DetailView):
-    model = Batch
-
-    def __init__(self, *args, **kwargs):
-        super(BatchDetailView, self).__init__(*args, **kwargs)
-        self.case_filter = None
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        if self.case_filter is None:
-            self.case_filter = CaseFilter(
-                self.request.GET,
-                queryset=self.object.cases.all(),
-                form_helper_kwargs={"form_class": "collapse"},
-            )
-            context["case_filter"] = self.case_filter
-
-        if "case_table" not in context:
-            table = CaseTable(data=self.case_filter.qs)
-            table.paginate(page=self.request.GET.get("page", 1), per_page=10)
-            context["case_table"] = table
-
-        return context
 
 
 class PreliminaryCaseGroupListView(FilterTableView):

@@ -27,7 +27,7 @@ from .kml import facility_as_kml, case_as_kml, kml_to_string
 from .mixins import DataSourceModel, TrackedOriginalModel, IsActiveModel, TrackedModel
 
 
-class Structure(IsActiveModel, TrackedModel, DataSourceModel, Model):
+class Structure(AuditedModel, IsActiveModel, TrackedModel, DataSourceModel, Model):
     asr = PositiveIntegerField(
         unique=True, verbose_name="Antenna Registration Number", db_index=True
     )
@@ -50,7 +50,12 @@ class Structure(IsActiveModel, TrackedModel, DataSourceModel, Model):
 
 
 class PreliminaryFacility(
-    TrackedOriginalModel, IsActiveModel, TrackedModel, DataSourceModel, Model
+    AuditedModel,
+    TrackedOriginalModel,
+    IsActiveModel,
+    TrackedModel,
+    DataSourceModel,
+    Model,
 ):
     # From Access
     site_num = PositiveIntegerField(verbose_name="Site #", blank=True, null=True)
@@ -120,7 +125,12 @@ class PreliminaryFacility(
 
 
 class Facility(
-    TrackedOriginalModel, IsActiveModel, TrackedModel, DataSourceModel, Model
+    AuditedModel,
+    TrackedOriginalModel,
+    IsActiveModel,
+    TrackedModel,
+    DataSourceModel,
+    Model,
 ):
     """Describes a single, physical antenna"""
 
@@ -281,11 +291,7 @@ class Facility(
 
     case = ForeignKey("Case", on_delete=CASCADE, related_name="facilities")
     structure = ForeignKey(
-        "Structure",
-        blank=True,
-        null=True,
-        on_delete=SET_NULL,
-        related_name="facilities",
+        "Structure", blank=True, null=True, on_delete=CASCADE, related_name="facilities"
     )
 
     # From Working Data
@@ -341,24 +347,26 @@ class Facility(
         return kml_to_string(facility_as_kml(self))
 
 
-class Batch(TrackedOriginalModel, IsActiveModel, TrackedModel, DataSourceModel, Model):
-    comments = TextField(blank=True)
-    attachments = ManyToManyField("Attachment", blank=True)
-    name = CharField(max_length=256, unique=True)
-    import_error_summary = TextField()
-    imported_from = CharField(max_length=512, unique=True)
+# class Batch(TrackedOriginalModel, IsActiveModel, TrackedModel, DataSourceModel, Model):
+#     comments = TextField(blank=True)
+#     attachments = ManyToManyField("Attachment", blank=True)
+#     name = CharField(max_length=256, unique=True)
+#     import_error_summary = TextField()
+#     imported_from = CharField(max_length=512, unique=True)
 
-    def __str__(self):
-        return self.name
+#     def __str__(self):
+#         return self.name
 
-    def get_absolute_url(self):
-        return reverse("batch_detail", args=[str(self.id)])
+#     def get_absolute_url(self):
+#         return reverse("batch_detail", args=[str(self.id)])
 
-    class Meta:
-        verbose_name_plural = "Batches"
+#     class Meta:
+#         verbose_name_plural = "Batches"
 
 
-class PreliminaryCaseGroup(IsActiveModel, TrackedModel, DataSourceModel, Model):
+class PreliminaryCaseGroup(
+    AuditedModel, IsActiveModel, TrackedModel, DataSourceModel, Model
+):
     comments = TextField(blank=True)
 
     class Meta:
@@ -367,18 +375,23 @@ class PreliminaryCaseGroup(IsActiveModel, TrackedModel, DataSourceModel, Model):
 
 
 class PreliminaryCase(
-    TrackedOriginalModel, IsActiveModel, TrackedModel, DataSourceModel, Model
+    AuditedModel,
+    TrackedOriginalModel,
+    IsActiveModel,
+    TrackedModel,
+    DataSourceModel,
+    Model,
 ):
     applicant = ForeignKey(
         "Person",
-        on_delete=SET_NULL,
+        on_delete=CASCADE,
         related_name="applicant_for_prelim_cases",
         null=True,
         blank=True,
     )
     contact = ForeignKey(
         "Person",
-        on_delete=SET_NULL,
+        on_delete=CASCADE,
         related_name="contact_for_prelim_cases",
         null=True,
         blank=True,
@@ -397,7 +410,7 @@ class PreliminaryCase(
     name = CharField(max_length=256, blank=True, null=True)
 
     case = ForeignKey(
-        "Case", related_name="prelim_cases", on_delete=SET_NULL, null=True, blank=True
+        "Case", related_name="prelim_cases", on_delete=CASCADE, null=True, blank=True
     )
 
     attachments = ManyToManyField("Attachment", related_name="prelim_cases", blank=True)
@@ -439,14 +452,14 @@ class Case(
     # sites = ManyToManyField("Site")
     applicant = ForeignKey(
         "Person",
-        on_delete=SET_NULL,
+        on_delete=CASCADE,
         related_name="applicant_for_cases",
         null=True,
         blank=True,
     )
     contact = ForeignKey(
         "Person",
-        on_delete=SET_NULL,
+        on_delete=CASCADE,
         related_name="contact_for_cases",
         null=True,
         blank=True,
@@ -456,10 +469,6 @@ class Case(
         unique=True, db_index=True, verbose_name="Case Num."
     )
     name = CharField(max_length=256, blank=True, null=True)
-
-    batch = ForeignKey(
-        "Batch", related_name="cases", on_delete=CASCADE, null=True, blank=True
-    )
 
     attachments = ManyToManyField("Attachment", related_name="cases", blank=True)
 
@@ -487,6 +496,10 @@ class Case(
 
     # Misc.
     slug = SlugField(unique=True)
+
+    class Meta:
+        verbose_name = "Case"
+        verbose_name_plural = "Cases"
 
     def __str__(self):
         return f"{self.case_num}"
@@ -516,7 +529,7 @@ class Person(AuditedModel, IsActiveModel, TrackedModel, DataSourceModel, Model):
     zipcode = CharField(max_length=256, blank=True)
     comments = TextField(blank=True)
 
-    # organization = ForeignKey("Organization", on_delete=SET_NULL)
+    # organization = ForeignKey("Organization", on_delete=CASCADE)
 
     def __str__(self):
         return f"{self.name}"
@@ -536,7 +549,7 @@ class AlsoKnownAs(IsActiveModel, TrackedModel, DataSourceModel, Model):
         return self.name
 
 
-class Attachment(IsActiveModel, TrackedModel, DataSourceModel, Model):
+class Attachment(AuditedModel, IsActiveModel, TrackedModel, DataSourceModel, Model):
     """Holds the path to a file along with some metadata"""
 
     # TODO: This will need to be a proper FileField eventually...

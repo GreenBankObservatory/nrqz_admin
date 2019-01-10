@@ -39,15 +39,11 @@
           </li>
 
           <li class="nav-item">
-            <a class="nav-link" href={% url "batch_index" %}>Batches</a>
+            <a class="nav-link" href={% url "genericauditgroupbatch_list" %}>Batches</a>
           </li>
 
           <li class="nav-item">
-            <a class="nav-link" href={% url "batch_audit_group_index" %}>Batch Audit Groups</a>
-          </li>
-
-          <li class="nav-item">
-            <a class="nav-link" href={% url "batch_audit_index" %}?status=rejected>Batch Audits</a>
+            <a class="nav-link" href={% url "genericbatchimport_list" %}>Batch Imports</a>
           </li>
 
           <li class="nav-item">

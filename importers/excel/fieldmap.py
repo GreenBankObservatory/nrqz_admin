@@ -127,6 +127,7 @@ class FacilityFormMap(FormMap):
                     "LatN. Correct submission format is dd mm ss.ss (space seperated).              No symbols or special characters!",
                     # Working Data
                     "Lat (dd mm ss.ss)N",
+                    "LatN (dd mm ss.ss)N",
                 ],
                 "longitude": [
                     "LON (-dd mm ss.ss)",
@@ -135,6 +136,7 @@ class FacilityFormMap(FormMap):
                     "LonW. Correct submission format is dd mm ss.ss (space seperated).                 No symbols or special characters!",
                     # Working Data
                     "Lon (dd mm ss.ss)W",
+                    "LonW (dd mm ss.ss)W",
                 ],
             },
         ),
