@@ -11,16 +11,18 @@ from django_import_data.models import RowData
 class Command(BaseImportCommand):
     help = "Import Access Preliminary Technical Data"
 
-    def handle_row(self, row):
+    def handle_row(self, row, batch_import):
         row_data = RowData.objects.create(data=row)
         applicant, applicant_audit = APPLICANT_FORM_MAP.save_with_audit(
-            row, row_data=row_data
+            row_data, batch_import=batch_import
         )
         pcase, pcase_audit = handle_case(
-            row, PCASE_FORM_MAP, applicant=applicant, row_data=row_data
+            row_data, PCASE_FORM_MAP, applicant=applicant, batch_import=batch_import
         )
         pfacility, pfacility_audit = PFACILITY_FORM_MAP.save_with_audit(
-            row, extra={"pcase": pcase.id if pcase else None}, row_data=row_data
+            row_data,
+            extra={"pcase": pcase.id if pcase else None},
+            batch_import=batch_import,
         )
         audits = {
             "applicant": applicant_audit,

@@ -43,6 +43,8 @@ class GenericAuditGroupFilter(HelpedFilterSet):
 
 
 class GenericBatchImportFilter(HelpedFilterSet):
+    # model = django_filters.CharFilter()
+
     class Meta:
         model = GenericBatchImport
         formhelper_class = GenericBatchImportFormHelper

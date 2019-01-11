@@ -2,8 +2,8 @@
 {% load cases_tags %}
 
 {% block content %}
-{% if facility.case.batch %}
-<a href={% url "batch_detail" facility.case.batch.id %}>View batch</a>
+{% if facility.audit_group.batch_import %}
+<a href={% url "genericbatchimport_detail" facility.audit_group.batch_import.id %}>View batch</a>
 {% else %}
 <span>No Batch</span>
 {% endif %}

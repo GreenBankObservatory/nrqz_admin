@@ -129,11 +129,23 @@ class GenericBatchImportDetailView(DetailView):
     model = GenericBatchImport
     template_name = "audits/genericbatchimport_detail.html"
 
-    def get_context_data(self, **kwargs):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.ag_filter = None
 
+    def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        if not self.ag_filter:
+            self.ag_filter = GenericAuditGroupFilter(
+                self.request.GET,
+                queryset=self.object.audit_groups.all(),
+                # form_helper_kwargs={"form_class": "collapse"},
+            )
+            context["ag_filter"] = self.ag_filter
+
         if "ag_table" not in context:
-            table = GenericAuditGroupTable(data=self.object.audit_groups.all())
+            table = GenericAuditGroupTable(data=self.ag_filter.qs)
             table.paginate(page=self.request.GET.get("page", 1), per_page=10)
             context["ag_table"] = table
 

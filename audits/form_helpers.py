@@ -8,7 +8,7 @@ class GenericAuditFormHelper(FormHelper):
     layout = CollapsibleFilterFormLayout(
         Div(
             Div("id", css_class="col"),
-            Div("audit_group__content_type", css_class="col"),
+            Div("audit_group", css_class="col"),
             Div("status", css_class="col"),
             css_class="row",
         )
@@ -51,6 +51,7 @@ class GenericAuditGroupBatchFormHelper(FormHelper):
     layout = CollapsibleFilterFormLayout(
         Div(
             Div("id", css_class="col"),
+            Div("imports", css_class="col"),
             Div("last_imported_path", css_class="col"),
             Div("status", css_class="col"),
             css_class="row",
@@ -60,7 +61,12 @@ class GenericAuditGroupBatchFormHelper(FormHelper):
 
 class GenericBatchImportFormHelper(FormHelper):
     layout = CollapsibleFilterFormLayout(
-        Div(Div("id", css_class="col"), Div("status", css_class="col"), css_class="row")
+        Div(
+            Div("id", css_class="col"),
+            # Div("audit_groups", css_class="col"),
+            Div("status", css_class="col"),
+            css_class="row",
+        )
     )
 
 
@@ -68,7 +74,7 @@ class GenericAuditGroupFormHelper(FormHelper):
     layout = CollapsibleFilterFormLayout(
         Div(
             Div("id", css_class="col"),
-            Div("content_type", css_class="col"),
+            Div("importee_class", css_class="col"),
             Div("status", css_class="col"),
             css_class="row",
         )

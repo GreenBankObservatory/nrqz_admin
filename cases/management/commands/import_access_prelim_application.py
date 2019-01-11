@@ -15,16 +15,20 @@ from django_import_data.models import RowData
 class Command(BaseImportCommand):
     help = "Import Access Preliminary Application Data"
 
-    def handle_row(self, row):
+    def handle_row(self, row, batch_import):
         row_data = RowData.objects.create(data=row)
         applicant, applicant_audit = APPLICANT_FORM_MAP.save_with_audit(
-            row, row_data=row_data
+            row_data, batch_import=batch_import
         )
         contact, contact_audit = CONTACT_FORM_MAP.save_with_audit(
-            row, row_data=row_data
+            row_data, batch_import=batch_import
         )
         pcase, pcase_audit = handle_case(
-            row, PCASE_FORM_MAP, applicant=applicant, contact=contact, row_data=row_data
+            row_data,
+            form_map=PCASE_FORM_MAP,
+            applicant=applicant,
+            contact=contact,
+            batch_import=batch_import,
         )
         attachments = handle_attachments(row, pcase, ATTACHMENT_FORM_MAPS)
         audits = {

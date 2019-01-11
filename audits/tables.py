@@ -34,47 +34,52 @@ class ImportStatusColumn(tables.Column):
 
 class GenericAuditGroupBatchTable(tables.Table):
     id = tables.Column(linkify=True)
+    imports = tables.Column(linkify=True, verbose_name="Batch Imports")
     status = AuditStatusColumn()
 
     class Meta:
         model = GenericAuditGroupBatch
         fields = GenericAuditGroupBatchFilter.Meta.fields
 
-    # def render_original_file(self, value):
-    #     # TODO: Remove lstrip
-    #     return mark_safe(f"Batch {clean_batch_name(os.path.basename(value))}")
+    def render_imports(self, value):
+        batch_imports = value
+        return sorted(
+            batch_imports.values_list(
+                "genericauditgroup_audit_groups__form_map", flat=True
+            ).distinct()
+        )
 
 
 class GenericBatchImportTable(tables.Table):
     id = tables.Column(linkify=True)
+    audit_groups = tables.Column()
     status = AuditStatusColumn()
 
     class Meta:
         model = GenericBatchImport
         fields = GenericBatchImportFilter.Meta.fields
 
-    # def render_last_imported_path(self, value):
-    #     batch_name = clean_batch_name(os.path.basename(value))
-    #     return mark_safe(batch_name)
+    def render_id(self, record):
+        return f"Import {record.id}: {record.name}"
 
-    # def render_batch(self, value):
-    #     return f"Batch {clean_batch_name(str(value))}"
+    # def render_imported_from(self, record):
+    #     os.basename()
+    #     return audit_groups.values("form_map").distinct()
+    def render_audit_groups(self, value):
+        audit_groups = value
+        return list(audit_groups.values_list("importee_class", flat=True).distinct())
 
 
 class GenericAuditGroupTable(tables.Table):
-    id = tables.Column(linkify=True)
+    id = tables.Column(linkify=True, verbose_name="Importer")
     status = AuditStatusColumn()
 
     class Meta:
         model = GenericAuditGroup
         fields = GenericAuditGroupFilter.Meta.fields
 
-    def render_content_type(self, record):
-        if record.auditee:
-            auditee_str = str(record.auditee)
-        else:
-            auditee_str = "<Failed to create>"
-        return f"{record.content_type}: {auditee_str}"
+    def render_id(self, record):
+        return str(record)
 
 
 class GenericAuditTable(tables.Table):
@@ -84,13 +89,6 @@ class GenericAuditTable(tables.Table):
     class Meta:
         model = GenericAudit
         fields = GenericAuditFilter.Meta.fields
-
-    def render_content_type(self, record):
-        if record.audit_group.auditee:
-            auditee_str = str(record.audit_group.auditee)
-        else:
-            auditee_str = "<Failed to create>"
-        return f"{record.audit_group.content_type}: {auditee_str}"
 
 
 class RowDataTable(tables.Table):

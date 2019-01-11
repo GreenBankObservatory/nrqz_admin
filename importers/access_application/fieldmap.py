@@ -1,10 +1,10 @@
 """Field mappings for Access Application Data"""
 
-from datetime import datetime
 import pytz
 
-from cases.forms import AttachmentForm, CaseForm, PersonForm
 from django_import_data import FormMap, OneToOneFieldMap, FormMapSet
+
+from cases.forms import AttachmentForm, CaseForm, PersonForm
 from importers.converters import (
     coerce_num,
     coerce_positive_int,

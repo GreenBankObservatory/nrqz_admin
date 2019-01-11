@@ -285,14 +285,16 @@ class ExcelImporter:
             status = "rejected"
 
         batch_import.status = status
+        batch_import.errors = self.report.get_non_fatal_errors()
+        print(batch_import.errors)
         batch_import.save()
 
         return batch_import
 
-    def handle_case(self, row, row_data, batch_import):
+    def handle_case(self, row_data, batch_import):
         tqdm.write("-" * 80)
         case_form, conversion_errors = CASE_FORM_MAP.render(
-            row, extra={"data_source": EXCEL}, allow_unknown=True
+            row_data.data, extra={"data_source": EXCEL}, allow_unknown=True
         )
         if conversion_errors:
             error_str = f"Failed to convert row for case: {conversion_errors}"
@@ -306,10 +308,10 @@ class ExcelImporter:
             case = Case.objects.get(case_num=case_num)
         except Case.DoesNotExist:
             case, case_audit = CASE_FORM_MAP.save_with_audit(
-                case_form,
+                row_data=row_data,
+                form=case_form,
                 extra={"data_source": EXCEL},
                 allow_unknown=True,
-                row_data=row_data,
                 batch_import=batch_import,
             )
             case_created = True
@@ -325,10 +327,9 @@ class ExcelImporter:
             tqdm.write(str(case_audit.errors))
         return case, case_created
 
-    def handle_facility(self, row, case, row_data, batch_import):
+    def handle_facility(self, row_data, case, batch_import):
         # TODO: Alter FacilityForm so that it uses case num instead of ID somehow
         facility, facility_audit = FACILITY_FORM_MAP.save_with_audit(
-            row,
             extra={"case": case.id if case else None},
             allow_unknown=True,
             row_data=row_data,
@@ -361,12 +362,10 @@ class ExcelImporter:
 
     def handle_row(self, row, row_data, batch_import):
         tqdm.write("handle_row")
-        case, case_created = self.handle_case(
-            row, row_data=row_data, batch_import=batch_import
-        )
+        case, case_created = self.handle_case(row_data, batch_import=batch_import)
         tqdm.write("case done")
         facility, facility_created = self.handle_facility(
-            row, case, row_data=row_data, batch_import=batch_import
+            row_data, case, batch_import=batch_import
         )
         tqdm.write("fac done")
         tqdm.write(f"Case {case_created}: {case}")

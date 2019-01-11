@@ -338,7 +338,11 @@ class Facility(
             yield (field.verbose_name, field.value_to_string(self))
 
     def __str__(self):
-        return f"{self.nrqz_id} <{self.id}>"
+        if self.nrqz_id:
+            nrqz_id_str = self.nrqz_id
+        else:
+            nrqz_id_str = "Facility"
+        return f"{nrqz_id_str} <{self.id}>"
 
     def get_absolute_url(self):
         return reverse("facility_detail", args=[str(self.id)])
@@ -549,7 +553,7 @@ class AlsoKnownAs(IsActiveModel, TrackedModel, DataSourceModel, Model):
         return self.name
 
 
-class Attachment(AuditedModel, IsActiveModel, TrackedModel, DataSourceModel, Model):
+class Attachment(IsActiveModel, TrackedModel, DataSourceModel, Model):
     """Holds the path to a file along with some metadata"""
 
     # TODO: This will need to be a proper FileField eventually...
