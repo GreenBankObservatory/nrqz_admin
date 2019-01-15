@@ -10,11 +10,7 @@ from tqdm import tqdm
 from django.db import transaction
 from django.db.utils import IntegrityError
 
-from django_import_data.models import (
-    GenericAuditGroupBatch,
-    GenericBatchImport,
-    RowData,
-)
+from django_import_data.models import FileImporter, FileImportAttempt, RowData
 
 from cases.models import Attachment, Case, Facility
 from cases.forms import FacilityForm, CaseForm
@@ -139,7 +135,7 @@ class ExcelImporter:
         durable=DEFAULT_DURABLE,
         threshold=DEFAULT_THRESHOLD,
         preprocess=DEFAULT_PREPROCESS,
-        batch_audit_group=None,
+        file_importer=None,
     ):
         # The path to the Excel file to import
         self.path = path
@@ -149,7 +145,7 @@ class ExcelImporter:
         self.threshold = threshold
         self.rolled_back = False
         self.preprocess = preprocess
-        self.batch_audit_group = batch_audit_group
+        self.file_importer = file_importer
 
     def load_excel_data(self):
         """Given path to Excel file, extract data and return"""
@@ -185,7 +181,7 @@ class ExcelImporter:
         return sheet.records
 
     def delete_existing_batch(self):
-        existing_batch = self.batch_audit_group.batch
+        existing_batch = self.file_importer.batch
         if existing_batch:
             tqdm.write(
                 f"Detected existing batch: {existing_batch} <{existing_batch.id}>; it will be deleted"
@@ -232,22 +228,22 @@ class ExcelImporter:
 
     @transaction.atomic
     def process(self):
-        if not self.batch_audit_group:
-            self.batch_audit_group = GenericAuditGroupBatch.objects.create()
-            tqdm.write(f"Created audit_group {self.batch_audit_group}")
+        if not self.file_importer:
+            self.file_importer = FileImporter.objects.create()
+            tqdm.write(f"Created audit_group {self.file_importer}")
         else:
             tqdm.write(
-                f"Got audit_group {self.batch_audit_group} linked to {self.batch_audit_group.batch}"
+                f"Got audit_group {self.file_importer} linked to {self.file_importer.batch}"
             )
 
-        batch_import = GenericBatchImport.objects.create(
-            batch=self.batch_audit_group, imported_from=self.path
+        file_import_attempt = FileImportAttempt.objects.create(
+            file_importer=self.file_importer, imported_from=self.path
         )
 
         tqdm.write(
-            f"Created batch_import {batch_import.id} linked to audit_group {self.batch_audit_group}"
+            f"Created file_import_attempt {file_import_attempt.id} linked to audit_group {self.file_importer}"
         )
-        self._process(batch_import)
+        self._process(file_import_attempt)
 
         # if self.report.has_fatal_errors():
         #     # This is a sanity check to ensure that the Batch has in fact been
@@ -256,13 +252,13 @@ class ExcelImporter:
         #     # expect that this will fail, but if for some reason it succeeds
         #     # then we treat this as a fatal error
         #     try:
-        #         self.batch_audit_group.batch.refresh_from_db()
+        #         self.file_importer.batch.refresh_from_db()
         #     except Batch.DoesNotExist:
         #         tqdm.write(f"Successfully rejected Batch {self.path}")
         #         # Since the batch was rejected, we must remove it from the
         #         # BAG, otherwise we'll end up with an IntegrityError
-        #         self.batch_audit_group.batch = None
-        #         self.batch_audit_group.save()
+        #         self.file_importer.batch = None
+        #         self.file_importer.save()
         #     else:
         #         raise AssertionError("Batch should have been rolled back, but wasn't!")
         #     self.rolled_back = True
@@ -270,7 +266,7 @@ class ExcelImporter:
         #     # Similarly, we want to ensure that the Batch has been committed
         #     # if there are no fatal errors in importing it
         #     try:
-        #         self.batch_audit_group.batch_import.refresh_from_db()
+        #         self.file_importer.file_import_attempt.refresh_from_db()
         #     except Batch.DoesNotExist as error:
         #         raise AssertionError(
         #             "Batch should have been committed, but wasn't!"
@@ -284,14 +280,14 @@ class ExcelImporter:
         else:
             status = "rejected"
 
-        batch_import.status = status
-        batch_import.errors = self.report.get_non_fatal_errors()
-        print(batch_import.errors)
-        batch_import.save()
+        file_import_attempt.status = status
+        file_import_attempt.errors = self.report.get_non_fatal_errors()
+        print(file_import_attempt.errors)
+        file_import_attempt.save()
 
-        return batch_import
+        return file_import_attempt
 
-    def handle_case(self, row_data, batch_import):
+    def handle_case(self, row_data, file_import_attempt):
         tqdm.write("-" * 80)
         case_form, conversion_errors = CASE_FORM_MAP.render(
             row_data.data, extra={"data_source": EXCEL}, allow_unknown=True
@@ -312,7 +308,7 @@ class ExcelImporter:
                 form=case_form,
                 extra={"data_source": EXCEL},
                 allow_unknown=True,
-                batch_import=batch_import,
+                file_import_attempt=file_import_attempt,
             )
             case_created = True
         else:
@@ -327,13 +323,13 @@ class ExcelImporter:
             tqdm.write(str(case_audit.errors))
         return case, case_created
 
-    def handle_facility(self, row_data, case, batch_import):
+    def handle_facility(self, row_data, case, file_import_attempt):
         # TODO: Alter FacilityForm so that it uses case num instead of ID somehow
         facility, facility_audit = FACILITY_FORM_MAP.save_with_audit(
             extra={"case": case.id if case else None},
             allow_unknown=True,
             row_data=row_data,
-            batch_import=batch_import,
+            file_import_attempt=file_import_attempt,
         )
         if facility:
             facility_created = True
@@ -360,12 +356,14 @@ class ExcelImporter:
 
         return facility, facility_created
 
-    def handle_row(self, row, row_data, batch_import):
+    def handle_row(self, row, row_data, file_import_attempt):
         tqdm.write("handle_row")
-        case, case_created = self.handle_case(row_data, batch_import=batch_import)
+        case, case_created = self.handle_case(
+            row_data, file_import_attempt=file_import_attempt
+        )
         tqdm.write("case done")
         facility, facility_created = self.handle_facility(
-            row_data, case, batch_import=batch_import
+            row_data, case, file_import_attempt=file_import_attempt
         )
         tqdm.write("fac done")
         tqdm.write(f"Case {case_created}: {case}")
@@ -404,10 +402,8 @@ class ExcelImporter:
     #         return None
 
     @transaction.atomic
-    def _process(self, batch_import):
+    def _process(self, file_import_attempt):
         """Create objects from given path"""
-
-        # self.batch_audit_group.batch = self.create_batch()
 
         rows = list(self.load_excel_data())
         if not rows:
@@ -442,9 +438,13 @@ class ExcelImporter:
                 )
 
         for row in rows:
-            row_data = RowData.objects.create(data=row)
+            row_data = RowData.objects.create(
+                data=row, file_import_attempt=file_import_attempt
+            )
             try:
-                self.handle_row(row, row_data=row_data, batch_import=batch_import)
+                self.handle_row(
+                    row, row_data=row_data, file_import_attempt=file_import_attempt
+                )
             except ValueError as error:
                 if not self.durable:
                     raise BatchRejectionError(

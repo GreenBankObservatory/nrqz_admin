@@ -1,10 +1,9 @@
 import django_filters
 
 from django_import_data.models import (
-    GenericAudit,
-    GenericAuditGroup,
-    GenericAuditGroupBatch,
-    GenericBatchImport,
+    ModelImportAttempt,
+    FileImporter,
+    FileImportAttempt,
     RowData,
 )
 
@@ -13,41 +12,31 @@ from utils.layout import discover_fields
 
 
 from .form_helpers import (
-    GenericAuditFormHelper,
-    GenericAuditGroupBatchFormHelper,
-    GenericAuditGroupFormHelper,
-    GenericBatchImportFormHelper,
+    FileImportAttemptFilterFormHelper,
+    FileImporterFilterFormHelper,
+    ModelImportAttemptFilterFormHelper,
     RowDataFilterFormHelper,
 )
 
 
-class GenericAuditFilter(HelpedFilterSet):
+class ModelImportAttemptFilter(HelpedFilterSet):
     class Meta:
-        model = GenericAudit
-        formhelper_class = GenericAuditFormHelper
+        model = ModelImportAttempt
+        formhelper_class = ModelImportAttemptFilterFormHelper
         fields = discover_fields(formhelper_class.layout)
 
 
-class GenericAuditGroupBatchFilter(HelpedFilterSet):
+class FileImporterFilter(HelpedFilterSet):
     class Meta:
-        model = GenericAuditGroupBatch
-        formhelper_class = GenericAuditGroupBatchFormHelper
+        model = FileImporter
+        formhelper_class = FileImporterFilterFormHelper
         fields = discover_fields(formhelper_class.layout)
 
 
-class GenericAuditGroupFilter(HelpedFilterSet):
+class FileImportAttemptFilter(HelpedFilterSet):
     class Meta:
-        model = GenericAuditGroup
-        formhelper_class = GenericAuditGroupFormHelper
-        fields = discover_fields(formhelper_class.layout)
-
-
-class GenericBatchImportFilter(HelpedFilterSet):
-    # model = django_filters.CharFilter()
-
-    class Meta:
-        model = GenericBatchImport
-        formhelper_class = GenericBatchImportFormHelper
+        model = FileImportAttempt
+        formhelper_class = FileImportAttemptFilterFormHelper
         fields = discover_fields(formhelper_class.layout)
 
 

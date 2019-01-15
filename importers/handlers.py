@@ -1,7 +1,9 @@
 from cases.models import Attachment
 
 
-def handle_case(row_data, form_map, applicant=None, contact=None, batch_import=None):
+def handle_case(
+    row_data, form_map, applicant=None, contact=None, file_import_attempt=None
+):
     row = row_data.data
     # Derive the case model (Could be Case or PCase) from the form_map
     applicant = getattr(applicant, "id", None)
@@ -16,14 +18,13 @@ def handle_case(row_data, form_map, applicant=None, contact=None, batch_import=N
         case_audit = None
     else:
         case, case_audit = form_map.save_with_audit(
-            form=case_form, row_data=row_data, batch_import=batch_import
+            form=case_form, row_data=row_data, file_import_attempt=file_import_attempt
         )
 
     return case, case_audit
 
 
-# TODO: bi?
-def handle_attachments(row, case, form_maps, batch_import=None):
+def handle_attachments(row, case, form_maps, file_import_attempt=None):
     attachments = []
     for form_map in form_maps:
         attachment_form, conversion_errors = form_map.render(row)

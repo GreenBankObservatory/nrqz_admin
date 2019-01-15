@@ -6,30 +6,24 @@ from django.views.generic.base import RedirectView
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 
-from django_import_data.views import CreateFromAuditView
-from django_import_data.models import (
-    GenericAuditGroupBatch,
-    GenericBatchImport,
-    GenericAuditGroup,
-)
+from django_import_data.views import CreateFromImportAttemptView
+from django_import_data.models import FileImporter, FileImportAttempt
 
 
 from cases.views import FilterTableView
 
 
 from .filters import (
-    GenericAuditGroupBatchFilter,
-    GenericBatchImportFilter,
+    FileImporterFilter,
+    FileImportAttemptFilter,
     RowDataFilter,
-    GenericAuditGroupFilter,
-    GenericAuditFilter,
+    ModelImportAttemptFilter,
 )
 from .tables import (
-    GenericAuditGroupBatchTable,
-    GenericBatchImportTable,
+    FileImporterTable,
+    FileImportAttemptTable,
     RowDataTable,
-    GenericAuditGroupTable,
-    GenericAuditTable,
+    ModelImportAttemptTable,
 )
 
 from cases.models import Person, PreliminaryCase, Case, Facility, PreliminaryFacility
@@ -42,31 +36,31 @@ from cases.forms import (
 )
 
 
-class PersonCreateFromAuditView(CreateFromAuditView):
+class PersonCreateFromAuditView(CreateFromImportAttemptView):
     model = Person
     form_class = PersonForm
     template_name = "cases/generic_form.html"
 
 
-class CaseCreateFromAuditView(CreateFromAuditView):
+class CaseCreateFromAuditView(CreateFromImportAttemptView):
     model = Case
     form_class = CaseForm
     template_name = "cases/generic_form.html"
 
 
-class PCaseCreateFromAuditView(CreateFromAuditView):
+class PCaseCreateFromAuditView(CreateFromImportAttemptView):
     model = PreliminaryCase
     form_class = PreliminaryCaseForm
     template_name = "cases/generic_form.html"
 
 
-class FacilityCreateFromAuditView(CreateFromAuditView):
+class FacilityCreateFromAuditView(CreateFromImportAttemptView):
     model = Facility
     form_class = FacilityForm
     template_name = "cases/generic_form.html"
 
 
-class PFacilityCreateFromAuditView(CreateFromAuditView):
+class PFacilityCreateFromAuditView(CreateFromImportAttemptView):
     model = PreliminaryFacility
     form_class = PreliminaryFacilityForm
     template_name = "cases/generic_form.html"
@@ -91,62 +85,51 @@ class RowDataListView(FilterTableView):
 #     model = RowData
 
 
-class GenericAuditGroupBatchListView(FilterTableView):
-    table_class = GenericAuditGroupBatchTable
-    filterset_class = GenericAuditGroupBatchFilter
+class FileImporterListView(FilterTableView):
+    table_class = FileImporterTable
+    filterset_class = FileImporterFilter
     template_name = "audits/generic_table.html"
 
 
-class GenericBatchImportListView(FilterTableView):
-    table_class = GenericBatchImportTable
-    filterset_class = GenericBatchImportFilter
+class FileImportAttemptListView(FilterTableView):
+    table_class = FileImportAttemptTable
+    filterset_class = FileImportAttemptFilter
     template_name = "audits/generic_table.html"
 
 
-class GenericAuditGroupDetailView(DetailView):
-    model = GenericAuditGroup
-    template_name = "genericauditgroup_detail.html"
+class FileImporterDetailView(DetailView):
+    model = FileImporter
+    template_name = "audits/fileimporter_detail.html"
 
 
-class GenericAuditGroupBatchDetailView(DetailView):
-    model = GenericAuditGroupBatch
-    template_name = "audits/genericauditgroupbatch_detail.html"
-
-
-class GenericAuditGroupListView(FilterTableView):
-    table_class = GenericAuditGroupTable
-    filterset_class = GenericAuditGroupFilter
+class ModelImportAttemptListView(FilterTableView):
+    table_class = ModelImportAttemptTable
+    filterset_class = ModelImportAttemptFilter
     template_name = "audits/generic_table.html"
 
 
-class GenericAuditListView(FilterTableView):
-    table_class = GenericAuditTable
-    filterset_class = GenericAuditFilter
-    template_name = "audits/generic_table.html"
-
-
-class GenericBatchImportDetailView(DetailView):
-    model = GenericBatchImport
-    template_name = "audits/genericbatchimport_detail.html"
+class FileImportAttemptDetailView(DetailView):
+    model = FileImportAttempt
+    template_name = "audits/fileimportattempt_detail.html"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.ag_filter = None
+        self.mia_filter = None
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        if not self.ag_filter:
-            self.ag_filter = GenericAuditGroupFilter(
+        if not self.mia_filter:
+            self.mia_filter = ModelImportAttemptFilter(
                 self.request.GET,
-                queryset=self.object.audit_groups.all(),
+                queryset=self.object.model_import_attempts.all(),
                 # form_helper_kwargs={"form_class": "collapse"},
             )
-            context["ag_filter"] = self.ag_filter
+            context["mia_filter"] = self.mia_filter
 
-        if "ag_table" not in context:
-            table = GenericAuditGroupTable(data=self.ag_filter.qs)
+        if "mia_table" not in context:
+            table = ModelImportAttemptTable(data=self.mia_filter.qs)
             table.paginate(page=self.request.GET.get("page", 1), per_page=10)
-            context["ag_table"] = table
+            context["mia_table"] = table
 
         return context

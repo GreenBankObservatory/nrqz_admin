@@ -12,23 +12,25 @@ from django_import_data.models import RowData
 class Command(BaseImportCommand):
     help = "Import Access Application Data"
 
-    def handle_row(self, row, batch_import):
-        row_data = RowData.objects.create(data=row)
+    def handle_row(self, row, file_import_attempt):
+        row_data = RowData.objects.create(
+            data=row, file_import_attempt=file_import_attempt
+        )
         applicant, applicant_audit = APPLICANT_FORM_MAP.save_with_audit(
-            row_data=row_data, batch_import=batch_import
+            row_data=row_data, file_import_attempt=file_import_attempt
         )
         contact, contact_audit = CONTACT_FORM_MAP.save_with_audit(
-            row_data=row_data, batch_import=batch_import
+            row_data=row_data, file_import_attempt=file_import_attempt
         )
         case, case_audit = handle_case(
             row_data,
             CASE_FORM_MAP,
             applicant=applicant.id if applicant else None,
             contact=contact.id if contact else None,
-            batch_import=batch_import,
+            file_import_attempt=file_import_attempt,
         )
         attachments = handle_attachments(
-            row, case, ATTACHMENT_FORM_MAPS, batch_import=batch_import
+            row, case, ATTACHMENT_FORM_MAPS, file_import_attempt=file_import_attempt
         )
 
         audits = {

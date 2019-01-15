@@ -20,14 +20,14 @@ from django.db.models import (
 )
 from django.contrib.gis.db.models import PointField
 
-from django_import_data.models import AuditedModel
+from django_import_data.models import AbstractBaseAuditedModel
 
 from utils.coord_utils import dd_to_dms
 from .kml import facility_as_kml, case_as_kml, kml_to_string
 from .mixins import DataSourceModel, TrackedOriginalModel, IsActiveModel, TrackedModel
 
 
-class Structure(AuditedModel, IsActiveModel, TrackedModel, DataSourceModel, Model):
+class Structure(IsActiveModel, TrackedModel, DataSourceModel, Model):
     asr = PositiveIntegerField(
         unique=True, verbose_name="Antenna Registration Number", db_index=True
     )
@@ -50,7 +50,7 @@ class Structure(AuditedModel, IsActiveModel, TrackedModel, DataSourceModel, Mode
 
 
 class PreliminaryFacility(
-    AuditedModel,
+    AbstractBaseAuditedModel,
     TrackedOriginalModel,
     IsActiveModel,
     TrackedModel,
@@ -125,7 +125,7 @@ class PreliminaryFacility(
 
 
 class Facility(
-    AuditedModel,
+    AbstractBaseAuditedModel,
     TrackedOriginalModel,
     IsActiveModel,
     TrackedModel,
@@ -351,25 +351,8 @@ class Facility(
         return kml_to_string(facility_as_kml(self))
 
 
-# class Batch(TrackedOriginalModel, IsActiveModel, TrackedModel, DataSourceModel, Model):
-#     comments = TextField(blank=True)
-#     attachments = ManyToManyField("Attachment", blank=True)
-#     name = CharField(max_length=256, unique=True)
-#     import_error_summary = TextField()
-#     imported_from = CharField(max_length=512, unique=True)
-
-#     def __str__(self):
-#         return self.name
-
-#     def get_absolute_url(self):
-#         return reverse("batch_detail", args=[str(self.id)])
-
-#     class Meta:
-#         verbose_name_plural = "Batches"
-
-
 class PreliminaryCaseGroup(
-    AuditedModel, IsActiveModel, TrackedModel, DataSourceModel, Model
+    AbstractBaseAuditedModel, IsActiveModel, TrackedModel, DataSourceModel, Model
 ):
     comments = TextField(blank=True)
 
@@ -379,7 +362,7 @@ class PreliminaryCaseGroup(
 
 
 class PreliminaryCase(
-    AuditedModel,
+    AbstractBaseAuditedModel,
     TrackedOriginalModel,
     IsActiveModel,
     TrackedModel,
@@ -444,7 +427,7 @@ class PreliminaryCase(
 
 
 class Case(
-    AuditedModel,
+    AbstractBaseAuditedModel,
     TrackedOriginalModel,
     IsActiveModel,
     TrackedModel,
@@ -519,7 +502,9 @@ class Case(
         super(Case, self).save(*args, **kwargs)
 
 
-class Person(AuditedModel, IsActiveModel, TrackedModel, DataSourceModel, Model):
+class Person(
+    AbstractBaseAuditedModel, IsActiveModel, TrackedModel, DataSourceModel, Model
+):
     """A single, physical person"""
 
     name = CharField(max_length=256)

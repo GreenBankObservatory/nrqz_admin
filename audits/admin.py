@@ -5,6 +5,6 @@ from django.apps import apps
 models = apps.get_app_config("audits").get_models()
 admin.site.register(models)
 
-from django_import_data.models import GenericAuditGroup, GenericAudit
+from django_import_data.models import ModelImportAttempt, FileImportAttempt
 
-admin.site.register([GenericAuditGroup, GenericAudit])
+admin.site.register([ModelImportAttempt, FileImportAttempt])
