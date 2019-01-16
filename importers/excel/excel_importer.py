@@ -172,7 +172,7 @@ class ExcelImporter:
         # sheet = working_data
         if self.preprocess:
             tqdm.write("Pre-processing sheet")
-            strip_excel_sheet(sheet)
+            strip_excel_sheet(sheet, threshold=self.threshold)
 
         # Create a new sheet, this time with the column names mapped
         # We couldn't do this before because we weren't sure that our
@@ -282,7 +282,6 @@ class ExcelImporter:
 
         file_import_attempt.status = status
         file_import_attempt.errors = self.report.get_non_fatal_errors()
-        print(file_import_attempt.errors)
         file_import_attempt.save()
 
         return file_import_attempt
@@ -292,6 +291,8 @@ class ExcelImporter:
         case_form, conversion_errors = CASE_FORM_MAP.render(
             row_data.data, extra={"data_source": EXCEL}, allow_unknown=True
         )
+        if not case_form:
+            return None, False
         if conversion_errors:
             error_str = f"Failed to convert row for case: {conversion_errors}"
             if self.durable:
@@ -338,7 +339,10 @@ class ExcelImporter:
         else:
             facility_created = False
             tqdm.write("Failed to create facility; here's the audit")
-            tqdm.write(str(facility_audit.errors))
+            if facility_audit:
+                tqdm.write(str(facility_audit.errors))
+            else:
+                tqdm.write("No facility audit created")
         # if facility_form.is_valid():
         #     facility = FACILITY_FORM_MAP.save_with_audit(facility_form, row_data=row_data)
         # else:

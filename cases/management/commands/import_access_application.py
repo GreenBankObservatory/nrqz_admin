@@ -29,9 +29,11 @@ class Command(BaseImportCommand):
             contact=contact.id if contact else None,
             file_import_attempt=file_import_attempt,
         )
-        attachments = handle_attachments(
-            row, case, ATTACHMENT_FORM_MAPS, file_import_attempt=file_import_attempt
-        )
+        # TODO: If durable?? In the interest of catching _all_ errors...
+        if case:
+            attachments = handle_attachments(
+                row, case, ATTACHMENT_FORM_MAPS, file_import_attempt=file_import_attempt
+            )
 
         audits = {
             "applicant": applicant_audit,

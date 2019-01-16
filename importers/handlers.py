@@ -12,6 +12,8 @@ def handle_case(
     case_form, conversion_errors = form_map.render(
         row, extra={"applicant": applicant, "contact": contact}
     )
+    if not case_form:
+        return None, None
     case_num = case_form["case_num"].value()
     if model.objects.filter(case_num=case_num).exists():
         case = model.objects.get(case_num=case_num)
@@ -28,13 +30,14 @@ def handle_attachments(row, case, form_maps, file_import_attempt=None):
     attachments = []
     for form_map in form_maps:
         attachment_form, conversion_errors = form_map.render(row)
-        path = attachment_form["path"].value()
-        if path:
-            if Attachment.objects.filter(path=path).exists():
-                attachment = Attachment.objects.get(path=path)
-            else:
-                attachment = form_map.save(attachment_form)
+        if attachment_form:
+            path = attachment_form["path"].value()
+            if path:
+                if Attachment.objects.filter(path=path).exists():
+                    attachment = Attachment.objects.get(path=path)
+                else:
+                    attachment = form_map.save(attachment_form)
 
-            attachments.append(attachment)
-            case.attachments.add(attachment)
+                attachments.append(attachment)
+                case.attachments.add(attachment)
     return attachments

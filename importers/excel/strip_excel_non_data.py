@@ -59,7 +59,7 @@ def strip_excel_directory(
     print(f"Errors: {errors}")
 
 
-def indentify_invalid_rows(rows, threshold=DEFAULT_THRESHOLD):
+def identify_invalid_rows(rows, threshold=DEFAULT_THRESHOLD):
     invalid_row_indices = []
     for ri, row in enumerate(rows):
         invalid_cells = 0
@@ -101,7 +101,7 @@ def strip_excel_sheet(sheet, threshold=DEFAULT_THRESHOLD):
 
     orig_num_rows = len(sheet.array)
     # Get the indexes of all invalid rows...
-    invalid_row_indices = indentify_invalid_rows(sheet.array, threshold)
+    invalid_row_indices = identify_invalid_rows(sheet.array, threshold)
     for index in sorted(invalid_row_indices, reverse=True):
         # tqdm.write(f"Deleted invalid row {index}")
         # ...then delete them
