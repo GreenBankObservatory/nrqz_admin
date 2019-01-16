@@ -1,29 +1,19 @@
 import django_filters
 
 from django_import_data.models import (
-    ModelImportAttempt,
-    FileImporter,
     FileImportAttempt,
-    RowData,
+    FileImporter,
+    ModelImportAttempt,
 )
 
 from cases.filters import HelpedFilterSet
 from utils.layout import discover_fields
 
-
 from .form_helpers import (
     FileImportAttemptFilterFormHelper,
     FileImporterFilterFormHelper,
     ModelImportAttemptFilterFormHelper,
-    RowDataFilterFormHelper,
 )
-
-
-class ModelImportAttemptFilter(HelpedFilterSet):
-    class Meta:
-        model = ModelImportAttempt
-        formhelper_class = ModelImportAttemptFilterFormHelper
-        fields = discover_fields(formhelper_class.layout)
 
 
 class FileImporterFilter(HelpedFilterSet):
@@ -40,10 +30,8 @@ class FileImportAttemptFilter(HelpedFilterSet):
         fields = discover_fields(formhelper_class.layout)
 
 
-class RowDataFilter(HelpedFilterSet):
-    # audit_groups = django_filters.ChoiceFilter(lookup_expr="models")
-
+class ModelImportAttemptFilter(HelpedFilterSet):
     class Meta:
-        model = RowData
-        formhelper_class = RowDataFilterFormHelper
+        model = ModelImportAttempt
+        formhelper_class = ModelImportAttemptFilterFormHelper
         fields = discover_fields(formhelper_class.layout)

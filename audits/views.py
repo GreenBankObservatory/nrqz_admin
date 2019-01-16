@@ -16,15 +16,9 @@ from cases.views import FilterTableView
 from .filters import (
     FileImporterFilter,
     FileImportAttemptFilter,
-    RowDataFilter,
     ModelImportAttemptFilter,
 )
-from .tables import (
-    FileImporterTable,
-    FileImportAttemptTable,
-    RowDataTable,
-    ModelImportAttemptTable,
-)
+from .tables import FileImporterTable, FileImportAttemptTable, ModelImportAttemptTable
 
 from cases.models import Person, PreliminaryCase, Case, Facility, PreliminaryFacility
 from cases.forms import (
@@ -75,16 +69,6 @@ class CreateFromAuditRedirectView(RedirectView):
         # return super().get_redirect_url(*args, **kwargs)
 
 
-class RowDataListView(FilterTableView):
-    table_class = RowDataTable
-    filterset_class = RowDataFilter
-    template_name = "audits/rowdata_list.html"
-
-
-# class RowDataDetailView(DetailView):
-#     model = RowData
-
-
 class FileImporterListView(FilterTableView):
     table_class = FileImporterTable
     filterset_class = FileImporterFilter
@@ -100,6 +84,28 @@ class FileImportAttemptListView(FilterTableView):
 class FileImporterDetailView(DetailView):
     model = FileImporter
     template_name = "audits/fileimporter_detail.html"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fia_filter = None
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        if not self.fia_filter:
+            self.fia_filter = FileImportAttemptFilter(
+                self.request.GET,
+                queryset=self.object.import_attempts.all(),
+                # form_helper_kwargs={"form_class": "collapse"},
+            )
+            context["fia_filter"] = self.fia_filter
+
+        if "fia_table" not in context:
+            table = FileImportAttemptTable(data=self.fia_filter.qs)
+            table.paginate(page=self.request.GET.get("page", 1), per_page=10)
+            context["fia_table"] = table
+
+        return context
 
 
 class ModelImportAttemptListView(FilterTableView):

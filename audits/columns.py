@@ -4,20 +4,22 @@ from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
 from django_tables2 import Column
+from django_import_data.mixins import ImportStatusModel
+
+STATUSES = ImportStatusModel.STATUSES
 
 
-class AuditStatusColumn(Column):
+class ImportStatusColumn(Column):
     """Column for colorizing Audit status values"""
 
     def render(self, value):
-        # TODO: Consolidate these definitions
-        if value == "Rejected: Fatal Errors":
+        if value == STATUSES.rejected.value:
             css_class = "batch-rejected"
-        elif value == "Imported: Some Errors":
+        elif value == STATUSES.created_dirty.value:
             css_class = "batch-created_dirty"
-        elif value == "Imported: No Errors":
+        elif value == STATUSES.created_clean.value:
             css_class = "batch-created_clean"
-        elif value == "Pending":
+        elif value == STATUSES.pending.value:
             css_class = "batch-pending"
         else:
             raise ValueError(f"Invalid value: {value}")

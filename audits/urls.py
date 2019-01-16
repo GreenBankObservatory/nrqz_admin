@@ -21,7 +21,7 @@ urlpatterns = [
     ),
     path(
         "file-imports/<int:pk>/",
-        FileImporterDetailView.as_view(),
+        views.FileImporterDetailView.as_view(),
         name="fileimporter_detail",
     ),
     path(
