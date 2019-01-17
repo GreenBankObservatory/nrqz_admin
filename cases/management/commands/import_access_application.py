@@ -35,9 +35,4 @@ class Command(BaseImportCommand):
                 row, case, ATTACHMENT_FORM_MAPS, file_import_attempt=file_import_attempt
             )
 
-        audits = {
-            "applicant": applicant_audit,
-            "contact": contact_audit,
-            "pcase": case_audit,
-        }
-        return audits
+        return row_data

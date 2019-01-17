@@ -33,7 +33,9 @@ class PcaseFormMap(FormMap):
 
 class PfacilityFormMap(FormMap):
     field_maps = [
-        OneToOneFieldMap(to_field="site_num", converter=None, from_field="Site Number"),
+        OneToOneFieldMap(
+            to_field="site_num", converter=coerce_positive_int, from_field="Site Number"
+        ),
         OneToOneFieldMap(
             to_field="original_created_on", converter=coerce_datetime, from_field="DATE"
         ),

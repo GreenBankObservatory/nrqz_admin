@@ -29,9 +29,4 @@ class Command(BaseImportCommand):
             extra={"pcase": pcase.id if pcase else None},
             file_import_attempt=file_import_attempt,
         )
-        audits = {
-            "applicant": applicant_audit,
-            "pcase": pcase_audit,
-            "pfacility": pfacility_audit,
-        }
-        return audits
+        return row_data

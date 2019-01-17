@@ -61,7 +61,11 @@ class Command(BaseImportCommand):
         for command, command_args in command_info.items():
             print(f"--- {command} ---")
             path = command_args.pop("path")
-            sub_options = {**command_args, "limit": options["limit"]}
+            sub_options = {
+                **command_args,
+                # TODO: Would be nice to fix this; duplicated
+                **{option: options[option] for option in ["limit", "rows"]},
+            }
             if preview:
                 print(f"call_command({command!r}, {path!r}, **{sub_options!r})")
             else:

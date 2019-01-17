@@ -47,9 +47,9 @@ def coerce_scientific_notation(value):
     return float(digits) * 10 ** float(exponent)
 
 
-def coerce_none(value):
+def coerce_none(value, none_str_values=("", "None")):
     clean = value.strip().lower()
-    if clean in ["", "None"]:
+    if clean in none_str_values:
         return None
     return value
 
@@ -124,7 +124,7 @@ def coerce_path(value):
     if value == "":
         return None
 
-    return value.split("#")[1]
+    return value.split("#")[1].strip()
 
 
 def coerce_bool(value):

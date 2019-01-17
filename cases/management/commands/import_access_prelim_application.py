@@ -33,9 +33,4 @@ class Command(BaseImportCommand):
             file_import_attempt=file_import_attempt,
         )
         attachments = handle_attachments(row, pcase, ATTACHMENT_FORM_MAPS)
-        audits = {
-            "applicant": applicant_audit,
-            "contact": contact_audit,
-            "pcase": pcase_audit,
-        }
-        return audits
+        return row_data

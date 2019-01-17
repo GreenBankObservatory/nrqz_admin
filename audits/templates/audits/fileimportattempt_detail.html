@@ -13,6 +13,9 @@
     </a>
 </p>
 
+<h2>Models Created from File</h2>
+{{ fileimportattempt.creations | json | safe }}
+
 <h2>File-Level Import Errors</h2>
 {% if fileimportattempt.errors %}
 {{ fileimportattempt.errors | json | safe }}
