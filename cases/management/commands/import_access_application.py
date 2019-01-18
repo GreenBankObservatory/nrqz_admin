@@ -25,8 +25,8 @@ class Command(BaseImportCommand):
         case, case_audit = handle_case(
             row_data,
             CASE_FORM_MAP,
-            applicant=applicant.id if applicant else None,
-            contact=contact.id if contact else None,
+            applicant=applicant,
+            contact=contact,
             file_import_attempt=file_import_attempt,
         )
         # TODO: If durable?? In the interest of catching _all_ errors...
