@@ -64,7 +64,9 @@ class Command(BaseImportCommand):
             sub_options = {
                 **command_args,
                 # TODO: Would be nice to fix this; duplicated
-                **{option: options[option] for option in ["limit", "rows"]},
+                **{
+                    option: options[option] for option in ["limit", "rows", "overwrite"]
+                },
             }
             if preview:
                 print(f"call_command({command!r}, {path!r}, **{sub_options!r})")
