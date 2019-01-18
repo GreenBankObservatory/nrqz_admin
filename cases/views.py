@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404
 from django.template import Template, Context
 from django.db.models import Q
 
-import pypandoc
+from docxtpl import DocxTemplate
 from dal import autocomplete
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
@@ -201,7 +201,7 @@ class LetterView(TemplateView):
         letter_context["case"] = cases.first()
         letter_context["generation_date"] = date.today().strftime("%B %d, %Y")
         letter_context["nrqz_ids"] = ", ".join(
-            facilities.values_list("nrqz_id", flat=True)
+            facilities.filter(nrqz_id__isnull=False).values_list("nrqz_id", flat=True)
         )
         if facilities:
             context["min_freq"] = (
@@ -218,6 +218,8 @@ class LetterView(TemplateView):
             )
         table = LetterFacilityTable(data=facilities)
         letter_context["facilities_table"] = table
+
+        context["letter_context"] = letter_context
 
         if "template" in context:
             letter_template = get_object_or_404(
@@ -237,9 +239,10 @@ class LetterView(TemplateView):
                 if field in ["cases", "facilities", "batches", "template"]
             }
             context["template_form"] = LetterTemplateForm(form_values)
-            context["letter_template"] = Template(letter_template.template).render(
-                Context(letter_context)
-            )
+            # context["letter_template"] = Template(letter_template.template).render(
+            #     Context(letter_context)
+            # )
+            context["letter_template"] = letter_template.path
         else:
             kwargs["template"] = None
             context["template_form"] = None
@@ -253,15 +256,12 @@ class LetterView(TemplateView):
     def render_to_response(self, context, **response_kwargs):
         if "download" in self.request.GET:
             # pypandoc will only write to disk. So, we make a temp file...
+            dt = DocxTemplate(context["letter_template"])
             with tempfile.NamedTemporaryFile() as fp:
+                dt.render(context["letter_context"])
                 # ...write the converted document to it...
-                pypandoc.convert_text(
-                    context["letter_template"],
-                    to="docx",
-                    format="html",
-                    outputfile=fp.name,
-                )
                 # ...and then read it into memory
+                dt.save(fp.name)
                 docx = fp.read()
 
             # Generate the filename based on the case number(s)

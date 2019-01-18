@@ -1,7 +1,10 @@
+import os
+
 import django
 
 django.setup()
 from django.contrib.auth import get_user_model
+from django.conf import settings
 
 User = get_user_model()
 
@@ -23,7 +26,15 @@ def create_users():
 
 
 def create_templates():
-    LetterTemplate.objects.create(name="default", template="<PLACEHOLDER>")
+    for path in os.listdir(settings.LETTER_TEMPLATE_DIR):
+        full_path = os.path.join(settings.LETTER_TEMPLATE_DIR, path)
+        lt, created = LetterTemplate.objects.get_or_create(
+            name=os.path.basename(full_path), path=full_path
+        )
+        if created:
+            print(f"Created {lt}")
+        else:
+            print(f"{lt} already exists!")
 
 
 def main():

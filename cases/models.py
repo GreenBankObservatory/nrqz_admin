@@ -5,7 +5,7 @@ from django.db.models import (
     DateField,
     DateTimeField,
     EmailField,
-    FileField,
+    FilePathField,
     FloatField,
     ForeignKey,
     IntegerField,
@@ -19,6 +19,7 @@ from django.db.models import (
     SlugField,
 )
 from django.contrib.gis.db.models import PointField
+from django.conf import settings
 
 from django_import_data.models import AbstractBaseAuditedModel
 
@@ -541,9 +542,9 @@ class AlsoKnownAs(IsActiveModel, TrackedModel, DataSourceModel, Model):
 class Attachment(IsActiveModel, TrackedModel, DataSourceModel, Model):
     """Holds the path to a file along with some metadata"""
 
-    # TODO: This will need to be a proper FileField eventually...
+    # TODO: This will need to be a proper FilePathField eventually...
     path = CharField(max_length=256, unique=True)
-    # path = FileField(max_length=256, upload_to="attachments/")
+    # path = FilePathField(path=settings.NRQZ_ATTACHMENT_DIR, max_length=256, unique=True)
     comments = TextField()
 
     def __str__(self):
@@ -555,7 +556,9 @@ class Attachment(IsActiveModel, TrackedModel, DataSourceModel, Model):
 
 class LetterTemplate(IsActiveModel, TrackedModel, Model):
     name = CharField(max_length=256, unique=True)
-    template = TextField()
+    path = FilePathField(
+        path=settings.NRQZ_LETTER_TEMPLATE_DIR, max_length=512, unique=True
+    )
 
     def __str__(self):
         return self.name
