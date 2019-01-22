@@ -74,7 +74,14 @@ class FacilityFilterFormHelper(FormHelper):
             Div("nrqz_id", "site_num", css_class="col-sm-2"),
             Div("freq_low", "freq_high", css_class="col-sm-5"),
             Div("structure", "site_name", css_class="col-sm-2"),
-            Div("main_beam_orientation", "antenna_model_number", css_class="col-sm-3"),
+            Div(
+                "main_beam_orientation",
+                "antenna_model_number",
+                "nrao_aerpd",
+                "az_bearing",
+                "dominant_path",
+                css_class="col-sm-3",
+            ),
             css_class="row",
         ),
         Div(

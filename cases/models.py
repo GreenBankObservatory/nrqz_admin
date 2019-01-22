@@ -522,7 +522,7 @@ class Person(
     # organization = ForeignKey("Organization", on_delete=CASCADE)
 
     def __str__(self):
-        return f"{self.name}"
+        return f"{self.name} ({self.phone})"
 
     def get_absolute_url(self):
         return reverse("person_detail", args=[str(self.id)])

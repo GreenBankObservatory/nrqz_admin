@@ -95,6 +95,12 @@ class FacilityTable(tables.Table):
         longitude, latitude = value.coords
         return coords_to_string(latitude=latitude, longitude=longitude)
 
+    def render_dominant_path(self, value):
+        if value == "Scatter":
+            return "S"
+
+        return value
+
 
 class FacilityTableWithConcur(FacilityTable):
     selected = SelectColumn()

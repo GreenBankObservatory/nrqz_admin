@@ -14,15 +14,20 @@ class TrimmedTextColumn(Column):
 
     def render(self, value):
         value = escape(value)
-        first_line = value.split("\n")[0]
-        if len(first_line) > self.trim_length:
-            trimmed = " ".join(first_line[: self.trim_length].split(" ")[:-1])
-            return mark_safe(f"<span title='{value[:512]}'>{trimmed} ...</span>")
-        return first_line
+        # first_line = value.split("\n")[0]
+        if len(value) > self.trim_length:
+            # trimmed = " ".join(first_line[: self.trim_length].split(" ")[:-1])
+            trimmed = " ".join(value[: self.trim_length].split(" ")[:-1])
+            if len(value) > 512:
+                abs_trimmed = " ".join(value[:512].split(" ")[:-1]) + " ..."
+            else:
+                abs_trimmed = value
+            return mark_safe(f"<span title='{abs_trimmed}'>{trimmed} ...</span>")
+        return value
 
 
 class SelectColumn(CheckBoxColumn):
-    verbose_name = "Concur"
+    verbose_name = "Select/Print"
     empty_values = ()
 
     def __init__(self, *args, **kwargs):

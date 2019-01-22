@@ -45,4 +45,7 @@
       <a class="nav-link text-info" href={% url "admin:index" %}>Admin</a>
     </li>
   </ul>
+  <form action="{% url 'search' %}" method="get">
+    <input required type="text" name="q" placeholder="Search..." >
+  </form>
 </nav>

@@ -26,8 +26,8 @@ def create_users():
 
 
 def create_templates():
-    for path in os.listdir(settings.LETTER_TEMPLATE_DIR):
-        full_path = os.path.join(settings.LETTER_TEMPLATE_DIR, path)
+    for path in os.listdir(settings.NRQZ_LETTER_TEMPLATE_DIR):
+        full_path = os.path.join(settings.NRQZ_LETTER_TEMPLATE_DIR, path)
         lt, created = LetterTemplate.objects.get_or_create(
             name=os.path.basename(full_path), path=full_path
         )

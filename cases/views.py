@@ -1,13 +1,17 @@
 from datetime import date
 import tempfile
 
-from django.views.generic.detail import DetailView
-from django.views.generic.base import TemplateView
-from django.http import HttpResponse
+from django.contrib.postgres.search import SearchVector
 from django.db.models import Min, Max
+from django.db.models import Q
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.template import Template, Context
-from django.db.models import Q
+from django.urls import reverse
+from django.views.generic import FormView
+from django.views.generic.base import TemplateView
+from django.views.generic.detail import DetailView
+from django.views.generic.list import ListView
 
 from docxtpl import DocxTemplate
 from dal import autocomplete
@@ -369,8 +373,6 @@ class CaseDetailView(DetailView):
             "completed",
             "shutdown",
             "completed_on",
-            "sgrs_notify",
-            "sgrs_notified_on",
             "si_waived",
             "si",
             "si_done",
@@ -386,6 +388,7 @@ class CaseDetailView(DetailView):
             "num_outside",
             "erpd_limit",
         ]
+        context["sgrs_info"] = ["sgrs_notify", "sgrs_notified_on"]
 
         if not self.facility_filter:
             self.facility_filter = FacilityFilter(
@@ -617,3 +620,58 @@ class StructureDetailView(DetailView):
             context["facility_table"] = table
 
         return context
+
+
+class SearchView(SingleTableMixin, ListView):
+    table_class = CaseTable
+    template_name = "cases/search_results.html"
+
+    def search(self, query):
+        self.searched_by_case_num = False
+
+        try:
+            case_qs_from_case_num = Case.objects.filter(case_num=query)
+            if case_qs_from_case_num.exists():
+                self.searched_by_case_num = True
+                return case_qs_from_case_num.all()
+        except ValueError:
+            pass
+
+        print("No exact match by case number; continuing to full text search")
+        return Case.objects.annotate(
+            search=SearchVector("applicant__name", "contact__name", "comments")
+        ).filter(search=query)
+
+    def get_context_data(self, **kwargs):
+        kwargs["searched_by_case_num"] = self.searched_by_case_num
+        kwargs["query"] = self.query
+        return super().get_context_data(**kwargs)
+
+    def get(self, request, *args, **kwargs):
+        # query = request.GET.get("q", None)
+        # if query:
+        #     cases = self.search(query)
+        # else:
+        #     cases = Case.objects.none()
+
+        self.query = request.GET.get("q", None)
+
+        self.object_list = self.get_queryset()
+        if self.object_list.count() == 1:
+            return HttpResponseRedirect(
+                reverse("case_detail", args=[self.object_list.first().case_num])
+            )
+        context = self.get_context_data()
+        return self.render_to_response(context)
+
+    def get_queryset(self):
+        if self.query:
+            cases = self.search(self.query)
+        else:
+            cases = Case.objects.none()
+
+        return cases
+
+
+def search(request):
+    return HttpResponse("yo")
