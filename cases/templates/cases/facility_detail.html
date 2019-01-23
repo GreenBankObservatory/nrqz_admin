@@ -2,10 +2,10 @@
 {% load cases_tags %}
 
 {% block content %}
-{% if facility.audit_group.batch_import %}
-<a href={% url "genericbatchimport_detail" facility.audit_group.batch_import.id %}>View batch</a>
+{% if facility.model_import_attempt.file_import_attempt %}
+<a href={% url "fileimportattempt_detail" facility.model_import_attempt.file_import_attempt.id %}>View File Import Attempt</a>
 {% else %}
-<span>No Batch</span>
+<span>No File Import Attempt</span>
 {% endif %}
 |
 <a href={% url "case_detail" facility.case.case_num %}>View case</a>

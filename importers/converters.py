@@ -10,6 +10,7 @@ import re
 import string
 
 import pytz
+from tqdm import tqdm
 
 from django.contrib.gis.geos import GEOSGeometry, GEOSException
 
@@ -17,7 +18,10 @@ from utils.coord_utils import dms_to_dd
 
 FEET_IN_A_METER = 0.3048
 
-SCI_REGEX_STR = r"(?P<digits>\d+.?\d*)(?:(?:X10\^)|(?:E))(?P<exponent>\-?\d+)"
+# https://regex101.com/r/4DTp5D/1
+SCI_REGEX_STR = (
+    r"(?P<digits>\d+.?\d*)\s*(?:(?:x\s*1[0-]\s*\^?)|(?:e))\s*(?P<exponent>\-?\d+)"
+)
 SCI_REGEX = re.compile(SCI_REGEX_STR, re.IGNORECASE)
 
 COORD_PATTERN_STR = (
@@ -54,8 +58,11 @@ def coerce_none(value, none_str_values=("", "None")):
     return value
 
 
-def coerce_coords(value):
+def coerce_coord_from_number(value):
+    # Strip whitespace from both sides
     clean = value.strip()
+    # Strip any leading zeroes
+    clean = value.lstrip("0")
     if clean in ["", "None"]:
         return None
 
@@ -74,9 +81,9 @@ def coerce_coords(value):
     # Yes, I agree that this is incredibly stupid. But so is
     # storing coordinates as D,M,S in a float field
     if len(number) == 7:
-        decimal = number[:3]
-        minutes = number[3:5]
-        seconds = number[5:8]
+        decimal = number[:2]
+        minutes = number[2:4]
+        seconds = number[4:]
     elif len(number) == 6:
         decimal = number[:2]
         minutes = number[2:4]
@@ -100,7 +107,7 @@ def coerce_coords(value):
         decimal = "-" + decimal
     if remain:
         seconds = f"{seconds}.{remain}"
-    # print(f"Parsed {value} into {decimal}, {minutes}, {seconds}")
+    # tqdm.write(f"Parsed {value} into {decimal}, {minutes}, {seconds}")
     return dms_to_dd(decimal, minutes, seconds)
 
 
@@ -174,6 +181,8 @@ def coerce_coords(value):
 
     if clean_value in ["", "none", "#n/a"]:
         return None
+
+    treat_as_string = False
     try:
         dd = float(value)
     except ValueError:
@@ -182,6 +191,9 @@ def coerce_coords(value):
             raise ValueError(f"Regex {COORD_PATTERN_STR} did not match value {value}")
 
         dd = dms_to_dd(**match.groupdict())
+    else:
+        dd = coerce_coord_from_number(clean_value)
+
     return dd
 
 
@@ -198,10 +210,46 @@ def coerce_long(value):
         return None
 
 
+def coerce_location_(latitude, longitude):
+    converted_latitude = coerce_lat(latitude)
+    converted_longitude = coerce_long(longitude)
+    # tqdm.write(f"Converted latitude from {latitude} to {converted_latitude}")
+    # tqdm.write(f"Converted longitude from {longitude} to {converted_longitude}")
+    if converted_latitude is None or converted_longitude is None:
+        raise ValueError(f"Invalid coordinates given: ({latitude!r}, {longitude!r})")
+    point = GEOSGeometry(f"Point({converted_longitude} {converted_latitude})")
+    # tqdm.write(f"Created point: {point.coords}")
+    return point
+
+
+# NRQZ LOCS!
 def coerce_location(latitude, longitude):
-    latitude = coerce_lat(latitude)
-    longitude = coerce_long(longitude)
-    # TODO: Perhaps raise ValueError instead?
-    if latitude is None or longitude is None:
-        raise ValueError(f"Invalid coordinates given: ({latitude}, {longitude})")
-    return GEOSGeometry(f"Point({longitude} {latitude})")
+    point = coerce_location_(latitude, longitude)
+    converted_longitude, converted_latitude = point.coords
+
+    if converted_longitude > 0:
+        converted_longitude *= -1
+    lat_lower_bound = 34
+    lat_upper_bound = 41
+    long_lower_bound = -83
+    long_upper_bound = -74
+    bad_lat = not (lat_lower_bound < converted_latitude < lat_upper_bound)
+    bad_long = not (long_lower_bound < converted_longitude < long_upper_bound)
+
+    if bad_lat or bad_long:
+        error_str = (
+            f"Successfully converted ({latitude}, {longitude}) to "
+            f"({converted_latitude:.2f}, {converted_longitude:.2f}), but "
+        )
+        if bad_lat:
+            error_str += (
+                f"latitude ({converted_latitude:.2f}) is outside of acceptable bounds: "
+                f"[{lat_lower_bound}, {lat_upper_bound}] "
+            )
+        if bad_long:
+            error_str += (
+                f"longitude ({converted_longitude:.2f}) is outside of acceptable bounds: "
+                f"[{long_lower_bound}, {long_upper_bound}] "
+            )
+
+        raise ValueError(error_str)

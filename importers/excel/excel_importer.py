@@ -229,11 +229,17 @@ class ExcelImporter:
     @transaction.atomic
     def process(self):
         if not self.file_importer:
-            self.file_importer = FileImporter.objects.create()
-            tqdm.write(f"Created audit_group {self.file_importer}")
+            self.file_importer, created = FileImporter.objects.get_or_create(
+                last_imported_path=self.path
+            )
+            if created:
+                tqdm.write(f"Created file importer {self.file_importer}")
+            else:
+                tqdm.write(f"Found file importer {self.file_importer}")
+
         else:
             tqdm.write(
-                f"Got audit_group {self.file_importer} linked to {self.file_importer.batch}"
+                f"Got file importer {self.file_importer} linked to {self.file_importer.batch}"
             )
 
         file_import_attempt = FileImportAttempt.objects.create(
@@ -241,7 +247,7 @@ class ExcelImporter:
         )
 
         tqdm.write(
-            f"Created file_import_attempt {file_import_attempt.id} linked to audit_group {self.file_importer}"
+            f"Created file_import_attempt {file_import_attempt.id} linked to file importer {self.file_importer}"
         )
         self._process(file_import_attempt)
 
