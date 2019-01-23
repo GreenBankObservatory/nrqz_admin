@@ -1,0 +1,10 @@
+{% extends "cases/base.html" %}
+{% load cases_tags %}
+{% load render_table from django_tables2 %}
+
+{% block content %}
+<h1>Search Results</h1>
+<p>{{ object_list.count }} results for '{{ query }}'</p>
+
+{% render_table table %}
+{% endblock %}
