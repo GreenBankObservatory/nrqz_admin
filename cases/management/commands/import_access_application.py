@@ -12,10 +12,7 @@ from django_import_data.models import RowData
 class Command(BaseImportCommand):
     help = "Import Access Application Data"
 
-    def handle_row(self, row, file_import_attempt):
-        row_data = RowData.objects.create(
-            data=row, file_import_attempt=file_import_attempt
-        )
+    def handle_row(self, row_data, file_import_attempt):
         applicant, applicant_audit = APPLICANT_FORM_MAP.save_with_audit(
             row_data=row_data, file_import_attempt=file_import_attempt
         )
@@ -32,7 +29,8 @@ class Command(BaseImportCommand):
         # TODO: If durable?? In the interest of catching _all_ errors...
         if case:
             attachments = handle_attachments(
-                row, case, ATTACHMENT_FORM_MAPS, file_import_attempt=file_import_attempt
+                row_data,
+                case,
+                ATTACHMENT_FORM_MAPS,
+                file_import_attempt=file_import_attempt,
             )
-
-        return row_data

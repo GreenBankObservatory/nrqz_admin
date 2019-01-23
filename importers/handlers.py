@@ -26,10 +26,10 @@ def handle_case(
     return case, case_audit
 
 
-def handle_attachments(row, case, form_maps, file_import_attempt=None):
+def handle_attachments(row_data, case, form_maps, file_import_attempt=None):
     attachments = []
     for form_map in form_maps:
-        attachment_form, conversion_errors = form_map.render(row)
+        attachment_form, conversion_errors = form_map.render(row_data.data)
         if attachment_form:
             path = attachment_form["path"].value()
             if path:

@@ -8,6 +8,8 @@
 <span>No File Import Attempt</span>
 {% endif %}
 |
+<a href={% url "modelimportattempt_detail" facility.model_import_attempt.id %}>View Model Import Attempt</a>
+|
 <a href={% url "case_detail" facility.case.case_num %}>View case</a>
 {% if facility.structure %}
 | <a href={% url "structure_detail" facility.structure.id %}>View structure</a>

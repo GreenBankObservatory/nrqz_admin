@@ -11,10 +11,7 @@ from django_import_data.models import RowData
 class Command(BaseImportCommand):
     help = "Import Access Preliminary Technical Data"
 
-    def handle_row(self, row, file_import_attempt):
-        row_data = RowData.objects.create(
-            data=row, file_import_attempt=file_import_attempt
-        )
+    def handle_row(self, row_data, file_import_attempt):
         applicant, applicant_audit = APPLICANT_FORM_MAP.save_with_audit(
             row_data, file_import_attempt=file_import_attempt
         )
@@ -29,4 +26,3 @@ class Command(BaseImportCommand):
             extra={"pcase": pcase.id if pcase else None},
             file_import_attempt=file_import_attempt,
         )
-        return row_data

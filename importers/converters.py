@@ -182,7 +182,6 @@ def coerce_coords(value):
     if clean_value in ["", "none", "#n/a"]:
         return None
 
-    treat_as_string = False
     try:
         dd = float(value)
     except ValueError:
@@ -216,7 +215,8 @@ def coerce_location_(latitude, longitude):
     # tqdm.write(f"Converted latitude from {latitude} to {converted_latitude}")
     # tqdm.write(f"Converted longitude from {longitude} to {converted_longitude}")
     if converted_latitude is None or converted_longitude is None:
-        raise ValueError(f"Invalid coordinates given: ({latitude!r}, {longitude!r})")
+        return None
+        # raise ValueError(f"Invalid coordinates given: ({latitude!r}, {longitude!r})")
     point = GEOSGeometry(f"Point({converted_longitude} {converted_latitude})")
     # tqdm.write(f"Created point: {point.coords}")
     return point
@@ -225,6 +225,8 @@ def coerce_location_(latitude, longitude):
 # NRQZ LOCS!
 def coerce_location(latitude, longitude):
     point = coerce_location_(latitude, longitude)
+    if point is None:
+        return point
     converted_longitude, converted_latitude = point.coords
 
     if converted_longitude > 0:

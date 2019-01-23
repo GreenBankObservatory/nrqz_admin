@@ -15,10 +15,7 @@ from django_import_data.models import RowData
 class Command(BaseImportCommand):
     help = "Import Access Preliminary Application Data"
 
-    def handle_row(self, row, file_import_attempt):
-        row_data = RowData.objects.create(
-            data=row, file_import_attempt=file_import_attempt
-        )
+    def handle_row(self, row_data, file_import_attempt):
         applicant, applicant_audit = APPLICANT_FORM_MAP.save_with_audit(
             row_data, file_import_attempt=file_import_attempt
         )
@@ -32,5 +29,4 @@ class Command(BaseImportCommand):
             contact=contact,
             file_import_attempt=file_import_attempt,
         )
-        attachments = handle_attachments(row, pcase, ATTACHMENT_FORM_MAPS)
-        return row_data
+        attachments = handle_attachments(row_data, pcase, ATTACHMENT_FORM_MAPS)

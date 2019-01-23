@@ -1,7 +1,6 @@
-from pprint import pprint
 from datetime import datetime
+from pprint import pprint, pformat
 import os
-from pprint import pformat
 import re
 
 import pyexcel
@@ -277,23 +276,24 @@ class ExcelImporter:
         #         raise AssertionError(
         #             "Batch should have been committed, but wasn't!"
         #         ) from error
-        self.rolled_back = False
-        if not self.rolled_back:
-            if self.report.has_errors():
-                status = "created_dirty"
-            else:
-                status = "created_clean"
-        else:
-            status = "rejected"
+        # self.rolled_back = False
+        # if not self.rolled_back:
+        #     if self.report.has_errors():
+        #         status = "created_dirty"
+        #     else:
+        #         status = "created_clean"
+        # else:
+        #     status = "rejected"
 
-        file_import_attempt.status = status
+        if self.report.has_errors() and file_import_attempt.status == "created_clean":
+            file_import_attempt.status = "created_dirty"
         file_import_attempt.errors = self.report.get_non_fatal_errors()
         file_import_attempt.save()
 
         return file_import_attempt
 
     def handle_case(self, row_data, file_import_attempt):
-        tqdm.write("-" * 80)
+        # tqdm.write("-" * 80)
         case_form, conversion_errors = CASE_FORM_MAP.render(
             row_data.data, extra={"data_source": EXCEL}, allow_unknown=True
         )
@@ -326,7 +326,7 @@ class ExcelImporter:
             case_audit = None
             case_created = False
 
-        if not case:
+        if case_audit and case_audit.errors:
             tqdm.write(str(case_audit.errors))
         return case, case_created
 
@@ -340,8 +340,8 @@ class ExcelImporter:
         )
         if facility:
             facility_created = True
-            tqdm.write("Created facility")
-            tqdm.write(str(facility))
+            # tqdm.write("Created facility")
+            # tqdm.write(str(facility))
         else:
             facility_created = False
             tqdm.write("Failed to create facility; here's the audit")
@@ -366,18 +366,22 @@ class ExcelImporter:
 
         return facility, facility_created
 
-    def handle_row(self, row, row_data, file_import_attempt):
-        tqdm.write("handle_row")
+    def handle_row(self, row_data, file_import_attempt):
+        # tqdm.write("handle_row")
         case, case_created = self.handle_case(
             row_data, file_import_attempt=file_import_attempt
         )
-        tqdm.write("case done")
+        # tqdm.write("case done")
         facility, facility_created = self.handle_facility(
             row_data, case, file_import_attempt=file_import_attempt
         )
-        tqdm.write("fac done")
-        tqdm.write(f"Case {case_created}: {case}")
-        tqdm.write(f"Facility {facility_created}: {facility}")
+
+        if not case or not facility:
+            tqdm.write("-" * 80)
+
+        # tqdm.write("fac done")
+        # tqdm.write(f"Case {case_created}: {case}")
+        # tqdm.write(f"Facility {facility_created}: {facility}")
 
     # def get_duplicate_headers(self, headers):
     #     # Generate a map of header: from_field for all field_maps
@@ -448,12 +452,13 @@ class ExcelImporter:
                 )
 
         for row in rows:
+            row_num = row.pop("Original Row")
             row_data = RowData.objects.create(
-                data=row, file_import_attempt=file_import_attempt
+                row_num=row_num, data=row, file_import_attempt=file_import_attempt
             )
             try:
                 self.handle_row(
-                    row, row_data=row_data, file_import_attempt=file_import_attempt
+                    row_data=row_data, file_import_attempt=file_import_attempt
                 )
             except ValueError as error:
                 if not self.durable:
