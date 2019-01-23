@@ -96,6 +96,8 @@ class PreliminaryCaseForm(forms.ModelForm):
     class Meta:
         model = PreliminaryCase
         fields = (
+            "original_created_on",
+            "original_modified_on",
             "data_source",
             "applicant",
             "contact",
@@ -117,6 +119,8 @@ class CaseForm(forms.ModelForm):
     class Meta:
         model = Case
         fields = (
+            "original_created_on",
+            "original_modified_on",
             "data_source",
             "applicant",
             "contact",
@@ -153,6 +157,8 @@ class PreliminaryFacilityForm(forms.ModelForm):
     class Meta:
         model = PreliminaryFacility
         fields = (
+            "original_created_on",
+            "original_modified_on",
             "data_source",
             "site_num",
             "original_created_on",
@@ -174,6 +180,8 @@ class FacilityForm(forms.ModelForm):
     class Meta:
         model = Facility
         fields = (
+            "original_created_on",
+            "original_modified_on",
             "data_source",
             "site_num",
             "freq_low",
