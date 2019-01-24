@@ -1,6 +1,7 @@
 """Template tags for cases app"""
 
 import json as json_
+import os
 
 from django_import_data.models import DjangoErrorJSONEncoder
 
@@ -138,3 +139,8 @@ def location_table(instance, title, fields):
 @register.simple_tag
 def get_verbose_name(instance, field_name):
     return instance._meta.get_field(field_name).verbose_name
+
+
+@register.filter
+def basename(value):
+    return os.path.basename(value)

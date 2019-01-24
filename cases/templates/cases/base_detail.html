@@ -1,14 +1,33 @@
-<p>Created on: {{ object.created_on }}</p>
-{% if object.modified_on and object.modified_on != object.created_on %}
-<p>Last modified on: {{ object.modified_on }}</p>
-{% endif %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col">
+            <p>Created on: {{ object.created_on }}</p>
+        </div>
 
-<p>Import source: {{ object.get_data_source_display }}</p>
+        {% if object.modified_on and object.modified_on != object.created_on %}
+        <div class="col">
+            <p>Last modified on: {{ object.modified_on }}</p>
+        </div>
+        {% endif %}
 
-{% if object.original_created_on %}
-<p>Import source created on: {{ object.original_created_on }}</p>
-{% endif %}
-{% if object.original_modified_on and object.original_modified_on != object.original_created_on %}
-<p>Import source last modified on: {{ object.original_modified_on }}</p>
-{% endif %}
+        <div class="col">
+            <p>Import source: {{ object.get_data_source_display }}</p>
+        </div>
+
+        {% if object.original_created_on %}
+        <div class="col">
+            <p>Import source created on: {{ object.original_created_on }}
+            </p>
+        </div>
+        {% endif %}
+
+        {% if object.original_modified_on and object.original_modified_on != object.original_created_on %}
+        <div class="col">
+            <p>Import source last modified on: {{ object.original_modified_on }}</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+
 

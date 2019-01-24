@@ -25,6 +25,11 @@ urlpatterns = [
         name="fileimporter_detail",
     ),
     path(
+        "file-imports/<int:pk>/reimport",
+        views.reimport_file,
+        name="fileimporter_reimport",
+    ),
+    path(
         "file-import-attempts/",
         views.FileImportAttemptListView.as_view(),
         name="fileimportattempt_list",

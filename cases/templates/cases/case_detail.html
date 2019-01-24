@@ -4,11 +4,8 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
-{% if case.model_import_attempt.file_import_attempt %}
-<a href={% url "fileimportattempt_detail" case.model_import_attempt.file_import_attempt.id %}>View file import attempt</a>
-{% else %}
-<p>Not imported from a file</p>
-{% endif %}
+
+{% include "cases/base_detail_header.html" %}
 
 <p><a href={% url "admin:cases_case_change" case.id %}>Edit</a></p>
 

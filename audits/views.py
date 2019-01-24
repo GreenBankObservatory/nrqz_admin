@@ -1,17 +1,17 @@
 from django.contrib import messages
+from django.core.management import call_command
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
-from django.views.generic.detail import DetailView
+from django.urls import reverse
 from django.views.generic import CreateView
 from django.views.generic.base import RedirectView
-from django.http import HttpResponse, HttpResponseRedirect
-from django.urls import reverse
+from django.views.generic.detail import DetailView
 
 from django_import_data.views import CreateFromImportAttemptView
 from django_import_data.models import FileImporter, FileImportAttempt
 
 
 from cases.views import FilterTableView
-
 
 from .filters import (
     FileImporterFilter,
@@ -95,7 +95,7 @@ class FileImporterDetailView(DetailView):
         if not self.fia_filter:
             self.fia_filter = FileImportAttemptFilter(
                 self.request.GET,
-                queryset=self.object.import_attempts.all(),
+                queryset=self.object.file_import_attempts.all(),
                 # form_helper_kwargs={"form_class": "collapse"},
             )
             context["fia_filter"] = self.fia_filter
@@ -139,3 +139,48 @@ class FileImportAttemptDetailView(DetailView):
             context["mia_table"] = table
 
         return context
+
+
+def reimport_file(request, pk):
+    file_importer = get_object_or_404(FileImporter, id=pk)
+    importer_name = file_importer.importer_name
+    path = file_importer.last_imported_path
+    try:
+        call_command(importer_name, path, overwrite=True, durable=False)
+    except Exception as error:
+        messages.error(request, f"UNKOWN FATAL ERROR: {error}")
+        return HttpResponseRedirect(file_importer.get_absolute_url())
+
+    file_import_attempt = file_importer.most_recent_import
+    messages.success(
+        request,
+        f"Successfully created {file_import_attempt._meta.verbose_name} "
+        f"for path {file_import_attempt.name}!",
+    )
+
+    STATUSES = file_import_attempt.STATUSES
+    status = STATUSES[file_import_attempt.status]
+    status_display = file_import_attempt.get_status_display()
+    if status == STATUSES.rejected:
+        messager = messages.error
+        message_stub = (
+            "However, one or more Model Import Attempts failed (no model was created)!"
+        )
+    elif status == STATUSES.created_dirty:
+        messager = messages.warning
+        message_stub = (
+            "All Model Import Attempts were successful, however, "
+            "one or more Model Import Attempts were created with minor errors!"
+        )
+    elif status == STATUSES.created_clean:
+        messager = messages.success
+        message_stub = "All Model Import Attempts were successful!"
+    else:
+        raise ValueError("This should never happen")
+
+    messager(
+        request,
+        f"{message_stub} See {file_import_attempt._meta.verbose_name} (below) for more details.",
+    )
+
+    return HttpResponseRedirect(file_import_attempt.get_absolute_url())

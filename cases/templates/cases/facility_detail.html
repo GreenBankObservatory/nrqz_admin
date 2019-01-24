@@ -2,20 +2,28 @@
 {% load cases_tags %}
 
 {% block content %}
-{% if facility.model_import_attempt.file_import_attempt %}
-<a href={% url "fileimportattempt_detail" facility.model_import_attempt.file_import_attempt.id %}>View File Import Attempt</a>
-{% else %}
-<span>No File Import Attempt</span>
-{% endif %}
-|
-<a href={% url "modelimportattempt_detail" facility.model_import_attempt.id %}>View Model Import Attempt</a>
-|
-<a href={% url "case_detail" facility.case.case_num %}>View case</a>
-{% if facility.structure %}
-| <a href={% url "structure_detail" facility.structure.id %}>View structure</a>
-{% endif %}
 
-<p><a href={% url "admin:cases_facility_change" facility.id %}>Edit</a></p>
+{% include "cases/base_detail_header.html" %}
+
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col">
+            <a href="{% url 'case_detail' facility.case.case_num %}">View case</a>
+        </div>
+
+        {% if facility.structure %}
+
+        <div class="col">
+            <a href="{% url 'structure_detail' facility.structure.id %}">View structure</a>
+        </div>
+        {% endif %}
+
+        <div class="col">
+            <a href="{% url 'admin:cases_facility_change' facility.id %}">Edit</a>
+        </div>
+    </div>
+</div>
 
 <h1>{{ facility }}</h1>
 {% include "cases/base_detail.html" %}

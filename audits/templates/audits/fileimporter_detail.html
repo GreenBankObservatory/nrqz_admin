@@ -13,6 +13,13 @@
     </a>
 </p>
 
+<form action="{% url 'fileimporter_reimport' fileimporter.id %}">
+    <input required type="checkbox" name="sanity" value="I am super sure">
+    <input required type="submit" name="submit" value="Re-import">
+</form>
+
+
+
 <h2>File Import Attempts</h2>
 
 {% filter_table fia_table fia_filter %}

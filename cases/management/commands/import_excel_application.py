@@ -81,6 +81,7 @@ class Command(BaseImportCommand):
             threshold=options["threshold"],
             preprocess=not bool(options["no_preprocess"]),
         )
-        eci.process()
+        file_import_attempt = eci.process()
 
         eci.report.process()
+        return file_import_attempt

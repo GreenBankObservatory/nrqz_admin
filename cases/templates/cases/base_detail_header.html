@@ -1,0 +1,25 @@
+{% load cases_tags %}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col">
+            <p>
+                <a href="file://{{ object.imported_from }}" title={{ object.imported_from | basename }}>
+                    Open original file
+                </a>
+            </p>
+        </div>
+
+        <div class="col">
+            {% if object.model_import_attempt.file_import_attempt %}
+            <a href="{% url 'fileimportattempt_detail' object.model_import_attempt.file_import_attempt.id %}">View File Import Attempt</a>
+            {% else %}
+            <p>Not imported from a file</p>
+            {% endif %}
+        </div>
+
+        <div class="col">
+            <a href={% url "modelimportattempt_detail" object.model_import_attempt.id %}>View Model Import Attempt</a>
+        </div>
+    </div>
+</div>

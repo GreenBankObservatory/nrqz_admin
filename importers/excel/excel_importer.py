@@ -1,3 +1,4 @@
+# TODO: This whole file should be merged back into import_excel_application.py
 from datetime import datetime
 from pprint import pprint, pformat
 import os
@@ -229,7 +230,9 @@ class ExcelImporter:
     def process(self):
         if not self.file_importer:
             self.file_importer, created = FileImporter.objects.get_or_create(
-                last_imported_path=self.path
+                last_imported_path=self.path,
+                # TODO: This is naughty!
+                importer_name="import_excel_application",
             )
             if created:
                 tqdm.write(f"Created file importer {self.file_importer}")
