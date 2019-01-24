@@ -9,6 +9,7 @@ from importers.converters import (
     coerce_none,
     coerce_feet_to_meters,
     coerce_location,
+    convert_case_num,
 )
 
 
@@ -18,7 +19,7 @@ ACCESS_TECHNICAL = "access_technical"
 class CaseFormMap(FormMap):
     field_maps = [
         OneToOneFieldMap(
-            to_field="case_num", converter=coerce_positive_int, from_field="NRQZ_NO"
+            to_field="case_num", converter=convert_case_num, from_field="NRQZ_NO"
         )
     ]
     form_class = CaseForm

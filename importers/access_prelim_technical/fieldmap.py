@@ -7,6 +7,7 @@ from importers.converters import (
     coerce_none,
     coerce_feet_to_meters,
     coerce_location,
+    convert_case_num,
 )
 from importers.access_application.fieldmap import coerce_datetime, coerce_positive_int
 
@@ -24,7 +25,7 @@ class ApplicantFormMap(FormMap):
 class PcaseFormMap(FormMap):
     field_maps = [
         OneToOneFieldMap(
-            to_field="case_num", converter=coerce_positive_int, from_field="PNRQZ_NO"
+            to_field="case_num", converter=convert_case_num, from_field="PNRQZ_NO"
         )
     ]
     form_class = PreliminaryCaseForm

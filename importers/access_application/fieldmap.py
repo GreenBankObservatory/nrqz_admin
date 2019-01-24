@@ -11,6 +11,7 @@ from importers.converters import (
     coerce_datetime,
     coerce_bool,
     coerce_path,
+    convert_case_num,
 )
 
 
@@ -45,7 +46,7 @@ class ContactFormMap(FormMap):
 class CaseFormMap(FormMap):
     field_maps = [
         OneToOneFieldMap(
-            to_field="case_num", converter=coerce_positive_int, from_field="NRQZ_NO"
+            to_field="case_num", converter=convert_case_num, from_field="NRQZ_NO"
         ),
         OneToOneFieldMap(to_field="comments", converter=None, from_field="COMMENTS"),
         OneToOneFieldMap(

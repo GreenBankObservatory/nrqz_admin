@@ -15,6 +15,7 @@ from tqdm import tqdm
 from django.contrib.gis.geos import GEOSGeometry, GEOSException
 
 from utils.coord_utils import dms_to_dd
+from utils.constants import MAX_VALID_CASE_NUMBER
 
 FEET_IN_A_METER = 0.3048
 
@@ -125,6 +126,20 @@ def coerce_positive_int(value):
         return None
 
     return int(num)
+
+
+def convert_case_num(value):
+    case_num = coerce_positive_int(value)
+    if case_num is None:
+        return case_num
+
+    if case_num > MAX_VALID_CASE_NUMBER:
+        raise ValueError(
+            f"Case number {case_num} is larger than maximum "
+            f"acceptable value {MAX_VALID_CASE_NUMBER}"
+        )
+
+    return case_num
 
 
 def coerce_path(value):
