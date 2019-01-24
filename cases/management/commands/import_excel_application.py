@@ -9,7 +9,6 @@ from importers.excel.excel_importer import (
     DEFAULT_PREPROCESS,
 )
 from django_import_data import BaseImportCommand
-from django.db import transaction
 
 
 # TODO: MOVE
@@ -67,8 +66,7 @@ class Command(BaseImportCommand):
             help="Indicate that no pre-processing needs to be done on the given input file(s)",
         )
 
-    @transaction.atomic
-    def handle(self, *args, **options):
+    def handle_rows(self, *args, **options):
         files_to_process = determine_files_to_process(
             [options["path"]], pattern=options["pattern"]
         )
@@ -86,6 +84,3 @@ class Command(BaseImportCommand):
         eci.process()
 
         eci.report.process()
-        if options["dry_run"]:
-            transaction.set_rollback = True
-            print("DRY RUN; rolling back changes")

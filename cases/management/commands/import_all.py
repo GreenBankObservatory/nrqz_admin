@@ -5,6 +5,8 @@ from pprint import pprint
 
 from django.core.management import call_command
 
+# from django.db import transaction
+
 from django_import_data import BaseImportCommand
 
 
@@ -38,6 +40,7 @@ class Command(BaseImportCommand):
 
     # def handle_subcommands(self, command_info):
 
+    # @transaction.atomic
     def handle(self, *args, **options):
         with open(options.pop("importer_spec")) as file:
             command_info = json.load(file)
@@ -64,8 +67,10 @@ class Command(BaseImportCommand):
             sub_options = {
                 **command_args,
                 # TODO: Would be nice to fix this; duplicated
+                # **options
                 **{
-                    option: options[option] for option in ["limit", "rows", "overwrite"]
+                    option: options[option]
+                    for option in ["limit", "rows", "overwrite", "dry_run"]
                 },
             }
             if preview:
