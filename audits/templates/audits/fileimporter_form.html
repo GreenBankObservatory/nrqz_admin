@@ -1,0 +1,17 @@
+{% extends "cases/base.html" %}
+{% load django_import_data_tags %}
+{% load cases_tags %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<h1>Import File</h1>
+
+<p>Import a file using a File Importer</p>
+
+<form method="POST">{% csrf_token %}
+    {{ form | crispy }}
+    <input type="submit" name="submit" value="Import File">
+</form>
+
+{% endblock %}

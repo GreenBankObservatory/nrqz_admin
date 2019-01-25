@@ -1,0 +1,10 @@
+{% extends "cases/base.html" %}
+{% load cases_tags %}
+{% load django_import_data_tags %}
+
+{% block content %}
+<h1>File Importer Index</h1>
+
+<p><a href="{% url 'fileimporter_create' %}">Import a new file</a></p>
+{% filter_table %}
+{% endblock %}

@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.core.management import call_command
+from django.db import transaction
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
@@ -19,7 +20,7 @@ from .filters import (
     ModelImportAttemptFilter,
 )
 from .tables import FileImporterTable, FileImportAttemptTable, ModelImportAttemptTable
-
+from .forms import FileImporterForm
 from cases.models import Person, PreliminaryCase, Case, Facility, PreliminaryFacility
 from cases.forms import (
     PersonForm,
@@ -72,7 +73,7 @@ class CreateFromAuditRedirectView(RedirectView):
 class FileImporterListView(FilterTableView):
     table_class = FileImporterTable
     filterset_class = FileImporterFilter
-    template_name = "audits/generic_table.html"
+    template_name = "audits/fileimporter_index.html"
 
 
 class FileImportAttemptListView(FilterTableView):
@@ -141,14 +142,14 @@ class FileImportAttemptDetailView(DetailView):
         return context
 
 
-def reimport_file(request, pk):
-    file_importer = get_object_or_404(FileImporter, id=pk)
+def foo(request, file_importer):
+    print("cool")
     importer_name = file_importer.importer_name
     path = file_importer.last_imported_path
     try:
         call_command(importer_name, path, overwrite=True, durable=False)
     except Exception as error:
-        messages.error(request, f"UNKOWN FATAL ERROR: {error}")
+        messages.error(request, f"FATAL ERROR: {error.__class__.__name__}: {error}")
         return HttpResponseRedirect(file_importer.get_absolute_url())
 
     file_import_attempt = file_importer.most_recent_import
@@ -184,3 +185,19 @@ def reimport_file(request, pk):
     )
 
     return HttpResponseRedirect(file_import_attempt.get_absolute_url())
+
+
+def reimport_file(request, pk):
+    file_importer = get_object_or_404(FileImporter, id=pk)
+    return foo(request, file_importer)
+
+
+class FileImporterCreateView(CreateView):
+    model = FileImporter
+    form_class = FileImporterForm
+    template_name = "audits/fileimporter_form.html"
+
+    def form_valid(self, form):
+        with transaction.atomic():
+            file_importer = form.save()
+            return foo(self.request, file_importer)

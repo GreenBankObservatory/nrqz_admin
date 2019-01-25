@@ -3,14 +3,14 @@
 from django.urls import path
 
 from django_import_data.views import (
-    FileImporterListView,
-    FileImporterDetailView,
-    FileImportAttemptListView,
     FileImportAttemptDetailView,
-    ModelImportAttemptListView,
+    FileImportAttemptListView,
+    FileImporterDetailView,
+    FileImporterListView,
     ModelImportAttemptDetailView,
-    RowDataListView,
+    ModelImportAttemptListView,
     RowDataDetailView,
+    RowDataListView,
 )
 
 from . import views
@@ -25,9 +25,14 @@ urlpatterns = [
         name="fileimporter_detail",
     ),
     path(
-        "file-imports/<int:pk>/reimport",
+        "file-imports/<int:pk>/reimport/",
         views.reimport_file,
         name="fileimporter_reimport",
+    ),
+    path(
+        "file-imports/create/",
+        views.FileImporterCreateView.as_view(),
+        name="fileimporter_create",
     ),
     path(
         "file-import-attempts/",
