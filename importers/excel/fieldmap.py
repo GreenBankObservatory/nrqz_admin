@@ -3,7 +3,12 @@
 import re
 
 from cases.forms import CaseForm, FacilityForm
-from django_import_data import FormMap, OneToOneFieldMap, ManyToOneFieldMap
+from django_import_data import (
+    FormMap,
+    OneToOneFieldMap,
+    OneToManyFieldMap,
+    ManyToOneFieldMap,
+)
 from importers.converters import coerce_num, coerce_bool, coerce_location
 
 
@@ -19,6 +24,14 @@ def coerce_case_num(nrqz_id):
             f"Could not parse NRQZ ID '{nrqz_id}' using '{case_regex_str}'!"
         )
     return match["case_num"]
+
+
+def convert_nrao_aerpd(nrao_aerpd):
+    if isinstance(nrao_aerpd, str):
+        if nrao_aerpd.strip().lower() in ["meets nrao limit"]:
+            return {"nrao_aerpd": None, "nrao_approval": True}
+
+    return {"nrao_aerpd": float(nrao_aerpd), "nrao_approval": False}
 
 
 EXCEL = "excel"
@@ -477,11 +490,14 @@ class FacilityFormMap(FormMap):
             converter=None,
             from_field={"max_tx_power": ["Max TX Pwr (W)"]},
         ),
-        OneToOneFieldMap(
-            to_field="nrao_aerpd",
-            converter=None,
-            from_field={"nrao_aerpd": ["NRAO AERPd (W)"]},
+        OneToManyFieldMap(
+            to_fields=("nrao_aerpd", "nrao_approval"),
+            converter=convert_nrao_aerpd,
+            from_field={"nrao_aerpd": ["NRAO AERPd (W)", "NRAO AERPd (W)-1"]},
         ),
+        # OneToOneFieldMap(
+        #     from_field={"nrao_approval": ["NRAO AERPd (W)-1"]}, converter=None
+        # ),
         OneToOneFieldMap(
             to_field="power_density_limit",
             converter=None,

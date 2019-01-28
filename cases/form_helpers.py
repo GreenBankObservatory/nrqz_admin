@@ -134,7 +134,13 @@ class CaseFilterFormHelper(FormHelper):
         Div(
             Div("case_num", "applicant", "contact", css_class="col"),
             Div("call_sign", "freq_coord", "fcc_file_num", css_class="col"),
-            Div("completed", "shutdown", "comments", css_class="col"),
+            Div(
+                "completed",
+                "nrao_approval",
+                "sgrs_approval",
+                "comments",
+                css_class="col",
+            ),
             css_class="row",
         ),
         extra_buttons=[

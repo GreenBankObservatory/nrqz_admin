@@ -28,13 +28,14 @@ def create_users():
 def create_templates():
     for path in os.listdir(settings.NRQZ_LETTER_TEMPLATE_DIR):
         full_path = os.path.join(settings.NRQZ_LETTER_TEMPLATE_DIR, path)
-        lt, created = LetterTemplate.objects.get_or_create(
-            name=os.path.basename(full_path), path=full_path
-        )
-        if created:
-            print(f"Created {lt}")
-        else:
-            print(f"{lt} already exists!")
+        if os.path.isfile(full_path):
+            lt, created = LetterTemplate.objects.get_or_create(
+                name=os.path.basename(full_path), path=full_path
+            )
+            if created:
+                print(f"Created {lt}")
+            else:
+                print(f"{lt} already exists!")
 
 
 def main():

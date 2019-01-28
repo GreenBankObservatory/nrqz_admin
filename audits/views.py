@@ -142,12 +142,11 @@ class FileImportAttemptDetailView(DetailView):
         return context
 
 
-def foo(request, file_importer):
-    print("cool")
+def _import_file(request, file_importer):
     importer_name = file_importer.importer_name
     path = file_importer.last_imported_path
     try:
-        call_command(importer_name, path, overwrite=True, durable=False)
+        call_command(importer_name, path, overwrite=True, durable=True)
     except Exception as error:
         messages.error(request, f"FATAL ERROR: {error.__class__.__name__}: {error}")
         return HttpResponseRedirect(file_importer.get_absolute_url())
@@ -189,7 +188,7 @@ def foo(request, file_importer):
 
 def reimport_file(request, pk):
     file_importer = get_object_or_404(FileImporter, id=pk)
-    return foo(request, file_importer)
+    return _import_file(request, file_importer)
 
 
 class FileImporterCreateView(CreateView):
@@ -200,4 +199,4 @@ class FileImporterCreateView(CreateView):
     def form_valid(self, form):
         with transaction.atomic():
             file_importer = form.save()
-            return foo(self.request, file_importer)
+            return _import_file(self.request, file_importer)

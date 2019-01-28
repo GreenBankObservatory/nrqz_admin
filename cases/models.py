@@ -331,6 +331,12 @@ class Facility(
     )
     site_num = PositiveIntegerField(verbose_name="Site #", blank=True, null=True)
 
+    nrao_approval = BooleanField(
+        null=True,
+        blank=True,
+        help_text="Indicates whether NRAO approves of this Facility or not",
+    )
+
     class Meta:
         verbose_name_plural = "Facilities"
 
@@ -501,6 +507,36 @@ class Case(
     def save(self, *args, **kwargs):
         self.slug = str(self.case_num)
         super(Case, self).save(*args, **kwargs)
+
+    @property
+    def nrao_approval(self):
+        approvals = self.facilities.values("nrao_approval").distinct()
+        if approvals.filter(nrao_approval=None).exists():
+            return None
+        if approvals.filter(nrao_approval=False).exists():
+            return False
+
+        return True
+
+    @property
+    def sgrs_approval(self):
+        """Return the overall SGRS Approval status of this case
+
+        If any Facilites have not yet been approved/denied, return None,
+        indicating pending
+
+        If any have been denied, return False, indicating denied
+
+        Otherwise return True. This indicates that all Facilities have been
+        approved by SGRS"""
+
+        approvals = self.facilities.values("sgrs_approval").distinct()
+        if approvals.filter(sgrs_approval=None).exists():
+            return None
+        if approvals.filter(sgrs_approval=False).exists():
+            return False
+
+        return True
 
 
 class Person(

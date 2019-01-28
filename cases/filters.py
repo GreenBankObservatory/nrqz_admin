@@ -124,6 +124,9 @@ class CaseFilter(HelpedFilterSet):
     freq_coord = django_filters.CharFilter(lookup_expr="icontains")
     fcc_file_num = django_filters.CharFilter(lookup_expr="icontains")
     call_sign = django_filters.CharFilter(lookup_expr="icontains")
+    nrao_approval = django_filters.CharFilter()
+
+    sgrs_approval = django_filters.CharFilter()
 
     class Meta:
         model = models.Case

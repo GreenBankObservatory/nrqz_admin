@@ -32,6 +32,7 @@ class FileImporterTable(tables.Table):
     class Meta:
         model = FileImporter
         fields = FileImporterFilter.Meta.fields
+        order_by = ["-modified_on"]
 
     def render_last_imported_path(self, value):
         return os.path.basename(value)

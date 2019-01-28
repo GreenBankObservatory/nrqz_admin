@@ -235,4 +235,5 @@ class FacilityForm(forms.ModelForm):
             "aeirp_to_gbt",
             "az_bearing",
             "num_tx_per_facility",
+            "nrao_approval",
         )

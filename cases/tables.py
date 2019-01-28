@@ -143,10 +143,16 @@ class CaseTable(tables.Table):
     contact = tables.Column(linkify=True)
     comments = TrimmedTextColumn()
 
+    nrqz_approval = tables.Column(empty_values=())
+    sgrs_approval = tables.Column(empty_values=())
+
     class Meta:
         model = models.Case
         fields = CaseFilter.Meta.fields
         order_by = ["-case_num"]
+
+    def render_nrao_approval(self, record):
+        return record.nrao_approval
 
 
 class PersonTable(tables.Table):
