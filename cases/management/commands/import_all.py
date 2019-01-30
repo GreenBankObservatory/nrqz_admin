@@ -63,7 +63,7 @@ class Command(BaseImportCommand):
 
         for command, command_args in command_info.items():
             print(f"--- {command} ---")
-            path = command_args.pop("path")
+            paths = command_args.pop("paths")
             sub_options = {
                 **command_args,
                 # TODO: Would be nice to fix this; duplicated
@@ -71,10 +71,11 @@ class Command(BaseImportCommand):
                 **{
                     option: options[option]
                     for option in ["limit", "rows", "overwrite", "dry_run"]
+                    if option in options
                 },
             }
             if preview:
-                print(f"call_command({command!r}, {path!r}, **{sub_options!r})")
+                print(f"call_command({command!r}, *{paths!r}, **{sub_options!r})")
             else:
-                call_command(command, path, **sub_options)
+                call_command(command, *paths, **sub_options)
             print(f"--- DONE ---")

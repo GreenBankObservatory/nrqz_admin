@@ -1,34 +1,16 @@
 """Import Excel Technical Data"""
 
-import os
-import re
+from tqdm import tqdm
+
+from django.db import transaction
+
+from django_import_data import BaseImportCommand
 
 from importers.excel.excel_importer import (
     ExcelCollectionImporter,
     DEFAULT_THRESHOLD,
     DEFAULT_PREPROCESS,
 )
-from django_import_data import BaseImportCommand
-
-
-# TODO: MOVE
-def determine_files_to_process(paths, pattern=r".*\.(xls.?|csv)$"):
-    files = []
-    for path in paths:
-        if os.path.isfile(path):
-            files.append(path)
-        elif os.path.isdir(path):
-            files.extend(
-                [
-                    os.path.join(path, file)
-                    for file in os.listdir(path)
-                    if re.search(pattern, file)
-                ]
-            )
-        else:
-            raise ValueError(f"Given path {path!r} is not a directory or file!")
-
-    return sorted(files)
 
 
 class Command(BaseImportCommand):
@@ -66,14 +48,17 @@ class Command(BaseImportCommand):
             help="Indicate that no pre-processing needs to be done on the given input file(s)",
         )
 
-    def handle_rows(self, *args, **options):
-        files_to_process = determine_files_to_process(
-            [options["path"]], pattern=options["pattern"]
+    @transaction.atomic
+    def handle(self, *args, **options):
+        files_to_process = self.determine_files_to_process(
+            options["paths"], pattern=options["pattern"]
         )
 
         limit = options.get("limit", None)
         if limit is not None:
-            files_to_process = self.get_random_rows(files_to_process, limit)
+            files_to_process = self.determine_records_to_process(
+                files_to_process, limit=limit
+            )
 
         eci = ExcelCollectionImporter(
             paths=files_to_process,
@@ -84,4 +69,6 @@ class Command(BaseImportCommand):
         file_import_attempt = eci.process()
 
         eci.report.process()
-        return file_import_attempt
+        if options["dry_run"]:
+            transaction.set_rollback(True)
+            tqdm.write("DRY RUN; rolling back changes")

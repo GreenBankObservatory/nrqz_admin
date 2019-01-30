@@ -6,6 +6,7 @@ from utils.constants import (
     ACCESS_TECHNICAL,
     ACCESS_PRELIM_APPLICATION,
     ACCESS_APPLICATION,
+    NAM_APPLICATION,
 )
 
 
@@ -66,6 +67,7 @@ class DataSourceModel(models.Model):
             (ACCESS_TECHNICAL, "Access Technical Table"),
             (ACCESS_PRELIM_APPLICATION, "Access Prelim. Application Table"),
             (ACCESS_APPLICATION, "Access Application Table"),
+            (NAM_APPLICATION, "NRQZ Analyzer Application"),
         ),
         help_text="The source that this object was created from",
     )

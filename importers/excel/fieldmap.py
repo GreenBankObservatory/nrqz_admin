@@ -9,21 +9,12 @@ from django_import_data import (
     OneToManyFieldMap,
     ManyToOneFieldMap,
 )
-from importers.converters import coerce_num, coerce_bool, coerce_location
-
-
-case_regex_str = r"^(?P<case_num>\d+).*"
-case_regex = re.compile(case_regex_str)
-
-
-def coerce_case_num(nrqz_id):
-    match = case_regex.match(str(nrqz_id))
-
-    if not match:
-        raise ValueError(
-            f"Could not parse NRQZ ID '{nrqz_id}' using '{case_regex_str}'!"
-        )
-    return match["case_num"]
+from importers.converters import (
+    coerce_num,
+    coerce_bool,
+    coerce_location,
+    coerce_case_num,
+)
 
 
 def convert_nrao_aerpd(nrao_aerpd):

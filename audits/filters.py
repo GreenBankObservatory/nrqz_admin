@@ -17,6 +17,8 @@ from .form_helpers import (
 
 
 class FileImporterFilter(HelpedFilterSet):
+    last_imported_path = django_filters.CharFilter(lookup_expr="icontains")
+
     class Meta:
         model = FileImporter
         formhelper_class = FileImporterFilterFormHelper
@@ -24,6 +26,8 @@ class FileImporterFilter(HelpedFilterSet):
 
 
 class FileImportAttemptFilter(HelpedFilterSet):
+    imported_from = django_filters.CharFilter(lookup_expr="icontains")
+
     class Meta:
         model = FileImportAttempt
         formhelper_class = FileImportAttemptFilterFormHelper

@@ -111,7 +111,9 @@ class PreliminaryFacility(
         help_text="Additional information or comments from the applicant",
     )
 
-    location = PointField(blank=True, null=True, spatial_index=True, geography=True)
+    location = PointField(
+        blank=True, null=True, spatial_index=True, geography=True, srid=4326
+    )
     pcase = ForeignKey("PreliminaryCase", on_delete=CASCADE, related_name="pfacilities")
 
     class Meta:
@@ -162,7 +164,9 @@ class Facility(
         verbose_name="FCC File Number",
         help_text="(if known)",
     )
-    location = PointField(blank=True, null=True, spatial_index=True, geography=True)
+    location = PointField(
+        blank=True, null=True, spatial_index=True, geography=True, srid=4326
+    )
     latitude = CharField(
         blank=True,
         null=True,

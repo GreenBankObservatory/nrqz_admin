@@ -2,9 +2,17 @@ from cases.models import Attachment
 
 
 def handle_case(
-    row_data, form_map, applicant=None, contact=None, file_import_attempt=None
+    row_data,
+    form_map,
+    data=None,
+    applicant=None,
+    contact=None,
+    file_import_attempt=None,
 ):
-    row = row_data.data
+    if data is not None:
+        row = data
+    else:
+        row = row_data.data
     # Derive the case model (Could be Case or PCase) from the form_map
     applicant = getattr(applicant, "id", None)
     contact = getattr(contact, "id", None)
@@ -13,17 +21,18 @@ def handle_case(
         row, extra={"applicant": applicant, "contact": contact}
     )
     if not case_form:
-        return None, None
+        return None, False
     case_num = case_form["case_num"].value()
     if model.objects.filter(case_num=case_num).exists():
         case = model.objects.get(case_num=case_num)
-        case_audit = None
+        case_created = False
     else:
-        case, case_audit = form_map.save_with_audit(
+        case, __ = form_map.save_with_audit(
             form=case_form, row_data=row_data, file_import_attempt=file_import_attempt
         )
+        case_created = True
 
-    return case, case_audit
+    return case, case_created
 
 
 def handle_attachments(row_data, case, form_maps, file_import_attempt=None):

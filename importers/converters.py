@@ -30,6 +30,19 @@ COORD_PATTERN_STR = (
 )
 COORD_PATTERN = re.compile(COORD_PATTERN_STR)
 
+CASE_REGEX_STR = r"^(?P<case_num>\d+).*"
+CASE_REGEX = re.compile(CASE_REGEX_STR)
+
+
+def coerce_case_num(nrqz_id):
+    match = CASE_REGEX.match(str(nrqz_id))
+
+    if not match:
+        raise ValueError(
+            f"Could not parse NRQZ ID '{nrqz_id}' using '{CASE_REGEX_STR}'!"
+        )
+    return match["case_num"]
+
 
 def coerce_feet_to_meters(value):
     if value in [None, ""]:
@@ -225,6 +238,7 @@ def coerce_long(value):
 
 
 def coerce_location_(latitude, longitude):
+
     converted_latitude = coerce_lat(latitude)
     converted_longitude = coerce_long(longitude)
     # tqdm.write(f"Converted latitude from {latitude} to {converted_latitude}")
@@ -232,13 +246,16 @@ def coerce_location_(latitude, longitude):
     if converted_latitude is None or converted_longitude is None:
         return None
         # raise ValueError(f"Invalid coordinates given: ({latitude!r}, {longitude!r})")
-    point = GEOSGeometry(f"Point({converted_longitude} {converted_latitude})")
+    point = GEOSGeometry(
+        f"Point({converted_longitude} {converted_latitude})", srid=4326
+    )
     # tqdm.write(f"Created point: {point.coords}")
     return point
 
 
 # NRQZ LOCS!
-def coerce_location(latitude, longitude):
+# Note that these are NOT both required, because location is not a required field
+def coerce_location(latitude=None, longitude=None):
     point = coerce_location_(latitude, longitude)
     if point is None:
         return point
@@ -270,3 +287,5 @@ def coerce_location(latitude, longitude):
             )
 
         raise ValueError(error_str)
+
+    return point

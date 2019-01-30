@@ -15,7 +15,7 @@ from django_import_data.models import RowData
 class Command(BaseImportCommand):
     help = "Import Access Preliminary Application Data"
 
-    def handle_row(self, row_data, file_import_attempt):
+    def handle_record(self, row_data, file_import_attempt):
         applicant, applicant_audit = APPLICANT_FORM_MAP.save_with_audit(
             row_data, file_import_attempt=file_import_attempt
         )
