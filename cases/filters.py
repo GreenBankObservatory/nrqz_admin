@@ -46,7 +46,6 @@ class PointFilter(django_filters.Filter):
 
     def filter(self, qs, value):
         if value:
-            print("value: ", value)
             point, radius, unit = value
             return qs.filter(location__distance_lte=(point, Distance(**{unit: radius})))
         else:

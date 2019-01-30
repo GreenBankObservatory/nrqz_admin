@@ -637,7 +637,7 @@ class SearchView(SingleTableMixin, ListView):
         except ValueError:
             pass
 
-        print("No exact match by case number; continuing to full text search")
+        # print("No exact match by case number; continuing to full text search")
         return Case.objects.annotate(
             search=SearchVector("applicant__name", "contact__name", "comments")
         ).filter(search=query)

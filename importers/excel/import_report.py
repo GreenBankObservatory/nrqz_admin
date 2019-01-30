@@ -2,6 +2,8 @@ import json
 from collections import namedtuple, OrderedDict
 from pprint import pformat
 
+from tqdm import tqdm
+
 
 def format_total(num_created, num_processed):
     return f"{num_created}/{num_processed} " f"({(num_created/num_processed)*100:.3f}%)"
@@ -15,27 +17,27 @@ class ExcelCollectionImportReport:
         ]
 
     def print_summary(self, summary):
-        print("Summary:")
+        tqdm.write("Summary:")
         for error_category, errors_by_type in summary.items():
-            print(f"  Summary of ALL {error_category!r}:")
+            tqdm.write(f"  Summary of ALL {error_category!r}:")
             for error_type, errors_ in errors_by_type.items():
-                print(f"    Unique {error_type!r}:")
+                tqdm.write(f"    Unique {error_type!r}:")
                 for error_ in sorted([str(e) for e in errors_]):
                     formatted_error = "\n".join(
                         [f"      {line}" for line in pformat(error_).split("\n")]
                     )
-                    print(formatted_error)
+                    tqdm.write(formatted_error)
 
     def print_report(self):
-        print("Report:")
+        tqdm.write("Report:")
         for import_reporter in self.import_reporters:
             fatal_errors = import_reporter.get_fatal_errors()
             if import_reporter.has_errors(fatal_errors):
-                print(f"  Batch {import_reporter.filename} rejected:")
+                tqdm.write(f"  Batch {import_reporter.filename} rejected:")
                 for error_category, errors_by_type in fatal_errors.items():
-                    print(f"    {error_category!r} errors by type:")
+                    tqdm.write(f"    {error_category!r} errors by type:")
                     for error_type, errors_ in errors_by_type.items():
-                        print(f"      {error_type!r}:")
+                        tqdm.write(f"      {error_type!r}:")
                         for error_ in errors_:
                             formatted_error = "\n".join(
                                 [
@@ -43,11 +45,11 @@ class ExcelCollectionImportReport:
                                     for line in pformat(error_).split("\n")
                                 ]
                             )
-                            print(formatted_error)
+                            tqdm.write(formatted_error)
             else:
                 non_fatal_errors = import_reporter.get_non_fatal_errors()
                 if import_reporter.has_errors(non_fatal_errors):
-                    print(
+                    tqdm.write(
                         f"  Batch {import_reporter.filename} created with the following caveats:"
                     )
                     formatted_summary = "\n".join(
@@ -56,34 +58,34 @@ class ExcelCollectionImportReport:
                             for line in pformat(non_fatal_errors).split("\n")
                         ]
                     )
-                    print(formatted_summary)
+                    tqdm.write(formatted_summary)
                 else:
-                    print(
+                    tqdm.write(
                         f"  Batch {import_reporter.filename} created without any issues"
                     )
 
     def print_totals(self, totals):
-        print("Totals:")
+        tqdm.write("Totals:")
 
-        print("  Batches:")
+        tqdm.write("  Batches:")
         formatted_batches = format_total(
             totals["batches"]["created"], totals["batches"]["processed"]
         )
-        print(f"    Created: {formatted_batches}")
+        tqdm.write(f"    Created: {formatted_batches}")
         formatted_batches_rolled_back = format_total(
             totals["batches"]["created_but_rolled_back"], totals["batches"]["processed"]
         )
-        print(f"    Created but rolled back: {formatted_batches_rolled_back}")
+        tqdm.write(f"    Created but rolled back: {formatted_batches_rolled_back}")
 
-        print("  Cases:")
+        tqdm.write("  Cases:")
         formatted_cases = format_total(
             totals["cases"]["created"], totals["cases"]["processed"]
         )
-        print(f"    Created: {formatted_cases}")
+        tqdm.write(f"    Created: {formatted_cases}")
         formatted_cases_rolled_back = format_total(
             totals["cases"]["created_but_rolled_back"], totals["cases"]["processed"]
         )
-        print(f"    Created but rolled back: {formatted_cases_rolled_back}")
+        tqdm.write(f"    Created but rolled back: {formatted_cases_rolled_back}")
 
         cases_with_errors = (
             totals["cases"]["processed"]
@@ -93,24 +95,24 @@ class ExcelCollectionImportReport:
         formatted_cases_with_errors = format_total(
             cases_with_errors, totals["cases"]["processed"]
         )
-        print(f"    Errors: {formatted_cases_with_errors}")
+        tqdm.write(f"    Errors: {formatted_cases_with_errors}")
 
-        print("  Facilities:")
+        tqdm.write("  Facilities:")
         formatted_facilities = format_total(
             totals["facilities"]["created"], totals["facilities"]["processed"]
         )
-        print(f"    Created: {formatted_facilities}")
+        tqdm.write(f"    Created: {formatted_facilities}")
 
         # formatted_batches_no_errors = format_total(
         #     totals["batches"]["created_no_errors"], totals["batches"]["processed"]
         # )
-        # print(f"    with NO errors: {formatted_batches_no_errors}")
+        # tqdm.write(f"    with NO errors: {formatted_batches_no_errors}")
 
         formatted_facilities_rolled_back = format_total(
             totals["facilities"]["created_but_rolled_back"],
             totals["facilities"]["processed"],
         )
-        print(f"    Created but rolled back: {formatted_facilities_rolled_back}")
+        tqdm.write(f"    Created but rolled back: {formatted_facilities_rolled_back}")
 
         facilities_with_errors = (
             totals["facilities"]["processed"]
@@ -120,8 +122,8 @@ class ExcelCollectionImportReport:
         formatted_facilities_with_errors = format_total(
             facilities_with_errors, totals["facilities"]["processed"]
         )
-        print(f"    Errors: {formatted_facilities_with_errors}")
-        # print(
+        tqdm.write(f"    Errors: {formatted_facilities_with_errors}")
+        # tqdm.write(
         #     f"  Successfully created {total_batches_created}/{total_files_processed} Batches, "
         #     f"{total_cases_created}/{total_cases_processed} Cases, "
         #     f"and {total_facilities_created}/{total_facilities_processed} Facilities:"
@@ -171,13 +173,13 @@ class ExcelCollectionImportReport:
                 import_reporter.facilities_created
             )
 
-        print("-" * 80)
+        tqdm.write("-" * 80)
         self.print_summary(report_summary)
 
-        print("-" * 80)
+        tqdm.write("-" * 80)
         self.print_report()
 
-        print("-" * 80)
+        tqdm.write("-" * 80)
         # self.print_totals(totals)
 
 

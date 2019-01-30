@@ -46,7 +46,7 @@ class PointField(forms.MultiValueField):
             raise forms.ValidationError(self.error_messages["invalid"], code="invalid")
 
     def compress(self, data_list):
-        print("data list", data_list)
+        # print("data list", data_list)
         if data_list:
             expected_length = 4
             if len(data_list) != expected_length:
@@ -70,14 +70,14 @@ class PointField(forms.MultiValueField):
             if (latitude_clean or longitude_clean) and not radius:
                 raise forms.ValidationError("All location fields must be provided!")
 
-            print("Now parsing latlong")
+            # print("Now parsing latlong")
             try:
                 latitude = parse_coord(latitude_orig)
-                print(f"latitude converted from {latitude_orig!r} {latitude!r}")
+                # print(f"latitude converted from {latitude_orig!r} {latitude!r}")
                 longitude = parse_coord(longitude_orig)
-                print(f"longitude converted from {longitude_orig!r} {longitude!r}")
+                # print(f"longitude converted from {longitude_orig!r} {longitude!r}")
             except ValueError as error:
-                print("ValidationError")
+                # print("ValidationError")
                 raise forms.ValidationError(
                     "All location fields must be provided!"
                 ) from error

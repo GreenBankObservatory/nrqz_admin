@@ -1,12 +1,11 @@
 import json
 import os
 from pathlib import Path
-from pprint import pprint
 
 from django.core.management import call_command
+from django.db import transaction
 
-# from django.db import transaction
-
+from tqdm import tqdm
 from django_import_data import BaseImportCommand
 
 
@@ -40,9 +39,7 @@ class Command(BaseImportCommand):
             default=os.path.join(SCRIPT_DIR, "importer_spec.json"),
         )
 
-    # def handle_subcommands(self, command_info):
-
-    # @transaction.atomic
+    @transaction.atomic
     def handle(self, *args, **options):
         with open(options.pop("importer_spec")) as file:
             command_info = json.load(file)
@@ -61,10 +58,12 @@ class Command(BaseImportCommand):
                     "subcommands! Check your spelling, etc., and try again"
                 )
         if preview:
-            print("The following commands would have been executed:")
+            tqdm.write("The following commands would have been executed:")
 
-        for command, command_args in command_info.items():
-            print(f"--- {command} ---")
+        for command, command_args in tqdm(
+            command_info.items(), unit="importers", desc="Overall Progress"
+        ):
+            tqdm.write(f"--- {command} ---")
             paths = command_args.pop("paths")
             sub_options = {
                 **command_args,
@@ -77,7 +76,7 @@ class Command(BaseImportCommand):
                 },
             }
             if preview:
-                print(f"call_command({command!r}, *{paths!r}, **{sub_options!r})")
+                tqdm.write(f"call_command({command!r}, *{paths!r}, **{sub_options!r})")
             else:
                 call_command(command, *paths, **sub_options)
-            print(f"--- DONE ---")
+            tqdm.write(f"--- DONE ---")
