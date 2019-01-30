@@ -26,16 +26,6 @@ class Command(BaseImportCommand):
             action="store_true",
             help="If given, drop into an interactive shell upon unhandled exception",
         )
-
-        parser.add_argument(
-            "-p",
-            "--pattern",
-            default=r".*\.(xls.?|csv)$",
-            help=(
-                "Regular expression used to identify Excel application files. "
-                "Used only when a directory is given in path"
-            ),
-        )
         parser.add_argument(
             "-t",
             "--threshold",
@@ -50,17 +40,7 @@ class Command(BaseImportCommand):
             help="Indicate that no pre-processing needs to be done on the given input file(s)",
         )
 
-    @transaction.atomic
-    def handle(self, *args, **options):
-        files_to_process = self.determine_files_to_process(
-            options["paths"], pattern=options["pattern"]
-        )
-
-        limit = options.get("limit", None)
-        files_to_process = self.determine_records_to_process(
-            files_to_process, limit=limit
-        )
-
+    def handle_files(self, files_to_process, **options):
         eci = ExcelCollectionImporter(
             paths=files_to_process,
             durable=options["durable"],
@@ -68,8 +48,3 @@ class Command(BaseImportCommand):
             preprocess=not bool(options["no_preprocess"]),
         )
         file_import_attempt = eci.process()
-
-        eci.report.process()
-        if options["dry_run"]:
-            transaction.set_rollback(True)
-            tqdm.write("DRY RUN; rolling back changes")

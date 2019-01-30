@@ -3,13 +3,15 @@ from cases.forms import PersonForm, PreliminaryCaseForm, PreliminaryFacilityForm
 
 from django_import_data import OneToOneFieldMap, ManyToOneFieldMap, FormMap
 from importers.converters import (
-    coerce_scientific_notation,
-    coerce_none,
+    coerce_datetime,
     coerce_feet_to_meters,
     coerce_location,
+    coerce_none,
+    coerce_positive_float,
+    coerce_positive_int,
+    coerce_scientific_notation,
     convert_case_num,
 )
-from importers.access_application.fieldmap import coerce_datetime, coerce_positive_int
 
 ACCESS_PRELIM_TECHNICAL = "access_prelim_technical"
 
@@ -40,7 +42,9 @@ class PfacilityFormMap(FormMap):
         OneToOneFieldMap(
             to_field="original_created_on", converter=coerce_datetime, from_field="DATE"
         ),
-        OneToOneFieldMap(to_field="freq_low", converter=None, from_field="FREQUENCY"),
+        OneToOneFieldMap(
+            to_field="freq_low", converter=coerce_positive_float, from_field="FREQUENCY"
+        ),
         OneToOneFieldMap(
             to_field="antenna_model_number", converter=None, from_field="ANT_MODEL"
         ),

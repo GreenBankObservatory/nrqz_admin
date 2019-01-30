@@ -6,7 +6,7 @@ from django_import_data import FormMap, OneToOneFieldMap, FormMapSet
 
 from cases.forms import AttachmentForm, CaseForm, PersonForm
 from importers.converters import (
-    coerce_num,
+    coerce_float,
     coerce_positive_int,
     coerce_datetime,
     coerce_bool,

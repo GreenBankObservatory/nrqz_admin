@@ -3,11 +3,12 @@
 from cases.forms import AttachmentForm, PersonForm, PreliminaryCaseForm
 
 from django_import_data import FormMap, OneToOneFieldMap
-from importers.access_application.fieldmap import (
+from importers.converters import (
     coerce_positive_int,
     coerce_bool,
     coerce_path,
     coerce_datetime,
+    convert_case_num,
 )
 from utils.constants import ACCESS_PRELIM_APPLICATION
 
@@ -45,7 +46,7 @@ CONTACT_FORM_MAP = ContactFormMap()
 class PcaseFormMap(FormMap):
     field_maps = [
         OneToOneFieldMap(
-            to_field="case_num", converter=coerce_positive_int, from_field="PNRQZ_NO"
+            to_field="case_num", converter=convert_case_num, from_field="PNRQZ_NO"
         ),
         OneToOneFieldMap(to_field="comments", converter=None, from_field="COMMENTS"),
         OneToOneFieldMap(

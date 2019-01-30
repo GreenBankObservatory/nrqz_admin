@@ -1,19 +1,19 @@
 """Field mappings for Excel Data"""
 
-import re
-
-from cases.forms import CaseForm, FacilityForm
 from django_import_data import (
     FormMap,
     OneToOneFieldMap,
     OneToManyFieldMap,
     ManyToOneFieldMap,
 )
+
+from cases.forms import CaseForm, FacilityForm
 from importers.converters import (
-    coerce_num,
+    coerce_positive_float,
+    coerce_float,
     coerce_bool,
     coerce_location,
-    coerce_case_num,
+    convert_nrqz_id_to_case_num,
 )
 
 
@@ -30,16 +30,17 @@ EXCEL = "excel"
 
 class CaseFormMap(FormMap):
     field_maps = [
-        OneToOneFieldMap(
+        ManyToOneFieldMap(
             to_field="case_num",
-            converter=coerce_case_num,
-            from_field={
+            converter=convert_nrqz_id_to_case_num,
+            from_fields={
                 "nrqz_id": [
                     "NRQZ ID (to be assigned by NRAO)",
                     "NRQZ ID",
                     "NRQZ ID     (Assigned by NRAO. Do not put any of your data in this column.)",
                     "NRQZ ID (to be assigned byRAO)",
-                ]
+                ],
+                "loc": ["LOC"],
             },
         )
     ]
@@ -54,7 +55,7 @@ class FacilityFormMap(FormMap):
     field_maps = [
         OneToOneFieldMap(
             to_field="freq_low",
-            converter=coerce_num,
+            converter=coerce_positive_float,
             from_field={
                 "freq_low": [
                     "Freq Low (MHz)",
@@ -65,7 +66,6 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="site_name",
-            converter=None,
             from_field={
                 "site_name": [
                     "Site Name",
@@ -77,12 +77,10 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="call_sign",
-            converter=None,
             from_field={"call_sign": ["Call Sign", "Call Sign (optional)"]},
         ),
         OneToOneFieldMap(
             to_field="fcc_file_number",
-            converter=None,
             from_field={
                 "fcc_file_number": [
                     "FCC File Number",
@@ -93,7 +91,6 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="latitude",
-            converter=None,
             # TODO: CONSOLIDATE
             from_field={
                 "latitude": [
@@ -107,7 +104,6 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="longitude",
-            converter=None,
             # TODO: CONSOLIDATE
             from_field={
                 "longitude": [
@@ -146,7 +142,7 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="amsl",
-            converter=coerce_num,
+            converter=coerce_positive_float,
             from_field={
                 "amsl": [
                     "AMSL (m)",
@@ -158,7 +154,7 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="agl",
-            converter=coerce_num,
+            converter=coerce_positive_float,
             from_field={
                 "agl": [
                     "AGL (m)",
@@ -171,7 +167,7 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="freq_high",
-            converter=coerce_num,
+            converter=coerce_positive_float,
             from_field={
                 "freq_high": [
                     "Freq High (MHz)",
@@ -182,7 +178,7 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="bandwidth",
-            converter=coerce_num,
+            converter=coerce_positive_float,
             from_field={
                 "bandwidth": [
                     "Bandwidth (MHz)",
@@ -195,7 +191,7 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="max_output",
-            converter=coerce_num,
+            converter=coerce_positive_float,
             from_field={
                 "max_output": [
                     "Max Tx Pwr (W)",
@@ -207,7 +203,7 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="antenna_gain",
-            converter=coerce_num,
+            converter=coerce_positive_float,
             from_field={
                 "antenna_gain": [
                     "Antenna Gain (dBi)",
@@ -219,12 +215,11 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="system_loss",
-            converter=coerce_num,
+            converter=coerce_positive_float,
             from_field={"system_loss": ["System Loss (dB)", "System Loss (dBi)"]},
         ),
         OneToOneFieldMap(
             to_field="main_beam_orientation",
-            converter=None,
             from_field={
                 "main_beam_orientation": [
                     "Main Beam Orientation (All Sectors)",
@@ -234,7 +229,6 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="mechanical_downtilt",
-            converter=None,
             from_field={
                 "mechanical_downtilt": [
                     "Mechanical Downtilt (All Sectors)",
@@ -244,7 +238,6 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="electrical_downtilt",
-            converter=None,
             from_field={
                 "electrical_downtilt": [
                     "Electrical Downtilt (All Sectors)",
@@ -255,7 +248,6 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="antenna_model_number",
-            converter=None,
             from_field={
                 "antenna_model_number": [
                     "Antenna Model #",
@@ -268,7 +260,6 @@ class FacilityFormMap(FormMap):
         # TODO:
         OneToOneFieldMap(
             to_field="nrqz_id",
-            converter=None,
             from_field={
                 "nrqz_id": [
                     "NRQZ ID (to be assigned by NRAO)",
@@ -280,7 +271,6 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="tx_per_sector",
-            converter=None,
             from_field={
                 "tx_per_sector": [
                     "Number of Transmitters per sector",
@@ -294,7 +284,6 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="tx_antennas_per_sector",
-            converter=None,
             from_field={
                 "tx_antennas_per_sector": [
                     "Number of TX antennas per sector",
@@ -307,7 +296,6 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="technology",
-            converter=None,
             from_field={
                 "technology": [
                     "Technology 2G, 3G, 4G, other (specify)",
@@ -341,7 +329,6 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="uses_quad_or_octal_polarization",
-            converter=None,
             from_field={
                 "uses_quad_or_octal_polarization": [
                     "If this facility uses Quad or Octal polarization, specify type here"
@@ -350,7 +337,7 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="num_quad_or_octal_ports_with_feed_power",
-            converter=coerce_num,
+            converter=coerce_float,
             from_field={
                 "num_quad_or_octal_ports_with_feed_power": [
                     "Number of Quad or Octal ports with  feed power"
@@ -359,7 +346,7 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="tx_power_pos_45",
-            converter=coerce_num,
+            converter=coerce_float,
             from_field={
                 "tx_power_pos_45": [
                     'If YES to Col. "W", then what is the Max TX output PWR at +45 degrees',
@@ -370,7 +357,7 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="tx_power_neg_45",
-            converter=coerce_num,
+            converter=coerce_float,
             from_field={
                 "tx_power_neg_45": [
                     'If YES to Col. "W", then what is the Max TX output PWR at -45 degrees',
@@ -380,7 +367,6 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="comments",
-            converter=None,
             from_field={
                 "comments": [
                     "",
@@ -460,7 +446,7 @@ class FacilityFormMap(FormMap):
             converter=None,
             from_field={"height_of_first_obstacle": ["Height of 1st obstacle (ft)"]},
         ),
-        OneToOneFieldMap(to_field="loc", converter=None, from_field={"loc": ["LOC"]}),
+        # OneToOneFieldMap(to_field="loc", converter=None, from_field={"loc": ["LOC"]}),
         OneToOneFieldMap(
             to_field="max_aerpd",
             converter=None,

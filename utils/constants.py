@@ -15,3 +15,4 @@ NAM_APPLICATION = "nam_application"
 # Empirically determined. This is solely to obviously-wrong case numbers
 # from being imported (of which there are two at this time)
 MAX_VALID_CASE_NUMBER = 11690
+MIN_VALID_CASE_NUMBER = 100

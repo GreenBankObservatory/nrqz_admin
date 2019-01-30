@@ -15,7 +15,7 @@ from tqdm import tqdm
 from django.contrib.gis.geos import GEOSGeometry, GEOSException
 
 from utils.coord_utils import dms_to_dd
-from utils.constants import MAX_VALID_CASE_NUMBER
+from utils.constants import MIN_VALID_CASE_NUMBER, MAX_VALID_CASE_NUMBER
 
 FEET_IN_A_METER = 0.3048
 
@@ -34,25 +34,36 @@ CASE_REGEX_STR = r"^(?P<case_num>\d+).*"
 CASE_REGEX = re.compile(CASE_REGEX_STR)
 
 
-def coerce_case_num(nrqz_id):
+def convert_nrqz_id_to_case_num(nrqz_id, loc=None):
     match = CASE_REGEX.match(str(nrqz_id))
+    if loc and not match:
+        tqdm.write(f"loc: {loc}")
+        match = CASE_REGEX.match(str(loc))
 
     if not match:
         raise ValueError(
             f"Could not parse NRQZ ID '{nrqz_id}' using '{CASE_REGEX_STR}'!"
         )
-    return match["case_num"]
+    return convert_case_num(match["case_num"])
 
 
 def coerce_feet_to_meters(value):
-    if value in [None, ""]:
-        return value
-
-    feet = float(value)
+    feet = coerce_positive_float(value)
+    if feet is None:
+        return feet
     return feet * FEET_IN_A_METER
 
 
 def coerce_scientific_notation(value):
+    # First, assume that it _isn't_ scientific notation,
+    # and is instead a simple float (this does happen)
+    try:
+        return float(value)
+    except ValueError:
+        pass
+
+    # If that doesn't work, we'll try to convert it from
+    # scientific notation
     if not value.strip():
         return None
     match = SCI_REGEX.search(value)
@@ -134,11 +145,19 @@ def coerce_datetime(value):
 
 
 def coerce_positive_int(value):
-    num = coerce_num(value)
+    num = coerce_float(value)
     if num is None or num < 1:
         return None
 
     return int(num)
+
+
+def coerce_positive_float(value):
+    num = coerce_float(value)
+    if num is None or num < 1:
+        return None
+
+    return float(num)
 
 
 def convert_case_num(value):
@@ -150,6 +169,12 @@ def convert_case_num(value):
         raise ValueError(
             f"Case number {case_num} is larger than maximum "
             f"acceptable value {MAX_VALID_CASE_NUMBER}"
+        )
+
+    elif case_num < MIN_VALID_CASE_NUMBER:
+        raise ValueError(
+            f"Case number {case_num} is smaller than minimum "
+            f"acceptable value {MIN_VALID_CASE_NUMBER}"
         )
 
     return case_num
@@ -184,7 +209,7 @@ def coerce_str(value):
         return value
 
 
-def coerce_num(value):
+def coerce_float(value):
     """Coerce a string to a number, or to None"""
 
     clean_value = str(value).strip().lower()

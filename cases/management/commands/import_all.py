@@ -39,7 +39,35 @@ class Command(BaseImportCommand):
             default=os.path.join(SCRIPT_DIR, "importer_spec.json"),
         )
 
-    @transaction.atomic
+    def handle_subcommands(self, command_info, preview, **options):
+        for command, command_args in tqdm(
+            command_info.items(), unit="importers", desc="Overall Progress"
+        ):
+            tqdm.write(f"--- {command} ---")
+            paths = command_args.pop("paths")
+            sub_options = {
+                **command_args,
+                # TODO: Would be nice to fix this; duplicated
+                # **options
+                **{
+                    option: options[option]
+                    for option in [
+                        "limit",
+                        "rows",
+                        "overwrite",
+                        "dry_run",
+                        "no_transaction",
+                        "start_index",
+                        "end_index",
+                    ]
+                    if option in options
+                },
+            }
+            if preview:
+                tqdm.write(f"call_command({command!r}, *{paths!r}, **{sub_options!r})")
+            else:
+                call_command(command, *paths, **sub_options)
+
     def handle(self, *args, **options):
         with open(options.pop("importer_spec")) as file:
             command_info = json.load(file)
@@ -60,23 +88,23 @@ class Command(BaseImportCommand):
         if preview:
             tqdm.write("The following commands would have been executed:")
 
-        for command, command_args in tqdm(
-            command_info.items(), unit="importers", desc="Overall Progress"
-        ):
-            tqdm.write(f"--- {command} ---")
-            paths = command_args.pop("paths")
-            sub_options = {
-                **command_args,
-                # TODO: Would be nice to fix this; duplicated
-                # **options
-                **{
-                    option: options[option]
-                    for option in ["limit", "rows", "overwrite", "dry_run"]
-                    if option in options
-                },
-            }
-            if preview:
-                tqdm.write(f"call_command({command!r}, *{paths!r}, **{sub_options!r})")
-            else:
-                call_command(command, *paths, **sub_options)
-            tqdm.write(f"--- DONE ---")
+        # If user has turned off transaction, then don't open one. Also
+        # pass the option through to the subcommand(s) so that they don't
+        # open one either
+        if options["no_transaction"]:
+            self.handle_subcommands(command_info, preview, **options)
+        # If the user has not turned of transaction, then DO open one
+        else:
+            with transaction.atomic():
+                # Note that we have to pass the no_transaction option through manually
+                # to avoid subcommands from creating their own
+                self.handle_subcommands(
+                    command_info, preview, **{**options, "no_transaction": True}
+                )
+
+                # Handle rollback here, since subcommands won't be doing it
+                if options["dry_run"]:
+                    transaction.set_rollback(True)
+                    tqdm.write("DRY RUN; rolling back changes")
+
+        tqdm.write(f"--- DONE ---")

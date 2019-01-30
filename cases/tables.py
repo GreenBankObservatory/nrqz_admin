@@ -79,15 +79,28 @@ class PreliminaryFacilityTable(tables.Table):
 
 
 class FacilityTable(tables.Table):
-    id = tables.Column(linkify=True)
-    nrqz_id = tables.Column(linkify=True)
+    nrqz_id = tables.Column(linkify=True, empty_values=(), order_by="case__case_num")
     comments = TrimmedTextColumn()
-    structure = tables.Column(linkify=True)
+    # structure = tables.Column(linkify=True)
+    case = tables.Column(linkify=True)
 
     class Meta:
         model = models.Facility
-        fields = ["id"] + FacilityFilter.Meta.fields
-        order_by = ["nrqz_id"]
+        fields = [
+            field
+            for field in FacilityFilter.Meta.fields
+            if field not in ["structure", "data_source", "site_num"]
+        ]
+        order_by = ["-nrqz_id", "freq_low"]
+
+    def render_nrao_aerpd(self, value):
+        return f"{value:.2f}"
+
+    def render_nrqz_id(self, record):
+        return record.nrqz_id or record.case.case_num
+
+    def render_case(self, value):
+        return value.case_num
 
     # TODO: Consolidate!
     def render_location(self, value):
@@ -96,8 +109,11 @@ class FacilityTable(tables.Table):
         return coords_to_string(latitude=latitude, longitude=longitude)
 
     def render_dominant_path(self, value):
-        if value == "Scatter":
+        clean_value = value.lower()
+        if clean_value == "scatter":
             return "S"
+        elif clean_value == "diffraction":
+            return "D"
 
         return value
 
@@ -143,7 +159,7 @@ class CaseTable(tables.Table):
     contact = tables.Column(linkify=True)
     comments = TrimmedTextColumn()
 
-    nrqz_approval = tables.Column(empty_values=())
+    nrao_approval = tables.Column(empty_values=())
     sgrs_approval = tables.Column(empty_values=())
 
     class Meta:

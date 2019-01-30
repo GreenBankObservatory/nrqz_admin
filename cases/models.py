@@ -515,7 +515,7 @@ class Case(
     @property
     def nrao_approval(self):
         approvals = self.facilities.values("nrao_approval").distinct()
-        if approvals.filter(nrao_approval=None).exists():
+        if not approvals.exists() or approvals.filter(nrao_approval=None).exists():
             return None
         if approvals.filter(nrao_approval=False).exists():
             return False
@@ -535,7 +535,7 @@ class Case(
         approved by SGRS"""
 
         approvals = self.facilities.values("sgrs_approval").distinct()
-        if approvals.filter(sgrs_approval=None).exists():
+        if not approvals.exists() or approvals.filter(sgrs_approval=None).exists():
             return None
         if approvals.filter(sgrs_approval=False).exists():
             return False
@@ -562,7 +562,7 @@ class Person(
     # organization = ForeignKey("Organization", on_delete=CASCADE)
 
     def __str__(self):
-        return f"{self.name} ({self.phone})"
+        return f"{self.name}"
 
     def get_absolute_url(self):
         return reverse("person_detail", args=[str(self.id)])

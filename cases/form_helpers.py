@@ -71,17 +71,10 @@ class FacilityFilterFormHelper(FormHelper):
 
     layout = CollapsibleFilterFormLayout(
         Div(
-            Div("nrqz_id", "site_num", css_class="col-sm-2"),
-            Div("freq_low", "freq_high", css_class="col-sm-5"),
-            Div("structure", "site_name", css_class="col-sm-2"),
-            Div(
-                "main_beam_orientation",
-                "antenna_model_number",
-                "nrao_aerpd",
-                "az_bearing",
-                "dominant_path",
-                css_class="col-sm-3",
-            ),
+            Div("nrqz_id", "case", "site_num", css_class="col-sm-2"),
+            Div("freq_low", "freq_high", "main_beam_orientation", css_class="col-sm-5"),
+            Div("structure", "site_name", "antenna_model_number", css_class="col-sm-2"),
+            Div("nrao_aerpd", "az_bearing", "dominant_path", css_class="col-sm-3"),
             css_class="row",
         ),
         Div(
@@ -132,15 +125,15 @@ class CaseFilterFormHelper(FormHelper):
 
     layout = CollapsibleFilterFormLayout(
         Div(
-            Div("case_num", "applicant", "contact", css_class="col"),
-            Div("call_sign", "freq_coord", "fcc_file_num", css_class="col"),
+            Div("case_num", "applicant", "contact", "nrao_approval", css_class="col"),
             Div(
-                "completed",
-                "nrao_approval",
+                "call_sign",
+                "freq_coord",
+                "fcc_file_num",
                 "sgrs_approval",
-                "comments",
                 css_class="col",
             ),
+            Div("original_created_on", "completed", "comments", css_class="col"),
             css_class="row",
         ),
         extra_buttons=[

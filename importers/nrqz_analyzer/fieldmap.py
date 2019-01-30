@@ -1,18 +1,13 @@
-from django_import_data import FormMap, OneToOneFieldMap, ManyToOneFieldMap, FormMapSet
+"""Field mappings for NRQZ Analyzer Data"""
 
-from cases.forms import (
-    AttachmentForm,
-    CaseForm,
-    PersonForm,
-    FacilityForm,
-    StructureForm,
-)
+from django_import_data import FormMap, OneToOneFieldMap, ManyToOneFieldMap
+
+from cases.forms import CaseForm, PersonForm, FacilityForm, StructureForm
 
 from importers.converters import (
-    convert_case_num,
     coerce_location,
-    coerce_case_num,
-    coerce_num,
+    convert_nrqz_id_to_case_num,
+    coerce_float,
 )
 
 NAM_APPLICATION = "nam_application"
@@ -57,9 +52,8 @@ class ContactFormMap(FormMap):
 class CaseFormMap(FormMap):
     field_maps = [
         OneToOneFieldMap(
-            # from_field="cnumber", converter=convert_case_num, to_field="case_num"
             from_field="nrqzID",
-            converter=coerce_case_num,
+            converter=convert_nrqz_id_to_case_num,
             to_field="case_num",
         ),
         # TODO: Should this base Facility-level?
@@ -73,9 +67,8 @@ class FacilityFormMap(FormMap):
     field_maps = [
         OneToOneFieldMap(from_field="nrqzID", to_field="nrqz_id"),
         OneToOneFieldMap(
-            # from_field="cnumber", converter=convert_case_num, to_field="case_num"
             from_field="nrqzID",
-            converter=coerce_case_num,
+            converter=convert_nrqz_id_to_case_num,
             to_field="case_num",
         ),
         ManyToOneFieldMap(
@@ -99,7 +92,7 @@ class FacilityFormMap(FormMap):
         OneToOneFieldMap(from_field="fccfn", to_field="fcc_file_num"),
         OneToOneFieldMap(from_field="call", to_field="call_sign"),
         OneToOneFieldMap(
-            from_field="mxtxpo", converter=coerce_num, to_field="max_tx_power"
+            from_field="mxtxpo", converter=coerce_float, to_field="max_tx_power"
         ),
     ]
     form_class = FacilityForm
