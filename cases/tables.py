@@ -79,7 +79,9 @@ class PreliminaryFacilityTable(tables.Table):
 
 
 class FacilityTable(tables.Table):
-    nrqz_id = tables.Column(linkify=True, empty_values=(), order_by="case__case_num")
+    nrqz_id = tables.Column(
+        linkify=True, empty_values=(), order_by=["case__case_num", "-nrqz_id"]
+    )
     comments = TrimmedTextColumn()
     # structure = tables.Column(linkify=True)
     case = tables.Column(linkify=True)
