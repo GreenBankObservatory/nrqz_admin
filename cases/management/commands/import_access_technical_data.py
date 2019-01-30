@@ -13,6 +13,8 @@ from django_import_data.models import RowData
 class Command(BaseImportCommand):
     help = "Import Access Technical Data"
 
+    PROGRESS_TYPE = BaseImportCommand.PROGRESS_TYPES.ROW
+
     def handle_record(self, row_data, file_import_attempt):
         applicant, applicant_audit = APPLICANT_FORM_MAP.save_with_audit(
             row_data, file_import_attempt=file_import_attempt

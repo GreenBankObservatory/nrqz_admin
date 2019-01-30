@@ -16,6 +16,8 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 class Command(BaseImportCommand):
     help = "Import all NRQZ data"
 
+    PROGRESS_TYPE = None
+
     def add_arguments(self, parser):
         self.add_core_arguments(parser)
         parser.add_argument(

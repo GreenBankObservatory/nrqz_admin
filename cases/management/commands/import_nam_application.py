@@ -15,6 +15,8 @@ from importers.nrqz_analyzer.fieldmap import (
 class Command(BaseImportCommand):
     help = "Import NRQZ Application Maker Data"
 
+    PROGRESS_TYPE = BaseImportCommand.PROGRESS_TYPES.FILE
+
     def load_rows(self, path):
         with open(path, newline="", encoding="latin1") as file:
             lines = file.readlines()

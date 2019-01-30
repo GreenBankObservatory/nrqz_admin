@@ -16,6 +16,8 @@ from importers.excel.excel_importer import (
 class Command(BaseImportCommand):
     help = "Import Excel Technical Data"
 
+    PROGRESS_TYPE = BaseImportCommand.PROGRESS_TYPES.FILE
+
     def add_arguments(self, parser):
         super().add_arguments(parser)
         parser.add_argument(
@@ -55,10 +57,9 @@ class Command(BaseImportCommand):
         )
 
         limit = options.get("limit", None)
-        if limit is not None:
-            files_to_process = self.determine_records_to_process(
-                files_to_process, limit=limit
-            )
+        files_to_process = self.determine_records_to_process(
+            files_to_process, limit=limit
+        )
 
         eci = ExcelCollectionImporter(
             paths=files_to_process,
