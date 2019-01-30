@@ -330,6 +330,7 @@ class Facility(
     az_bearing = CharField(
         max_length=256, null=True, blank=True, verbose_name="AZ bearing degrees True"
     )
+    calc_az = FloatField(null=True, blank=True)
     num_tx_per_facility = IntegerField(
         null=True, blank=True, verbose_name="# of TX per facility"
     )

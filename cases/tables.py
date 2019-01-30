@@ -1,5 +1,7 @@
 """Custom django_tables2.Table sub-classes for cases app"""
 
+from math import degrees
+
 import django_tables2 as tables
 
 from utils.coord_utils import coords_to_string
@@ -96,6 +98,9 @@ class FacilityTable(tables.Table):
         order_by = ["-nrqz_id", "freq_low"]
 
     def render_nrao_aerpd(self, value):
+        return f"{value:.2f}"
+
+    def render_calc_az(self, value):
         return f"{value:.2f}"
 
     def render_nrqz_id(self, record):
