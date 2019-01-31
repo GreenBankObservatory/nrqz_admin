@@ -55,7 +55,7 @@ urlpatterns = [
         name="modelimportattempt_detail",
     ),
     # path("row-data/", views.RowDataListView.as_view(), name="rowdata_list"),
-    # path("row-data/<int:pk>/", RowDataDetailView.as_view(), name="rowdata_detail"),
+    path("row-data/<int:pk>/", RowDataDetailView.as_view(), name="rowdata_detail"),
     path(
         "person/create-from-audit/<int:attempt_pk>/",
         views.PersonCreateFromAuditView.as_view(),
