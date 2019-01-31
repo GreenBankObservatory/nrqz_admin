@@ -87,6 +87,7 @@ class FacilityTable(tables.Table):
     comments = TrimmedTextColumn()
     # structure = tables.Column(linkify=True)
     case = tables.Column(linkify=True)
+    path = tables.Column(empty_values=())
 
     class Meta:
         model = models.Facility
@@ -96,6 +97,11 @@ class FacilityTable(tables.Table):
             if field not in ["structure", "data_source", "site_num"]
         ]
         order_by = ["-nrqz_id", "freq_low"]
+
+    def render_path(self, record):
+        fia = record.model_import_attempt.file_import_attempt
+        path = fia.name[len("stripped_data_only_") :].replace("_", " ")
+        return path
 
     def render_nrao_aerpd(self, value):
         return f"{value:.2f}"
