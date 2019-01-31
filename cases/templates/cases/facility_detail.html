@@ -13,7 +13,6 @@
         </div>
 
         {% if facility.structure %}
-
         <div class="col">
             <a href="{% url 'structure_detail' facility.structure.id %}">View structure</a>
         </div>
@@ -28,6 +27,17 @@
 <h1>{{ facility }}</h1>
 {% include "cases/base_detail.html" %}
 
+<div class="row">
+    <div class="col-sm">
+        {% info_table facility "Misc. 1" unsorted_info1 %}
+    </div>
+    <div class="col-sm">
+        {% info_table facility "Misc. 2" unsorted_info2 %}
+    </div>
+    <div class="col-sm">
+        {% info_table facility "Misc. 3" unsorted_info3 %}
+    </div>
+</div>
 <div class="row">
     <div class="col-sm">
         <div class="row">

@@ -380,8 +380,8 @@ class CaseDetailView(DetailView):
             "si_waived",
             "si",
             "si_done",
+            "name",
         ]
-
         context["application_info"] = [
             "radio_service",
             "call_sign",
@@ -448,7 +448,35 @@ class FacilityDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         context["meta_info"] = ["id", "created_on", "modified_on"]
 
-        context["location_info"] = ["latitude", "longitude", "amsl", "agl"]
+        context["unsorted_info1"] = [
+            "asr_is_from_applicant",
+            "band_allowance",
+            "distance_to_first_obstacle",
+            "dominant_path",
+            "erpd_per_num_tx",
+            "height_of_first_obstacle",
+            "loc",
+        ]
+        context["unsorted_info2"] = [
+            "max_aerpd",
+            "max_erp_per_tx",
+            "max_gain",
+            "max_tx_power",
+            "nrao_aerpd",
+            "power_density_limit",
+            "sgrs_approval",
+            "tap_file",
+        ]
+        context["unsorted_info3"] = [
+            "tap",
+            "tx_power",
+            "aeirp_to_gbt",
+            "az_bearing",
+            "calc_az",
+            "num_tx_per_facility",
+            "nrao_approval",
+        ]
+        context["location_info"] = ["location", "amsl", "agl"]
         context["antenna_info"] = [
             "freq_low",
             "freq_high",
@@ -468,6 +496,7 @@ class FacilityDetailView(DetailView):
             "technology",
             "uses_split_sectorization",
             "uses_cross_polarization",
+            "uses_quad_or_octal_polarization",
             "num_quad_or_octal_ports_with_feed_power",
             "tx_power_pos_45",
             "tx_power_neg_45",
@@ -679,3 +708,12 @@ class SearchView(SingleTableMixin, ListView):
 
 def search(request):
     return HttpResponse("yo")
+
+
+def facility_as_kml_view(request, pk):
+    facility = Facility.objects.get(id=pk)
+    response = HttpResponse(
+        facility.location.kml, content_type="application/vnd.google-earth.kml+xml."
+    )
+    response["Content-Disposition"] = f'application; filename="{facility.nrqz_id}.kml"'
+    return response

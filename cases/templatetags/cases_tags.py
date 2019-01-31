@@ -5,13 +5,14 @@ import os
 
 from django_import_data.models import DjangoErrorJSONEncoder
 
+from django.urls import reverse
 from django import template
 from django.utils.safestring import mark_safe
 from pygments import highlight
 from pygments.lexers.data import JsonLexer
 from pygments.formatters import HtmlFormatter
 
-from utils.coord_utils import dd_to_dms
+from utils.coord_utils import dd_to_dms, coords_to_string
 
 register = template.Library()
 
@@ -115,14 +116,18 @@ def attachment_table(instance, title, fields):
 
 @register.inclusion_tag("cases/info_table.html")
 def location_table(instance, title, fields):
-    fields.remove("latitude")
-    latitude = getattr(instance, "latitude")
-    latitude_str = instance._meta.get_field("latitude").value_to_string(instance)
-    fields.remove("longitude")
-    longitude = getattr(instance, "longitude")
-    longitude_str = instance._meta.get_field("longitude").value_to_string(instance)
-    url = f"https://www.google.com/maps/place/{latitude},{longitude}"
-    rows = [("Coordinates", f"<a href={url}>({latitude_str}, {longitude_str})</a>")]
+    # fields.remove("latitude")
+    # latitude = getattr(instance, "latitude")
+    # latitude_str = instance._meta.get_field("latitude").value_to_string(instance)
+    # fields.remove("longitude")
+    # longitude = getattr(instance, "longitude")
+    # longitude_str = instance._meta.get_field("longitude").value_to_string(instance)
+    fields.remove("location")
+    longitude, latitude = instance.location.coords
+    location_str = coords_to_string(latitude, longitude, concise=True)
+
+    url = reverse("facility_kml", args=[str(instance.id)])
+    rows = [("Coordinates", f"<a href={url}>{location_str}</a>")]
 
     rows.extend(
         [

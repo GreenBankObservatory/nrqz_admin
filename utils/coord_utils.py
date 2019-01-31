@@ -21,26 +21,29 @@ def dd_to_dms(decimal):
     return (d, m, s)
 
 
-def coords_to_string(latitude, longitude):
+def coords_to_string(latitude, longitude, concise=False):
     if isinstance(latitude, float):
         latitude = dd_to_dms(latitude)
     if isinstance(longitude, float):
         longitude = dd_to_dms(longitude)
 
-    if latitude[0] < 0:
-        latitude = (abs(i) for i in latitude)
-        lat_hemi = "S"
+    if concise:
+        coord_format = "{:3d} {:02d} {:2.3f}"
+        return f"{coord_format.format(*latitude)}, {coord_format.format(*longitude)}"
     else:
-        lat_hemi = "N"
+        if latitude[0] < 0:
+            latitude = (abs(i) for i in latitude)
+            lat_hemi = "S"
+        else:
+            lat_hemi = "N"
 
-    if longitude[0] < 0:
-        longitude = (abs(i) for i in longitude)
-        long_hemi = "W"
-    else:
-        long_hemi = "E"
-
-    coord_format = "{:3d}° {:02d}′ {:2.3f}″"
-    return f"{coord_format.format(*latitude)} {lat_hemi}, {coord_format.format(*longitude)} {long_hemi}"
+        if longitude[0] < 0:
+            longitude = (abs(i) for i in longitude)
+            long_hemi = "W"
+        else:
+            long_hemi = "E"
+        coord_format = "{:3d}° {:02d}′ {:2.3f}″"
+        return f"{coord_format.format(*latitude)} {lat_hemi}, {coord_format.format(*longitude)} {long_hemi}"
 
 
 # https://regex101.com/r/vMa4Ov/5

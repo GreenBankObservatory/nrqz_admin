@@ -56,6 +56,9 @@ urlpatterns = [
         views.FacilityDetailView.as_view(),
         name="facility_detail",
     ),
+    path(
+        "facilities/<int:pk>/as_kml/", views.facility_as_kml_view, name="facility_kml"
+    ),
     path("attachments/", views.AttachmentListView.as_view(), name="attachment_index"),
     path(
         "attachments/<int:pk>/",

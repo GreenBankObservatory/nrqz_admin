@@ -287,6 +287,7 @@ class Facility(
     tx_power_neg_45 = FloatField(
         null=True, blank=True, verbose_name="Max TX output PWR at -45 degrees"
     )
+    # TODO: Is this needed? Doesn't structure store this?
     asr_is_from_applicant = BooleanField(null=True, blank=True)
     comments = TextField(
         null=True,
@@ -467,6 +468,7 @@ class Case(
     case_num = PositiveIntegerField(
         unique=True, db_index=True, verbose_name="Case Num."
     )
+    # TODO: What is this?
     name = CharField(max_length=256, blank=True, null=True)
 
     attachments = ManyToManyField("Attachment", related_name="cases", blank=True)
