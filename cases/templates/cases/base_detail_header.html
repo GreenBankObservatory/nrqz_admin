@@ -1,25 +1,24 @@
 {% load cases_tags %}
+{% load django_import_data_tags %}
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col">
-            <p>
-                <a href="file://{{ object.imported_from }}" title={{ object.imported_from | basename }}>
-                    Open original file
-                </a>
-            </p>
-        </div>
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item">
+        <a href="file://{{ object.imported_from }}" title={{ object.imported_from | basename }}>
+            Original File
+        </a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="{% url 'fileimportattempt_detail' object.model_import_attempt.file_import_attempt.id %}">
+            File Import Attempt
+        </a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href={% url "modelimportattempt_detail" object.model_import_attempt.id %}>
+            {{ object | model_name }} Import Attempt
+        </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page">{{ object | model_name }}</li>
+  </ol>
+</nav>
 
-        <div class="col">
-            {% if object.model_import_attempt.file_import_attempt %}
-            <a href="{% url 'fileimportattempt_detail' object.model_import_attempt.file_import_attempt.id %}">View File Import Attempt</a>
-            {% else %}
-            <p>Not imported from a file</p>
-            {% endif %}
-        </div>
-
-        <div class="col">
-            <a href={% url "modelimportattempt_detail" object.model_import_attempt.id %}>View Model Import Attempt</a>
-        </div>
-    </div>
-</div>

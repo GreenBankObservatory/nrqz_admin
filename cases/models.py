@@ -344,6 +344,7 @@ class Facility(
     )
 
     class Meta:
+        verbose_name = "Facility"
         verbose_name_plural = "Facilities"
 
     def __iter__(self):
