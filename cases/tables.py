@@ -62,7 +62,7 @@ class LetterFacilityTable(tables.Table):
     def render_location(self, value):
         """Render a coordinate as DD MM SS.sss"""
         longitude, latitude = value.coords
-        return coords_to_string(latitude=latitude, longitude=longitude)
+        return coords_to_string(latitude=latitude, longitude=longitude, concise=True)
 
 
 class PreliminaryFacilityTable(tables.Table):
@@ -77,24 +77,27 @@ class PreliminaryFacilityTable(tables.Table):
     def render_location(self, value):
         """Render a coordinate as DD MM SS.sss"""
         longitude, latitude = value.coords
-        return coords_to_string(latitude=latitude, longitude=longitude)
+        return coords_to_string(latitude=latitude, longitude=longitude, concise=True)
 
 
 class FacilityTable(tables.Table):
     nrqz_id = tables.Column(
         linkify=True, empty_values=(), order_by=["case__case_num", "-nrqz_id"]
     )
-    comments = TrimmedTextColumn()
+    # comments = TrimmedTextColumn()
     # structure = tables.Column(linkify=True)
     case = tables.Column(linkify=True)
     path = tables.Column(empty_values=())
+    dominant_path = tables.Column(verbose_name="Dom. Path")
+    calc_az = tables.Column(verbose_name="Az. Bearing")
 
     class Meta:
         model = models.Facility
         fields = [
             field
             for field in FacilityFilter.Meta.fields
-            if field not in ["structure", "data_source", "site_num"]
+            if field
+            not in ["structure", "data_source", "site_num", "comments", "az_bearing"]
         ]
         order_by = ["-nrqz_id", "freq_low"]
 
@@ -119,7 +122,7 @@ class FacilityTable(tables.Table):
     def render_location(self, value):
         """Render a coordinate as DD MM SS.sss"""
         longitude, latitude = value.coords
-        return coords_to_string(latitude=latitude, longitude=longitude)
+        return coords_to_string(latitude=latitude, longitude=longitude, concise=True)
 
     def render_dominant_path(self, value):
         clean_value = value.lower()
@@ -212,4 +215,4 @@ class StructureTable(tables.Table):
     def render_location(self, value):
         """Render a coordinate as DD MM SS.sss"""
         longitude, latitude = value.coords
-        return coords_to_string(latitude=latitude, longitude=longitude)
+        return coords_to_string(latitude=latitude, longitude=longitude, concise=True)
