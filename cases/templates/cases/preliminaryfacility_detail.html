@@ -2,6 +2,8 @@
 {% load cases_tags %}
 
 {% block content %}
+{% include "cases/base_detail_header.html" %}
+
 <a href={% url "prelim_case_detail" preliminaryfacility.pcase.case_num %}>View Preliminary Case</a>
 
 <p><a href={% url "admin:cases_preliminaryfacility_change" preliminaryfacility.id %}>Edit</a></p>

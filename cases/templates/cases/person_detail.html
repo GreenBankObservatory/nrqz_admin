@@ -4,6 +4,8 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
+{% include "cases/base_detail_header.html" %}
+
 <h1>{{ person.name }}</h1>
 {% include "cases/base_detail.html" %}
 

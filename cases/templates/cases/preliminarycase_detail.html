@@ -4,6 +4,7 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
+{% include "cases/base_detail_header.html" %}
 
 <h1>Preliminary Case {{ preliminarycase.case_num }}</h1>
 {% include "cases/base_detail.html" %}

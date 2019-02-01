@@ -14,15 +14,11 @@
     </li>
 
     <li class="nav-item">
+      <a class="nav-link" href={% url "prelim_facility_index" %}>PFacilities</a>
+    </li>
+
+    <li class="nav-item">
       <a class="nav-link" href={% url "structure_index" %}>Structures</a>
-    </li>
-
-    <li class="nav-item">
-      <a class="nav-link" href={% url "fileimporter_list" %}>File Imports</a>
-    </li>
-
-    <li class="nav-item">
-      <a class="nav-link" href={% url "modelimportattempt_list" %}>Model Imports</a>
     </li>
 
     <li class="nav-item">
@@ -38,14 +34,21 @@
     </li>
 
     <li class="nav-item">
-      <a class="nav-link text-info" href={% url "explorer_index" %}>SQL Explorer</a>
+      <a class="nav-link" href={% url "fileimporter_list" %}>File Imports</a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link" href={% url "modelimportattempt_list" %}>Model Imports</a>
     </li>
 
     <li class="nav-item">
       <a class="nav-link text-info" href={% url "admin:index" %}>Admin</a>
     </li>
+    <li class="nav-item">
+      <form action="{% url 'search' %}" method="get">
+        <input class="nav-search" required type="text" name="q" placeholder="Search..." >
+      </form>
+    </li>
   </ul>
-  <form action="{% url 'search' %}" method="get">
-    <input required type="text" name="q" placeholder="Search..." >
-  </form>
+
 </nav>
