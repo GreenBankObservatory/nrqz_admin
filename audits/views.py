@@ -142,6 +142,7 @@ class FileImportAttemptDetailView(DetailView):
         return context
 
 
+@transaction.atomic
 def _import_file(request, file_importer):
     importer_name = file_importer.importer_name
     path = file_importer.last_imported_path

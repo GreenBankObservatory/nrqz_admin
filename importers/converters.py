@@ -33,7 +33,11 @@ COORD_PATTERN = re.compile(COORD_PATTERN_STR)
 CASE_REGEX_STR = r"^(?P<case_num>\d+).*"
 CASE_REGEX = re.compile(CASE_REGEX_STR)
 
-
+# TODO:
+# https://regex101.com/r/gRPTN8/5
+# nrqz_id_regex_str = r"^(?P<case_num>\d+)(?:[\-\_](?:REV
+# )?(?P<site_num>\d+))?(?:[\s_\*]+(?:\(.*\)[\s_]+)?(?P<site_name>(?:(?:\w+\s+)?\S{5}|\D+))[\s_]+(?P<facility_name>\S+))?"
+# nrqz_id_regex = re.compile(nrqz_id_regex_str)
 def convert_nrqz_id_to_case_num(nrqz_id, loc=None):
     match = CASE_REGEX.match(str(nrqz_id))
     if loc and not match:
