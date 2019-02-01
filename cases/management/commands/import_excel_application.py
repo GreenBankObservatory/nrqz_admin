@@ -126,6 +126,17 @@ class Command(BaseImportCommand):
                 tqdm.write("No facility audit created")
         return facility, facility_created
 
+    def get_unmapped_headers(self, headers, known_headers):
+        unmapped_headers = []
+        for header in known_headers:
+            try:
+                int(header)
+            except ValueError:
+                if not header.startswith("Original Row"):
+                    if header not in known_headers:
+                        unmapped_headers.append(header)
+        return unmapped_headers
+
     def handle_record(self, row_data, file_import_attempt):
         case, case_created = self._handle_case(
             row_data, file_import_attempt=file_import_attempt

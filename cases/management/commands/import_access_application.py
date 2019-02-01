@@ -19,7 +19,7 @@ class Command(BaseImportCommand):
         APPLICANT_FORM_MAP,
         CONTACT_FORM_MAP,
         CASE_FORM_MAP,
-        ATTACHMENT_FORM_MAPS,
+        *ATTACHMENT_FORM_MAPS,
     ]
 
     def handle_record(self, row_data, file_import_attempt):

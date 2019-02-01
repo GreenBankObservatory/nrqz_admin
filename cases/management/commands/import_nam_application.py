@@ -16,6 +16,13 @@ class Command(BaseImportCommand):
     help = "Import NRQZ Application Maker Data"
 
     PROGRESS_TYPE = BaseImportCommand.PROGRESS_TYPES.FILE
+    FORM_MAPS = [
+        APPLICANT_FORM_MAP,
+        CONTACT_FORM_MAP,
+        CASE_FORM_MAP,
+        FACILITY_FORM_MAP,
+        STRUCTURE_FORM_MAP,
+    ]
 
     def load_rows(self, path):
         with open(path, newline="", encoding="latin1") as file:
@@ -145,3 +152,21 @@ class Command(BaseImportCommand):
                 },
                 file_import_attempt=file_import_attempt,
             )
+
+        headers = set(main_dict)
+        for facility_keys in facility_dicts:
+            headers.update(facility_keys)
+
+        info, errors = self.header_checks(headers)
+        file_import_attempt.info = info
+        file_import_attempt.errors = errors
+        file_import_attempt.save()
+
+    def file_level_checks(self, rows):
+        return {}, {}
+
+    # def post_import_checks(self, file_import_attempts):
+    #     if len(file_import_attempts) != 1:
+    #         raise ValueError("There should only be one FIA!")
+
+    #     file_import_attempt = file_import_attempts[0]
