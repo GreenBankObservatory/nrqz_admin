@@ -30,6 +30,11 @@ urlpatterns = [
         name="fileimporter_reimport",
     ),
     path(
+        "file-imports/<int:pk>/delete/",
+        views.delete_file_import_models,
+        name="fileimporter_delete_models",
+    ),
+    path(
         "file-imports/create/",
         views.FileImporterCreateView.as_view(),
         name="fileimporter_create",

@@ -18,6 +18,10 @@
     <input required type="submit" name="submit" value="Re-import">
 </form>
 
+<form action="{% url 'fileimporter_delete_models' fileimporter.id %}">
+    <input required type="checkbox" name="sanity" value="I am super sure">
+    <input required type="submit" name="submit" value="Delete">
+</form>
 
 
 <h2>File Import Attempts</h2>

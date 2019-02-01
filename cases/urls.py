@@ -1,4 +1,3 @@
-"""URL configurations for cases app"""
 
 from django.urls import path
 

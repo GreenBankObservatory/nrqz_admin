@@ -23,6 +23,11 @@
     <input required type="submit" name="submit" value="Re-import">
 </form>
 
+<form action="{% url 'fileimporter_delete_models' fileimportattempt.file_importer.id %}">
+    <input required type="checkbox" name="sanity" value="I am super sure">
+    <input required type="submit" name="submit" value="Delete">
+</form>
+
 <h2>Models Created from File</h2>
 {{ fileimportattempt.creations | json | safe }}
 

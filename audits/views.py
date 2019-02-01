@@ -200,3 +200,23 @@ class FileImporterCreateView(CreateView):
         with transaction.atomic():
             file_importer = form.save()
             return _import_file(self.request, file_importer)
+
+
+def delete_file_import_models(request, pk):
+    file_importer = get_object_or_404(FileImporter, id=pk)
+    file_import_attempt = file_importer.most_recent_import
+    num_deleted, deleted_models = file_import_attempt.delete_imported_models()
+
+    if num_deleted:
+        deleted_models_str = ", ".join(
+            [
+                f"{count} {model.split('.')[-1]} objects"
+                for model, count in deleted_models.items()
+            ]
+        )
+        deleted_str = f"{num_deleted} objects: {deleted_models_str}"
+        messages.success(request, f"Successfully deleted {deleted_str} ")
+    else:
+        messages.warning(request, f"Deleted 0 objects (no objects to delete)")
+
+    return HttpResponseRedirect(file_import_attempt.get_absolute_url())
