@@ -583,7 +583,9 @@ class AlsoKnownAs(IsActiveModel, TrackedModel, DataSourceModel, Model):
         return self.name
 
 
-class Attachment(IsActiveModel, TrackedModel, DataSourceModel, Model):
+class Attachment(
+    AbstractBaseAuditedModel, IsActiveModel, TrackedModel, DataSourceModel, Model
+):
     """Holds the path to a file along with some metadata"""
 
     # TODO: This will need to be a proper FilePathField eventually...

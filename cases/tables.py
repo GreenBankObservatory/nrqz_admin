@@ -16,7 +16,7 @@ from .filters import (
     PreliminaryCaseFilter,
     PreliminaryCaseGroupFilter,
 )
-from .columns import SelectColumn, TrimmedTextColumn
+from .columns import SelectColumn, TrimmedTextColumn, UnboundFileColumn
 
 
 class LetterFacilityTable(tables.Table):
@@ -198,7 +198,7 @@ class PersonTable(tables.Table):
 
 class AttachmentTable(tables.Table):
     path = tables.Column(linkify=True)
-    comments = TrimmedTextColumn()
+    file = UnboundFileColumn(accessor="path")
 
     class Meta:
         model = models.Attachment

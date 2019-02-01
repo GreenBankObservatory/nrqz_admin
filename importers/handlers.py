@@ -35,7 +35,7 @@ def handle_case(
     return case, case_created
 
 
-def handle_attachments(row_data, case, form_maps, file_import_attempt=None):
+def handle_attachments(row_data, case, form_maps, file_import_attempt):
     attachments = []
     for form_map in form_maps:
         attachment_form, conversion_errors = form_map.render(row_data.data)
@@ -44,9 +44,15 @@ def handle_attachments(row_data, case, form_maps, file_import_attempt=None):
             if path:
                 if Attachment.objects.filter(path=path).exists():
                     attachment = Attachment.objects.get(path=path)
+                    attachment_created = False
                 else:
-                    attachment = form_map.save(attachment_form)
+                    attachment, __ = form_map.save_with_audit(
+                        form=attachment_form,
+                        row_data=row_data,
+                        file_import_attempt=file_import_attempt,
+                    )
+                    attachment_created = True
 
-                attachments.append(attachment)
+                attachments.append((attachment, attachment_created))
                 case.attachments.add(attachment)
     return attachments

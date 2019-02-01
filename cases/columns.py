@@ -1,9 +1,10 @@
 """Custom djang_tables2.Column sub-classes for cases app"""
+import os
 
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
-from django_tables2 import Column, CheckBoxColumn
+from django_tables2 import Column, CheckBoxColumn, FileColumn
 from django_tables2.utils import AttributeDict
 
 
@@ -42,3 +43,17 @@ class SelectColumn(CheckBoxColumn):
             {"type": "checkbox", "name": "facilities", "value": record.id}
         )
         return mark_safe("<input %s/>" % attrs.as_html())
+
+
+class UnboundFileColumn(Column):
+    def render(self, value, bound_column, record):
+        path = value
+        if not os.path.isfile(path):
+            return "Broken Link"
+        foo = f"""<a
+href='file://{path}'
+title={os.path.basename(path)}
+>
+    Open Attachment
+</a>"""
+        return mark_safe(foo)

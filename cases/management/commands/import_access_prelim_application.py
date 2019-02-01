@@ -38,4 +38,9 @@ class Command(BaseImportCommand):
             contact=contact,
             file_import_attempt=file_import_attempt,
         )
-        attachments = handle_attachments(row_data, pcase, ATTACHMENT_FORM_MAPS)
+        attachments = handle_attachments(
+            row_data,
+            pcase,
+            ATTACHMENT_FORM_MAPS,
+            file_import_attempt=file_import_attempt,
+        )

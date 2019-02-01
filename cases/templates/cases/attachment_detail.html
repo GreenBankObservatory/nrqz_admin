@@ -1,11 +1,18 @@
 {% extends "cases/base.html" %}
 {% load render_table from django_tables2 %}
 {% load crispy_forms_tags %}
+{% load cases_tags %}
 
 {% block content %}
 {% include "cases/base_detail_header.html" %}
 
-<h1>{{ attachment.path }}</h1>
+<h1>{{ attachment.path | basename }}</h1>
+<a
+    href="file://{{ attachment.path }}"
+    title={{ attachment.path | basename }}
+>
+    Open Attachment
+</a>
 <h2>Comments</h2>
 <p>{{ attachment.comments }}</p>
 
