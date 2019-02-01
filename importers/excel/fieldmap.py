@@ -14,6 +14,7 @@ from importers.converters import (
     coerce_bool,
     coerce_location,
     convert_nrqz_id_to_case_num,
+    convert_freq_high,
 )
 
 
@@ -57,6 +58,7 @@ class FacilityFormMap(FormMap):
             to_field="freq_low",
             converter=coerce_positive_float,
             from_field={
+                # TODO: Consolidate!
                 "freq_low": [
                     "Freq Low (MHz)",
                     "Freq Low ()",
@@ -165,15 +167,21 @@ class FacilityFormMap(FormMap):
                 ]
             },
         ),
-        OneToOneFieldMap(
+        ManyToOneFieldMap(
             to_field="freq_high",
-            converter=coerce_positive_float,
-            from_field={
+            converter=convert_freq_high,
+            from_fields={
+                # TODO: Consolidate!
+                "freq_low": [
+                    "Freq Low (MHz)",
+                    "Freq Low ()",
+                    "Freq Low (MHz) Frequency specific or lower part of band.",
+                ],
                 "freq_high": [
                     "Freq High (MHz)",
                     "Freq High ()",
                     "Freq High (MHz)  Frquency specific or upper part of band.",
-                ]
+                ],
             },
         ),
         OneToOneFieldMap(

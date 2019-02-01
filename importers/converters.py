@@ -318,3 +318,19 @@ def coerce_location(latitude=None, longitude=None):
         raise ValueError(error_str)
 
     return point
+
+
+def convert_freq_high(freq_low=None, freq_high=None):
+    if freq_high is None:
+        return None
+
+    freq_high = coerce_positive_float(freq_high)
+    if freq_high is None:
+        return None
+
+    freq_low = coerce_positive_float(freq_low)
+    if freq_low is not None:
+        if freq_high < freq_low:
+            raise ValueError(f"freq_high {freq_high} is lower than freq_low {freq_low}")
+
+    return freq_high

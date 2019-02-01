@@ -8,6 +8,8 @@ from importers.converters import (
     coerce_location,
     convert_nrqz_id_to_case_num,
     coerce_float,
+    coerce_positive_float,
+    convert_freq_high,
 )
 
 NAM_APPLICATION = "nam_application"
@@ -81,9 +83,15 @@ class FacilityFormMap(FormMap):
         # OneToOneFieldMap(from_field="1-ASurvey", to_field=""),
         # OneToOneFieldMap(from_field="2-CSurvey", to_field=""),
         # TODO: CHECK
-        OneToOneFieldMap(from_field="freq", to_field="freq_low"),
+        OneToOneFieldMap(
+            from_field="freq", converter=coerce_positive_float, to_field="freq_low"
+        ),
         # TODO: CHECK
-        OneToOneFieldMap(from_field="BandHi", to_field="freq_high"),
+        ManyToOneFieldMap(
+            from_fields={"freq_low": "freq", "freq_high": "BandHi"},
+            converter=convert_freq_high,
+            to_field="freq_high",
+        ),
         # TODO: CHECK
         OneToOneFieldMap(from_field="sysType", to_field="technology"),
         OneToOneFieldMap(from_field="sitename", to_field="site_name"),
