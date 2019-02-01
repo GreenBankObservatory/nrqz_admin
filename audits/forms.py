@@ -35,5 +35,8 @@ class FileImporterForm(forms.ModelForm):
         fields = ("last_imported_path", "importer_name")
 
     importer_name = forms.ChoiceField(
-        help_text="The Importer to use", choices=generate_importer_name_choices()
+        help_text="The Importer to use",
+        choices=generate_importer_name_choices(),
+        # TODO: Would be nice to consilidate this somewhere
+        initial="import_excel_application",
     )
