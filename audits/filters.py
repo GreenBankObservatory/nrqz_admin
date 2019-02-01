@@ -18,6 +18,9 @@ from .form_helpers import (
 
 class FileImporterFilter(HelpedFilterSet):
     last_imported_path = django_filters.CharFilter(lookup_expr="icontains")
+    acknowledged = django_filters.BooleanFilter(
+        field_name="file_import_attempts__acknowledged", initial=False
+    )
 
     class Meta:
         model = FileImporter
@@ -27,6 +30,7 @@ class FileImporterFilter(HelpedFilterSet):
 
 class FileImportAttemptFilter(HelpedFilterSet):
     imported_from = django_filters.CharFilter(lookup_expr="icontains")
+    acknowledged = django_filters.BooleanFilter(initial=False)
 
     class Meta:
         model = FileImportAttempt

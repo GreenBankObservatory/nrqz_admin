@@ -28,6 +28,7 @@ class FileImporterTable(tables.Table):
             }
         },
     )
+    acknowledged = tables.BooleanColumn()
 
     class Meta:
         model = FileImporter
