@@ -86,6 +86,12 @@ class FacilityFilter(HelpedFilterSet):
     antenna_model_number = django_filters.CharFilter(lookup_expr="icontains")
     comments = django_filters.CharFilter(lookup_expr="search")
     case = django_filters.NumberFilter(label="Case", field_name="case__case_num")
+    applicant = django_filters.CharFilter(
+        field_name="case__applicant__name", lookup_expr="unaccent__trigram_similar"
+    )
+    contact = django_filters.CharFilter(
+        field_name="case__contact__name", lookup_expr="unaccent__trigram_similar"
+    )
 
     class Meta:
         model = models.Facility

@@ -97,7 +97,15 @@ class FacilityTable(tables.Table):
             field
             for field in FacilityFilter.Meta.fields
             if field
-            not in ["structure", "data_source", "site_num", "comments", "az_bearing"]
+            not in [
+                "structure",
+                "data_source",
+                "site_num",
+                "comments",
+                "az_bearing",
+                "applicant",
+                "contact",
+            ]
         ]
         order_by = ["-nrqz_id", "freq_low"]
 

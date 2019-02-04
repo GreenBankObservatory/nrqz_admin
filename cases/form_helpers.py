@@ -71,8 +71,14 @@ class FacilityFilterFormHelper(FormHelper):
 
     layout = CollapsibleFilterFormLayout(
         Div(
-            Div("nrqz_id", "case", "site_num", css_class="col-sm-2"),
-            Div("freq_low", "freq_high", "main_beam_orientation", css_class="col-sm-5"),
+            Div(
+                "nrqz_id",
+                "case",
+                "site_num",
+                "main_beam_orientation",
+                css_class="col-sm-2",
+            ),
+            Div("freq_low", "freq_high", "applicant", "contact", css_class="col-sm-5"),
             Div("structure", "site_name", "antenna_model_number", css_class="col-sm-2"),
             Div(
                 "nrao_aerpd",
