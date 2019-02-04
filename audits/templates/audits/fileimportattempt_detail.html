@@ -20,14 +20,14 @@
 
 <div class="container-fluid">
     <div class="row">
-        <div class="col-sm-2">
+        <div class="col-lg-2">
             <form action="{% url 'fileimporter_reimport' fileimportattempt.file_importer.id %}">
                 <input required type="checkbox" name="sanity" value="I am super sure">
                 <input required type="submit" name="submit" value="Re-import">
             </form>
         </div>
 
-        <div class="col-sm-10">
+        <div class="col-lg-10">
             <form action="{% url 'fileimporter_delete_models' fileimportattempt.file_importer.id %}">
                 <input required type="checkbox" name="sanity" value="I am super sure">
                 <input required type="submit" name="submit" value="Delete">
@@ -37,12 +37,12 @@
 </div>
 <div class="container-fluid">
     <div class="row">
-        <div class="col-sm-4">
+        <div class="col-lg-4">
             <h2>Models Created from File</h2>
             {{ fileimportattempt.creations | json | safe }}
         </div>
 
-        <div class="col-sm-4">
+        <div class="col-lg-4">
             <h2>File-Level Import Info</h2>
             {% if fileimportattempt.info %}
             {{ fileimportattempt.info | json | safe }}
@@ -51,7 +51,7 @@
             {% endif %}
         </div>
 
-        <div class="col-sm-4">
+        <div class="col-lg-4">
             <h2>File-Level Import Errors</h2>
             {% if fileimportattempt.errors %}
             {{ fileimportattempt.errors | json | safe }}

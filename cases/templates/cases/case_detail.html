@@ -7,7 +7,7 @@
 
 {% include "cases/base_detail_header.html" %}
 
-<p><a href={% url "admin:cases_case_change" case.id %}>Edit</a></p>
+<p class="d-print-none"><a href={% url "admin:cases_case_change" case.id %}>Edit</a></p>
 
 
 <h1>Case {{ case.case_num }} ({{ case.applicant.name }})</h1>
@@ -88,17 +88,18 @@
     </tr>
 </table>
 
-<div class="row">
-    <div class="col-sm">
-        {% info_table case "Application" application_info %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg">
+            {% info_table case "Application" application_info %}
+        </div>
+        <div class="col-lg">
+            {% info_table case "Status Info" status_info %}
+        </div>
+        <div class="col-lg">
+            {% info_table case "Sugar Grove Info" sgrs_info %}
+        </div>
     </div>
-    <div class="col-sm">
-        {% info_table case "Status Info" status_info %}
-    </div>
-    <div class="col-sm">
-        {% info_table case "Sugar Grove Info" sgrs_info %}
-    </div>
-
 </div>
 
 <h2>Comments</h2>

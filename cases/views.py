@@ -65,6 +65,16 @@ from .kml import (
 )
 
 
+class PrintableDetailView(DetailView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        if self.request.path.endswith("print"):
+            context["print"] = True
+
+        return context
+
+
 class FilterTableView(ExportMixin, SingleTableMixin, FilterView):
     table_class = None
     filterset_class = None
@@ -307,7 +317,7 @@ class LetterView(TemplateView):
             )
 
 
-class PreliminaryCaseGroupDetailView(DetailView):
+class PreliminaryCaseGroupDetailView(PrintableDetailView):
     model = PreliminaryCaseGroup
 
     def __init__(self, *args, **kwargs):
@@ -334,7 +344,7 @@ class PreliminaryCaseGroupDetailView(DetailView):
         return context
 
 
-class PreliminaryCaseDetailView(DetailView):
+class PreliminaryCaseDetailView(PrintableDetailView):
     model = PreliminaryCase
 
     def __init__(self, *args, **kwargs):
@@ -378,7 +388,7 @@ class PreliminaryCaseDetailView(DetailView):
         return context
 
 
-class CaseDetailView(DetailView):
+class CaseDetailView(PrintableDetailView):
     model = Case
 
     def __init__(self, *args, **kwargs):
@@ -443,7 +453,7 @@ class CaseDetailView(DetailView):
         case_as_kml(self.object)
 
 
-class PreliminaryFacilityDetailView(DetailView):
+class PreliminaryFacilityDetailView(PrintableDetailView):
     model = PreliminaryFacility
 
     def get_context_data(self, **kwargs):
@@ -458,7 +468,7 @@ class PreliminaryFacilityDetailView(DetailView):
         return context
 
 
-class FacilityDetailView(DetailView):
+class FacilityDetailView(PrintableDetailView):
     model = Facility
 
     def get_context_data(self, **kwargs):
@@ -538,7 +548,7 @@ class AttachmentListView(FilterTableView):
     template_name = "cases/attachment_list.html"
 
 
-class AttachmentDetailView(DetailView):
+class AttachmentDetailView(PrintableDetailView):
     model = Attachment
 
     def __init__(self, *args, **kwargs):
@@ -571,7 +581,7 @@ class PersonListView(FilterTableView):
     template_name = "cases/person_list.html"
 
 
-class PersonDetailView(DetailView):
+class PersonDetailView(PrintableDetailView):
     model = Person
 
     def __init__(self, *args, **kwargs):
@@ -636,7 +646,7 @@ class StructureListView(FilterTableView):
     template_name = "cases/structure_list.html"
 
 
-class StructureDetailView(DetailView):
+class StructureDetailView(PrintableDetailView):
     model = Structure
 
     def __init__(self, *args, **kwargs):

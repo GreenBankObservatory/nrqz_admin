@@ -1,7 +1,8 @@
 {% load cases_tags %}
 {% load django_import_data_tags %}
 
-<nav aria-label="breadcrumb">
+{% if not print %}
+<nav class="d-print-none" aria-label="breadcrumb">
   <ol class="breadcrumb">
     <li class="breadcrumb-item">
         <a href="file://{{ object.imported_from }}" title={{ object.imported_from | basename }}>
@@ -27,3 +28,5 @@
   </ol>
 </nav>
 
+
+{% endif %}
