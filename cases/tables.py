@@ -88,6 +88,7 @@ class FacilityTable(tables.Table):
     path = tables.Column(empty_values=())
     dominant_path = tables.Column(verbose_name="Dom. Path")
     calc_az = tables.Column(verbose_name="Az. Bearing")
+    applicant = tables.Column(linkify=True, accessor="case.applicant")
 
     class Meta:
         model = models.Facility
@@ -101,7 +102,6 @@ class FacilityTable(tables.Table):
                 "site_num",
                 "comments",
                 "az_bearing",
-                "applicant",
                 "contact",
             ]
         ]
