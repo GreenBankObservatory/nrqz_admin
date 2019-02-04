@@ -132,7 +132,7 @@ class CaseForm(forms.ModelForm):
             "shutdown",
             "completed_on",
             "sgrs_notify",
-            "sgrs_notified_on",
+            "sgrs_responded_on",
             "radio_service",
             "call_sign",
             "freq_coord",

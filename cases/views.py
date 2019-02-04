@@ -408,7 +408,7 @@ class CaseDetailView(DetailView):
             "num_outside",
             "erpd_limit",
         ]
-        context["sgrs_info"] = ["sgrs_notify", "sgrs_notified_on"]
+        context["sgrs_info"] = ["sgrs_notify", "sgrs_responded_on", "sgrs_service_num"]
 
         if not self.facility_filter:
             self.facility_filter = FacilityFilter(

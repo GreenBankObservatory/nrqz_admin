@@ -479,8 +479,8 @@ class Case(
     shutdown = BooleanField(default=False, blank=True, verbose_name="Shut Down")
     completed_on = DateTimeField(null=True, blank=True, verbose_name="Completed On")
     sgrs_notify = BooleanField(default=False, blank=True, verbose_name="SGRS Notified")
-    sgrs_notified_on = DateTimeField(
-        null=True, blank=True, verbose_name="SGRS Notified On"
+    sgrs_responded_on = DateTimeField(
+        null=True, blank=True, verbose_name="SGRS Responded On"
     )
     radio_service = CharField(max_length=256, blank=True, verbose_name="Radio Service")
     call_sign = CharField(max_length=256, blank=True, verbose_name="Call Sign")
@@ -498,6 +498,8 @@ class Case(
 
     # Misc.
     slug = SlugField(unique=True)
+
+    sgrs_service_num = PositiveIntegerField(null=True, blank=True)
 
     class Meta:
         verbose_name = "Case"

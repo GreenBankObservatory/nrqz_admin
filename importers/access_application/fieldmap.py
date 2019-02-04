@@ -72,7 +72,7 @@ class CaseFormMap(FormMap):
             to_field="sgrs_notify", converter=coerce_bool, from_field="SGRSNOTIFY"
         ),
         OneToOneFieldMap(
-            to_field="sgrs_notified_on",
+            to_field="sgrs_responded_on",
             converter=coerce_datetime,
             from_field="SGRSDATE",
         ),

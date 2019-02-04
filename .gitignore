@@ -1,5 +1,4 @@
 docs/build/
 __pycache__
 nrqz_admin/settings.py
-*/migrations/*
 importer_spec.json
