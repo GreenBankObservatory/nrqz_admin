@@ -26,6 +26,9 @@ class TrimmedTextColumn(Column):
             return mark_safe(f"<span title='{abs_trimmed}'>{trimmed} ...</span>")
         return value
 
+    def value(self, value):
+        return value
+
 
 class SelectColumn(CheckBoxColumn):
     verbose_name = "Select/Print"

@@ -63,6 +63,16 @@ class PreliminaryFacilityFilterFormHelper(FormHelper):
             Div("data_source", css_class="col-sm-2"),
             css_class="row",
         ),
+        extra_buttons=[
+            Submit(
+                "_export",
+                "csv",
+                title=(
+                    "Download the locations of all currently-filtered "
+                    "PFacilities as a .csv file"
+                ),
+            )
+        ],
     )
 
 
@@ -103,7 +113,15 @@ class FacilityFilterFormHelper(FormHelper):
                     "Download the locations of all currently-filtered "
                     "Facilities as a .kml file"
                 ),
-            )
+            ),
+            Submit(
+                "_export",
+                "csv",
+                title=(
+                    "Download the locations of all currently-filtered "
+                    "Facilities as a .csv file"
+                ),
+            ),
         ],
     )
 
@@ -156,7 +174,15 @@ class CaseFilterFormHelper(FormHelper):
                     "Download the locations of all currently-filtered "
                     "Facilities as a .kml file"
                 ),
-            )
+            ),
+            Submit(
+                "_export",
+                "csv",
+                title=(
+                    "Download the locations of all currently-filtered "
+                    "Facilities as a .csv file"
+                ),
+            ),
         ],
     )
 
@@ -171,7 +197,17 @@ class PersonFilterFormHelper(FormHelper):
             Div("state", "phone", css_class="col"),
             Div("comments", "zipcode", css_class="col"),
             css_class="row",
-        )
+        ),
+        extra_buttons=[
+            Submit(
+                "_export",
+                "csv",
+                title=(
+                    "Download the locations of all currently-filtered "
+                    "Facilities as a .csv file"
+                ),
+            )
+        ],
     )
 
 
@@ -193,5 +229,15 @@ class StructureFilterFormHelper(FormHelper):
             Div("faa_study_num", "issue_date", css_class="col"),
             Div("location", css_class="col-sm-12"),
             css_class="row",
-        )
+        ),
+        extra_buttons=[
+            Submit(
+                "_export",
+                "csv",
+                title=(
+                    "Download the locations of all currently-filtered "
+                    "Facilities as a .csv file"
+                ),
+            )
+        ],
     )

@@ -17,6 +17,8 @@ from docxtpl import DocxTemplate
 from dal import autocomplete
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
+from django_tables2.export.views import ExportMixin
+from django_tables2.export.export import TableExport
 
 from .forms import LetterTemplateForm
 from .models import (
@@ -42,14 +44,16 @@ from .filters import (
 )
 from .tables import (
     AttachmentTable,
-    PreliminaryFacilityTable,
+    CaseExportTable,
+    CaseTable,
+    FacilityExportTable,
     FacilityTable,
     FacilityTableWithConcur,
+    LetterFacilityTable,
     PersonTable,
     PreliminaryCaseGroupTable,
     PreliminaryCaseTable,
-    CaseTable,
-    LetterFacilityTable,
+    PreliminaryFacilityTable,
     StructureTable,
 )
 from .kml import (
@@ -61,15 +65,17 @@ from .kml import (
 )
 
 
-class FilterTableView(SingleTableMixin, FilterView):
+class FilterTableView(ExportMixin, SingleTableMixin, FilterView):
     table_class = None
     filterset_class = None
     object_list = NotImplemented
-    # table_pagination = True
+    export_table_class = None
 
     def get(self, request, *args, **kwargs):
         if "show-all" in request.GET:
             self.table_pagination = False
+
+        self.export_requested = "_export" in request.GET
         return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -80,6 +86,15 @@ class FilterTableView(SingleTableMixin, FilterView):
             self.object_list = self.table_class.Meta.model.objects.all()
 
         return super().get_context_data(**kwargs)
+
+    def get_table_class(self, **kwargs):
+        # If an export has been requested, AND we have a specific table
+        # defined for export use, then return that
+        if self.export_requested and self.export_table_class:
+            return self.export_table_class
+        # Otherwise, just act as normal
+        else:
+            return super().get_table_class(**kwargs)
 
 
 class PreliminaryCaseGroupListView(FilterTableView):
@@ -96,6 +111,7 @@ class PreliminaryCaseListView(FilterTableView):
 
 class CaseListView(FilterTableView):
     table_class = CaseTable
+    export_table_class = CaseExportTable
     filterset_class = CaseFilter
     template_name = "cases/case_list.html"
 

@@ -1,7 +1,5 @@
 """Custom django_tables2.Table sub-classes for cases app"""
 
-from math import degrees
-
 import django_tables2 as tables
 
 from utils.coord_utils import coords_to_string
@@ -142,6 +140,22 @@ class FacilityTable(tables.Table):
         return value
 
 
+class FacilityExportTable(FacilityTable):
+    class Meta:
+        model = models.Facility
+        exclude = [
+            "model_import_attempt",
+            "is_active",
+            "original_created_on",
+            "original_modfied_on",
+            "created_on",
+            "modified_on",
+            "data-source",
+            "id",
+        ]
+        order_by = ["-nrqz_id", "freq_low"]
+
+
 class FacilityTableWithConcur(FacilityTable):
     selected = SelectColumn()
 
@@ -193,6 +207,13 @@ class CaseTable(tables.Table):
 
     def render_nrao_approval(self, record):
         return record.nrao_approval
+
+
+class CaseExportTable(CaseTable):
+    class Meta:
+        model = models.Case
+        # fields = CaseFilter.Meta.fields
+        order_by = ["-case_num"]
 
 
 class PersonTable(tables.Table):
