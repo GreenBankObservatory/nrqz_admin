@@ -397,6 +397,7 @@ class CaseDetailView(DetailView):
             "si",
             "si_done",
             "name",
+            "is_federal",
         ]
         context["application_info"] = [
             "radio_service",

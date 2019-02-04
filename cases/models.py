@@ -500,6 +500,7 @@ class Case(
     slug = SlugField(unique=True)
 
     sgrs_service_num = PositiveIntegerField(null=True, blank=True)
+    is_federal = BooleanField(null=True)
 
     class Meta:
         verbose_name = "Case"
