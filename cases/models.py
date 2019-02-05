@@ -27,13 +27,27 @@ from utils.coord_utils import dd_to_dms
 from .kml import facility_as_kml, case_as_kml, kml_to_string
 from .mixins import DataSourceModel, TrackedOriginalModel, IsActiveModel, TrackedModel
 
+LOCATION_FIELD = lambda: PointField(
+    blank=True,
+    null=True,
+    # Creates a spatial index for the given geometry field.
+    spatial_index=True,
+    # Use geography column (spherical) instead of geometry (planar)
+    geography=True,
+    # WGS84
+    srid=4326,
+    help_text="A physical location on the Earth",
+)
+
 
 class Structure(IsActiveModel, TrackedModel, DataSourceModel, Model):
+    """Represents a physical structure; modeled after FCC ASR DB"""
+
     asr = PositiveIntegerField(
         unique=True, verbose_name="Antenna Registration Number", db_index=True
     )
     file_num = CharField(max_length=256, verbose_name="File Number")
-    location = PointField(spatial_index=True, geography=True, verbose_name="Location")
+    location = LOCATION_FIELD()
     faa_circ_num = CharField(max_length=256, verbose_name="FAA Circulation Number")
     faa_study_num = CharField(max_length=256, verbose_name="FAA Study Number")
     issue_date = DateField(verbose_name="Issue Date")
@@ -50,7 +64,7 @@ class Structure(IsActiveModel, TrackedModel, DataSourceModel, Model):
         return reverse("structure_detail", args=[str(self.id)])
 
 
-class PreliminaryFacility(
+class AbstractBaseFacility(
     AbstractBaseAuditedModel,
     TrackedOriginalModel,
     IsActiveModel,
@@ -58,19 +72,26 @@ class PreliminaryFacility(
     DataSourceModel,
     Model,
 ):
-    # From Access
-    site_num = PositiveIntegerField(verbose_name="Site #", blank=True, null=True)
+    """Stores concrete fields common between PFacility and Facility"""
+
+    site_num = PositiveIntegerField(
+        verbose_name="Site #", blank=True, null=True, help_text="???"
+    )
     freq_low = FloatField(
         verbose_name="Freq Low (MHz)",
-        help_text="Frequency specific or lower part of band.",
         null=True,
         blank=True,
+        help_text="Frequency specific or lower part of band.",
     )
     antenna_model_number = CharField(
-        verbose_name="Antenna Model No.", max_length=256, blank=True, null=True
+        verbose_name="Antenna Model No.",
+        max_length=256,
+        blank=True,
+        null=True,
+        help_text="Antenna Model Number",
     )
     power_density_limit = FloatField(
-        null=True, blank=True, verbose_name="Power Density Limit"
+        null=True, blank=True, verbose_name="Power Density Limit", help_text="???"
     )
     site_name = CharField(
         max_length=256,
@@ -93,17 +114,18 @@ class PreliminaryFacility(
         verbose_name="Longitude",
         help_text="Longitude of site, in degrees",
     )
+    location = LOCATION_FIELD()
     amsl = FloatField(
         verbose_name="AMSL (meters)",
-        help_text="Ground elevation",
         blank=True,
         null=True,
+        help_text="Facility ground elevation, in meters",
     )
     agl = FloatField(
         verbose_name="AGL (meters)",
-        help_text="Facility height to center above ground level",
         blank=True,
         null=True,
+        help_text="Facility height to center above ground level, in meters",
     )
     comments = TextField(
         null=True,
@@ -111,10 +133,19 @@ class PreliminaryFacility(
         help_text="Additional information or comments from the applicant",
     )
 
-    location = PointField(
-        blank=True, null=True, spatial_index=True, geography=True, srid=4326
+    class Meta:
+        abstract = True
+
+
+class PreliminaryFacility(AbstractBaseFacility):
+    """A "Preliminary" Facility: a Facility that does not yet exist"""
+
+    pcase = ForeignKey(
+        "PreliminaryCase",
+        on_delete=CASCADE,
+        related_name="pfacilities",
+        help_text="The Preliminary Case that this Facility is being considered under",
     )
-    pcase = ForeignKey("PreliminaryCase", on_delete=CASCADE, related_name="pfacilities")
 
     class Meta:
         verbose_name = "Preliminary Facility"
@@ -127,21 +158,14 @@ class PreliminaryFacility(
         return reverse("prelim_facility_detail", args=[str(self.id)])
 
 
-class Facility(
-    AbstractBaseAuditedModel,
-    TrackedOriginalModel,
-    IsActiveModel,
-    TrackedModel,
-    DataSourceModel,
-    Model,
-):
+class Facility(AbstractBaseFacility):
     """Describes a single, physical antenna"""
 
     freq_low = FloatField(
         verbose_name="Freq Low (MHz)",
-        help_text="Frequency specific or lower part of band.",
         null=True,
         blank=True,
+        help_text="Frequency specific or lower part of band.",
     )
     site_name = CharField(
         max_length=256,
@@ -155,43 +179,14 @@ class Facility(
         blank=True,
         null=True,
         verbose_name="Call Sign",
-        help_text="(optional)",
+        help_text="The radio call sign of the Facility",
     )
     fcc_file_number = CharField(
         max_length=256,
         blank=True,
         null=True,
         verbose_name="FCC File Number",
-        help_text="(if known)",
-    )
-    location = PointField(
-        blank=True, null=True, spatial_index=True, geography=True, srid=4326
-    )
-    latitude = CharField(
-        blank=True,
-        null=True,
-        max_length=256,
-        verbose_name="Latitude",
-        help_text="Latitude of site, in degrees",
-    )
-    longitude = CharField(
-        blank=True,
-        null=True,
-        max_length=256,
-        verbose_name="Longitude",
-        help_text="Longitude of site, in degrees",
-    )
-    amsl = FloatField(
-        verbose_name="AMSL (meters)",
-        help_text="Ground elevation",
-        blank=True,
-        null=True,
-    )
-    agl = FloatField(
-        verbose_name="AGL (meters)",
-        help_text="Facility height to center above ground level",
-        blank=True,
-        null=True,
+        help_text="???",
     )
     freq_high = FloatField(
         verbose_name="Freq High (MHz)",
@@ -289,11 +284,6 @@ class Facility(
     )
     # TODO: Is this needed? Doesn't structure store this?
     asr_is_from_applicant = BooleanField(null=True, blank=True)
-    comments = TextField(
-        null=True,
-        blank=True,
-        help_text="Additional information or comments from the applicant",
-    )
 
     case = ForeignKey("Case", on_delete=CASCADE, related_name="facilities")
     structure = ForeignKey(
@@ -329,13 +319,24 @@ class Facility(
     tx_power = FloatField(null=True, blank=True, verbose_name="TX Power (dBm)")
     aeirp_to_gbt = FloatField(null=True, blank=True, verbose_name="AEiRP to GBT")
     az_bearing = CharField(
-        max_length=256, null=True, blank=True, verbose_name="AZ bearing degrees True"
+        max_length=256,
+        null=True,
+        blank=True,
+        verbose_name="AZ bearing degrees True",
+        help_text="The Azimuth bearing between the Facility and the GBT, as imported from existing data",
     )
-    calc_az = FloatField(null=True, blank=True)
+    calc_az = FloatField(
+        verbose_name="Calculated Azimuth Bearing (°)",
+        null=True,
+        blank=True,
+        help_text=(
+            "Azimuth bearing between the Facility and the GBT, "
+            "as calculated based on this Facility's, location"
+        ),
+    )
     num_tx_per_facility = IntegerField(
         null=True, blank=True, verbose_name="# of TX per facility"
     )
-    site_num = PositiveIntegerField(verbose_name="Site #", blank=True, null=True)
 
     nrao_approval = BooleanField(
         null=True,
@@ -375,7 +376,7 @@ class PreliminaryCaseGroup(
         verbose_name_plural = "Preliminary Case Groups"
 
 
-class PreliminaryCase(
+class AbstractBaseCase(
     AbstractBaseAuditedModel,
     TrackedOriginalModel,
     IsActiveModel,
@@ -383,6 +384,23 @@ class PreliminaryCase(
     DataSourceModel,
     Model,
 ):
+
+    name = CharField(max_length=256, blank=True, null=True)
+    comments = TextField(blank=True)
+    completed = BooleanField(default=False, blank=True, verbose_name="Completed")
+    completed_on = DateTimeField(null=True, blank=True, verbose_name="Completed On")
+    is_federal = BooleanField(null=True)
+    num_freqs = PositiveIntegerField(null=True, blank=True, verbose_name="Num. Freq.")
+    num_sites = PositiveIntegerField(null=True, blank=True, verbose_name="Num Sites")
+    radio_service = CharField(max_length=256, blank=True, verbose_name="Radio Service")
+
+    slug = SlugField(unique=True)
+
+    class Meta:
+        abstract = True
+
+
+class PreliminaryCase(AbstractBaseCase):
     applicant = ForeignKey(
         "Person",
         on_delete=CASCADE,
@@ -404,26 +422,15 @@ class PreliminaryCase(
         blank=True,
         related_name="prelim_cases",
     )
-    comments = TextField(blank=True)
     case_num = PositiveIntegerField(
         unique=True, db_index=True, verbose_name="Prelim. Case Num."
     )
-    name = CharField(max_length=256, blank=True, null=True)
 
     case = ForeignKey(
         "Case", related_name="prelim_cases", on_delete=CASCADE, null=True, blank=True
     )
 
     attachments = ManyToManyField("Attachment", related_name="prelim_cases", blank=True)
-
-    completed = BooleanField(default=False, blank=True, verbose_name="Completed")
-    completed_on = DateTimeField(null=True, blank=True, verbose_name="Completed On")
-    radio_service = CharField(max_length=256, blank=True, verbose_name="Radio Service")
-    num_freqs = PositiveIntegerField(null=True, blank=True, verbose_name="Num. Freq.")
-    num_sites = PositiveIntegerField(null=True, blank=True, verbose_name="Num Sites")
-
-    # Misc.
-    slug = SlugField(unique=True)
 
     def __str__(self):
         return f"P{self.case_num}"
@@ -440,17 +447,9 @@ class PreliminaryCase(
         verbose_name_plural = "Preliminary Cases"
 
 
-class Case(
-    AbstractBaseAuditedModel,
-    TrackedOriginalModel,
-    IsActiveModel,
-    TrackedModel,
-    DataSourceModel,
-    Model,
-):
+class Case(AbstractBaseCase):
     """Defines a given NRQZ Application"""
 
-    # sites = ManyToManyField("Site")
     applicant = ForeignKey(
         "Person",
         on_delete=CASCADE,
@@ -465,29 +464,22 @@ class Case(
         null=True,
         blank=True,
     )
-    comments = TextField(blank=True)
     case_num = PositiveIntegerField(
         unique=True, db_index=True, verbose_name="Case Num."
     )
-    # TODO: What is this?
-    name = CharField(max_length=256, blank=True, null=True)
 
     attachments = ManyToManyField("Attachment", related_name="cases", blank=True)
 
     # From Access
-    completed = BooleanField(default=False, blank=True, verbose_name="Completed")
     shutdown = BooleanField(default=False, blank=True, verbose_name="Shut Down")
-    completed_on = DateTimeField(null=True, blank=True, verbose_name="Completed On")
     sgrs_notify = BooleanField(default=False, blank=True, verbose_name="SGRS Notified")
     sgrs_responded_on = DateTimeField(
         null=True, blank=True, verbose_name="SGRS Responded On"
     )
-    radio_service = CharField(max_length=256, blank=True, verbose_name="Radio Service")
+    # TODO: Propagate to Facility
     call_sign = CharField(max_length=256, blank=True, verbose_name="Call Sign")
     freq_coord = CharField(max_length=256, blank=True, verbose_name="Freq. Coord.")
     fcc_file_num = CharField(max_length=256, blank=True, verbose_name="FCC File Num.")
-    num_freqs = PositiveIntegerField(null=True, blank=True, verbose_name="Num. Freq.")
-    num_sites = PositiveIntegerField(null=True, blank=True, verbose_name="Num Sites")
     num_outside = PositiveIntegerField(
         null=True, blank=True, verbose_name="Num. Sites Outside NRQZ"
     )
@@ -496,11 +488,7 @@ class Case(
     si = BooleanField(default=False, blank=True, verbose_name="SI")
     si_done = DateTimeField(null=True, blank=True, verbose_name="SI Done")
 
-    # Misc.
-    slug = SlugField(unique=True)
-
     sgrs_service_num = PositiveIntegerField(null=True, blank=True)
-    is_federal = BooleanField(null=True)
 
     class Meta:
         verbose_name = "Case"

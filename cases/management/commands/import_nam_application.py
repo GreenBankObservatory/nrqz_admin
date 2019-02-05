@@ -109,6 +109,17 @@ class Command(BaseImportCommand):
     def handle_v2_format(self, data):
         return self.deconstruct_data(data, facility_dict_terminator="PanRng")
 
+    def derive_keys(self, data):
+        keys = set()
+        for line in data:
+            stripped = line.strip()
+            if stripped:
+                parts = [part for part in stripped.split(":") if part]
+                key = parts[0]
+                keys.add(key)
+
+        return sorted(keys)
+
     def handle_record(self, row_data, file_import_attempt):
         version = row_data.data[0].strip()
         if version == "nrqzApp v1":
@@ -123,6 +134,12 @@ class Command(BaseImportCommand):
         if errors:
             file_import_attempt.errors.update(errors)
             file_import_attempt.save()
+
+        original_headers = self.derive_keys(row_data.data)
+        row_data.headers = original_headers
+        fixed_row_data = {"main_dict": main_dict, "facility_dicts": facility_dicts}
+        row_data.data = fixed_row_data
+        row_data.save()
         applicant, applicant_audit = APPLICANT_FORM_MAP.save_with_audit(
             row_data=row_data, data=main_dict, file_import_attempt=file_import_attempt
         )
