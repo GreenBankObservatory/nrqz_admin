@@ -93,5 +93,5 @@ ATTACHMENT_FORM_MAPS = [
             },
         },
     )()
-    for n in range(1, 3)
+    for n in range(1, 4)
 ]
