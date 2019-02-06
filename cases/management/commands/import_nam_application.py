@@ -1,8 +1,10 @@
-from tqdm import tqdm
+"""Import NRQZ Analyzer Data"""
+
+import re
 
 from django_import_data import BaseImportCommand
 
-from importers.handlers import handle_case, handle_attachments
+from importers.handlers import handle_case
 from importers.nrqz_analyzer.fieldmap import (
     APPLICANT_FORM_MAP,
     CONTACT_FORM_MAP,
@@ -10,6 +12,8 @@ from importers.nrqz_analyzer.fieldmap import (
     FACILITY_FORM_MAP,
     STRUCTURE_FORM_MAP,
 )
+
+COMMENT_REGEX = re.compile(r"\d{2}\s*[a-zA-Z]{3,6}\s*\d{2,4}")
 
 
 class Command(BaseImportCommand):
@@ -51,6 +55,8 @@ class Command(BaseImportCommand):
                 if ":" not in stripped:
                     errors.setdefault("non_key_value_rows", [])
                     errors["non_key_value_rows"].append(stripped)
+                    main_dict.setdefault("comments", "")
+                    main_dict["comments"] += line
 
                 # If we are "in" a Facility dict...
                 if facility_dict:
@@ -64,7 +70,6 @@ class Command(BaseImportCommand):
                         if key == facility_dict_terminator:
                             if facility_dict:
                                 facility_dicts.append(facility_dict)
-                                # tqdm.write(f"END DICT")
                             facility_dict = None
                     # Unless it is already there, which should never happen
                     else:
@@ -79,7 +84,6 @@ class Command(BaseImportCommand):
                         # So, we start a new dict to hold its info. Note that we
                         # add both the "type" here, AND the nrqzID. This is so
                         # that each Facility knows what its nrqzID and case number are
-                        # tqdm.write(f"START DICT")
                         facility_dict = {
                             key: value
                             for key, value in main_dict.items()
@@ -101,6 +105,11 @@ class Command(BaseImportCommand):
                             #     raise ValueError(
                             #         f"Key {key} found more than once in the 'main' dict!"
                             #     )
+
+                            m = COMMENT_REGEX.match(line)
+                            if m:
+                                main_dict.setdefault("comments", "")
+                                main_dict["comments"] += line
         return main_dict, facility_dicts, errors
 
     def handle_v1_format(self, data):
@@ -123,10 +132,8 @@ class Command(BaseImportCommand):
     def handle_record(self, row_data, file_import_attempt):
         version = row_data.data[0].strip()
         if version == "nrqzApp v1":
-            # tqdm.write("Handling v1")
             main_dict, facility_dicts, errors = self.handle_v1_format(row_data.data)
         elif version == "nrqzApp v2":
-            # tqdm.write("Handling v2")
             main_dict, facility_dicts, errors = self.handle_v2_format(row_data.data)
         else:
             raise ValueError(f"Unknown version: {version}")

@@ -101,6 +101,9 @@ class FacilityFormMap(FormMap):
         OneToOneFieldMap(
             from_field="mxtxpo", converter=coerce_float, to_field="max_tx_power"
         ),
+        # NOTE: This is "synthetic", in the sense that there is no one "comments"
+        # column. See import_nam_application for details
+        OneToOneFieldMap("comments"),
     ]
     form_class = FacilityForm
     form_defaults = {"data_source": NAM_APPLICATION}

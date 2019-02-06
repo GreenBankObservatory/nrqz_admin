@@ -92,6 +92,11 @@ class FacilityFilter(HelpedFilterSet):
     contact = django_filters.CharFilter(
         field_name="case__contact__name", lookup_expr="unaccent__trigram_similar"
     )
+    path = django_filters.CharFilter(
+        field_name="model_import_attempt__file_import_attempt__imported_from",
+        lookup_expr="icontains",
+        label="Imported from Path",
+    )
 
     class Meta:
         model = models.Facility

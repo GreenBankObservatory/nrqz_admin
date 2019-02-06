@@ -109,7 +109,10 @@ class FacilityTable(tables.Table):
 
     def render_path(self, record):
         fia = record.model_import_attempt.file_import_attempt
-        path = fia.name[len("stripped_data_only_") :].replace("_", " ")
+        if "stripped_data_only_" in fia.name:
+            path = fia.name[len("stripped_data_only_") :].replace("_", " ")
+        else:
+            path = fia.name
         return path
 
     def render_nrao_aerpd(self, value):

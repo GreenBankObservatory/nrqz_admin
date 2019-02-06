@@ -89,7 +89,13 @@ class FacilityFilterFormHelper(FormHelper):
                 css_class="col-sm-2",
             ),
             Div("freq_low", "freq_high", "applicant", "contact", css_class="col-sm-5"),
-            Div("structure", "site_name", "antenna_model_number", css_class="col-sm-2"),
+            Div(
+                "structure",
+                "site_name",
+                "antenna_model_number",
+                "path",
+                css_class="col-sm-2",
+            ),
             Div(
                 "nrao_aerpd",
                 "az_bearing",
