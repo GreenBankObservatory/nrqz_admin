@@ -21,7 +21,12 @@ class Command(BaseImportCommand):
 
     FORM_MAPS = [CASE_FORM_MAP, FACILITY_FORM_MAP]
 
-    IGNORED_HEADERS = ["Original Row"]
+    IGNORED_HEADERS = [
+        "Original Row",
+        "Applicant",
+        "Applicant Name",
+        "Name of Applicant",
+    ]
 
     def add_arguments(self, parser):
         super().add_arguments(parser)

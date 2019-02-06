@@ -10,6 +10,7 @@ from django_import_data import (
 from cases.forms import CaseForm, FacilityForm
 from importers.converters import (
     coerce_positive_float,
+    coerce_positive_int,
     coerce_float,
     coerce_bool,
     coerce_location,
@@ -17,6 +18,21 @@ from importers.converters import (
     convert_freq_high,
 )
 from utils.constants import EXCEL
+
+
+def convert_dominant_path(dominant_path):
+    clean_dominant_path = dominant_path.strip().lower()
+    if not clean_dominant_path:
+        return None
+
+    if clean_dominant_path.startswith("d"):
+        return "diffraction"
+    elif clean_dominant_path.startswith("s"):
+        return "scatter"
+    elif clean_dominant_path.startswith("f"):
+        return "free_space"
+
+    raise ValueError(f"Dominant path {dominant_path} could not be converted!")
 
 
 def convert_nrao_aerpd(nrao_aerpd):
@@ -226,6 +242,7 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="main_beam_orientation",
+            converter=coerce_positive_float,
             from_field={
                 "main_beam_orientation": [
                     "Main Beam Orientation (All Sectors)",
@@ -235,6 +252,7 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="mechanical_downtilt",
+            converter=coerce_positive_float,
             from_field={
                 "mechanical_downtilt": [
                     "Mechanical Downtilt (All Sectors)",
@@ -244,6 +262,7 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="electrical_downtilt",
+            converter=coerce_positive_float,
             from_field={
                 "electrical_downtilt": [
                     "Electrical Downtilt (All Sectors)",
@@ -263,7 +282,6 @@ class FacilityFormMap(FormMap):
                 ]
             },
         ),
-        # TODO:
         OneToOneFieldMap(
             to_field="nrqz_id",
             from_field={
@@ -277,6 +295,7 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="tx_per_sector",
+            converter=coerce_positive_int,
             from_field={
                 "tx_per_sector": [
                     "Number of Transmitters per sector",
@@ -290,6 +309,7 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="tx_antennas_per_sector",
+            converter=coerce_positive_int,
             from_field={
                 "tx_antennas_per_sector": [
                     "Number of TX antennas per sector",
@@ -335,6 +355,7 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="uses_quad_or_octal_polarization",
+            converter=coerce_bool,
             from_field={
                 "uses_quad_or_octal_polarization": [
                     "If this facility uses Quad or Octal polarization, specify type here"
@@ -382,23 +403,10 @@ class FacilityFormMap(FormMap):
                 ]
             },
         ),
-        # Purposefully ignore all of these headers
-        # OneToOneFieldMap(
-        #     to_field=None,
-        #     converter=None,
-        #     from_field={
-        #         "None": [
-        #             "Original Row",
-        #             "Applicant",
-        #             "Applicant Name",
-        #             "Name of Applicant",
-        #         ]
-        #     },
-        # ),
         # From Working Data
         OneToOneFieldMap(
             to_field="num_tx_per_facility",
-            converter=None,
+            converter=coerce_positive_int,
             from_field={
                 "num_tx_per_facility": [
                     "# of TX per facility",
@@ -409,29 +417,29 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="aeirp_to_gbt",
-            converter=None,
+            converter=coerce_positive_float,
             from_field={"aeirp_to_gbt": ["AEiRP to GBT"]},
         ),
         OneToOneFieldMap(
             to_field="az_bearing",
-            converter=None,
+            converter=coerce_positive_float,
             from_field={"az_bearing": ["AZ bearing degrees True"]},
         ),
         OneToOneFieldMap(
             to_field="band_allowance",
-            converter=None,
+            converter=coerce_positive_float,
             from_field={"band_allowance": ["Band Allowance"]},
         ),
         OneToOneFieldMap(
             to_field="distance_to_first_obstacle",
-            converter=None,
+            converter=coerce_positive_float,
             from_field={
                 "distance_to_first_obstacle": ["Distance to 1st obstacle (km)"]
             },
         ),
         OneToOneFieldMap(
             to_field="dominant_path",
-            converter=None,
+            converter=convert_dominant_path,
             from_field={
                 "dominant_path": [
                     "Dominant path",
@@ -442,35 +450,35 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="erpd_per_num_tx",
-            converter=None,
+            converter=coerce_positive_float,
             from_field={
                 "erpd_per_num_tx": ["ERPd per # of Transmitters", "ERPd per TX"]
             },
         ),
         OneToOneFieldMap(
             to_field="height_of_first_obstacle",
-            converter=None,
+            converter=coerce_positive_float,
             from_field={"height_of_first_obstacle": ["Height of 1st obstacle (ft)"]},
         ),
         # OneToOneFieldMap(to_field="loc", converter=None, from_field={"loc": ["LOC"]}),
         OneToOneFieldMap(
             to_field="max_aerpd",
-            converter=None,
+            converter=coerce_positive_float,
             from_field={"max_aerpd": ["Max AERPd (dBm)"]},
         ),
         OneToOneFieldMap(
             to_field="max_erp_per_tx",
-            converter=None,
+            converter=coerce_positive_float,
             from_field={"max_erp_per_tx": ["Max ERP per TX (W)"]},
         ),
         OneToOneFieldMap(
             to_field="max_gain",
-            converter=None,
+            converter=coerce_positive_float,
             from_field={"max_gain": ["Max Gain (dBi)"]},
         ),
         OneToOneFieldMap(
             to_field="max_tx_power",
-            converter=None,
+            converter=coerce_positive_float,
             from_field={"max_tx_power": ["Max TX Pwr (W)"]},
         ),
         OneToManyFieldMap(
@@ -482,19 +490,17 @@ class FacilityFormMap(FormMap):
             "this value will be the limit itself. So, it needs to map to both "
             "the value field, and the approval field.",
         ),
-        # OneToOneFieldMap(
-        #     from_field={"nrao_approval": ["NRAO AERPd (W)-1"]}, converter=None
-        # ),
         OneToOneFieldMap(
             to_field="power_density_limit",
-            converter=None,
+            converter=coerce_positive_float,
             from_field={"power_density_limit": ["Power Density Limit"]},
         ),
         OneToOneFieldMap(
             to_field="sgrs_approval",
-            converter=None,
+            converter=coerce_bool,
             from_field={"sgrs_approval": ["SGRS Approval"]},
         ),
+        # TODO: Make attachment
         OneToOneFieldMap(
             to_field="tap_file", converter=None, from_field={"tap_file": ["TAP file"]}
         ),
@@ -503,7 +509,7 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="tx_power",
-            converter=None,
+            converter=coerce_positive_float,
             from_field={"tx_power": ["TX Pwr (dBm)"]},
         ),
     ]
