@@ -55,6 +55,16 @@ class LetterTemplateForm(forms.Form):
         super(LetterTemplateForm, self).__init__(*args, **kwargs)
         self.helper = LetterFormHelper()
 
+    def clean(self):
+        print("clenanana")
+        cleaned_data = super().clean()
+        if not (cleaned_data.get("cases") or self.cleaned_data.get("facilities")):
+            raise forms.ValidationError(
+                "At least one of Cases or Facilities must be populated!"
+            )
+
+        return cleaned_data
+
 
 class StructureForm(forms.ModelForm):
     class Meta:

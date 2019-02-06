@@ -9,13 +9,13 @@ from django_import_data import (
 
 from cases.forms import CaseForm, FacilityForm
 from importers.converters import (
+    coerce_bool,
+    coerce_float,
+    coerce_location,
     coerce_positive_float,
     coerce_positive_int,
-    coerce_float,
-    coerce_bool,
-    coerce_location,
-    convert_nrqz_id_to_case_num,
     convert_freq_high,
+    convert_nrqz_id_to_case_num,
 )
 from utils.constants import EXCEL
 
@@ -460,7 +460,7 @@ class FacilityFormMap(FormMap):
             converter=coerce_positive_float,
             from_field={"height_of_first_obstacle": ["Height of 1st obstacle (ft)"]},
         ),
-        # OneToOneFieldMap(to_field="loc", converter=None, from_field={"loc": ["LOC"]}),
+        OneToOneFieldMap(to_field="loc", converter=None, from_field={"loc": ["LOC"]}),
         OneToOneFieldMap(
             to_field="max_aerpd",
             converter=coerce_positive_float,
@@ -500,7 +500,7 @@ class FacilityFormMap(FormMap):
             converter=coerce_bool,
             from_field={"sgrs_approval": ["SGRS Approval"]},
         ),
-        # TODO: Make attachment
+        # TODO: Make attachment somehow?
         OneToOneFieldMap(
             to_field="tap_file", converter=None, from_field={"tap_file": ["TAP file"]}
         ),

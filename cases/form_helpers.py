@@ -37,8 +37,8 @@ class LetterFormHelper(FormHelper):
         FormActions(
             Submit(
                 "submit",
-                "Render",
-                title="Re-render the template with the above choices",
+                "Preview",
+                title="Preview the data that will be passed to the template",
             ),
             Submit("download", "Download", title="Download as .docx"),
             css_class="float-right filter-form-buttons",

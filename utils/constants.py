@@ -1,3 +1,6 @@
+"""Project-wide constants"""
+
+# Unit conversions
 FEET_IN_A_METER = 0.3048
 
 # Data Sources
@@ -12,7 +15,7 @@ NAM_APPLICATION = "nam_application"
 
 # Misc.
 
-# Empirically determined. This is solely to obviously-wrong case numbers
-# from being imported (of which there are two at this time)
-MAX_VALID_CASE_NUMBER = 11690
+# Empirically determined. This is solely to avoid obviously-wrong
+# case numbers from being imported
+MAX_VALID_CASE_NUMBER = 12000
 MIN_VALID_CASE_NUMBER = 100

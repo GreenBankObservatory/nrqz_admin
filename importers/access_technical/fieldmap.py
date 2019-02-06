@@ -5,12 +5,13 @@ from cases.forms import AttachmentForm, CaseForm, FacilityForm, PersonForm
 from django_import_data import FormMap, ManyToOneFieldMap, OneToOneFieldMap
 from importers.access_application.fieldmap import coerce_datetime, coerce_positive_int
 from importers.converters import (
-    coerce_scientific_notation,
-    coerce_none,
     coerce_feet_to_meters,
     coerce_location,
-    convert_case_num,
+    coerce_none,
+    coerce_positive_float,
+    coerce_scientific_notation,
     convert_access_path,
+    convert_case_num,
 )
 from utils.constants import ACCESS_TECHNICAL
 
@@ -50,7 +51,9 @@ class FacilityFormMap(FormMap):
             from_field="DATEREC",
         ),
         OneToOneFieldMap(to_field="call_sign", converter=None, from_field="CALLSIGN"),
-        OneToOneFieldMap(to_field="freq_low", converter=None, from_field="FREQUENCY"),
+        OneToOneFieldMap(
+            to_field="freq_low", converter=coerce_positive_float, from_field="FREQUENCY"
+        ),
         OneToOneFieldMap(
             to_field="power_density_limit",
             converter=coerce_scientific_notation,

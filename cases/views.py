@@ -150,10 +150,6 @@ class FacilityListView(FilterTableView):
     filterset_class = FacilityFilter
     template_name = "cases/facility_list.html"
 
-    def get_queryset(self):
-        qs = super().get_queryset()
-        return qs.annotate(calc_az=Azimuth(F("location"), gbt))
-
     def get(self, request, *args, **kwargs):
         if "kml" in request.GET:
             # TODO: Must be a cleaner way to do this
@@ -192,115 +188,99 @@ class FacilityAutocompleteView(autocomplete.Select2QuerySetView):
         return facilities
 
 
-class LetterView(TemplateView):
+class LetterView(FormView):
+    form_class = LetterTemplateForm
     template_name = "cases/concurrence_letter.html"
 
-    def get(self, request, *args, **kwargs):
-        facilities_q = Q()
-        if "facilities" in request.GET:
-            kwargs.update({"facilities": request.GET.getlist("facilities")})
-            facilities_q |= Q(id__in=request.GET.getlist("facilities"))
+    # def get_success_url(self):
+    #     return reverse("letters")
 
-        if "cases" in request.GET:
-            kwargs.update({"cases": request.GET.getlist("cases")})
-            facilities_q |= Q(case__case_num__in=request.GET.getlist("cases"))
+    # def get(self, request, *args, **kwargs):
+    #     print("GET")
+    #     facilities_q = Q()
+    #     if "facilities" in request.GET:
+    #         kwargs.update({"facilities": request.GET.getlist("facilities")})
+    #         facilities_q |= Q(id__in=request.GET.getlist("facilities"))
 
-        if "batches" in request.GET:
-            kwargs.update({"batches": request.GET.getlist("batches")})
-            facilities_q |= Q(batch__case__case_num__in=request.GET.getlist("batches"))
+    #     if "cases" in request.GET:
+    #         kwargs.update({"cases": request.GET.getlist("cases")})
+    #         facilities_q |= Q(case__case_num__in=request.GET.getlist("cases"))
 
-        if "template" in request.GET:
-            kwargs.update({"template": request.GET["template"]})
+    #     if "template" in request.GET:
+    #         kwargs.update({"template": request.GET["template"]})
 
-        if facilities_q:
-            facilities = Facility.objects.filter(facilities_q)
-        else:
-            facilities = Facility.objects.none()
-        kwargs.update({"facilities_result": facilities})
+    #     if facilities_q:
+    #         facilities = Facility.objects.filter(facilities_q)
+    #     else:
+    #         facilities = Facility.objects.none()
+    #     kwargs.update({"facilities_result": facilities})
+    #     print("KWARGS", kwargs)
+    #     return super().get(request, *args, **kwargs)
 
-        return super().get(request, *args, **kwargs)
+    def get_initial(self):
+        initial = super().get_initial()
+        if "facilities" in self.request.GET:
+            initial.update({"facilities": self.request.GET.getlist("facilities")})
+
+        if "cases" in self.request.GET:
+            initial.update({"cases": self.request.GET.getlist("cases")})
+
+        if "template" in self.request.GET:
+            initial.update({"template": self.request.GET["template"]})
+
+        return initial
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context.update(self.get_letter_context(self.request.GET))
+        return context
 
-        facilities = context["facilities_result"]
-        if "cases" in context:
-            cases = Case.objects.filter(case_num__in=context["cases"])
+    def get_letter_context(self, post_dict):
+        if "facilities" in post_dict:
+            facilities = Facility.objects.filter(id__in=post_dict.getlist("facilities"))
+            cases = Case.objects.filter(facilities__in=facilities)
         else:
-            cases = Case.objects.none()
-        context["cases"] = cases
-        context["facilities"] = facilities
+            if "cases" in post_dict:
+                cases = Case.objects.filter(case_num__in=post_dict.getlist("cases"))
+                cases = (
+                    cases | Case.objects.filter(facilities__in=facilities)
+                ).distinct()
+            else:
+                raise ValueError("At least one of cases or facilities must be here...")
 
-        letter_context = {}
-        letter_context["case"] = cases.first()
+        if cases.count() != 1:
+            raise ValueError("Womp womp")
+
+        case = cases.first()
+
+        letter_context = {"case": case, "facilities": facilities}
+
         letter_context["generation_date"] = date.today().strftime("%B %d, %Y")
         letter_context["nrqz_ids"] = ", ".join(
             facilities.filter(nrqz_id__isnull=False).values_list("nrqz_id", flat=True)
         )
-        if facilities:
-            context["min_freq"] = (
-                facilities.annotate(Min("freq_low"))
-                .order_by("freq_low__min")
-                .first()
-                .freq_low
-            )
-            context["max_freq"] = (
-                facilities.annotate(Max("freq_high"))
-                .order_by("-freq_high__max")
-                .first()
-                .freq_high
-            )
         table = LetterFacilityTable(data=facilities)
         letter_context["facilities_table"] = table
 
-        context["letter_context"] = letter_context
-
-        if "template" in context:
-            letter_template = get_object_or_404(
-                LetterTemplate, name=context["template"]
-            )
-        else:
-            try:
-                letter_template = LetterTemplate.objects.get(name="default")
-            except LetterTemplate.DoesNotExist:
-                letter_template = LetterTemplate.objects.first()
-
-        if letter_template:
-            kwargs["template"] = letter_template.name
-            form_values = {
-                field: value
-                for field, value in kwargs.items()
-                if field in ["cases", "facilities", "batches", "template"]
-            }
-            context["template_form"] = LetterTemplateForm(form_values)
-            # context["letter_template"] = Template(letter_template.template).render(
-            #     Context(letter_context)
-            # )
-            context["letter_template"] = letter_template.path
-        else:
-            kwargs["template"] = None
-            context["template_form"] = None
-            context["letter_template"] = None
-
-        # Create queryset of specified facilities that are not included in any
-        # of the specified cases (should be useful as a sanity check)
-        context["non_case_facilities"] = facilities.exclude(case__in=cases)
-        return context
+        return letter_context
 
     def render_to_response(self, context, **response_kwargs):
         if "download" in self.request.GET:
-            # pypandoc will only write to disk. So, we make a temp file...
-            dt = DocxTemplate(context["letter_template"])
+            # We make a temp file...
+            letter_context = self.get_letter_context(self.request.GET)
+            letter_template = get_object_or_404(
+                LetterTemplate, path__endswith=self.request.GET.get("template", None)
+            )
+            dt = DocxTemplate(letter_template.path)
             with tempfile.NamedTemporaryFile() as fp:
-                dt.render(context["letter_context"])
+                dt.render(letter_context)
                 # ...write the converted document to it...
-                # ...and then read it into memory
                 dt.save(fp.name)
+                # ...and then read it into memory
                 docx = fp.read()
 
             # Generate the filename based on the case number(s)
-            case_nums = [str(c.case_num) for c in context["cases"]]
-            filename = f"{'_'.join(case_nums)}_letter.docx"
+            filename = f"{letter_context['case'].case_num}_letter.docx"
 
             # And serve the document
             # TODO: Large files will probably cause issues here... will need to set up streaming if
@@ -311,10 +291,8 @@ class LetterView(TemplateView):
             )
             response["Content-Disposition"] = f'application; filename="{filename}"'
             return response
-        else:
-            return super(LetterView, self).render_to_response(
-                context, **response_kwargs
-            )
+
+        return super().render_to_response(context, **response_kwargs)
 
 
 class PreliminaryCaseGroupDetailView(PrintableDetailView):

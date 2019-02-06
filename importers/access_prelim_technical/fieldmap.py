@@ -15,8 +15,8 @@ from importers.converters import (
     coerce_positive_float,
     coerce_positive_int,
     coerce_scientific_notation,
-    convert_case_num,
     convert_access_path,
+    convert_case_num,
 )
 from utils.constants import ACCESS_PRELIM_TECHNICAL
 

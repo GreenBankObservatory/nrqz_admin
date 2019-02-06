@@ -9,21 +9,15 @@
 
 <a href={% url "admin:cases_lettertemplate_changelist" %}>Edit Letter Templates</a>
 
-{% if template_form %}
-{% crispy template_form %}
-{% else %}
-<p class="error">No letter templates defined! You must create one via the admin page!</p>
-{% endif %}
+{% crispy form %}
 
 <h3>Summary:</h3>
 <div class="row">
   <div class="col-sm-4">
     <h4>Cases:</h4>
-    {% if cases %}
+    {% if case %}
     <ul>
-      {% for case in cases %}
       <li>Case {{ case.case_num }}: {{ case.facilities.count }} facilities</li>
-      {% endfor %}
     </ul>
     {% else %}
     <span>No cases!</span>
@@ -43,14 +37,6 @@
     {% endif %}
   </div>
 
-</div>
-
-<div class="container-fluid border">
-  {% if facilities %}
-  {{ letter_template }}
-  {% else %}
-  <p>No facilities! Alter your selections above such that technical information is included</p>
-  {% endif %}
 </div>
 
 {% endblock content %}

@@ -131,12 +131,8 @@ class FacilityTable(tables.Table):
         return coords_to_string(latitude=latitude, longitude=longitude, concise=True)
 
     def render_dominant_path(self, value):
-        clean_value = value.lower()
-        if clean_value == "scatter":
-            return "S"
-        elif clean_value == "diffraction":
-            return "D"
-
+        if value:
+            return value[0]
         return value
 
 

@@ -299,7 +299,16 @@ class Facility(AbstractBaseFacility):
     distance_to_first_obstacle = CharField(
         max_length=256, null=True, blank=True, verbose_name="Distance to First Obstacle"
     )
-    dominant_path = CharField(max_length=256, blank=True, verbose_name="Dominant Path")
+    dominant_path = CharField(
+        max_length=256,
+        blank=True,
+        verbose_name="Dominant Path",
+        choices=(
+            ("diffraction", "Diffraction"),
+            ("scatter", "Scatter"),
+            ("free_space", "Free Space"),
+        ),
+    )
     erpd_per_num_tx = CharField(
         max_length=256, blank=True, verbose_name="ERPd per # of Transmitters"
     )
