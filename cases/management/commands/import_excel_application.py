@@ -6,7 +6,7 @@ from tqdm import tqdm
 from django_import_data import BaseImportCommand
 
 
-from cases.models import Attachment, Case, Facility
+from cases.models import Case
 from importers.excel.fieldmap import CASE_FORM_MAP, FACILITY_FORM_MAP
 from utils.constants import EXCEL
 
@@ -20,6 +20,8 @@ class Command(BaseImportCommand):
     PROGRESS_TYPE = BaseImportCommand.PROGRESS_TYPES.FILE
 
     FORM_MAPS = [CASE_FORM_MAP, FACILITY_FORM_MAP]
+
+    IGNORED_HEADERS = ["Original Row"]
 
     def add_arguments(self, parser):
         super().add_arguments(parser)
@@ -81,7 +83,7 @@ class Command(BaseImportCommand):
             if self.durable:
                 tqdm.write(error_str)
             else:
-                raise BatchRejectionError(error_str)
+                raise ValueError(error_str)
 
         case_num = case_form["case_num"].value()
         try:
@@ -127,14 +129,14 @@ class Command(BaseImportCommand):
         return facility, facility_created
 
     def get_unmapped_headers(self, headers, known_headers):
+        possibly_unmapped_headers = super().get_unmapped_headers(headers, known_headers)
         unmapped_headers = []
-        for header in known_headers:
+        for header in possibly_unmapped_headers:
             try:
                 int(header)
             except ValueError:
-                if not header.startswith("Original Row"):
-                    if header not in known_headers:
-                        unmapped_headers.append(header)
+                if header not in known_headers:
+                    unmapped_headers.append(header)
         return unmapped_headers
 
     def handle_record(self, row_data, file_import_attempt):

@@ -479,6 +479,10 @@ class FacilityFormMap(FormMap):
             to_fields=("nrao_aerpd", "nrao_approval"),
             converter=convert_nrao_aerpd,
             from_field={"nrao_aerpd": ["NRAO AERPd (W)", "NRAO AERPd (W)-1"]},
+            explanation="NRAO AERPd column does double duty: in cases where NRAO approves, "
+            "this value will be 'Meets NRAO limit'. In cases where it doesn't, "
+            "this value will be the limit itself. So, it needs to map to both "
+            "the value field, and the approval field.",
         ),
         # OneToOneFieldMap(
         #     from_field={"nrao_approval": ["NRAO AERPd (W)-1"]}, converter=None

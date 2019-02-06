@@ -1,16 +1,10 @@
 from importlib import import_module
-from pathlib import Path
-import json
-import os
-
-from django.core.management.base import BaseCommand
-from django.contrib.contenttypes.models import ContentType
 
 from django_import_data.models import FileImportAttempt, RowData
 
 from cases.models import Case
 
-SCRIPT_DIR = Path(__file__).resolve().parent
+from ._base_meta_import import BaseMetaImportCommand
 
 
 def get_example_data(file_import_attempts, unmapped_header):
@@ -97,21 +91,12 @@ def get_example_data(file_import_attempts, unmapped_header):
     return example_data, path, nrqz_id
 
 
-class Command(BaseCommand):
-    def add_arguments(self, parser):
-
-        parser.add_argument(
-            "-I",
-            "--importer-spec",
-            help="The path to an 'importer specification' file. "
-            "This maps importer (management command) name to its arguments "
-            "(primarily path, though others also work)",
-            default=os.path.join(SCRIPT_DIR, "importer_spec.json"),
-        )
-
+class Command(BaseMetaImportCommand):
     def handle(self, *args, **options):
-        with open(options.pop("importer_spec")) as file:
-            command_info = json.load(file)
+        command_info = self.handle_importer_spec(
+            import_spec_path=options.pop("importer_spec"),
+            requested_commands=options.pop("commands"),
+        )
 
         form_maps_by_importer = {
             name: {
@@ -154,7 +139,9 @@ class Command(BaseCommand):
                         fias_for_path, unmapped_header
                     )
 
-                    explanation_str = f"  * {unmapped_header}: {example_data.strip()}"
+                    explanation_str = (
+                        f"  * {unmapped_header}: {str(example_data).strip()}"
+                    )
                     assert not (example_data is path is nrqz_id is None), "hmmm"
                     if nrqz_id:
                         explanation_str += f" [for nrqz ID: {nrqz_id}]"
