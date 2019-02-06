@@ -1,5 +1,10 @@
 """Field mappings for Access Preliminary Technical Data"""
-from cases.forms import PersonForm, PreliminaryCaseForm, PreliminaryFacilityForm
+from cases.forms import (
+    AttachmentForm,
+    PersonForm,
+    PreliminaryCaseForm,
+    PreliminaryFacilityForm,
+)
 
 from django_import_data import OneToOneFieldMap, ManyToOneFieldMap, FormMap
 from importers.converters import (
@@ -11,9 +16,9 @@ from importers.converters import (
     coerce_positive_int,
     coerce_scientific_notation,
     convert_case_num,
+    convert_access_path,
 )
-
-ACCESS_PRELIM_TECHNICAL = "access_prelim_technical"
+from utils.constants import ACCESS_PRELIM_TECHNICAL
 
 
 class ApplicantFormMap(FormMap):
@@ -77,9 +82,25 @@ class PfacilityFormMap(FormMap):
     form_defaults = {"data_source": ACCESS_PRELIM_TECHNICAL}
 
 
+class AttachmentFormMap(FormMap):
+    field_maps = [
+        OneToOneFieldMap(
+            to_field="path",
+            converter=convert_access_path,
+            from_field=f"PROP_STUDY_Link",
+        )
+    ]
+    form_class = AttachmentForm
+    form_defaults = {
+        "data_source": ACCESS_PRELIM_TECHNICAL,
+        "comments": "Propagation Study",
+    }
+
+
 APPLICANT_FORM_MAP = ApplicantFormMap()
 PCASE_FORM_MAP = PcaseFormMap()
 PFACILITY_FORM_MAP = PfacilityFormMap()
+ATTACHMENT_FORM_MAP = AttachmentFormMap()
 
 todo = [
     "REQ_ERP",

@@ -1,6 +1,6 @@
 """Field mappings for Access Technical Data"""
 
-from cases.forms import CaseForm, FacilityForm, PersonForm
+from cases.forms import AttachmentForm, CaseForm, FacilityForm, PersonForm
 
 from django_import_data import FormMap, ManyToOneFieldMap, OneToOneFieldMap
 from importers.access_application.fieldmap import coerce_datetime, coerce_positive_int
@@ -10,10 +10,9 @@ from importers.converters import (
     coerce_feet_to_meters,
     coerce_location,
     convert_case_num,
+    convert_access_path,
 )
-
-
-ACCESS_TECHNICAL = "access_technical"
+from utils.constants import ACCESS_TECHNICAL
 
 
 class CaseFormMap(FormMap):
@@ -85,4 +84,17 @@ class FacilityFormMap(FormMap):
     form_defaults = {"data_source": ACCESS_TECHNICAL}
 
 
+class AttachmentFormMap(FormMap):
+    field_maps = [
+        OneToOneFieldMap(
+            to_field="path",
+            converter=convert_access_path,
+            from_field=f"QZPATHLOSS_Link",
+        )
+    ]
+    form_class = AttachmentForm
+    form_defaults = {"data_source": ACCESS_TECHNICAL, "comments": "QZ Path Loss"}
+
+
 FACILITY_FORM_MAP = FacilityFormMap()
+ATTACHMENT_FORM_MAP = AttachmentFormMap()

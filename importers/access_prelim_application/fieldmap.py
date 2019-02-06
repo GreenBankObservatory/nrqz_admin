@@ -2,11 +2,11 @@
 
 from cases.forms import AttachmentForm, PersonForm, PreliminaryCaseForm
 
-from django_import_data import FormMap, OneToOneFieldMap
+from django_import_data import FormMap, OneToOneFieldMap, OneToManyFieldMap
 from importers.converters import (
     coerce_positive_int,
     coerce_bool,
-    coerce_path,
+    convert_access_attachment,
     coerce_datetime,
     convert_case_num,
 )
@@ -82,8 +82,12 @@ ATTACHMENT_FORM_MAPS = [
         (FormMap,),
         {
             "field_maps": [
-                OneToOneFieldMap(
-                    to_field="path", converter=coerce_path, from_field=f"LETTER{n}_Link"
+                OneToManyFieldMap(
+                    to_fields=("path", "original_index"),
+                    converter=convert_access_attachment,
+                    from_field=f"LETTER{n}_Link",
+                    explanation="This field provides both the letter number and "
+                    "the path to the letter",
                 )
             ],
             "form_class": AttachmentForm,

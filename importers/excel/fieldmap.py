@@ -16,6 +16,7 @@ from importers.converters import (
     convert_nrqz_id_to_case_num,
     convert_freq_high,
 )
+from utils.constants import EXCEL
 
 
 def convert_nrao_aerpd(nrao_aerpd):
@@ -24,9 +25,6 @@ def convert_nrao_aerpd(nrao_aerpd):
             return {"nrao_aerpd": None, "nrao_approval": True}
 
     return {"nrao_aerpd": float(nrao_aerpd), "nrao_approval": False}
-
-
-EXCEL = "excel"
 
 
 class CaseFormMap(FormMap):

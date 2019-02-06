@@ -11,8 +11,7 @@ from importers.converters import (
     coerce_positive_float,
     convert_freq_high,
 )
-
-NAM_APPLICATION = "nam_application"
+from utils.constants import NAM_APPLICATION
 
 
 def convert_street(caddr=None, caddr2=None):

@@ -147,6 +147,10 @@ class PreliminaryFacility(AbstractBaseFacility):
         help_text="The Preliminary Case that this Facility is being considered under",
     )
 
+    attachments = ManyToManyField(
+        "Attachment", related_name="prelim_facilities", blank=True
+    )
+
     class Meta:
         verbose_name = "Preliminary Facility"
         verbose_name_plural = "Preliminary Facilities"
@@ -343,6 +347,8 @@ class Facility(AbstractBaseFacility):
         blank=True,
         help_text="Indicates whether NRAO approves of this Facility or not",
     )
+
+    attachments = ManyToManyField("Attachment", related_name="facilities", blank=True)
 
     class Meta:
         verbose_name = "Facility"
@@ -582,7 +588,8 @@ class Attachment(
     # TODO: This will need to be a proper FilePathField eventually...
     path = CharField(max_length=256, unique=True)
     # path = FilePathField(path=settings.NRQZ_ATTACHMENT_DIR, max_length=256, unique=True)
-    comments = TextField()
+    comments = TextField(blank=True)
+    original_index = PositiveIntegerField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.path}"

@@ -232,6 +232,7 @@ class AttachmentTable(tables.Table):
     class Meta:
         model = models.Attachment
         fields = AttachmentFilter.Meta.fields
+        order_by = ["original_index"]
 
 
 class StructureTable(tables.Table):

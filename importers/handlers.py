@@ -35,7 +35,7 @@ def handle_case(
     return case, case_created
 
 
-def handle_attachments(row_data, case, form_maps, file_import_attempt):
+def handle_attachments(row_data, model, form_maps, file_import_attempt):
     attachments = []
     for form_map in form_maps:
         attachment_form, conversion_errors = form_map.render(row_data.data)
@@ -54,5 +54,5 @@ def handle_attachments(row_data, case, form_maps, file_import_attempt):
                     attachment_created = True
 
                 attachments.append((attachment, attachment_created))
-                case.attachments.add(attachment)
+                model.attachments.add(attachment)
     return attachments

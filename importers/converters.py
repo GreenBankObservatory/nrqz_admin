@@ -184,13 +184,6 @@ def convert_case_num(value):
     return case_num
 
 
-def coerce_path(value):
-    if value == "":
-        return None
-
-    return value.split("#")[1].strip()
-
-
 def coerce_bool(value):
     """Coerce a string to a bool, or to None"""
 
@@ -334,3 +327,29 @@ def convert_freq_high(freq_low=None, freq_high=None):
             raise ValueError(f"freq_high {freq_high} is lower than freq_low {freq_low}")
 
     return freq_high
+
+
+def convert_access_path(path):
+    if not path:
+        return None
+
+    return path.split("#")[1].strip()
+
+
+def convert_access_attachment(**kwargs):
+    if len(kwargs) != 1:
+        raise TypeError(
+            f"convert_access_attachment handles only a single kwarg! Got: {kwargs}"
+        )
+
+    letter_name, path = next(iter(kwargs.items()))
+    # Save some time; no sense doing anything if the path is None. We don't
+    # want to even create an Attachment in this case
+    if not path:
+        return None
+    # Pull out the actual path value from the
+    clean_path = convert_access_path(path)
+    # Strip all non-number characters, leaving only the number
+    letter_number = re.sub("[^0-9]", "", letter_name)
+
+    return {"path": clean_path, "original_index": letter_number}
