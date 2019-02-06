@@ -6,7 +6,7 @@ from django_filters import widgets
 
 class PointWidget(widgets.SuffixedMultiWidget):
     template_name = "cases/point_field.html"
-    suffixes = ["lat", "long", "radius", "unit"]
+    suffixes = ["", "radius", "unit"]
 
     def __init__(self, unit_choices=None, attrs=None):
         if attrs is None:
@@ -20,14 +20,13 @@ class PointWidget(widgets.SuffixedMultiWidget):
                 ("mi", "Miles"),
             ]
         _widgets = (
-            forms.TextInput(attrs={"placeholder": "latitude", **attrs}),
-            forms.TextInput(attrs={"placeholder": "longitude", **attrs}),
+            forms.TextInput(attrs={"placeholder": "coordinates", **attrs}),
             forms.NumberInput(attrs={"placeholder": "radius", **attrs}),
             forms.Select(attrs=attrs, choices=unit_choices),
         )
         super().__init__(_widgets, attrs)
 
-    def decompress(self, value):
-        if value:
-            return [value.coords[0], value.coords[1]]
-        return [None, None]
+    # def decompress(self, value):
+    #     if value:
+    #         return [value.coords[0], value.coords[1]]
+    #     return [None, None]
