@@ -328,7 +328,7 @@ class Facility(AbstractBaseFacility):
     )
     sgrs_approval = BooleanField(null=True, blank=True)
     tap_file = CharField(max_length=256, blank=True)
-    tap = CharField(max_length=256, blank=True)
+    tpa = CharField(max_length=256, blank=True)
     tx_power = FloatField(null=True, blank=True, verbose_name="TX Power (dBm)")
     aeirp_to_gbt = FloatField(null=True, blank=True, verbose_name="AEiRP to GBT")
     az_bearing = CharField(
@@ -501,9 +501,11 @@ class Case(AbstractBaseCase):
     erpd_limit = BooleanField(default=False, blank=True, verbose_name="ERPD Limit")
     si_waived = BooleanField(default=False, blank=True, verbose_name="SI Waived")
     si = BooleanField(default=False, blank=True, verbose_name="SI")
-    si_done = DateTimeField(null=True, blank=True, verbose_name="SI Done")
+    si_done = DateField(null=True, blank=True, verbose_name="SI Done")
+    date_recorded = DateTimeField(null=True, blank=True, verbose_name="Date Recorded")
 
     sgrs_service_num = PositiveIntegerField(null=True, blank=True)
+    agency_num = CharField(max_length=256, null=True, blank=True)
 
     class Meta:
         verbose_name = "Case"

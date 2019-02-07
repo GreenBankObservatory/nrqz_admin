@@ -142,10 +142,18 @@ class Command(BaseImportCommand):
                     unmapped_headers.append(header)
         return unmapped_headers
 
-    def handle_record(self, row_data, file_import_attempt):
+    def handle_record(self, row_data, file_import_attempt, durable=True):
         case, case_created = self._handle_case(
             row_data, file_import_attempt=file_import_attempt
         )
+        if case_created:
+            error_str = "PCase should never be created from technical data; only found!"
+            if durable:
+                row_data.errors.setdefault("case_not_found_errors", [])
+                row_data.errors["case_not_found_errors"].append(error_str)
+                row_data.save()
+            else:
+                raise ValueError(error_str)
         facility, facility_created = self._handle_facility(
             row_data, case, file_import_attempt=file_import_attempt
         )

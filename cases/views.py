@@ -473,7 +473,7 @@ class FacilityDetailView(PrintableDetailView):
             "tap_file",
         ]
         context["unsorted_info3"] = [
-            "tap",
+            "tpa",
             "tx_power",
             "aeirp_to_gbt",
             "az_bearing",

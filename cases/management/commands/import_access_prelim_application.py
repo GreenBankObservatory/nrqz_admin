@@ -24,7 +24,7 @@ class Command(BaseImportCommand):
         *ATTACHMENT_FORM_MAPS,
     ]
 
-    def handle_record(self, row_data, file_import_attempt):
+    def handle_record(self, row_data, file_import_attempt, durable=True):
         applicant, applicant_audit = APPLICANT_FORM_MAP.save_with_audit(
             row_data, file_import_attempt=file_import_attempt
         )

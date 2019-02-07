@@ -16,6 +16,12 @@ from importers.converters import (
 from utils.constants import ACCESS_APPLICATION
 
 
+def convert_radio_service(radio_service):
+    clean_radio_service = radio_service.strip().lower()
+    is_federal = clean_radio_service in ["gov", "fed", "gvt", "fbi", "gv"]
+    return {"radio_service": radio_service, "is_federal": is_federal}
+
+
 class ApplicantFormMap(FormMap):
     field_maps = [
         OneToOneFieldMap(to_field="name", converter=None, from_field="APPLICANT"),
@@ -48,9 +54,7 @@ class CaseFormMap(FormMap):
         ),
         OneToOneFieldMap(to_field="comments", converter=None, from_field="COMMENTS"),
         OneToOneFieldMap(
-            to_field="original_created_on",
-            converter=coerce_datetime,
-            from_field="DATEREC",
+            to_field="date_recorded", converter=coerce_datetime, from_field="DATEREC"
         ),
         OneToOneFieldMap(
             to_field="original_modified_on",
@@ -74,8 +78,10 @@ class CaseFormMap(FormMap):
             converter=coerce_datetime,
             from_field="SGRSDATE",
         ),
-        OneToOneFieldMap(
-            to_field="radio_service", converter=None, from_field="RADIOSRV"
+        OneToManyFieldMap(
+            to_fields=("radio_service", "is_federal"),
+            converter=convert_radio_service,
+            from_field={"radio_service": "RADIOSRV"},
         ),
         OneToOneFieldMap(to_field="call_sign", converter=None, from_field="CALLSIGN"),
         OneToOneFieldMap(to_field="freq_coord", converter=None, from_field="FCNUMBER"),

@@ -154,6 +154,8 @@ class CaseForm(forms.ModelForm):
             "si_waived",
             "si",
             "si_done",
+            "agency_num",
+            "date_recorded",
         )
 
 
@@ -240,7 +242,7 @@ class FacilityForm(forms.ModelForm):
             "power_density_limit",
             "sgrs_approval",
             "tap_file",
-            "tap",
+            "tpa",
             "tx_power",
             "aeirp_to_gbt",
             "az_bearing",

@@ -1,8 +1,10 @@
 """Field mappings for NRQZ Analyzer Data"""
 
+import re
+
 from django_import_data import FormMap, OneToOneFieldMap, ManyToOneFieldMap
 
-from cases.forms import CaseForm, PersonForm, FacilityForm, StructureForm
+from cases.forms import CaseForm, FacilityForm, StructureForm
 
 from importers.converters import (
     coerce_location,
@@ -23,30 +25,37 @@ def convert_street(caddr=None, caddr2=None):
     return " ".join(parts)
 
 
-class ApplicantFormMap(FormMap):
-    field_maps = [OneToOneFieldMap(from_field="legalname", to_field="name")]
-    form_class = PersonForm
-    form_defaults = {"data_source": NAM_APPLICATION}
+def convert_to_bandwidth(sysBW=None, sysType=None):
+    if not (sysBW or sysType):
+        return None
+    import ipdb
+
+    ipdb.set_trace()
 
 
-class ContactFormMap(FormMap):
-    field_maps = [
-        ManyToOneFieldMap(
-            from_fields=("caddr", "caddr2"), converter=convert_street, to_field="street"
-        ),
-        OneToOneFieldMap(from_field="ccty", to_field="city"),
-        OneToOneFieldMap(from_field="cst", to_field="state"),
-        OneToOneFieldMap(from_field="czip", to_field="zipcode"),
-        OneToOneFieldMap(from_field="cperson", to_field="name"),
-        OneToOneFieldMap(from_field="ccphone", to_field="phone_num"),
-        # TODO
-        OneToOneFieldMap(from_field="cfax", to_field="fax"),
-        OneToOneFieldMap(from_field="camendate", to_field="original_modified_on")
-        # Unique id of contact? Ignore?
-        # OneToOneFieldMap(from_field="cnumber", to_field="")
-    ]
-    form_class = PersonForm
-    form_defaults = {"data_source": NAM_APPLICATION}
+def convert_agency_num(AgencyNo):
+    import ipdb
+
+    ipdb.set_trace()
+
+
+def convert_to_system_loss(lbot=None, ltl=None, ltop=None):
+    if not any([lbot, ltl, ltop]):
+        return None
+
+    if not all([lbot, ltl, ltop]):
+        raise ValueError(
+            "Either all values or no values must be given! "
+            f"lbot: {lbot}, ltl: {ltl}, ltop: {ltop}"
+        )
+    return float(lbot) + float(ltl) + float(ltop)
+
+
+def convert_tpa(tpa):
+    clean_tpa = re.sub(r"[^0-9\.]", "", tpa)
+    if not clean_tpa:
+        return None
+    return float(clean_tpa)
 
 
 class CaseFormMap(FormMap):
@@ -77,28 +86,80 @@ class FacilityFormMap(FormMap):
             to_field="location",
         ),
         OneToOneFieldMap(from_field="gnd", to_field="amsl"),
-        # OneToOneFieldMap(from_field="gps", to_field=""),
-        # OneToOneFieldMap(from_field="1-ASurvey", to_field=""),
-        # OneToOneFieldMap(from_field="2-CSurvey", to_field=""),
-        # TODO: CHECK
         OneToOneFieldMap(
             from_field="freq", converter=coerce_positive_float, to_field="freq_low"
         ),
-        # TODO: CHECK
         ManyToOneFieldMap(
             from_fields={"freq_low": "freq", "freq_high": "BandHi"},
             converter=convert_freq_high,
             to_field="freq_high",
         ),
-        # TODO: CHECK
-        OneToOneFieldMap(from_field="sysType", to_field="technology"),
-        OneToOneFieldMap(from_field="sitename", to_field="site_name"),
+        ManyToOneFieldMap(
+            from_fields=("sysBW", "sysType"),
+            converter=convert_to_bandwidth,
+            to_field="bandwidth",
+        ),
+        OneToOneFieldMap(
+            from_field={"sitename": ("sitename", "site_name")}, to_field="site_name"
+        ),
         # TODO
-        # OneToOneFieldMap(from_field="nant", to_field="site_name"),
         OneToOneFieldMap(from_field="fccfn", to_field="fcc_file_num"),
         OneToOneFieldMap(from_field="call", to_field="call_sign"),
         OneToOneFieldMap(
             from_field="mxtxpo", converter=coerce_float, to_field="max_tx_power"
+        ),
+        OneToOneFieldMap(
+            from_field="AgencyNo", converter=convert_agency_num, to_field="agency_num"
+        ),
+        OneToOneFieldMap(from_field="aaz", to_field="main_beam_orientation"),
+        OneToOneFieldMap(
+            from_field="agl", converter=coerce_positive_float, to_field="agl"
+        ),
+        OneToOneFieldMap(
+            from_field="ebt",
+            converter=coerce_positive_float,
+            to_field="electrical_downtilt",
+            explanation="Still a little fuzzy on this one...",
+        ),
+        OneToOneFieldMap(from_field="type", to_field="antenna_model_number"),
+        ManyToOneFieldMap(
+            from_fields=("lbot", "ltl", "ltop"),
+            converter=convert_to_system_loss,
+            to_field="system_loss",
+        ),
+        OneToOneFieldMap(
+            from_field="mbt",
+            converter=coerce_positive_float,
+            to_field="mechanical_downtilt",
+            explanation="Still a little fuzzy on this one...",
+        ),
+        OneToOneFieldMap(
+            from_field="mxg",
+            converter=coerce_positive_float,
+            to_field="max_gain",
+            explanation="Still a little fuzzy on this one (dB, dBi?)",
+        ),
+        OneToOneFieldMap(
+            from_field="o1dis",
+            converter=coerce_positive_float,
+            to_field="distance_to_first_obstacle",
+        ),
+        OneToOneFieldMap(
+            from_field="o1elev",
+            converter=coerce_positive_float,
+            to_field="height_of_first_obstacle",
+        ),
+        OneToOneFieldMap(
+            from_field="qzpwrde",
+            converter=coerce_positive_float,
+            to_field="power_density_limit",
+        ),
+        OneToOneFieldMap(from_field="tpa", converter=convert_tpa, to_field="tpa"),
+        OneToOneFieldMap(
+            from_field="txpo",
+            converter=coerce_positive_float,
+            to_field="tx_power",
+            explanation="Paulette said this should map to max tx power, but I have a separate field for tx power....",
         ),
         # NOTE: This is "synthetic", in the sense that there is no one "comments"
         # column. See import_nam_application for details
@@ -108,14 +169,12 @@ class FacilityFormMap(FormMap):
     form_defaults = {"data_source": NAM_APPLICATION}
 
 
-class StructureFormMap(FormMap):
-    field_maps = [OneToOneFieldMap("asr")]
-    form_class = StructureForm
-    form_defaults = {"data_source": NAM_APPLICATION}
+# class StructureFormMap(FormMap):
+#     field_maps = [OneToOneFieldMap("asr")]
+#     form_class = StructureForm
+#     form_defaults = {"data_source": NAM_APPLICATION}
 
 
-APPLICANT_FORM_MAP = ApplicantFormMap()
-CONTACT_FORM_MAP = ContactFormMap()
 CASE_FORM_MAP = CaseFormMap()
 FACILITY_FORM_MAP = FacilityFormMap()
-STRUCTURE_FORM_MAP = StructureFormMap()
+# STRUCTURE_FORM_MAP = StructureFormMap()

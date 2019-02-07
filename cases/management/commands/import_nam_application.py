@@ -5,13 +5,7 @@ import re
 from django_import_data import BaseImportCommand
 
 from importers.handlers import handle_case
-from importers.nrqz_analyzer.fieldmap import (
-    APPLICANT_FORM_MAP,
-    CONTACT_FORM_MAP,
-    CASE_FORM_MAP,
-    FACILITY_FORM_MAP,
-    STRUCTURE_FORM_MAP,
-)
+from importers.nrqz_analyzer.fieldmap import CASE_FORM_MAP, FACILITY_FORM_MAP
 
 COMMENT_REGEX = re.compile(r"\d{2}\s*[a-zA-Z]{3,6}\s*\d{2,4}")
 
@@ -20,13 +14,7 @@ class Command(BaseImportCommand):
     help = "Import NRQZ Application Maker Data"
 
     PROGRESS_TYPE = BaseImportCommand.PROGRESS_TYPES.FILE
-    FORM_MAPS = [
-        APPLICANT_FORM_MAP,
-        CONTACT_FORM_MAP,
-        CASE_FORM_MAP,
-        FACILITY_FORM_MAP,
-        STRUCTURE_FORM_MAP,
-    ]
+    FORM_MAPS = [CASE_FORM_MAP, FACILITY_FORM_MAP]
 
     def load_rows(self, path):
         with open(path, newline="", encoding="latin1") as file:
@@ -129,7 +117,7 @@ class Command(BaseImportCommand):
 
         return sorted(keys)
 
-    def handle_record(self, row_data, file_import_attempt):
+    def handle_record(self, row_data, file_import_attempt, durable=True):
         version = row_data.data[0].strip()
         if version == "nrqzApp v1":
             main_dict, facility_dicts, errors = self.handle_v1_format(row_data.data)
@@ -147,33 +135,27 @@ class Command(BaseImportCommand):
         fixed_row_data = {"main_dict": main_dict, "facility_dicts": facility_dicts}
         row_data.data = fixed_row_data
         row_data.save()
-        applicant, applicant_audit = APPLICANT_FORM_MAP.save_with_audit(
-            row_data=row_data, data=main_dict, file_import_attempt=file_import_attempt
-        )
-        contact, contact_audit = CONTACT_FORM_MAP.save_with_audit(
-            row_data=row_data, data=main_dict, file_import_attempt=file_import_attempt
-        )
         case, case_created = handle_case(
             row_data,
             CASE_FORM_MAP,
             data=main_dict,
-            applicant=applicant,
-            contact=contact,
             file_import_attempt=file_import_attempt,
         )
 
-        structure, structure_audit = STRUCTURE_FORM_MAP.save_with_audit(
-            row_data, data=main_dict, file_import_attempt=file_import_attempt
-        )
+        if case_created:
+            error_str = "Case should never be created from technical data; only found!"
+            if durable:
+                row_data.errors.setdefault("case_not_found_errors", [])
+                row_data.errors["case_not_found_errors"].append(error_str)
+                row_data.save()
+            else:
+                raise ValueError(error_str)
 
         for facility_dict in facility_dicts:
             facility, facility_audit = FACILITY_FORM_MAP.save_with_audit(
                 row_data,
                 data=facility_dict,
-                extra={
-                    "case": case.id if case else None,
-                    "structure": structure.id if structure else None,
-                },
+                extra={"case": case.id if case else None},
                 file_import_attempt=file_import_attempt,
             )
 
