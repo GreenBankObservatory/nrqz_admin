@@ -39,7 +39,6 @@ class ContactFormMap(FormMap):
         OneToOneFieldMap(from_field="czip", to_field="zipcode"),
         OneToOneFieldMap(from_field="cperson", to_field="name"),
         OneToOneFieldMap(from_field="ccphone", to_field="phone_num"),
-        OneToOneFieldMap(from_field="ccphone", to_field="phone_num"),
         # TODO
         OneToOneFieldMap(from_field="cfax", to_field="fax"),
         OneToOneFieldMap(from_field="camendate", to_field="original_modified_on")
