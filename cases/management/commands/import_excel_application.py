@@ -7,7 +7,7 @@ from django_import_data import BaseImportCommand
 
 
 from cases.models import Case
-from importers.excel.fieldmap import CASE_FORM_MAP, FACILITY_FORM_MAP
+from importers.excel.fieldmap import CASE_FORM_MAP, FACILITY_FORM_MAP, IGNORED_HEADERS
 from utils.constants import EXCEL
 
 DEFAULT_THRESHOLD = 0.7
@@ -20,13 +20,7 @@ class Command(BaseImportCommand):
     PROGRESS_TYPE = BaseImportCommand.PROGRESS_TYPES.FILE
 
     FORM_MAPS = [CASE_FORM_MAP, FACILITY_FORM_MAP]
-
-    IGNORED_HEADERS = [
-        "Original Row",
-        "Applicant",
-        "Applicant Name",
-        "Name of Applicant",
-    ]
+    IGNORED_HEADERS = IGNORED_HEADERS
 
     def add_arguments(self, parser):
         super().add_arguments(parser)
@@ -50,8 +44,7 @@ class Command(BaseImportCommand):
             help="Indicate that no pre-processing needs to be done on the given input file(s)",
         )
 
-    @staticmethod
-    def load_rows(path):
+    def load_rows(self, path):
         """Given path to Excel file, extract data and return"""
 
         book = pyexcel.get_book(file_name=path)
@@ -73,6 +66,11 @@ class Command(BaseImportCommand):
         # Create a new sheet, this time with the column names mapped
         # We couldn't do this before because we weren't sure that our
         # headers were on the first row, but they should be now
+        duplicate_headers = self.get_duplicate_headers(sheet.array[0])
+        if duplicate_headers:
+            raise ValueError(
+                f"One or more duplicate headers detected!\n{duplicate_headers}"
+            )
         sheet = pyexcel.Sheet(sheet.array, name_columns_by_row=0)
         return sheet.records
 
