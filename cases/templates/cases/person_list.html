@@ -2,13 +2,8 @@
 {% load render_table from django_tables2 %}
 {% load crispy_forms_tags %}
 
-
-{% block head %}
-<title>Person Index</title>
-{% endblock %}
-
 {% block content %}
-<h1>Person Index</h1>
+<h1><a href="{% url 'person_index' %}">Person Index</a></h1>
 
 {% if filter %}
 {% crispy filter.form %}

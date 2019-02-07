@@ -2,6 +2,6 @@
 {% load cases_tags %}
 
 {% block content %}
-<h1>Case Index</h1>
+<h1><a href="{% url 'case_index' %}">Case Index</a></h1>
 {% filter_table %}
 {% endblock %}

@@ -3,7 +3,7 @@
 {% load django_import_data_tags %}
 
 {% block content %}
-<h1>File Importer Index</h1>
+<h1><a href="{% url 'facilityimporter_index' %}">File Importer Index</a></h1>
 
 <p><a href="{% url 'fileimporter_create' %}">Import a new file</a></p>
 {% filter_table %}

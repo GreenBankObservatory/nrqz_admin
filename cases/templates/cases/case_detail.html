@@ -10,7 +10,7 @@
 <p class="d-print-none"><a href={% url "admin:cases_case_change" case.id %}>Edit</a></p>
 
 
-<h1>Case {{ case.case_num }} ({{ case.applicant.name }})</h1>
+<h1>Case {{ case.case_num }} {% if case.applicant %}({{ case.applicant.name }}){% endif %}</h1>
 {% include "cases/base_detail.html" %}
 
 <h2>Facilities</h2>
