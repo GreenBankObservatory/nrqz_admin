@@ -7,7 +7,6 @@
 
 <h1>{{ fileimportattempt }}</h1>
 
-
 <p>
     <a href="{{ fileimportattempt.file_importer.get_absolute_url }}">
         Open File Importer
@@ -38,12 +37,12 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-lg-4">
-            <h2>Models Created from File</h2>
+            <h2 title="Summary of all models that were successfully created during this file import attempt">Models Created from File</h2>
             {{ fileimportattempt.creations | json | safe }}
         </div>
 
         <div class="col-lg-4">
-            <h2>File-Level Import Info</h2>
+            <h2 title="General information regarding the file import attempt">File-Level Import Info</h2>
             {% if fileimportattempt.info %}
             {{ fileimportattempt.info | json | safe }}
             {% else %}
@@ -52,7 +51,7 @@
         </div>
 
         <div class="col-lg-4">
-            <h2>File-Level Import Errors</h2>
+            <h2 title="Any errors associated with the file import attempt">File-Level Import Errors</h2>
             {% if fileimportattempt.errors %}
             {{ fileimportattempt.errors | json | safe }}
             {% else %}
@@ -67,7 +66,7 @@
 {% filter_table mia_table mia_filter %}
 
 
-<h2>Ignored Headers</h2>
+<h2 title="All keys/headers that were ignored during file import attempt">Ignored Headers</h2>
 <p>
 {% for header in fileimportattempt.ignored_headers %}
     <code>{{ header }}</code>{% if header != fileimportattempt.ignored_headers|last %},{% endif %}
