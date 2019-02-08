@@ -188,9 +188,9 @@ def coerce_bool(value):
     """Coerce a string to a bool, or to None"""
 
     clean_value = str(value).strip().lower()
-    if clean_value in ["yes", "1"]:
+    if clean_value in ["yes", "1", "true", "t"]:
         return True
-    elif clean_value in ["no", "n0", "0"]:
+    elif clean_value in ["no", "n0", "0", "false", "f"]:
         return False
     elif clean_value in ["", "na", "n/a"]:
         return None

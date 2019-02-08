@@ -5,7 +5,11 @@ import re
 from django_import_data import BaseImportCommand
 
 from importers.handlers import handle_case
-from importers.nrqz_analyzer.fieldmap import CASE_FORM_MAP, FACILITY_FORM_MAP
+from importers.nrqz_analyzer.fieldmap import (
+    CASE_FORM_MAP,
+    FACILITY_FORM_MAP,
+    IGNORED_HEADERS,
+)
 
 COMMENT_REGEX = re.compile(r"\d{2}\s*[a-zA-Z]{3,6}\s*\d{2,4}")
 
@@ -15,6 +19,8 @@ class Command(BaseImportCommand):
 
     PROGRESS_TYPE = BaseImportCommand.PROGRESS_TYPES.FILE
     FORM_MAPS = [CASE_FORM_MAP, FACILITY_FORM_MAP]
+
+    IGNORED_HEADERS = IGNORED_HEADERS
 
     def load_rows(self, path):
         with open(path, newline="", encoding="latin1") as file:

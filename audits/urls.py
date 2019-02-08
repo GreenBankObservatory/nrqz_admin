@@ -17,7 +17,7 @@ from . import views
 
 urlpatterns = [
     path(
-        "file-imports/", views.FileImporterListView.as_view(), name="fileimporter_list"
+        "file-imports/", views.FileImporterListView.as_view(), name="fileimporter_index"
     ),
     path(
         "file-imports/<int:pk>/",
@@ -42,7 +42,7 @@ urlpatterns = [
     path(
         "file-import-attempts/",
         views.FileImportAttemptListView.as_view(),
-        name="fileimportattempt_list",
+        name="fileimportattempt_index",
     ),
     path(
         "file-import-attempts/<int:pk>/",
@@ -52,7 +52,7 @@ urlpatterns = [
     path(
         "model-imports/",
         views.ModelImportAttemptListView.as_view(),
-        name="modelimportattempt_list",
+        name="modelimportattempt_index",
     ),
     path(
         "model-imports/<int:pk>/",

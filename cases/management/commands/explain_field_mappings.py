@@ -118,12 +118,12 @@ class Command(BaseMetaImportCommand):
                 imported_from__startswith=importer_info["path"]
             )
             unmapped_headers = fias_for_path.values_list(
-                "errors__header_checks__unmapped_headers", flat=True
+                "errors__unmapped_headers", flat=True
             )
-            if not all(unmapped_headers):
-                unmapped_headers = fias_for_path.values_list(
-                    "errors__unmapped_headers", flat=True
-                )
+            # if not all(unmapped_headers):
+            #     unmapped_headers = fias_for_path.values_list(
+            #         "errors__unmapped_headers", flat=True
+            #     )
 
             if all(unmapped_headers):
                 unmapped_headers = sorted(

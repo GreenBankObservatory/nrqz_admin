@@ -12,6 +12,7 @@ from importers.converters import (
     coerce_float,
     coerce_positive_float,
     convert_freq_high,
+    coerce_bool,
 )
 from utils.constants import NAM_APPLICATION
 
@@ -28,15 +29,15 @@ def convert_street(caddr=None, caddr2=None):
 def convert_to_bandwidth(sysBW=None, sysType=None):
     if not (sysBW or sysType):
         return None
-    import ipdb
 
-    ipdb.set_trace()
+    if sysBW and sysType:
+        raise ValueError("Cannot have both sysBW and sysType!")
+
+    return sysBW or sysType
 
 
 def convert_agency_num(AgencyNo):
-    import ipdb
-
-    ipdb.set_trace()
+    return AgencyNo
 
 
 def convert_to_system_loss(lbot=None, ltl=None, ltop=None):
@@ -161,6 +162,9 @@ class FacilityFormMap(FormMap):
             to_field="tx_power",
             explanation="Paulette said this should map to max tx power, but I have a separate field for tx power....",
         ),
+        OneToOneFieldMap(
+            from_field={"fed": "Fed"}, converter=coerce_bool, to_field="fed"
+        ),
         # NOTE: This is "synthetic", in the sense that there is no one "comments"
         # column. See import_nam_application for details
         OneToOneFieldMap("comments"),
@@ -178,3 +182,62 @@ class FacilityFormMap(FormMap):
 CASE_FORM_MAP = CaseFormMap()
 FACILITY_FORM_MAP = FacilityFormMap()
 # STRUCTURE_FORM_MAP = StructureFormMap()
+
+IGNORED_HEADERS = [
+    "06DEC10",
+    "06OCT2011",
+    "09SEP11",
+    "1-ASurvey",
+    "12APR11",
+    "18 June 2012",
+    "19JAN11",
+    "2-CSurvey",
+    "25JAN11",
+    "27JAN11",
+    "28JAN11",
+    "5601 LEGACY DRIVE, MS",
+    "action",
+    "AlterableBW",
+    "AlterablePan",
+    "AlterableTilt",
+    "amanuf",
+    "Antennas",
+    "appcomplete",
+    "asr",
+    "azgbt",
+    "bcomp",
+    "botcomp",
+    "caddr",
+    "caddr2",
+    "camendate",
+    "caplname",
+    "ccell",
+    "ccphone",
+    "ccty",
+    "cemail",
+    "cfax",
+    "cityst",
+    "cnumber",
+    "completeDate",
+    "cperson",
+    "cst",
+    "czip",
+    "data",
+    "ga2gbt",
+    "gps",
+    "ha",
+    "legalname",
+    "Lfs",
+    "nant",
+    "NoRDate",
+    "NoRnumber",
+    "purpose",
+    "Rad Center 245 ft x 0.3048 = 74.676 m.  Tower FCC Reg #",
+    "receivedDate",
+    "SGobjects",
+    "sgrs",
+    "siWaived",
+    "tcomp",
+    "topcomp",
+    "txmanuf",
+]
