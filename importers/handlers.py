@@ -8,6 +8,7 @@ def handle_case(
     applicant=None,
     contact=None,
     file_import_attempt=None,
+    imported_by=None,
 ):
     if data is not None:
         row = data
@@ -28,14 +29,17 @@ def handle_case(
         case_created = False
     else:
         case, __ = form_map.save_with_audit(
-            form=case_form, row_data=row_data, file_import_attempt=file_import_attempt
+            form=case_form,
+            row_data=row_data,
+            file_import_attempt=file_import_attempt,
+            imported_by=imported_by,
         )
         case_created = True
 
     return case, case_created
 
 
-def handle_attachments(row_data, model, form_maps, file_import_attempt):
+def handle_attachments(row_data, model, form_maps, file_import_attempt, imported_by):
     attachments = []
     for form_map in form_maps:
         attachment_form, conversion_errors = form_map.render(row_data.data)
@@ -50,6 +54,7 @@ def handle_attachments(row_data, model, form_maps, file_import_attempt):
                         form=attachment_form,
                         row_data=row_data,
                         file_import_attempt=file_import_attempt,
+                        imported_by=imported_by,
                     )
                     attachment_created = True
 

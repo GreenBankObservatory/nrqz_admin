@@ -59,7 +59,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
             ],
             # TODO: Not a permanent solution!
-            "string_if_invalid": r"{{ %s }}",
+            # "string_if_invalid": r"{{ %s }}",
         },
     }
 ]

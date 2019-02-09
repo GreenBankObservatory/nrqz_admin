@@ -24,13 +24,16 @@ class Command(BaseImportCommand):
 
     def handle_record(self, row_data, file_import_attempt, durable=True):
         applicant, applicant_audit = APPLICANT_FORM_MAP.save_with_audit(
-            row_data, file_import_attempt=file_import_attempt
+            row_data,
+            file_import_attempt=file_import_attempt,
+            imported_by=self.__module__,
         )
         pcase, pcase_created = handle_case(
             row_data,
             PCASE_FORM_MAP,
             applicant=applicant,
             file_import_attempt=file_import_attempt,
+            imported_by=self.__module__,
         )
         if pcase_created:
             error_str = "PCase should never be created from technical data; only found!"
@@ -44,6 +47,7 @@ class Command(BaseImportCommand):
             row_data,
             extra={"pcase": pcase.id if pcase else None},
             file_import_attempt=file_import_attempt,
+            imported_by=self.__module__,
         )
 
         attachments = handle_attachments(
@@ -51,4 +55,5 @@ class Command(BaseImportCommand):
             pfacility,
             [ATTACHMENT_FORM_MAP],
             file_import_attempt=file_import_attempt,
+            imported_by=self.__module__,
         )

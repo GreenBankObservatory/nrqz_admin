@@ -26,10 +26,14 @@ class Command(BaseImportCommand):
 
     def handle_record(self, row_data, file_import_attempt, durable=True):
         applicant, applicant_audit = APPLICANT_FORM_MAP.save_with_audit(
-            row_data, file_import_attempt=file_import_attempt
+            row_data,
+            file_import_attempt=file_import_attempt,
+            imported_by=self.__module__,
         )
         contact, contact_audit = CONTACT_FORM_MAP.save_with_audit(
-            row_data, file_import_attempt=file_import_attempt
+            row_data,
+            file_import_attempt=file_import_attempt,
+            imported_by=self.__module__,
         )
         pcase, pcase_audit = handle_case(
             row_data,
@@ -37,10 +41,12 @@ class Command(BaseImportCommand):
             applicant=applicant,
             contact=contact,
             file_import_attempt=file_import_attempt,
+            imported_by=self.__module__,
         )
         attachments = handle_attachments(
             row_data,
             pcase,
             ATTACHMENT_FORM_MAPS,
             file_import_attempt=file_import_attempt,
+            imported_by=self.__module__,
         )

@@ -146,6 +146,7 @@ class Command(BaseImportCommand):
             CASE_FORM_MAP,
             data=main_dict,
             file_import_attempt=file_import_attempt,
+            imported_by=self.__module__,
         )
 
         if case_created:
@@ -163,6 +164,7 @@ class Command(BaseImportCommand):
                 data=facility_dict,
                 extra={"case": case.id if case else None},
                 file_import_attempt=file_import_attempt,
+                imported_by=self.__module__,
             )
 
         headers = set(main_dict)

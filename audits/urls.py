@@ -50,6 +50,11 @@ urlpatterns = [
         name="fileimportattempt_detail",
     ),
     path(
+        "file-import-attempts/<int:pk>/explain",
+        views.FileImportAttemptExplainView.as_view(),
+        name="fileimportattempt_explain",
+    ),
+    path(
         "model-imports/",
         views.ModelImportAttemptListView.as_view(),
         name="modelimportattempt_index",

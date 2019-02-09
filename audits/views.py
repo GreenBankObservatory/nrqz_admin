@@ -6,6 +6,7 @@ from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views.generic import CreateView
 from django.views.generic.base import RedirectView
+from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
 
 from django_import_data.views import CreateFromImportAttemptView
@@ -221,3 +222,17 @@ def delete_file_import_models(request, pk):
         messages.warning(request, f"Deleted 0 objects (no objects to delete)")
 
     return HttpResponseRedirect(file_import_attempt.get_absolute_url())
+
+
+class FileImportAttemptExplainView(DetailView):
+    model = FileImportAttempt
+    template_name = "audits/render_diagrams.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        form_maps = self.object.get_form_maps_used_during_import()
+        context["form_maps_to_field_maps"] = {
+            form_map.get_name(): form_map.field_maps for form_map in form_maps
+        }
+        print(context)
+        return context

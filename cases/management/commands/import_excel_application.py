@@ -98,6 +98,7 @@ class Command(BaseImportCommand):
                 extra={"data_source": EXCEL},
                 allow_unknown=True,
                 file_import_attempt=file_import_attempt,
+                imported_by=self.__module__,
             )
             case_created = True
         else:
@@ -119,6 +120,7 @@ class Command(BaseImportCommand):
             allow_unknown=True,
             row_data=row_data,
             file_import_attempt=file_import_attempt,
+            imported_by=self.__module__,
         )
         if facility:
             facility_created = True
