@@ -5,7 +5,7 @@ ALLOWED_HOSTS = ["galileo", "galileo.gb.nrao.edu"]
 
 INSTALLED_APPS += ["django_extensions"]
 
-DEBUG = True
+DEBUG = False
 
 DATABASES = {
     "readonly": {
