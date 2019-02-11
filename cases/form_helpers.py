@@ -151,6 +151,7 @@ class PreliminaryCaseFilterFormHelper(FormHelper):
         Div(
             Div("case_num", "applicant", "contact", css_class="col"),
             Div("radio_service", "completed", "comments", css_class="col"),
+            Div("is_federal", css_class="col"),
             css_class="row",
         )
     )
@@ -169,7 +170,13 @@ class CaseFilterFormHelper(FormHelper):
                 "sgrs_approval",
                 css_class="col",
             ),
-            Div("original_created_on", "completed", "comments", css_class="col"),
+            Div(
+                "original_created_on",
+                "completed",
+                "comments",
+                "is_federal",
+                css_class="col",
+            ),
             css_class="row",
         ),
         extra_buttons=[
