@@ -18,7 +18,7 @@ from utils.constants import ACCESS_APPLICATION
 
 def convert_radio_service(radio_service):
     clean_radio_service = radio_service.strip().lower()
-    is_federal = clean_radio_service in ["gov", "fed", "gvt", "fbi", "gv"]
+    is_federal = clean_radio_service in ["gov", "fed", "gvt"]
     return {"radio_service": radio_service, "is_federal": is_federal}
 
 
