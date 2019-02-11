@@ -122,6 +122,8 @@ def location_table(instance, title, fields):
     # fields.remove("longitude")
     # longitude = getattr(instance, "longitude")
     # longitude_str = instance._meta.get_field("longitude").value_to_string(instance)
+    if "location" not in fields:
+        return {}
     fields.remove("location")
     longitude, latitude = instance.location.coords
     location_str = coords_to_string(latitude, longitude, concise=True)

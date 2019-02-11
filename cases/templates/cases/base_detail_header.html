@@ -1,32 +1,11 @@
 {% load cases_tags %}
 {% load django_import_data_tags %}
 
-{% if not print %}
-<nav class="d-print-none" aria-label="breadcrumb">
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item">
-        <a href="file://{{ object.imported_from }}" title={{ object.imported_from | basename }}>
-            Original File
-        </a>
-    </li>
-    <li class="breadcrumb-item">
-        <a href="{% url 'fileimportattempt_detail' object.model_import_attempt.file_import_attempt.id %}">
-            File Import
-        </a>
-    </li>
-    <li class="breadcrumb-item">
-        <a href="{% url 'rowdata_detail' object.model_import_attempt.row_data.id %}">
-            Record Import
-        </a>
-    </li>
-    <li class="breadcrumb-item">
-        <a href={% url "modelimportattempt_detail" object.model_import_attempt.id %}>
-            {{ object | model_name }} Import
-        </a>
-    </li>
-    <li class="breadcrumb-item active" aria-current="page">{{ object | model_name }}</li>
-  </ol>
-</nav>
-
-
-{% endif %}
+<p>
+    <a
+        href="file://{{ object.imported_from }}" title={{ object.imported_from | basename }}
+        title="The file on disk that this {{ object | model_name }} was imported from"
+    >
+        Original File
+    </a>
+</p>

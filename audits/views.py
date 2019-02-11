@@ -10,24 +10,29 @@ from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
 
 from django_import_data.views import CreateFromImportAttemptView
-from django_import_data.models import FileImporter, FileImportAttempt
+from django_import_data.models import FileImportBatch, FileImporter, FileImportAttempt
 
 
 from cases.views import FilterTableView
-
 from .filters import (
-    FileImporterFilter,
     FileImportAttemptFilter,
+    FileImportBatchFilter,
+    FileImporterFilter,
     ModelImportAttemptFilter,
 )
-from .tables import FileImporterTable, FileImportAttemptTable, ModelImportAttemptTable
+from .tables import (
+    FileImportAttemptTable,
+    FileImportBatchTable,
+    FileImporterTable,
+    ModelImportAttemptTable,
+)
 from .forms import FileImporterForm
-from cases.models import Person, PreliminaryCase, Case, Facility, PreliminaryFacility
+from cases.models import Case, Facility, Person, PreliminaryCase, PreliminaryFacility
 from cases.forms import (
-    PersonForm,
-    PreliminaryCaseForm,
     CaseForm,
     FacilityForm,
+    PersonForm,
+    PreliminaryCaseForm,
     PreliminaryFacilityForm,
 )
 
@@ -162,7 +167,6 @@ def _import_file(request, file_importer):
 
     STATUSES = file_import_attempt.STATUSES
     status = STATUSES[file_import_attempt.status]
-    status_display = file_import_attempt.get_status_display()
     if status == STATUSES.rejected:
         messager = messages.error
         message_stub = (
@@ -186,6 +190,49 @@ def _import_file(request, file_importer):
     )
 
     return HttpResponseRedirect(file_import_attempt.get_absolute_url())
+
+
+@transaction.atomic
+def _import_file_batch(request, prev_file_import_batch):
+    try:
+        file_import_batch = prev_file_import_batch.reimport()
+    except Exception as error:
+        messages.error(request, f"FATAL ERROR: {error.__class__.__name__}: {error}")
+        return HttpResponseRedirect(file_import_batch.get_absolute_url())
+
+    messages.success(
+        request,
+        f"Successfully deleted existing File Import Batch for paths {prev_file_import_batch.args}",
+    )
+
+    messages.success(
+        request,
+        f"Successfully created {file_import_batch._meta.verbose_name} "
+        f"for path(s) {file_import_batch.args}!",
+    )
+    STATUSES = file_import_batch.STATUSES
+    status = STATUSES[file_import_batch.status]
+    if status == STATUSES.rejected:
+        messager = messages.error
+        message_stub = "However, one or more File Import Attempts failed (one or more models failed to be created)!"
+    elif status == STATUSES.created_dirty:
+        messager = messages.warning
+        message_stub = (
+            "All File Import Attempts were successful, however, "
+            "one or more Model Import Attempts were created with minor errors!"
+        )
+    elif status == STATUSES.created_clean:
+        messager = messages.success
+        message_stub = "All File Import Attempts were successful!"
+    else:
+        raise ValueError("This should never happen")
+
+    messager(
+        request,
+        f"{message_stub} See {file_import_batch._meta.verbose_name} (below) for more details.",
+    )
+
+    return HttpResponseRedirect(file_import_batch.get_absolute_url())
 
 
 def reimport_file(request, pk):
@@ -219,9 +266,37 @@ def delete_file_import_models(request, pk):
         deleted_str = f"{num_deleted} objects: {deleted_models_str}"
         messages.success(request, f"Successfully deleted {deleted_str} ")
     else:
-        messages.warning(request, f"Deleted 0 objects (no objects to delete)")
+        messages.warning(request, f"Deleted 0 model objects (no objects to delete)")
 
     return HttpResponseRedirect(file_import_attempt.get_absolute_url())
+
+
+def reimport_file_batch(request, pk):
+    file_import_batch = get_object_or_404(FileImportBatch, id=pk)
+    return _import_file_batch(request, file_import_batch)
+
+
+def delete_file_import_batch_imported_models(request, pk):
+    file_import_batch = get_object_or_404(FileImportBatch, id=pk)
+    num_fias_deleted, num_models_deleted, deletions = (
+        file_import_batch.delete_imported_models()
+    )
+    if num_models_deleted:
+        deleted_mias_str = ", ".join(
+            [
+                f"{model_deletion_count} {model.split('.')[-1]} objects"
+                for model, model_deletion_count in deletions.items()
+            ]
+        )
+        messages.success(
+            request,
+            f"Successfully deleted {num_fias_deleted} "
+            f"File Import Attempts. {num_models_deleted} objects: {deleted_mias_str}",
+        )
+    else:
+        messages.warning(request, f"Deleted 0 model objects (no objects to delete)")
+
+    return HttpResponseRedirect(file_import_batch.get_absolute_url())
 
 
 class FileImportAttemptExplainView(DetailView):
@@ -235,4 +310,37 @@ class FileImportAttemptExplainView(DetailView):
             form_map.get_name(): form_map.field_maps for form_map in form_maps
         }
         print(context)
+        return context
+
+
+class FileImportBatchListView(FilterTableView):
+    table_class = FileImportBatchTable
+    filterset_class = FileImportBatchFilter
+    template_name = "audits/generic_table.html"
+
+
+class FileImportBatchDetailView(DetailView):
+    model = FileImportBatch
+    template_name = "audits/fileimportbatch_detail.html"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fia_filter = None
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        if not self.fia_filter:
+            self.fia_filter = FileImportAttemptFilter(
+                self.request.GET,
+                queryset=self.object.file_import_attempts.all(),
+                # form_helper_kwargs={"form_class": "collapse"},
+            )
+            context["fia_filter"] = self.fia_filter
+
+        if "fia_table" not in context:
+            table = FileImportAttemptTable(data=self.fia_filter.qs)
+            table.paginate(page=self.request.GET.get("page", 1), per_page=10)
+            context["fia_table"] = table
+
         return context

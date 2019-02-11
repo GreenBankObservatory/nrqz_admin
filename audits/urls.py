@@ -55,6 +55,26 @@ urlpatterns = [
         name="fileimportattempt_explain",
     ),
     path(
+        "file-import-batches/",
+        views.FileImportBatchListView.as_view(),
+        name="fileimportbatch_index",
+    ),
+    path(
+        "file-import-batches/<int:pk>/",
+        views.FileImportBatchDetailView.as_view(),
+        name="fileimportbatch_detail",
+    ),
+    path(
+        "file-import-batches/<int:pk>/delete/",
+        views.delete_file_import_batch_imported_models,
+        name="fileimportbatch_delete_models",
+    ),
+    path(
+        "file-import-batches/<int:pk>/reimport/",
+        views.reimport_file_batch,
+        name="fileimportbatch_reimport",
+    ),
+    path(
         "model-imports/",
         views.ModelImportAttemptListView.as_view(),
         name="modelimportattempt_index",

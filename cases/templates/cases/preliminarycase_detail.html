@@ -2,8 +2,10 @@
 {% load cases_tags %}
 {% load render_table from django_tables2 %}
 {% load crispy_forms_tags %}
+{% load django_import_data_tags %}
 
 {% block content %}
+{% make_breadcrumb preliminarycase %}
 {% include "cases/base_detail_header.html" %}
 
 <h1>Preliminary Case {{ preliminarycase.case_num }}</h1>

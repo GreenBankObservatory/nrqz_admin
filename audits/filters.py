@@ -4,6 +4,7 @@ from django_import_data.models import (
     FileImportAttempt,
     FileImporter,
     ModelImportAttempt,
+    FileImportBatch,
 )
 
 from cases.filters import HelpedFilterSet
@@ -13,7 +14,15 @@ from .form_helpers import (
     FileImportAttemptFilterFormHelper,
     FileImporterFilterFormHelper,
     ModelImportAttemptFilterFormHelper,
+    FileImportBatchFilterFormHelper,
 )
+
+
+class FileImportBatchFilter(HelpedFilterSet):
+    class Meta:
+        model = FileImportBatch
+        formhelper_class = FileImportBatchFilterFormHelper
+        fields = discover_fields(formhelper_class.layout)
 
 
 class FileImporterFilter(HelpedFilterSet):

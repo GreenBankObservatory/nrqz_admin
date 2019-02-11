@@ -6,18 +6,36 @@ from django_import_data.models import (
     ModelImportAttempt,
     FileImporter,
     FileImportAttempt,
+    FileImportBatch,
 )
 
 from .filters import (
     ModelImportAttemptFilter,
     FileImporterFilter,
     FileImportAttemptFilter,
+    FileImportBatchFilter,
 )
 from .columns import ImportStatusColumn
 
 
+class FileImportBatchTable(tables.Table):
+    cli = tables.Column(empty_values=(), linkify=True, verbose_name="CLI")
+    created_on = tables.DateColumn(verbose_name="Date Imported")
+    file_import_attempts = tables.Column(verbose_name="# of File Imports Attempted")
+    status = ImportStatusColumn()
+
+    class Meta:
+        model = FileImportBatch
+        fields = ("cli", *FileImportBatchFilter.Meta.fields)
+
+    def render_file_import_attempts(self, value):
+        return value.count()
+
+    def render_cli(self, record):
+        return record.cli
+
+
 class FileImporterTable(tables.Table):
-    id = tables.Column(linkify=True)
     last_imported_path = tables.Column(linkify=True)
     status = ImportStatusColumn(
         verbose_name="Status",
@@ -40,7 +58,6 @@ class FileImporterTable(tables.Table):
 
 
 class FileImportAttemptTable(tables.Table):
-    id = tables.Column(linkify=True)
     imported_from = tables.Column(linkify=True)
     status = ImportStatusColumn()
 

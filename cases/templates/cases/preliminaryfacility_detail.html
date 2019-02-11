@@ -1,7 +1,9 @@
 {% extends "cases/base.html" %}
 {% load cases_tags %}
+{% load django_import_data_tags %}
 
 {% block content %}
+{% make_breadcrumb preliminaryfacility %}
 {% include "cases/base_detail_header.html" %}
 
 <a href={% url "prelim_case_detail" preliminaryfacility.pcase.case_num %}>View Preliminary Case</a>
