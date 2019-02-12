@@ -95,7 +95,7 @@ class FacilityFilter(HelpedFilterSet):
     path = django_filters.CharFilter(
         field_name="model_import_attempt__file_import_attempt__imported_from",
         lookup_expr="icontains",
-        label="Imported from Path",
+        label="Imported-from Path contains",
     )
 
     class Meta:

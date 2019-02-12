@@ -28,6 +28,7 @@ class PreliminaryFacilityAdmin(admin.ModelAdmin):
     form = PreliminaryFacilityForm
     # autocomplete_fields = ["pcase", "attachments"]
     search_fields = ["pcase__case_num"]
+    ordering = ("-pcase__case_num",)
 
 
 @admin.register(Facility)
@@ -35,28 +36,21 @@ class FacilityAdmin(admin.ModelAdmin):
     form = FacilityForm
     # autocomplete_fields = ["case", "attachments"]
     search_fields = ["case__case_num"]
+    ordering = ("-case__case_num",)
 
 
 @admin.register(PreliminaryCase)
 class PreliminaryCaseAdmin(admin.ModelAdmin):
     form = PreliminaryCaseForm
-    search_fields = [
-        "case_num",
-        "applicant__name",
-        "contact__name",
-        "attachments__path",
-    ]
+    search_fields = ["case_num", "applicant__name", "contact__name"]
+    ordering = ("-case_num",)
 
 
 @admin.register(Case)
 class CaseAdmin(admin.ModelAdmin):
     form = CaseForm
-    search_fields = [
-        "case_num",
-        "applicant__name",
-        "contact__name",
-        "attachments__path",
-    ]
+    search_fields = ["case_num", "applicant__name", "contact__name"]
+    ordering = ("-case_num",)
 
 
 @admin.register(Person)

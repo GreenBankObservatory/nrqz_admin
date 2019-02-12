@@ -66,16 +66,6 @@ from .kml import (
 )
 
 
-class PrintableDetailView(DetailView):
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        if self.request.path.endswith("print"):
-            context["print"] = True
-
-        return context
-
-
 class FilterTableView(ExportMixin, SingleTableMixin, FilterView):
     table_class = None
     filterset_class = None
@@ -354,7 +344,7 @@ class LetterView(FormView):
         return super().render_to_response(context, **response_kwargs)
 
 
-class PreliminaryCaseGroupDetailView(PrintableDetailView):
+class PreliminaryCaseGroupDetailView(DetailView):
     model = PreliminaryCaseGroup
 
     def __init__(self, *args, **kwargs):
@@ -381,7 +371,7 @@ class PreliminaryCaseGroupDetailView(PrintableDetailView):
         return context
 
 
-class PreliminaryCaseDetailView(PrintableDetailView):
+class PreliminaryCaseDetailView(DetailView):
     model = PreliminaryCase
 
     def __init__(self, *args, **kwargs):
@@ -425,7 +415,7 @@ class PreliminaryCaseDetailView(PrintableDetailView):
         return context
 
 
-class CaseDetailView(PrintableDetailView):
+class CaseDetailView(DetailView):
     model = Case
 
     def __init__(self, *args, **kwargs):
@@ -490,7 +480,7 @@ class CaseDetailView(PrintableDetailView):
         case_as_kml(self.object)
 
 
-class PreliminaryFacilityDetailView(PrintableDetailView):
+class PreliminaryFacilityDetailView(DetailView):
     model = PreliminaryFacility
 
     def get_context_data(self, **kwargs):
@@ -505,7 +495,7 @@ class PreliminaryFacilityDetailView(PrintableDetailView):
         return context
 
 
-class FacilityDetailView(PrintableDetailView):
+class FacilityDetailView(DetailView):
     model = Facility
 
     def get_context_data(self, **kwargs):
@@ -641,7 +631,7 @@ class AttachmentListView(FilterTableView):
     template_name = "cases/attachment_list.html"
 
 
-class AttachmentDetailView(PrintableDetailView):
+class AttachmentDetailView(DetailView):
     model = Attachment
 
     def __init__(self, *args, **kwargs):
@@ -674,7 +664,7 @@ class PersonListView(FilterTableView):
     template_name = "cases/person_list.html"
 
 
-class PersonDetailView(PrintableDetailView):
+class PersonDetailView(DetailView):
     model = Person
 
     def __init__(self, *args, **kwargs):
@@ -739,7 +729,7 @@ class StructureListView(FilterTableView):
     template_name = "cases/structure_list.html"
 
 
-class StructureDetailView(PrintableDetailView):
+class StructureDetailView(DetailView):
     model = Structure
 
     def __init__(self, *args, **kwargs):
