@@ -26,14 +26,14 @@ from .models import (
 @admin.register(PreliminaryFacility)
 class PreliminaryFacilityAdmin(admin.ModelAdmin):
     form = PreliminaryFacilityForm
-    autocomplete_fields = ["pcase", "attachments"]
+    # autocomplete_fields = ["pcase", "attachments"]
     search_fields = ["pcase__case_num"]
 
 
 @admin.register(Facility)
 class FacilityAdmin(admin.ModelAdmin):
     form = FacilityForm
-    autocomplete_fields = ["case", "attachments"]
+    # autocomplete_fields = ["case", "attachments"]
     search_fields = ["case__case_num"]
 
 

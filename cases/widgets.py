@@ -1,7 +1,10 @@
 """Custom field widgets for cases app"""
 
 from django import forms
+
 from django_filters import widgets
+from dal import autocomplete
+
 from utils.coord_utils import coords_to_string
 
 
@@ -11,8 +14,10 @@ class PointWidget(forms.widgets.TextInput):
     """
 
     def format_value(self, value):
-        longitude, latitude = value.coords
-        return coords_to_string(latitude, longitude, concise=True)
+        if not isinstance(value, str):
+            longitude, latitude = value.coords
+            return coords_to_string(latitude, longitude, concise=True)
+        return value
 
 
 class PointSearchWidget(widgets.SuffixedMultiWidget):
@@ -41,3 +46,17 @@ class PointSearchWidget(widgets.SuffixedMultiWidget):
     #     if value:
     #         return [value.coords[0], value.coords[1]]
     #     return [None, None]
+
+
+PCaseWidget = lambda: autocomplete.ModelSelect2(
+    url="pcase_autocomplete", attrs={"data-placeholder": ""}
+)
+CaseWidget = lambda: autocomplete.ModelSelect2(
+    url="case_autocomplete", attrs={"data-placeholder": ""}
+)
+PersonWidget = lambda: autocomplete.ModelSelect2Multiple(
+    url="person_autocomplete", attrs={"data-placeholder": ""}
+)
+AttachmentsWidget = lambda: autocomplete.ModelSelect2Multiple(
+    url="attachment_autocomplete", attrs={"data-placeholder": ""}
+)

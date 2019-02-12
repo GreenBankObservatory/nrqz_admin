@@ -376,7 +376,10 @@ class Facility(AbstractBaseFacility):
             nrqz_id_str = self.nrqz_id
         else:
             nrqz_id_str = "Facility"
-        return f"{nrqz_id_str} <{self.id}>"
+
+        if self.site_num:
+            nrqz_id_str += f" ({self.site_num})"
+        return f"{nrqz_id_str}"
 
     def get_absolute_url(self):
         return reverse("facility_detail", args=[str(self.id)])

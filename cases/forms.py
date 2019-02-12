@@ -17,6 +17,7 @@ from .models import (
 )
 from .form_helpers import LetterFormHelper
 from .fields import PointField
+from .widgets import PCaseWidget, CaseWidget, PersonWidget, AttachmentsWidget
 
 
 class LetterTemplateForm(forms.Form):
@@ -160,6 +161,18 @@ class CaseForm(forms.ModelForm):
             "date_recorded",
         )
 
+        widgets = {
+            "applicant": PersonWidget(),
+            "contact": PersonWidget(),
+            "attachments": AttachmentsWidget(),
+        }
+
+    #     attachments = forms.ModelMultipleChoiceField(
+    #     queryset=Attachment.objects.all(),
+
+    #     help_text="Select a set of cases to generate a letter for",
+    # )
+
 
 class AttachmentForm(forms.ModelForm):
     class Meta:
@@ -189,6 +202,7 @@ class PreliminaryFacilityForm(forms.ModelForm):
             "pcase",
             "attachments",
         )
+        widgets = {"pcase": PCaseWidget(), "attachments": AttachmentsWidget()}
 
 
 class FacilityForm(forms.ModelForm):
@@ -255,9 +269,5 @@ class FacilityForm(forms.ModelForm):
             "nrao_approval",
             "attachments",
         )
-        # widgets = {"location": PointWidget()}
 
-        def clean_location(self):
-            import ipdb
-
-            ipdb.set_trace()
+        widgets = {"case": CaseWidget(), "attachments": AttachmentsWidget()}

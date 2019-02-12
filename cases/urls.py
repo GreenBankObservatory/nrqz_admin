@@ -33,6 +33,11 @@ urlpatterns = [
         name="case_autocomplete",
     ),
     path(
+        "pcase-autocomplete/",
+        views.PreliminaryCaseAutocompleteView.as_view(),
+        name="pcase_autocomplete",
+    ),
+    path(
         "facility-autocomplete/",
         views.FacilityAutocompleteView.as_view(),
         name="facility_autocomplete",

@@ -195,6 +195,20 @@ class FacilityListView(FilterTableView):
             return super(FacilityListView, self).get(request, *args, **kwargs)
 
 
+class PreliminaryCaseAutocompleteView(autocomplete.Select2QuerySetView):
+    # model_field_name = "case_num"
+
+    def get_queryset(self):
+        cases = PreliminaryCase.objects.order_by("case_num")
+        if self.q:
+            cases = cases.filter(case_num__istartswith=self.q).order_by("case_num")
+        return cases
+
+    def get_result_value(self, result):
+        """Return the value of a result."""
+        return str(result.case_num)
+
+
 class CaseAutocompleteView(autocomplete.Select2QuerySetView):
     # model_field_name = "case_num"
 
