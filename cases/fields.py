@@ -14,6 +14,8 @@ class PointField(forms.CharField):
     widget = PointWidget
 
     def to_python(self, value):
+        if not value:
+            return None
         try:
             latitude, longitude = parse_coords(value)
         except ValueError as error:

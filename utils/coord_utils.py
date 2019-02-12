@@ -107,7 +107,9 @@ def split_coords(coords_str):
 
 
 def parse_coords(coords):
-    latitude, longitude = split_coords(coords)
-    latitude = latitude.strip()
-    longitude = longitude.strip()
-    return (parse_coord(latitude), parse_coord(longitude))
+    if isinstance(coords, str):
+        latitude, longitude = split_coords(coords)
+        latitude = latitude.strip()
+        longitude = longitude.strip()
+        return (parse_coord(latitude), parse_coord(longitude))
+    return coords
