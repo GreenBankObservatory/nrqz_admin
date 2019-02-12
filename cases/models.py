@@ -367,6 +367,10 @@ class Facility(AbstractBaseFacility):
         for field in self._meta.fields:
             yield (field.verbose_name, field.value_to_string(self))
 
+    def all_fields(self):
+        for field in self._meta.fields:
+            yield (field.name, field.verbose_name, field.value_to_string(self))
+
     def __str__(self):
         if self.nrqz_id:
             nrqz_id_str = self.nrqz_id

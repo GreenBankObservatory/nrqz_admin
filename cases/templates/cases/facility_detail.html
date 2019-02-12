@@ -28,38 +28,53 @@
 <h1>{{ facility }}</h1>
 {% include "cases/base_detail.html" %}
 
-<div class="row">
-    <div class="col-lg">
-        {% info_table facility "Misc. 1" unsorted_info1 %}
-    </div>
-    <div class="col-lg">
-        {% info_table facility "Misc. 2" unsorted_info2 %}
-    </div>
-    <div class="col-lg">
-        {% info_table facility "Misc. 3" unsorted_info3 %}
-    </div>
-</div>
-<div class="row">
-    <div class="col-lg">
-        <div class="row">
-            {% info_table facility "Metadata" meta_info %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg">
+            <div class="row">
+                {% location_table facility "Topography Data" topography_info %}
+            </div>
         </div>
-        <div class="row">
-            {% location_table facility "Location Info" location_info %}
+        <div class="col-lg">
+            {% info_table facility "Antenna Data" antenna_info %}
+        </div>
+        <div class="col-lg">
+            {% info_table facility "Transmitter Data" transmitter_info %}
         </div>
     </div>
-    <div class="col-lg">
-        {% info_table facility "Antenna Info" antenna_info %}
+
+    <div class="row">
+        <div class="col-lg">
+            {% info_table facility "Emissions Data" emissions_info %}
+        </div>
+        <div class="col-lg">
+            {% info_table facility "Path Attenuation Results" path_attenuation_info %}
+        </div>
+        <div class="col-lg">
+            {% info_table facility "Analysis Results" analysis_results_info %}
+        </div>
     </div>
-    <div class="col-lg">
-        {% info_table facility "Other Info" other_info %}
+
+    <div class="row">
+        <div class="col-lg">
+            {% info_table facility "FED" federal_info %}
+        </div>
+        <div class="col-lg">
+            {% info_table facility "SGRS" sgrs_info %}
+        </div>
     </div>
 </div>
-{% if facility.comments %}
 <h2>Comments</h2>
 <div class="row">
-    {{ facility.comments | linebreaks }}
+    {% if facility.comments %}
+    <p>{{ facility.comments | linebreaks }}</p>
+    {% else %}
+    <p>No Comments</p>
+    {% endif %}
 </div>
-{% endif %}
-
+<div class="row">
+    <div class="col-lg">
+        {% info_table facility "TODO: Unsorted" unsorted_info %}
+    </div>
+</div>
 {% endblock %}

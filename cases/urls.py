@@ -63,7 +63,17 @@ urlpatterns = [
         views.AttachmentDetailView.as_view(),
         name="attachment_detail",
     ),
+    path(
+        "attachment-autocomplete/",
+        views.AttachmentAutocompleteView.as_view(),
+        name="attachment_autocomplete",
+    ),
     path("people/", views.PersonListView.as_view(), name="person_index"),
     path("people/<int:pk>/", views.PersonDetailView.as_view(), name="person_detail"),
+    path(
+        "person-autocomplete/",
+        views.PersonAutocompleteView.as_view(),
+        name="person_autocomplete",
+    ),
     path("search/", views.SearchView.as_view(), name="search"),
 ]

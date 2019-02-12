@@ -95,6 +95,7 @@ def info_table(instance, title, fields):
         (
             instance._meta.get_field(field).verbose_name,
             instance._meta.get_field(field).value_to_string(instance),
+            instance._meta.get_field(field).help_text,
         )
         for field in fields
     ]
@@ -107,6 +108,7 @@ def attachment_table(instance, title, fields):
         (
             instance._meta.get_field(field).verbose_name,
             instance._meta.get_field(field).value_to_string(instance),
+            instance._meta.get_field(field).help_text,
         )
         for field in fields
         if getattr(instance, field)
@@ -129,13 +131,14 @@ def location_table(instance, title, fields):
     location_str = coords_to_string(latitude, longitude, concise=True)
 
     url = reverse("facility_kml", args=[str(instance.id)])
-    rows = [("Coordinates", f"<a href={url}>{location_str}</a>")]
+    rows = [("Coordinates", f"<a href={url}>{location_str}</a>", "")]
 
     rows.extend(
         [
             (
                 instance._meta.get_field(field).verbose_name,
                 instance._meta.get_field(field).value_to_string(instance),
+                instance._meta.get_field(field).help_text,
             )
             for field in fields
         ]

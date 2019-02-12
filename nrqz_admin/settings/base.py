@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     "crispy_forms",
     "explorer",
     "django_import_data",
+    "massadmin",
     "cases",
     "audits",
 ]

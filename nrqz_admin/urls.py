@@ -12,6 +12,7 @@ urlpatterns = [
     path("accounts/", include("django.contrib.auth.urls")),
     path("explorer/", include("explorer.urls")),
     path("admin/", admin.site.urls),
+    path(r"admin/", include("massadmin.urls")),
 ]
 
 if settings.DEBUG:

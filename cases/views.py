@@ -188,6 +188,22 @@ class FacilityAutocompleteView(autocomplete.Select2QuerySetView):
         return facilities
 
 
+class PersonAutocompleteView(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        person = Person.objects.order_by("name")
+        if self.q:
+            person = person.filter(name__icontains=self.q).order_by("name")
+        return person
+
+
+class AttachmentAutocompleteView(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        attachment = Attachment.objects.order_by("path")
+        if self.q:
+            attachment = attachment.filter(path__icontains=self.q).order_by("path")
+        return attachment
+
+
 class LetterView(FormView):
     form_class = LetterTemplateForm
     template_name = "cases/concurrence_letter.html"
@@ -451,68 +467,124 @@ class FacilityDetailView(PrintableDetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["meta_info"] = ["id", "created_on", "modified_on"]
-
-        context["unsorted_info1"] = [
-            "asr_is_from_applicant",
-            "band_allowance",
-            "distance_to_first_obstacle",
-            "dominant_path",
-            "erpd_per_num_tx",
-            "height_of_first_obstacle",
-            "loc",
+        # context["meta_info"] = ["id", "created_on", "modified_on"]
+        context["topography_info"] = [
+            "site_name",
+            # geographic location,
+            # lat
+            # long
+            "location",
+            # nad88 nad83 nad27
+            "amsl",
+            # survey 1a/2a
         ]
-        context["unsorted_info2"] = [
-            "max_aerpd",
-            "max_erp_per_tx",
-            "max_gain",
-            "max_tx_power",
-            "nrao_aerpd",
-            "power_density_limit",
-            "sgrs_approval",
-            "tap_file",
-        ]
-        context["unsorted_info3"] = [
-            "tpa",
-            "tx_power",
-            "aeirp_to_gbt",
-            "az_bearing",
-            "calc_az",
-            "num_tx_per_facility",
-            "nrao_approval",
-        ]
-        context["location_info"] = ["location", "amsl", "agl"]
         context["antenna_info"] = [
-            "freq_low",
-            "freq_high",
-            "bandwidth",
-            "max_output",
+            "agl",
+            "antenna_model_number",
             "antenna_gain",
-            "system_loss",
+            # az deg true
             "main_beam_orientation",
             "mechanical_downtilt",
             "electrical_downtilt",
-            "antenna_model_number",
         ]
 
-        context["cell_info"] = [
+        # TODO
+        # context["path_data_info"] [
+
+        # ]
+        # TODO:
+        # context["usgs_dataset_info"]
+
+        context["transmitter_info"] = [
+            "freq_low",
+            "freq_high",
+            "power_density_limit",
             "tx_per_sector",
-            "tx_antennas_per_sector",
-            "technology",
-            "uses_split_sectorization",
-            "uses_cross_polarization",
-            "uses_quad_or_octal_polarization",
-            "num_quad_or_octal_ports_with_feed_power",
-            "tx_power_pos_45",
-            "tx_power_neg_45",
+            "max_tx_power",
+            "num_tx_per_facility",
+            "max_erp_per_tx",
         ]
 
-        context["other_info"] = [
-            "site_num",
-            "site_name",
-            "call_sign",
-            "fcc_file_number",
+        context["emissions_info"] = ["bandwidth"]
+
+        context["path_attenuation_info"] = [
+            # diffraction
+            # troposcatter
+            # free space
+            "tpa",
+            # "attachments" prop study
+            "calc_az",
+            "distance_to_first_obstacle",
+            "height_of_first_obstacle",
+            "dominant_path",
         ]
+
+        context["analysis_results_info"] = [
+            # TODO: Check
+            # ERPd Restriction True/False
+            # "erpd_limit",
+            # analog AERPd
+            # CDMA AERPd
+            # CDMA 2000 AERPd
+            # GSM AERPd
+            # Emission AERPd
+        ]
+        context["federal_info"] = [
+            # "case.is_federal",
+            # "sgrs367"
+        ]
+
+        context["sgrs_info"] = [
+            "sgrs_approval"
+            # TODO
+            # date
+        ]
+
+        known_fields = [
+            value
+            for info_key, info_list in context.items()
+            if isinstance(info_list, list)
+            for value in info_list
+            if info_key.endswith("info")
+        ]
+        context["unsorted_info"] = sorted(
+            f[0] for f in self.object.all_fields() if f[0] not in known_fields
+        )
+        # "max_output",
+        # "system_loss",
+        # "main_beam_orientation",
+        # context["unsorted_info1"] = [
+        #     "asr_is_from_applicant",
+        #     "band_allowance",
+        #     "erpd_per_num_tx",
+        #     "loc",
+        # ]
+        # context["unsorted_info2"] = [
+        #     "max_aerpd",
+        #     "max_gain",
+        #     "nrao_aerpd",
+        #     "sgrs_approval",
+        #     "tap_file",
+        # ]
+        # context["unsorted_info3"] = [
+        #     "tx_power",
+        #     "aeirp_to_gbt",
+        #     "az_bearing",
+        #     "nrao_approval",
+        # ]
+
+        # context["cell_info"] = [
+        #     "tx_antennas_per_sector",
+        #     "technology",
+        #     "uses_split_sectorization",
+        #     "uses_cross_polarization",
+        #     "uses_quad_or_octal_polarization",
+        #     "num_quad_or_octal_ports_with_feed_power",
+        #     "tx_power_pos_45",
+        #     "tx_power_neg_45",
+        # ]
+
+        # context["other_info"] = ["site_num", "call_sign", "fcc_file_number"]
 
         return context
 

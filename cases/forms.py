@@ -185,6 +185,7 @@ class PreliminaryFacilityForm(forms.ModelForm):
             "comments",
             "location",
             "pcase",
+            "attachments",
         )
 
 
@@ -248,4 +249,5 @@ class FacilityForm(forms.ModelForm):
             "az_bearing",
             "num_tx_per_facility",
             "nrao_approval",
+            "attachments",
         )

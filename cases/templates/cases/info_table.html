@@ -2,8 +2,8 @@
 <h2>{{ title }}</h2>
 {% endif %}
 <table class="table">
-    {% for label, value in rows %}
-    <tr>
+    {% for label, value, help_text in rows %}
+    <tr title="{{ help_text }}">
         <td>{{ label }}</td>
         <td>{{ value|safe }}</td>
     </tr>
