@@ -15,7 +15,7 @@ from .form_helpers import (
     StructureFilterFormHelper,
     PreliminaryCaseGroupFilterFormHelper,
 )
-from .fields import PointField
+from .fields import PointSearchField
 
 
 class HelpedFilterSet(django_filters.FilterSet):
@@ -42,7 +42,7 @@ class HelpedFilterSet(django_filters.FilterSet):
 
 
 class PointFilter(django_filters.Filter):
-    field_class = PointField
+    field_class = PointSearchField
 
     def filter(self, qs, value):
         if value:

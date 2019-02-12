@@ -7,11 +7,22 @@ from django.contrib.gis.geos.error import GEOSException
 import django_filters
 
 from utils.coord_utils import parse_coords
-from .widgets import PointWidget
+from .widgets import PointWidget, PointSearchWidget
 
 
-class PointField(forms.MultiValueField):
+class PointField(forms.CharField):
     widget = PointWidget
+
+    def to_python(self, value):
+        try:
+            latitude, longitude = parse_coords(value)
+        except ValueError as error:
+            raise forms.ValidationError(error)
+        return GEOSGeometry(f"Point({longitude} {latitude})")
+
+
+class PointSearchField(forms.MultiValueField):
+    widget = PointSearchWidget
 
     def __init__(self, *args, fields=None, unit_choices=None, **kwargs):
         if unit_choices is None:

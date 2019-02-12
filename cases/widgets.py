@@ -2,9 +2,20 @@
 
 from django import forms
 from django_filters import widgets
+from utils.coord_utils import coords_to_string
 
 
-class PointWidget(widgets.SuffixedMultiWidget):
+class PointWidget(forms.widgets.TextInput):
+    """
+    A Widget that splits Point input into latitude/longitude text inputs.
+    """
+
+    def format_value(self, value):
+        longitude, latitude = value.coords
+        return coords_to_string(latitude, longitude, concise=True)
+
+
+class PointSearchWidget(widgets.SuffixedMultiWidget):
     template_name = "cases/point_field.html"
     suffixes = ["", "radius", "unit"]
 

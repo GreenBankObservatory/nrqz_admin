@@ -1,6 +1,7 @@
 from datetime import date
 import tempfile
 
+from django.contrib import messages
 from django.contrib.postgres.search import SearchVector
 from django.db.models import Min, Max
 from django.db.models import Q
@@ -78,7 +79,7 @@ class PrintableDetailView(DetailView):
 class FilterTableView(ExportMixin, SingleTableMixin, FilterView):
     table_class = None
     filterset_class = None
-    object_list = NotImplemented
+    object_list = None
     export_table_class = None
 
     def get(self, request, *args, **kwargs):
@@ -105,6 +106,34 @@ class FilterTableView(ExportMixin, SingleTableMixin, FilterView):
         # Otherwise, just act as normal
         else:
             return super().get_table_class(**kwargs)
+
+    def render_to_response(self, context, **response_kwargs):
+        if "mass-edit" in self.request.GET and self.object_list:
+            verbose_name_plural = (
+                self.filterset_class.Meta.model._meta.verbose_name_plural
+            )
+            messages.info(
+                self.request,
+                f"Any changes made here will affect {verbose_name_plural}: "
+                f"{self.object_list.all()}",
+            )
+            num_items = self.object_list.count()
+            if num_items > 100:
+                messages.warning(
+                    self.request,
+                    f"Are you sure you want to mass edit {num_items} {verbose_name_plural} (it's a lot...)?",
+                )
+
+            app = self.filterset_class.Meta.model._meta.app_label
+            model = self.filterset_class.Meta.model.__name__.lower()
+            instances = ",".join(
+                str(item) for item in self.object_list.values_list("id", flat=True)
+            )
+            return HttpResponseRedirect(
+                reverse("massadmin_change_view", args=[app, model, instances])
+            )
+
+        return super().render_to_response(context, **response_kwargs)
 
 
 class PreliminaryCaseGroupListView(FilterTableView):

@@ -16,6 +16,7 @@ class CollapsibleFilterFormLayout(Layout):
                     Submit("submit", "Filter"),
                     Reset("reset", "Reset"),
                     Submit("show-all", "Show All"),
+                    Submit("mass-edit", "Mass Edit"),
                     *extra_buttons,
                     css_class="filter-form-buttons",
                 ),

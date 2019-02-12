@@ -89,13 +89,25 @@ def parse_coord(coord):
         return dms_to_dd(degrees=degrees, minutes=minutes, seconds=seconds)
 
 
-def parse_coords(coords):
+def split_coords(coords_str):
     try:
-        latitude, longitude = coords.split()
+        latitude, longitude = coords_str.split()
     except ValueError:
-        if "," not in coords:
-            raise ValueError("Must be comma-separated!")
-        latitude, longitude = coords.split(",")
+        # if "," not in coords_str and "\t" not in coords_str:
+        #     raise ValueError("Must be comma- or tab-separated!")
+        if "\t" in coords_str:
+            latitude, longitude = coords_str.split("\t")
+        elif "," in coords_str:
+            latitude, longitude = coords_str.split(",")
+        else:
+            latitude, longitude = coords_str.split("-")
+            longitude = f"-{longitude}"
+
+    return latitude, longitude
+
+
+def parse_coords(coords):
+    latitude, longitude = split_coords(coords)
     latitude = latitude.strip()
     longitude = longitude.strip()
     return (parse_coord(latitude), parse_coord(longitude))

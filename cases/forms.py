@@ -1,10 +1,11 @@
 """Forms for cases app"""
 
 from django import forms
+from django.contrib.gis.geos import GEOSGeometry
 
 from dal import autocomplete
 
-from cases.models import (
+from .models import (
     Attachment,
     Case,
     Person,
@@ -15,6 +16,7 @@ from cases.models import (
     Structure,
 )
 from .form_helpers import LetterFormHelper
+from .fields import PointField
 
 
 class LetterTemplateForm(forms.Form):
@@ -190,6 +192,8 @@ class PreliminaryFacilityForm(forms.ModelForm):
 
 
 class FacilityForm(forms.ModelForm):
+    location = PointField()
+
     class Meta:
         model = Facility
         fields = (
@@ -251,3 +255,9 @@ class FacilityForm(forms.ModelForm):
             "nrao_approval",
             "attachments",
         )
+        # widgets = {"location": PointWidget()}
+
+        def clean_location(self):
+            import ipdb
+
+            ipdb.set_trace()
