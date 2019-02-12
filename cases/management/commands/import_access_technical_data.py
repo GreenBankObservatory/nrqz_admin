@@ -50,11 +50,11 @@ class Command(BaseImportCommand):
             file_import_attempt=file_import_attempt,
             imported_by=self.__module__,
         )
-
-        attachments = handle_attachments(
-            row_data,
-            facility,
-            [ATTACHMENT_FORM_MAP],
-            file_import_attempt=file_import_attempt,
-            imported_by=self.__module__,
-        )
+        if facility:
+            attachments = handle_attachments(
+                row_data,
+                facility,
+                [ATTACHMENT_FORM_MAP],
+                file_import_attempt=file_import_attempt,
+                imported_by=self.__module__,
+            )
