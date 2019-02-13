@@ -2,7 +2,7 @@
 
 import django_tables2 as tables
 
-from utils.coord_utils import coords_to_string
+from utils.coord_utils import lat_to_string, long_to_string, coords_to_string
 from . import models
 from .filters import (
     AttachmentFilter,
@@ -87,8 +87,15 @@ class FacilityTable(tables.Table):
     case = tables.Column(linkify=True)
     path = tables.Column(empty_values=())
     dominant_path = tables.Column(verbose_name="Dom. Path")
-    calc_az = tables.Column(verbose_name="Az. Bearing")
+    calc_az = tables.Column(
+        verbose_name="Az. Bearing to GBT", accessor="azimuth_to_gbt"
+    )
     applicant = tables.Column(linkify=True, accessor="case.applicant")
+    latitude = tables.Column(accessor="location", verbose_name="Latitude")
+    longitude = tables.Column(accessor="location", verbose_name="Longitude")
+    distance_to_gbt = tables.Column(
+        accessor="distance_to_gbt", verbose_name="Distance to GBT"
+    )
 
     class Meta:
         model = models.Facility
@@ -103,6 +110,7 @@ class FacilityTable(tables.Table):
                 "comments",
                 "az_bearing",
                 "contact",
+                "location",
             ]
         ]
         order_by = ["-nrqz_id", "freq_low"]
@@ -119,7 +127,7 @@ class FacilityTable(tables.Table):
         return f"{value:.2f}"
 
     def render_calc_az(self, value):
-        return f"{value:.2f}"
+        return f"{value:.2f}°"
 
     def render_nrqz_id(self, record):
         return record.nrqz_id or record.case.case_num
@@ -128,15 +136,20 @@ class FacilityTable(tables.Table):
         return value.case_num
 
     # TODO: Consolidate!
-    def render_location(self, value):
-        """Render a coordinate as DD MM SS.sss"""
-        longitude, latitude = value.coords
-        return coords_to_string(latitude=latitude, longitude=longitude, concise=True)
+    def render_latitude(self, value):
+        return lat_to_string(latitude=value.y, concise=True)
+
+    # TODO: Consolidate!
+    def render_longitude(self, value):
+        return lat_to_string(latitude=value.x, concise=True)
 
     def render_dominant_path(self, value):
         if value:
             return value[0]
         return value
+
+    def render_distance_to_gbt(self, value):
+        return f"{value.mi:.2f} miles"
 
 
 class FacilityExportTable(FacilityTable):

@@ -19,20 +19,17 @@ from .columns import ImportStatusColumn
 
 
 class FileImportBatchTable(tables.Table):
-    cli = tables.Column(empty_values=(), linkify=True, verbose_name="CLI")
+    command = tables.Column(empty_values=(), linkify=True, verbose_name="Importer")
     created_on = tables.DateColumn(verbose_name="Date Imported")
     file_import_attempts = tables.Column(verbose_name="# of File Imports Attempted")
     status = ImportStatusColumn()
 
     class Meta:
         model = FileImportBatch
-        fields = ("cli", *FileImportBatchFilter.Meta.fields)
+        fields = ("command", *FileImportBatchFilter.Meta.fields)
 
     def render_file_import_attempts(self, value):
         return value.count()
-
-    def render_cli(self, record):
-        return record.cli
 
 
 class FileImporterTable(tables.Table):

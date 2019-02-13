@@ -1,4 +1,9 @@
-from django.urls import reverse
+import math
+
+from django.conf import settings
+from django.contrib.gis.db.backends.postgis.models import PostGISSpatialRefSys
+from django.contrib.gis.db.models import PointField, PolygonField
+from django.contrib.gis.db.models.functions import Area, Azimuth, Distance
 from django.db.models import (
     BooleanField,
     CharField,
@@ -17,9 +22,10 @@ from django.db.models import (
     PROTECT,
     SET_NULL,
     SlugField,
+    F,
 )
-from django.contrib.gis.db.models import PointField
-from django.conf import settings
+from django.urls import reverse
+from django.utils.functional import cached_property
 
 from django_import_data.models import AbstractBaseAuditedModel
 
@@ -115,6 +121,20 @@ class AbstractBaseFacility(
         help_text="Longitude of site, in degrees",
     )
     location = LOCATION_FIELD()
+    location_description = CharField(
+        blank=True,
+        null=True,
+        max_length=512,
+        verbose_name="Location Description",
+        help_text="A long-form description of the facility location",
+    )
+    srid_used_for_import = ForeignKey(
+        PostGISSpatialRefSys,
+        on_delete=PROTECT,
+        null=True,
+        blank=True,
+        help_text="The spatial reference system of the original imported coordinates",
+    )
     amsl = FloatField(
         verbose_name="AMSL (meters)",
         blank=True,
@@ -135,6 +155,22 @@ class AbstractBaseFacility(
 
     class Meta:
         abstract = True
+
+    def distance_to_gbt(self):
+        return (
+            Location.objects.filter(name="GBT")
+            .annotate(distance=Distance(F("location"), self.location))
+            .values("distance")
+            .last()["distance"]
+        )
+
+    def azimuth_to_gbt(self):
+        return math.degrees(
+            Location.objects.filter(name="GBT")
+            .annotate(azimuth=Azimuth(F("location"), self.location))
+            .values("azimuth")
+            .last()["azimuth"]
+        )
 
 
 class PreliminaryFacility(AbstractBaseFacility):
@@ -628,3 +664,22 @@ class LetterTemplate(IsActiveModel, TrackedModel, Model):
     class Meta:
         verbose_name = "Letter Template"
         verbose_name_plural = "Letter Templates"
+
+
+class Boundaries(IsActiveModel, Model):
+    name = CharField(max_length=64, default=None, unique=True)
+    bounds = PolygonField(geography=True, srid=4326)
+
+    @cached_property
+    def area(self):
+        return (
+            Boundaries.objects.filter(id=self.id)
+            .annotate(area=Area(F("bounds")))
+            .values("area")
+            .last()["area"]
+        )
+
+
+class Location(IsActiveModel, Model):
+    name = CharField(max_length=64, default=None, unique=True)
+    location = PointField(geography=True, srid=4326)

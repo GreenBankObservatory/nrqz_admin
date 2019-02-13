@@ -206,7 +206,7 @@ class PreliminaryFacilityForm(forms.ModelForm):
 
 
 class FacilityForm(forms.ModelForm):
-    location = PointField()
+    # location = PointField()
 
     class Meta:
         model = Facility

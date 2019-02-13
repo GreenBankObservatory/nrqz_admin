@@ -118,12 +118,6 @@ def attachment_table(instance, title, fields):
 
 @register.inclusion_tag("cases/info_table.html")
 def location_table(instance, title, fields):
-    # fields.remove("latitude")
-    # latitude = getattr(instance, "latitude")
-    # latitude_str = instance._meta.get_field("latitude").value_to_string(instance)
-    # fields.remove("longitude")
-    # longitude = getattr(instance, "longitude")
-    # longitude_str = instance._meta.get_field("longitude").value_to_string(instance)
     if "location" not in fields:
         return {}
     fields.remove("location")

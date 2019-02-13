@@ -12,7 +12,7 @@ import string
 import pytz
 from tqdm import tqdm
 
-from django.contrib.gis.geos import GEOSGeometry, GEOSException
+from django.contrib.gis.geos import Point
 
 from utils.coord_utils import dms_to_dd
 from utils.constants import MIN_VALID_CASE_NUMBER, MAX_VALID_CASE_NUMBER
@@ -26,7 +26,7 @@ SCI_REGEX_STR = (
 SCI_REGEX = re.compile(SCI_REGEX_STR, re.IGNORECASE)
 
 COORD_PATTERN_STR = (
-    r"^(?P<degrees>\d+)\s+(?P<minutes>\d+)\s+(?P<seconds>\d+(?:\.\d+)?)$"
+    r"^(?P<degrees>-?\d+)\s+(?P<minutes>\d+)\s+(?P<seconds>\d+(?:\.\d+)?)$"
 )
 COORD_PATTERN = re.compile(COORD_PATTERN_STR)
 
@@ -259,7 +259,7 @@ def coerce_long(value):
         return None
 
 
-def coerce_location_(latitude, longitude):
+def coerce_location_(latitude, longitude, srid=4269):
 
     converted_latitude = coerce_lat(latitude)
     converted_longitude = coerce_long(longitude)
@@ -268,23 +268,22 @@ def coerce_location_(latitude, longitude):
     if converted_latitude is None or converted_longitude is None:
         return None
         # raise ValueError(f"Invalid coordinates given: ({latitude!r}, {longitude!r})")
-    point = GEOSGeometry(
-        f"Point({converted_longitude} {converted_latitude})", srid=4326
-    )
-    # tqdm.write(f"Created point: {point.coords}")
+
+    if converted_longitude > 0:
+        converted_longitude *= -1
+    point = Point(x=converted_longitude, y=converted_latitude, srid=srid)
+    tqdm.write(f"Created point: {point.coords}")
     return point
 
 
 # NRQZ LOCS!
 # Note that these are NOT both required, because location is not a required field
-def coerce_location(latitude=None, longitude=None):
+def coerce_location(latitude=None, longitude=None, srid=4269):
     point = coerce_location_(latitude, longitude)
     if point is None:
         return point
-    converted_longitude, converted_latitude = point.coords
+    converted_longitude, converted_latitude = point.x, point.y
 
-    if converted_longitude > 0:
-        converted_longitude *= -1
     lat_lower_bound = 34
     lat_upper_bound = 41
     long_lower_bound = -83
@@ -310,6 +309,7 @@ def coerce_location(latitude=None, longitude=None):
 
         raise ValueError(error_str)
 
+    tqdm.write(f"Returning point: {point.coords}")
     return point
 
 
@@ -353,3 +353,14 @@ def convert_access_attachment(**kwargs):
     letter_number = re.sub("[^0-9]", "", letter_name)
 
     return {"path": clean_path, "original_index": letter_number}
+
+
+def coerce_access_location(latitude, longitude, nad27, nad83):
+    if nad27 and nad83:
+        raise ValueError("Both NAD27 and NAD83 are indicated; this must be resolved")
+
+    if nad27:
+        srid = 4267  # NAD27
+    else:
+        srid = 4269  # NAD83
+    coerce_location(latitude, longitude, srid=srid)

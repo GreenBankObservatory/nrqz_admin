@@ -21,29 +21,48 @@ def dd_to_dms(decimal):
     return (d, m, s)
 
 
-def coords_to_string(latitude, longitude, concise=False):
+CONCISE_COORD_FORMAT = "{:3d} {:02d} {:2.3f}"
+VERBOSE_COORD_FORMAT = "{:3d}° {:02d}′ {:2.3f}″ {}"
+
+
+def lat_to_string(latitude, concise=False):
     if isinstance(latitude, float):
         latitude = dd_to_dms(latitude)
-    if isinstance(longitude, float):
-        longitude = dd_to_dms(longitude)
+    if len(latitude) != 3:
+        raise ValueError("latitude must be a 3-tuple")
+
+    if latitude[0] < 0:
+        latitude = (abs(i) for i in latitude)
+        lat_hemi = "S"
+    else:
+        lat_hemi = "N"
 
     if concise:
-        coord_format = "{:3d} {:02d} {:2.3f}"
-        return f"{coord_format.format(*latitude)}, {coord_format.format(*longitude)}"
-    else:
-        if latitude[0] < 0:
-            latitude = (abs(i) for i in latitude)
-            lat_hemi = "S"
-        else:
-            lat_hemi = "N"
+        return f"{CONCISE_COORD_FORMAT.format(*latitude)}"
+    return f"{VERBOSE_COORD_FORMAT.format(*latitude, lat_hemi)}"
 
-        if longitude[0] < 0:
-            longitude = (abs(i) for i in longitude)
-            long_hemi = "W"
-        else:
-            long_hemi = "E"
-        coord_format = "{:3d}° {:02d}′ {:2.3f}″"
-        return f"{coord_format.format(*latitude)} {lat_hemi}, {coord_format.format(*longitude)} {long_hemi}"
+
+def long_to_string(longitude, concise=False):
+    if isinstance(longitude, float):
+        longitude = dd_to_dms(longitude)
+    if len(longitude) != 3:
+        raise ValueError("longitude must be a 3-tuple")
+
+    if longitude[0] < 0:
+        longitude = (abs(i) for i in longitude)
+        long_hemi = "W"
+    else:
+        long_hemi = "E"
+
+    if concise:
+        return f"{CONCISE_COORD_FORMAT.format(*longitude)}"
+    return f"{VERBOSE_COORD_FORMAT.format(*longitude, long_hemi)}"
+
+
+def coords_to_string(latitude, longitude, concise=False):
+    latitude_str = lat_to_string(latitude, concise=concise)
+    longitude_str = long_to_string(longitude, concise=concise)
+    return f"{latitude_str}, {longitude_str}"
 
 
 # https://regex101.com/r/vMa4Ov/5
@@ -52,6 +71,11 @@ coord_regex_str = (
     r"(?P<seconds>\d{1,2}(?:\.\d+)?)[^NnEeWwSs]+)?(?P<hemisphere>[NnEeWwSs])?"
 )
 coord_regex = re.compile(coord_regex_str)
+
+
+def point_to_string(point, concise=False):
+    longitude, latitude = point.coords
+    return coords_to_string(latitude, longitude, concise=concise)
 
 
 def parse_coord(coord):

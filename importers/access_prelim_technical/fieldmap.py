@@ -10,7 +10,7 @@ from django_import_data import OneToOneFieldMap, ManyToOneFieldMap, FormMap
 from importers.converters import (
     coerce_datetime,
     coerce_feet_to_meters,
-    coerce_location,
+    coerce_access_location,
     coerce_none,
     coerce_positive_float,
     coerce_positive_int,
@@ -67,8 +67,15 @@ class PfacilityFormMap(FormMap):
         ),
         ManyToOneFieldMap(
             to_field="location",
-            converter=coerce_location,
-            from_fields=({"latitude": ("LATITUDE",), "longitude": ("LONGITUDE",)}),
+            converter=coerce_access_location,
+            from_fields=(
+                {
+                    "latitude": "LATITUDE",
+                    "longitude": "LONGITUDE",
+                    "nad27": "NAD27?",
+                    "nad83": "NAD82?",
+                }
+            ),
         ),
         OneToOneFieldMap(
             to_field="amsl", converter=coerce_feet_to_meters, from_field="GND_ELEV"

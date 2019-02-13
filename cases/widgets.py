@@ -1,11 +1,12 @@
 """Custom field widgets for cases app"""
 
 from django import forms
+from django.contrib.gis.geos import Point
 
 from django_filters import widgets
 from dal import autocomplete
 
-from utils.coord_utils import coords_to_string
+from utils.coord_utils import point_to_string, coords_to_string
 
 
 class PointWidget(forms.widgets.TextInput):
@@ -14,10 +15,14 @@ class PointWidget(forms.widgets.TextInput):
     """
 
     def format_value(self, value):
-        if not isinstance(value, str):
-            longitude, latitude = value.coords
-            return coords_to_string(latitude, longitude, concise=True)
-        return value
+        if isinstance(value, str):
+            return value
+
+        if isinstance(value, Point):
+            return point_to_string(point, concise=True)
+
+        longitude, latitude = value.coords
+        return coords_to_string(latitude, longitude, concise=True)
 
 
 class PointSearchWidget(widgets.SuffixedMultiWidget):

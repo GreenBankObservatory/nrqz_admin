@@ -1,7 +1,7 @@
 """Custom form fields for cases app"""
 
 from django import forms
-from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.gis.geos import Point
 from django.contrib.gis.geos.error import GEOSException
 
 import django_filters
@@ -16,11 +16,15 @@ class PointField(forms.CharField):
     def to_python(self, value):
         if not value:
             return None
+
+        if isinstance(value, Point):
+            return value.transform(4326)
+
         try:
             latitude, longitude = parse_coords(value)
         except ValueError as error:
             raise forms.ValidationError(error)
-        return GEOSGeometry(f"Point({longitude} {latitude})")
+        return Point(x=longitude, y=latitude, srid=4326)
 
 
 class PointSearchField(forms.MultiValueField):
@@ -91,7 +95,7 @@ class PointSearchField(forms.MultiValueField):
                 ) from error
 
             try:
-                point = GEOSGeometry(f"Point({longitude} {latitude})")
+                point = Point(f"Point({longitude} {latitude})")
             except (ValueError, GEOSException):
                 raise forms.ValidationError(
                     f"Failed to create Point from ({coords_orig})!"
