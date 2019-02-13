@@ -3,7 +3,7 @@
 import json as json_
 import os
 
-from django_import_data.models import DjangoErrorJSONEncoder
+from django_import_data.utils import DjangoErrorJSONEncoder
 
 from django.urls import reverse
 from django import template

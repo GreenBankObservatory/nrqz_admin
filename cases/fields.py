@@ -6,6 +6,7 @@ from django.contrib.gis.geos.error import GEOSException
 
 import django_filters
 
+from utils.constants import WGS84_SRID
 from utils.coord_utils import parse_coords
 from .widgets import PointWidget, PointSearchWidget
 
@@ -18,13 +19,13 @@ class PointField(forms.CharField):
             return None
 
         if isinstance(value, Point):
-            return value.transform(4326)
+            return value.transform(WGS84_SRID)
 
         try:
             latitude, longitude = parse_coords(value)
         except ValueError as error:
             raise forms.ValidationError(error)
-        return Point(x=longitude, y=latitude, srid=4326)
+        return Point(x=longitude, y=latitude, srid=WGS84_SRID)
 
 
 class PointSearchField(forms.MultiValueField):

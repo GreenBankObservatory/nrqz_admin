@@ -180,7 +180,7 @@ class AttachmentForm(forms.ModelForm):
         fields = ("path", "comments")
 
 
-class PreliminaryFacilityForm(forms.ModelForm):
+class BasePreliminaryFacilityForm(forms.ModelForm):
     class Meta:
         model = PreliminaryFacility
         fields = (
@@ -201,13 +201,21 @@ class PreliminaryFacilityForm(forms.ModelForm):
             "location",
             "pcase",
             "attachments",
+            "srid_used_for_import",
+            "usgs_dataset",
         )
         widgets = {"pcase": PCaseWidget(), "attachments": AttachmentsWidget()}
 
 
-class FacilityForm(forms.ModelForm):
-    # location = PointField()
+class PreliminaryFacilityImportForm(BasePreliminaryFacilityForm):
+    pass
 
+
+class PreliminaryFacilityForm(BasePreliminaryFacilityForm):
+    location = PointField()
+
+
+class BaseFacilityForm(forms.ModelForm):
     class Meta:
         model = Facility
         fields = (
@@ -268,6 +276,16 @@ class FacilityForm(forms.ModelForm):
             "num_tx_per_facility",
             "nrao_approval",
             "attachments",
+            "srid_used_for_import",
+            "usgs_dataset",
         )
 
         widgets = {"case": CaseWidget(), "attachments": AttachmentsWidget()}
+
+
+class FacilityImportForm(BaseFacilityForm):
+    pass
+
+
+class FacilityForm(BaseFacilityForm):
+    location = PointField()

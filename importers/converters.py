@@ -5,7 +5,8 @@ source and converting/validating it in some way in order to
 make it compatible with a database field
 """
 
-from datetime import datetime
+from django.contrib.gis.db.backends.postgis.models import PostGISSpatialRefSys
+from datetime import datetime, date
 import re
 import string
 
@@ -15,7 +16,12 @@ from tqdm import tqdm
 from django.contrib.gis.geos import Point
 
 from utils.coord_utils import dms_to_dd
-from utils.constants import MIN_VALID_CASE_NUMBER, MAX_VALID_CASE_NUMBER
+from utils.constants import (
+    MIN_VALID_CASE_NUMBER,
+    MAX_VALID_CASE_NUMBER,
+    NAD27_SRID,
+    NAD83_SRID,
+)
 
 FEET_IN_A_METER = 0.3048
 
@@ -26,11 +32,11 @@ SCI_REGEX_STR = (
 SCI_REGEX = re.compile(SCI_REGEX_STR, re.IGNORECASE)
 
 COORD_PATTERN_STR = (
-    r"^(?P<degrees>-?\d+)\s+(?P<minutes>\d+)\s+(?P<seconds>\d+(?:\.\d+)?)$"
+    r"(?P<degrees>-?\d+)(?:\s+|-)(?P<minutes>\d+)(?:\s+|-)(?P<seconds>\d+(?:\.\d+)?)"
 )
 COORD_PATTERN = re.compile(COORD_PATTERN_STR)
 
-CASE_REGEX_STR = r"^(?P<case_num>\d+).*"
+CASE_REGEX_STR = r"^P?(?P<case_num>\d+).*"
 CASE_REGEX = re.compile(CASE_REGEX_STR)
 
 # TODO:
@@ -80,9 +86,9 @@ def coerce_scientific_notation(value):
     return float(digits) * 10 ** float(exponent)
 
 
-def coerce_none(value, none_str_values=("", "None")):
+def coerce_none(value, none_str_values=("", "None", "#N/A")):
     clean = value.strip().lower()
-    if clean in none_str_values:
+    if clean in [v.lower() for v in none_str_values]:
         return None
     return value
 
@@ -140,7 +146,22 @@ def coerce_coord_from_number(value):
     return dms_to_dd(decimal, minutes, seconds)
 
 
-def coerce_datetime(value):
+MDY_REGEX = re.compile(r"(?P<month>\d{1,2})[/\\](?P<day>\d{1,2})[/\\](?P<year>\d{1,4})")
+
+
+def convert_mdy_datetime(value):
+    # Strip all whitespace
+    clean_value = "".join(value.split())
+    m = MDY_REGEX.match(clean_value)
+    if not m:
+        raise ValueError(
+            f"Could not match MDY date {value!r} with regex {MDY_REGEX.pattern}"
+        )
+
+    return date(m["year"], m["month"], m["day"])
+
+
+def convert_access_datetime(value):
     if value == "":
         return None
     date_str = value.split(" ")[0]
@@ -192,7 +213,7 @@ def coerce_bool(value):
         return True
     elif clean_value in ["no", "n0", "0", "false", "f"]:
         return False
-    elif clean_value in ["", "na", "n/a"]:
+    elif clean_value in ["", "na", "n/a", "none"]:
         return None
     else:
         raise ValueError("Could not determine truthiness of value {!r}".format(value))
@@ -220,7 +241,12 @@ def coerce_float(value):
     elif clean_value == "deca":
         clean_value = 10
     else:
-        clean_value = re.sub(f"[{string.ascii_letters}]", "", clean_value)
+        clean_value = re.sub(r"[^0-9\.]", "", clean_value)
+
+    # If the string is empty after stripping non-decimal characters out,
+    # treat it as None
+    if clean_value == "":
+        return None
 
     return float(clean_value)
 
@@ -229,7 +255,7 @@ def coerce_coords(value):
     """Given a coordinate in DD MM SS.sss format, return it in DD.ddd format"""
     clean_value = str(value).strip().lower()
 
-    if clean_value in ["", "none", "#n/a"]:
+    if clean_value in ["", "none", "#n/a", "none provided"]:
         return None
 
     try:
@@ -237,7 +263,7 @@ def coerce_coords(value):
     except ValueError:
         match = re.match(COORD_PATTERN, clean_value)
         if not match:
-            raise ValueError(f"Regex {COORD_PATTERN_STR} did not match value {value}")
+            raise ValueError(f"Regex {COORD_PATTERN_STR} did not match value {value!r}")
 
         dd = dms_to_dd(**match.groupdict())
     else:
@@ -259,27 +285,25 @@ def coerce_long(value):
         return None
 
 
-def coerce_location_(latitude, longitude, srid=4269):
-
+def coerce_location_(latitude, longitude, srid=NAD83_SRID):
     converted_latitude = coerce_lat(latitude)
     converted_longitude = coerce_long(longitude)
     # tqdm.write(f"Converted latitude from {latitude} to {converted_latitude}")
     # tqdm.write(f"Converted longitude from {longitude} to {converted_longitude}")
     if converted_latitude is None or converted_longitude is None:
+        tqdm.write(f"Invalid coordinates given: ({latitude!r}, {longitude!r})")
         return None
-        # raise ValueError(f"Invalid coordinates given: ({latitude!r}, {longitude!r})")
 
     if converted_longitude > 0:
         converted_longitude *= -1
     point = Point(x=converted_longitude, y=converted_latitude, srid=srid)
-    tqdm.write(f"Created point: {point.coords}")
     return point
 
 
 # NRQZ LOCS!
 # Note that these are NOT both required, because location is not a required field
-def coerce_location(latitude=None, longitude=None, srid=4269):
-    point = coerce_location_(latitude, longitude)
+def coerce_location(latitude=None, longitude=None, srid=NAD83_SRID):
+    point = coerce_location_(latitude, longitude, srid)
     if point is None:
         return point
     converted_longitude, converted_latitude = point.x, point.y
@@ -309,7 +333,6 @@ def coerce_location(latitude=None, longitude=None, srid=4269):
 
         raise ValueError(error_str)
 
-    tqdm.write(f"Returning point: {point.coords}")
     return point
 
 
@@ -355,12 +378,15 @@ def convert_access_attachment(**kwargs):
     return {"path": clean_path, "original_index": letter_number}
 
 
-def coerce_access_location(latitude, longitude, nad27, nad83):
+def coerce_access_location(latitude, longitude, nad27=None, nad83=None):
     if nad27 and nad83:
         raise ValueError("Both NAD27 and NAD83 are indicated; this must be resolved")
 
     if nad27:
-        srid = 4267  # NAD27
+        srid = NAD27_SRID
     else:
-        srid = 4269  # NAD83
-    coerce_location(latitude, longitude, srid=srid)
+        srid = NAD83_SRID
+    return {
+        "location": coerce_location(latitude, longitude, srid=srid),
+        "srid_used_for_import": PostGISSpatialRefSys.objects.get(srid=srid).pk,
+    }

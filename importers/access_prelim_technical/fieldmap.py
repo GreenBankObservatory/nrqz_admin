@@ -3,12 +3,12 @@ from cases.forms import (
     AttachmentForm,
     PersonForm,
     PreliminaryCaseForm,
-    PreliminaryFacilityForm,
+    PreliminaryFacilityImportForm,
 )
 
 from django_import_data import OneToOneFieldMap, ManyToOneFieldMap, FormMap
 from importers.converters import (
-    coerce_datetime,
+    convert_access_datetime,
     coerce_feet_to_meters,
     coerce_access_location,
     coerce_none,
@@ -45,7 +45,9 @@ class PfacilityFormMap(FormMap):
             to_field="site_num", converter=coerce_positive_int, from_field="Site Number"
         ),
         OneToOneFieldMap(
-            to_field="original_created_on", converter=coerce_datetime, from_field="DATE"
+            to_field="original_created_on",
+            converter=convert_access_datetime,
+            from_field="DATE",
         ),
         OneToOneFieldMap(
             to_field="freq_low", converter=coerce_positive_float, from_field="FREQUENCY"
@@ -58,7 +60,9 @@ class PfacilityFormMap(FormMap):
             converter=coerce_scientific_notation,
             from_field="PWD_LIMIT",
         ),
-        OneToOneFieldMap(to_field="site_name", converter=None, from_field="LOCATION"),
+        OneToOneFieldMap(
+            to_field="location_description", converter=None, from_field="LOCATION"
+        ),
         OneToOneFieldMap(
             to_field="latitude", converter=coerce_none, from_field="LATITUDE"
         ),
@@ -72,7 +76,7 @@ class PfacilityFormMap(FormMap):
                 {
                     "latitude": "LATITUDE",
                     "longitude": "LONGITUDE",
-                    "nad27": "NAD27?",
+                    "nad27": "NAD27_SRID?",
                     "nad83": "NAD82?",
                 }
             ),
@@ -84,8 +88,9 @@ class PfacilityFormMap(FormMap):
             to_field="agl", converter=coerce_feet_to_meters, from_field="ANT_HEIGHT"
         ),
         OneToOneFieldMap(to_field="comments", converter=None, from_field="REMARKS"),
+        OneToOneFieldMap(to_field="tpa", converter=None, from_field="NRAO_TPA"),
     ]
-    form_class = PreliminaryFacilityForm
+    form_class = PreliminaryFacilityImportForm
     form_defaults = {"data_source": ACCESS_PRELIM_TECHNICAL}
 
 
@@ -113,14 +118,11 @@ todo = [
     "REQ_ERP",
     "PATH_AZ",
     "CLASS",
-    "NAD27?",
-    "NAD83?",
     "FCC4-Point",
     "12-Point",
     "NRAO_DIFF",
     "NRAO_TROPO",
     "NRAO_SPACE",
-    "NRAO_TPA",
     "NRAO_AERPD_Analog",
     "NRAO_AERPD_CDMA",
     "NRAO_AZ_GB",
@@ -134,7 +136,5 @@ todo = [
     "JSMS_SPACE",
     "JSMS_TPA",
     "JSMS_AERPD",
-    "PROP_STUDY",
-    "PROP_STUDY_Link",
     "MAP",
 ]

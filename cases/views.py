@@ -503,6 +503,7 @@ class FacilityDetailView(DetailView):
         # context["meta_info"] = ["id", "created_on", "modified_on"]
         context["topography_info"] = [
             "site_name",
+            "location_description",
             # geographic location,
             # lat
             # long

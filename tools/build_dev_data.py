@@ -8,6 +8,7 @@ from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.contrib.gis.geos import Point, Polygon
 
+from utils.constants import NAD83_SRID, WGS84_SRID
 
 User = get_user_model()
 
@@ -55,15 +56,15 @@ def create_boundaries():
     assert west < east
     assert south < north
     points = (
-        Point((west, south), srid=4269),
-        Point((west, north), srid=4269),
-        Point((east, north), srid=4269),
-        Point((east, south), srid=4269),
-        Point((west, south), srid=4269),
+        Point((west, south), srid=NAD83_SRID),
+        Point((west, north), srid=NAD83_SRID),
+        Point((east, north), srid=NAD83_SRID),
+        Point((east, south), srid=NAD83_SRID),
+        Point((west, south), srid=NAD83_SRID),
     )
+    # Convert all to WGS84
+    [point.transform(WGS84_SRID) for point in points]
     nrqz_polygon = Polygon(points)
-    # TODO: Is this equivalent?
-    # nrqz_polygon = Polygon.from_bbox((west, south, east, north))
 
     nrqz_boundaries = Boundaries.objects.create(name="NRQZ", bounds=nrqz_polygon)
 
@@ -74,8 +75,10 @@ def create_boundaries():
 
 
 def create_locations():
-    # From Antenna FITS file
-    gbt = Point((-79.839_833, 38.433_119), srid=4326)
+    # From Antenna FITS file, given in NAD83
+    gbt = Point((-79.839_833, 38.433_119), srid=NAD83_SRID)
+    # We store it in WGS84_SRID, though
+    gbt.transform(WGS84_SRID)
     gbt_location = Location.objects.create(name="GBT", location=gbt)
     print(f"The GBT is located at: {point_to_string(gbt_location.location)}")
 

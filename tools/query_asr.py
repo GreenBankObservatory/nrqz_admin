@@ -139,7 +139,7 @@ def parse_args():
         "--input-coord-sys",
         default=DEFAULTS["SRID"],
         help=(
-            "ArcGIS ID of input coordinate system. Defaults to WGS84. See "
+            "ArcGIS ID of input coordinate system. Defaults to WGS84_SRID. See "
             "https://developers.arcgis.com/javascript/3/jshelp/gcs.html"
         ),
     )
@@ -148,7 +148,7 @@ def parse_args():
         "--output-coord-sys",
         default=DEFAULTS["SRID"],
         help=(
-            "ArcGIS ID of output coordinate system. Defaults to WGS84. See "
+            "ArcGIS ID of output coordinate system. Defaults to WGS84_SRID. See "
             "https://developers.arcgis.com/javascript/3/jshelp/gcs.html"
         ),
     )

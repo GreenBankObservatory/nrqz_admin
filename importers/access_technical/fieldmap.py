@@ -1,9 +1,12 @@
 """Field mappings for Access Technical Data"""
 
-from cases.forms import AttachmentForm, CaseForm, FacilityForm, PersonForm
+from cases.forms import AttachmentForm, CaseForm, FacilityImportForm, PersonForm
 
 from django_import_data import FormMap, ManyToOneFieldMap, OneToOneFieldMap
-from importers.access_application.fieldmap import coerce_datetime, coerce_positive_int
+from importers.access_application.fieldmap import (
+    convert_access_datetime,
+    coerce_positive_int,
+)
 from importers.converters import (
     coerce_feet_to_meters,
     coerce_access_location,
@@ -47,7 +50,7 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="original_created_on",
-            converter=coerce_datetime,
+            converter=convert_access_datetime,
             from_field="DATEREC",
         ),
         OneToOneFieldMap(to_field="call_sign", converter=None, from_field="CALLSIGN"),
@@ -62,8 +65,9 @@ class FacilityFormMap(FormMap):
         OneToOneFieldMap(
             to_field="site_num", converter=coerce_positive_int, from_field="SITE."
         ),
-        # TODO: hmmmm
-        OneToOneFieldMap(to_field="site_name", converter=None, from_field="LOCATION"),
+        OneToOneFieldMap(
+            to_field="location_description", converter=None, from_field="LOCATION"
+        ),
         OneToOneFieldMap(
             to_field="latitude", converter=coerce_none, from_field="LATITUDE"
         ),
@@ -77,7 +81,7 @@ class FacilityFormMap(FormMap):
                 {
                     "latitude": "LATITUDE",
                     "longitude": "LONGITUDE",
-                    "nad27": "NAD27?",
+                    "nad27": "NAD27_SRID?",
                     "nad83": "NAD82?",
                 }
             ),
@@ -90,7 +94,7 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(to_field="comments", converter=None, from_field="REMARKS"),
     ]
-    form_class = FacilityForm
+    form_class = FacilityImportForm
     form_defaults = {"data_source": ACCESS_TECHNICAL}
 
 

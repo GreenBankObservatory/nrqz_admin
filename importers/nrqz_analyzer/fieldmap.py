@@ -2,9 +2,11 @@
 
 import re
 
+from django.contrib.gis.db.backends.postgis.models import PostGISSpatialRefSys
+
 from django_import_data import FormMap, OneToOneFieldMap, ManyToOneFieldMap
 
-from cases.forms import CaseForm, FacilityForm, StructureForm
+from cases.forms import CaseForm, FacilityImportForm
 
 from importers.converters import (
     coerce_location,
@@ -14,7 +16,7 @@ from importers.converters import (
     convert_freq_high,
     coerce_bool,
 )
-from utils.constants import NAM_APPLICATION
+from utils.constants import NAM_APPLICATION, NAD83_SRID
 
 
 def convert_street(caddr=None, caddr2=None):
@@ -49,7 +51,7 @@ def convert_to_system_loss(lbot=None, ltl=None, ltop=None):
             "Either all values or no values must be given! "
             f"lbot: {lbot}, ltl: {ltl}, ltop: {ltop}"
         )
-    return float(lbot) + float(ltl) + float(ltop)
+    return coerce_float(lbot) + coerce_float(ltl) + coerce_float(ltop)
 
 
 def convert_tpa(tpa):
@@ -169,8 +171,11 @@ class FacilityFormMap(FormMap):
         # column. See import_nam_application for details
         OneToOneFieldMap("comments"),
     ]
-    form_class = FacilityForm
-    form_defaults = {"data_source": NAM_APPLICATION}
+    form_class = FacilityImportForm
+    form_defaults = {
+        "data_source": NAM_APPLICATION,
+        "srid_used_for_import": PostGISSpatialRefSys.objects.get(srid=NAD83_SRID).pk,
+    }
 
 
 # class StructureFormMap(FormMap):

@@ -7,7 +7,7 @@ from importers.converters import (
     coerce_positive_int,
     coerce_bool,
     convert_access_attachment,
-    coerce_datetime,
+    convert_access_datetime,
     convert_case_num,
 )
 from utils.constants import ACCESS_PRELIM_APPLICATION
@@ -51,14 +51,16 @@ class PcaseFormMap(FormMap):
         OneToOneFieldMap(to_field="comments", converter=None, from_field="COMMENTS"),
         OneToOneFieldMap(
             to_field="original_created_on",
-            converter=coerce_datetime,
+            converter=convert_access_datetime,
             from_field="DATEREC",
         ),
         OneToOneFieldMap(
             to_field="completed", converter=coerce_bool, from_field="COMPLETED"
         ),
         OneToOneFieldMap(
-            to_field="completed_on", converter=coerce_datetime, from_field="DATECOMP"
+            to_field="completed_on",
+            converter=convert_access_datetime,
+            from_field="DATECOMP",
         ),
         OneToOneFieldMap(
             to_field="radio_service", converter=None, from_field="RADIOSRV"

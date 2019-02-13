@@ -1,5 +1,7 @@
 """Field mappings for Excel Data"""
 
+from django.contrib.gis.db.backends.postgis.models import PostGISSpatialRefSys
+
 from django_import_data import (
     FormMap,
     OneToOneFieldMap,
@@ -8,7 +10,7 @@ from django_import_data import (
     ManyToManyFieldMap,
 )
 
-from cases.forms import CaseForm, FacilityForm
+from cases.forms import CaseForm, FacilityImportForm
 from importers.converters import (
     coerce_bool,
     coerce_float,
@@ -17,8 +19,10 @@ from importers.converters import (
     coerce_positive_int,
     convert_freq_high,
     convert_nrqz_id_to_case_num,
+    coerce_none,
+    convert_mdy_datetime,
 )
-from utils.constants import EXCEL
+from utils.constants import EXCEL, NAD83_SRID
 
 IGNORED_HEADERS = [
     "Original Row",
@@ -29,6 +33,39 @@ IGNORED_HEADERS = [
     # fact for the population of nrao_approval. See below...
     "NRAO AERPd (W)",
 ]
+
+from datetime import date
+
+
+def convert_sgrs_approval(sgrs_approval):
+    # If it is already a date, then that's awesome; just use that
+    # This also obviously indicates that sgrs_approval should be True
+    if isinstance(sgrs_approval, date):
+        sgrs_responded_on = sgrs_approval
+        sgrs_approval = True
+    else:
+        # Otherwise, we try two things:
+        # 1. Convert to a bool
+        try:
+            sgrs_approval = coerce_bool(sgrs_approval)
+        except ValueError:
+            # 2. If that didn't work, convert it to a datetime
+            try:
+                sgrs_responded_on = convert_mdy_datetime(sgrs_approval)
+            except ValueError:
+                # And if that didn't work, raise an error
+                raise ValueError(
+                    f"sgrs_approval ({sgrs_approval!r}) couldn't be converted to either a date or a boolean!"
+                )
+            else:
+                # If it did work, sgrs_approval must be true (since we know the date on which they approved)
+                sgrs_approval = True
+        else:
+            # If we successfully convert to bool, we obviously can't know the date on which they
+            # responed (because a bool was there instead of a date)
+            sgrs_responded_on = None
+
+    return {"sgrs_approval": sgrs_approval, "sgrs_responded_on": sgrs_responded_on}
 
 
 def convert_dominant_path(dominant_path):
@@ -51,7 +88,9 @@ def convert_nrao_aerpd(nrao_aerpd, nrao_approval=None):
     known_truthy_values = ["meets nrao limit"]
     if isinstance(nrao_approval, str):
         clean_nrao_approval = nrao_approval.strip().lower()
-        if clean_nrao_approval in known_truthy_values:
+        if coerce_none(clean_nrao_approval) is None:
+            nrao_approval = False
+        elif clean_nrao_approval in known_truthy_values:
             nrao_approval = True
         else:
             raise ValueError(
@@ -524,9 +563,9 @@ class FacilityFormMap(FormMap):
             converter=coerce_positive_float,
             from_field={"power_density_limit": ["Power Density Limit"]},
         ),
-        OneToOneFieldMap(
-            to_field="sgrs_approval",
-            converter=coerce_bool,
+        OneToManyFieldMap(
+            to_fields=("sgrs_approval", "sgrs_responded_on"),
+            converter=convert_sgrs_approval,
             from_field={"sgrs_approval": ["SGRS Approval"]},
         ),
         # TODO: Make attachment somehow?
@@ -542,8 +581,11 @@ class FacilityFormMap(FormMap):
             from_field={"tx_power": ["TX Pwr (dBm)"]},
         ),
     ]
-    form_class = FacilityForm
-    form_defaults = {"data_source": EXCEL}
+    form_class = FacilityImportForm
+    form_defaults = {
+        "data_source": EXCEL,
+        "srid_used_for_import": PostGISSpatialRefSys.objects.get(srid=NAD83_SRID).pk,
+    }
 
 
 FACILITY_FORM_MAP = FacilityFormMap()

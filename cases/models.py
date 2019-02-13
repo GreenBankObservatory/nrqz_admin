@@ -29,6 +29,7 @@ from django.utils.functional import cached_property
 
 from django_import_data.models import AbstractBaseAuditedModel
 
+from utils.constants import WGS84_SRID
 from utils.coord_utils import dd_to_dms
 from .kml import facility_as_kml, case_as_kml, kml_to_string
 from .mixins import DataSourceModel, TrackedOriginalModel, IsActiveModel, TrackedModel
@@ -40,8 +41,8 @@ LOCATION_FIELD = lambda: PointField(
     spatial_index=True,
     # Use geography column (spherical) instead of geometry (planar)
     geography=True,
-    # WGS84
-    srid=4326,
+    # WGS84_SRID
+    srid=WGS84_SRID,
     help_text="A physical location on the Earth",
 )
 
@@ -131,8 +132,6 @@ class AbstractBaseFacility(
     srid_used_for_import = ForeignKey(
         PostGISSpatialRefSys,
         on_delete=PROTECT,
-        null=True,
-        blank=True,
         help_text="The spatial reference system of the original imported coordinates",
     )
     amsl = FloatField(
@@ -151,6 +150,9 @@ class AbstractBaseFacility(
         null=True,
         blank=True,
         help_text="Additional information or comments from the applicant",
+    )
+    usgs_dataset = CharField(
+        max_length=3, choices=(("3m", "3m"), ("10m", "10m"), ("30m", "30m")), blank=True
     )
 
     class Meta:
@@ -394,6 +396,9 @@ class Facility(AbstractBaseFacility):
     )
 
     attachments = ManyToManyField("Attachment", related_name="facilities", blank=True)
+
+    emission1 = FloatField(null=True, blank=True)
+    emission2 = FloatField(null=True, blank=True)
 
     class Meta:
         verbose_name = "Facility"
@@ -668,7 +673,7 @@ class LetterTemplate(IsActiveModel, TrackedModel, Model):
 
 class Boundaries(IsActiveModel, Model):
     name = CharField(max_length=64, default=None, unique=True)
-    bounds = PolygonField(geography=True, srid=4326)
+    bounds = PolygonField(geography=True, srid=WGS84_SRID)
 
     @cached_property
     def area(self):
@@ -682,4 +687,4 @@ class Boundaries(IsActiveModel, Model):
 
 class Location(IsActiveModel, Model):
     name = CharField(max_length=64, default=None, unique=True)
-    location = PointField(geography=True, srid=4326)
+    location = PointField(geography=True, srid=WGS84_SRID)

@@ -8,7 +8,7 @@ from cases.forms import AttachmentForm, CaseForm, PersonForm
 from importers.converters import (
     coerce_float,
     coerce_positive_int,
-    coerce_datetime,
+    convert_access_datetime,
     coerce_bool,
     convert_access_attachment,
     convert_case_num,
@@ -54,11 +54,13 @@ class CaseFormMap(FormMap):
         ),
         OneToOneFieldMap(to_field="comments", converter=None, from_field="COMMENTS"),
         OneToOneFieldMap(
-            to_field="date_recorded", converter=coerce_datetime, from_field="DATEREC"
+            to_field="date_recorded",
+            converter=convert_access_datetime,
+            from_field="DATEREC",
         ),
         OneToOneFieldMap(
             to_field="original_modified_on",
-            converter=coerce_datetime,
+            converter=convert_access_datetime,
             from_field="DATEALTERED",
         ),
         OneToOneFieldMap(
@@ -68,14 +70,16 @@ class CaseFormMap(FormMap):
             to_field="shutdown", converter=coerce_bool, from_field="SHUTDOWN"
         ),
         OneToOneFieldMap(
-            to_field="completed_on", converter=coerce_datetime, from_field="DATECOMP"
+            to_field="completed_on",
+            converter=convert_access_datetime,
+            from_field="DATECOMP",
         ),
         OneToOneFieldMap(
             to_field="sgrs_notify", converter=coerce_bool, from_field="SGRSNOTIFY"
         ),
         OneToOneFieldMap(
             to_field="sgrs_responded_on",
-            converter=coerce_datetime,
+            converter=convert_access_datetime,
             from_field="SGRSDATE",
         ),
         OneToManyFieldMap(
@@ -107,7 +111,7 @@ class CaseFormMap(FormMap):
         ),
         OneToOneFieldMap(to_field="si", converter=coerce_bool, from_field="SI"),
         OneToOneFieldMap(
-            to_field="si_done", converter=coerce_datetime, from_field="SIDONE"
+            to_field="si_done", converter=convert_access_datetime, from_field="SIDONE"
         ),
     ]
 
