@@ -105,17 +105,16 @@ def convert_nrao_aerpd(nrao_aerpd, nrao_approval=None):
 
 class CaseFormMap(FormMap):
     field_maps = [
-        ManyToOneFieldMap(
+        OneToOneFieldMap(
             to_field="case_num",
             converter=convert_nrqz_id_to_case_num,
-            from_fields={
+            from_field={
                 "nrqz_id": [
                     "NRQZ ID (to be assigned by NRAO)",
                     "NRQZ ID",
                     "NRQZ ID     (Assigned by NRAO. Do not put any of your data in this column.)",
                     "NRQZ ID (to be assigned byRAO)",
-                ],
-                "loc": ["LOC"],
+                ]
             },
         )
     ]

@@ -47,7 +47,6 @@ CASE_REGEX = re.compile(CASE_REGEX_STR)
 def convert_nrqz_id_to_case_num(nrqz_id, loc=None):
     match = CASE_REGEX.match(str(nrqz_id))
     if loc and not match:
-        tqdm.write(f"loc: {loc}")
         match = CASE_REGEX.match(str(loc))
 
     if not match:
