@@ -18,8 +18,25 @@ from importers.converters import (
     convert_access_path,
     convert_case_num,
     convert_case_num_and_site_num_to_nrqz_id,
+    coerce_bool,
 )
 from utils.constants import ACCESS_PRELIM_TECHNICAL
+
+IGNORED_HEADERS = [
+    "PROP_STUDY",
+    "JSMS_DIFF",
+    "JSMS_TROPO",
+    "JSMS_SPACE",
+    "JSMS_TPA",
+    "JSMS_AERPD",
+    "TAP_DIFF",
+    "TAP_TROPO",
+    "TAP_SPACE",
+    "TAP_AERPD",
+    "TAP_TPA",
+    "MAP",
+    "DATE",
+]
 
 
 class ApplicantFormMap(FormMap):
@@ -89,8 +106,62 @@ class PfacilityFormMap(FormMap):
             to_field="agl", converter=coerce_feet_to_meters, from_field="ANT_HEIGHT"
         ),
         OneToOneFieldMap(to_field="comments", converter=None, from_field="REMARKS"),
-        OneToOneFieldMap(to_field="tpa", converter=None, from_field="NRAO_TPA"),
-        # OneToOneFieldMap(to_field="weighted_12_point", converter=None, from_field="12-Point"),
+        OneToOneFieldMap(
+            to_field="tpa", converter=coerce_positive_float, from_field="NRAO_TPA"
+        ),
+        OneToOneFieldMap(
+            to_field="radio_service", converter=coerce_none, from_field="CLASS"
+        ),
+        OneToOneFieldMap(
+            from_field={"topo_4_point": "FCC4-Point"},
+            converter=coerce_bool,
+            to_field="topo_4_point",
+        ),
+        OneToOneFieldMap(
+            from_field={"topo_12_point": "12-Point"},
+            converter=coerce_bool,
+            to_field="topo_12_point",
+        ),
+        OneToOneFieldMap(
+            from_field="NRAO_AZ_GB",
+            converter=coerce_positive_float,
+            to_field="az_bearing",
+        ),
+        OneToOneFieldMap(
+            from_field="REQ_ERP",
+            converter=coerce_positive_float,
+            to_field="erpd_per_num_tx",
+        ),
+        OneToOneFieldMap(
+            from_field="NRAO_AERPD_CDMA",
+            converter=coerce_positive_float,
+            to_field="nrao_aerpd_cdma",
+        ),
+        OneToOneFieldMap(
+            from_field="NRAO_AERPD_Analog",
+            converter=coerce_positive_float,
+            to_field="nrao_aerpd_analog",
+        ),
+        OneToOneFieldMap(
+            from_field="NRAO_DIFF",
+            converter=coerce_positive_float,
+            to_field="nrao_diff",
+        ),
+        OneToOneFieldMap(
+            from_field="NRAO_SPACE",
+            converter=coerce_positive_float,
+            to_field="nrao_space",
+        ),
+        OneToOneFieldMap(
+            from_field="NRAO_TROPO",
+            converter=coerce_positive_float,
+            to_field="nrao_tropo",
+        ),
+        OneToOneFieldMap(
+            from_field="OUTSIDE",
+            converter=coerce_bool,
+            to_field="original_outside_nrqz",
+        ),
     ]
     form_class = PreliminaryFacilityImportForm
     form_defaults = {"data_source": ACCESS_PRELIM_TECHNICAL}
@@ -115,27 +186,3 @@ APPLICANT_FORM_MAP = ApplicantFormMap()
 PCASE_FORM_MAP = PcaseFormMap()
 PFACILITY_FORM_MAP = PfacilityFormMap()
 ATTACHMENT_FORM_MAP = AttachmentFormMap()
-
-todo = [
-    "REQ_ERP",
-    "PATH_AZ",
-    "CLASS",
-    "FCC4-Point",
-    "NRAO_DIFF",
-    "NRAO_TROPO",
-    "NRAO_SPACE",
-    "NRAO_AERPD_Analog",
-    "NRAO_AERPD_CDMA",
-    "NRAO_AZ_GB",
-    "TAP_DIFF",
-    "TAP_TROPO",
-    "TAP_SPACE",
-    "TAP_TPA",
-    "TAP_AERPD",
-    "JSMS_DIFF",
-    "JSMS_TROPO",
-    "JSMS_SPACE",
-    "JSMS_TPA",
-    "JSMS_AERPD",
-    "MAP",
-]

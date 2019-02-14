@@ -129,6 +129,7 @@ class PreliminaryCaseForm(forms.ModelForm):
             "radio_service",
             "num_freqs",
             "num_sites",
+            "date_recorded",
         )
 
 
@@ -212,6 +213,22 @@ class BasePreliminaryFacilityForm(forms.ModelForm):
             "usgs_dataset",
             "location_description",
             "tpa",
+            "nrao_space",
+            "nrao_aerpd_gsm",
+            "nrao_aerpd_emission",
+            "nrao_aerpd_cdma",
+            "original_outside_nrqz",
+            "nrao_aerpd_analog",
+            "nrao_tropo",
+            "radio_service",
+            "nrao_aerpd_cdma2000",
+            "az_bearing",
+            "nrao_diff",
+            "erpd_per_num_tx",
+            "topo_4_point",
+            "topo_12_point",
+            "survey_1a",
+            "survey_2c",
         )
         widgets = {"pcase": PCaseWidget(), "attachments": AttachmentsWidget()}
 
@@ -292,6 +309,20 @@ class BaseFacilityForm(forms.ModelForm):
             "s367",
             "location_description",
             "sgrs_responded_on",
+            "nrao_space",
+            "nrao_aerpd_emission",
+            "nrao_tropo",
+            "nrao_aerpd_cdma",
+            "nrao_aerpd_gsm",
+            "nrao_aerpd_analog",
+            "radio_service",
+            "nrao_diff",
+            "original_outside_nrqz",
+            "nrao_aerpd_cdma2000",
+            "topo_4_point",
+            "topo_12_point",
+            "survey_1a",
+            "survey_2c",
         )
 
         widgets = {"case": CaseWidget(), "attachments": AttachmentsWidget()}

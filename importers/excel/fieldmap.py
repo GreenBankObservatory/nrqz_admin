@@ -314,7 +314,7 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="mechanical_downtilt",
-            converter=coerce_positive_float,
+            converter=coerce_none,
             from_field={
                 "mechanical_downtilt": [
                     "Mechanical Downtilt (All Sectors)",
@@ -324,7 +324,7 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="electrical_downtilt",
-            converter=coerce_positive_float,
+            converter=coerce_none,
             from_field={
                 "electrical_downtilt": [
                     "Electrical Downtilt (All Sectors)",

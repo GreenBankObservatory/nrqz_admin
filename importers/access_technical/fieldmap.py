@@ -21,18 +21,23 @@ from importers.converters import (
 )
 from utils.constants import ACCESS_TECHNICAL
 
+IGNORED_HEADERS = ["QZPATHLOSS", "MAP", "DATEREC"]
+
 
 class CaseFormMap(FormMap):
     field_maps = [
         OneToOneFieldMap(
             to_field="case_num", converter=convert_case_num, from_field="NRQZ_NO"
-        )
+        ),
+        OneToOneFieldMap(
+            to_field="erpd_limit", converter=coerce_bool, from_field="ERP_LIMIT"
+        ),
+        OneToOneFieldMap(
+            to_field="agency_num", converter=coerce_none, from_field="AGENCY_NO"
+        ),
     ]
     form_class = CaseForm
     form_defaults = {"data_source": ACCESS_TECHNICAL}
-
-
-CASE_FORM_MAP = CaseFormMap()
 
 
 class ApplicantFormMap(FormMap):
@@ -41,9 +46,6 @@ class ApplicantFormMap(FormMap):
     ]
     form_class = PersonForm
     form_defaults = {"data_source": ACCESS_TECHNICAL}
-
-
-APPLICANT_FORM_MAP = ApplicantFormMap()
 
 
 class FacilityFormMap(FormMap):
@@ -100,7 +102,76 @@ class FacilityFormMap(FormMap):
         ManyToOneFieldMap(
             to_field="emissions",
             converter=convert_array,
-            from_fields=("EMISSION", "EMISSION1"),
+            from_fields=("EMISSION", "EMISSION1", "EMISSION2"),
+        ),
+        OneToOneFieldMap(
+            to_field="radio_service", converter=coerce_none, from_field="CLASS"
+        ),
+        OneToOneFieldMap(
+            from_field="4_Point", converter=coerce_bool, to_field="topo_4_point"
+        ),
+        OneToOneFieldMap(
+            from_field="12_Point", converter=coerce_bool, to_field="topo_12_point"
+        ),
+        OneToOneFieldMap(
+            to_field="az_bearing",
+            converter=coerce_positive_float,
+            from_field="NRAO_AZ_GB",
+        ),
+        OneToOneFieldMap(
+            to_field="tpa", converter=coerce_positive_float, from_field="NRAO_TPA"
+        ),
+        OneToOneFieldMap(
+            to_field="erpd_per_num_tx",
+            converter=coerce_positive_float,
+            from_field="REQ_ERP",
+        ),
+        OneToOneFieldMap(from_field="1A", converter=coerce_bool, to_field="survey_1a"),
+        OneToOneFieldMap(from_field="2C", converter=coerce_bool, to_field="survey_2c"),
+        OneToOneFieldMap(
+            from_field="NRAO-AERPD-CDMA2000",
+            converter=coerce_positive_float,
+            to_field="nrao_aerpd_cdma2000",
+        ),
+        OneToOneFieldMap(
+            from_field="NRAO-AERPD-GSM",
+            converter=coerce_positive_float,
+            to_field="nrao_aerpd_gsm",
+        ),
+        OneToOneFieldMap(
+            from_field="NRAO_AERPD_Emission",
+            converter=coerce_positive_float,
+            to_field="nrao_aerpd_emission",
+        ),
+        OneToOneFieldMap(
+            from_field="NRAO-AERPD-CDMA",
+            converter=coerce_positive_float,
+            to_field="nrao_aerpd_cdma",
+        ),
+        OneToOneFieldMap(
+            from_field="NRAO_AERPD_Analog",
+            converter=coerce_positive_float,
+            to_field="nrao_aerpd_analog",
+        ),
+        OneToOneFieldMap(
+            from_field="NRAO_DIFF",
+            converter=coerce_positive_float,
+            to_field="nrao_diff",
+        ),
+        OneToOneFieldMap(
+            from_field="NRAO_SPACE",
+            converter=coerce_positive_float,
+            to_field="nrao_space",
+        ),
+        OneToOneFieldMap(
+            from_field="NRAO_TROPO",
+            converter=coerce_positive_float,
+            to_field="nrao_tropo",
+        ),
+        OneToOneFieldMap(
+            from_field="OUTSIDE",
+            converter=coerce_bool,
+            to_field="original_outside_nrqz",
         ),
     ]
     form_class = FacilityImportForm
@@ -119,5 +190,7 @@ class AttachmentFormMap(FormMap):
     form_defaults = {"data_source": ACCESS_TECHNICAL, "comments": "QZ Path Loss"}
 
 
+APPLICANT_FORM_MAP = ApplicantFormMap()
+CASE_FORM_MAP = CaseFormMap()
 FACILITY_FORM_MAP = FacilityFormMap()
 ATTACHMENT_FORM_MAP = AttachmentFormMap()

@@ -27,10 +27,8 @@ ARRAY_DELIMITER_REGEX = re.compile("[,/]")
 
 FEET_IN_A_METER = 0.3048
 
-# https://regex101.com/r/4DTp5D/1
-SCI_REGEX_STR = (
-    r"(?P<digits>\d+.?\d*)\s*(?:(?:x\s*1[0-]\s*\^?)|(?:e))\s*(?P<exponent>\-?\d+)"
-)
+# https://regex101.com/r/4DTp5D/4
+SCI_REGEX_STR = r"(?P<digits>\d+(?:\.\d*)?)(?:(?:x\d+[0]\^?)|x?1?e)(?P<exponent>\-?\d+)"
 SCI_REGEX = re.compile(SCI_REGEX_STR, re.IGNORECASE)
 
 COORD_PATTERN_STR = (
@@ -76,16 +74,25 @@ def coerce_scientific_notation(value):
 
     # If that doesn't work, we'll try to convert it from
     # scientific notation
-    if not value.strip():
+    clean_value = "".join(value.split())
+    clean_value = coerce_none(clean_value)
+    if not clean_value:
         return None
-    match = SCI_REGEX.search(value)
+    match = SCI_REGEX.search(clean_value)
     if match:
         digits = match.groupdict()["digits"]
         exponent = match.groupdict()["exponent"]
     else:
-        raise ValueError(f"Failed to parse {value} with regex {SCI_REGEX_STR}")
+        raise ValueError(
+            f"Failed to parse {value!r} (clean: {clean_value!r} with regex {SCI_REGEX_STR}"
+        )
 
-    return float(digits) * 10 ** float(exponent)
+    try:
+        float(digits) * 10 ** float(exponent)
+    except ValueError:
+        import ipdb
+
+        ipdb.set_trace()
 
 
 def coerce_none(value, none_str_values=("", "None", "#N/A", "Not provided")):
@@ -406,5 +413,4 @@ def convert_array(**kwargs):
 def convert_case_num_and_site_num_to_nrqz_id(case_num, site_num=None):
     if site_num:
         return f"{case_num}-{site_num}"
-    else:
-        return f"{case_num}"
+    return f"{case_num}"

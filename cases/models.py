@@ -230,7 +230,33 @@ class AbstractBaseFacility(
     usgs_dataset = CharField(
         max_length=3, choices=(("3m", "3m"), ("10m", "10m"), ("30m", "30m")), blank=True
     )
-    tpa = CharField(max_length=256, blank=True)
+    tpa = FloatField(null=True, blank=True)
+    survey_1a = BooleanField(null=True, blank=True)
+    survey_2c = BooleanField(null=True, blank=True)
+    radio_service = CharField(max_length=256, blank=True, verbose_name="Radio Service")
+    topo_4_point = BooleanField(null=True, blank=True, verbose_name="FCC 4 Point")
+    topo_12_point = BooleanField(
+        null=True, blank=True, verbose_name="Weighted 12 Point"
+    )
+    nrao_aerpd_cdma = FloatField(null=True, blank=True)
+    nrao_aerpd_cdma2000 = FloatField(null=True, blank=True)
+    nrao_aerpd_gsm = FloatField(null=True, blank=True)
+    nrao_aerpd_analog = FloatField(null=True, blank=True)
+    nrao_aerpd_emission = FloatField(null=True, blank=True)
+    nrao_diff = FloatField(null=True, blank=True)
+    nrao_space = FloatField(null=True, blank=True)
+    nrao_tropo = FloatField(null=True, blank=True)
+    original_outside_nrqz = BooleanField(null=True, blank=True)
+    erpd_per_num_tx = CharField(
+        max_length=256, blank=True, verbose_name="ERPd per # of Transmitters"
+    )
+    az_bearing = CharField(
+        max_length=256,
+        null=True,
+        blank=True,
+        verbose_name="AZ bearing degrees True",
+        help_text="The Azimuth bearing between the Facility and the GBT, as imported from existing data",
+    )
 
     class Meta:
         abstract = True
@@ -382,20 +408,17 @@ class Facility(AbstractBaseFacility):
     )
     uses_split_sectorization = BooleanField(
         default=False,
-        verbose_name="This facility uses split sectorization",
-        help_text="or dual-beam sectorization",
+        verbose_name="Uses Split Sectorization",
+        help_text="This facility uses split sectorization or dual-beam sectorization",
         blank=True,
         null=True,
     )
     uses_cross_polarization = BooleanField(
-        default=False,
-        verbose_name="This facility uses Cross polarization ",
-        blank=True,
-        null=True,
+        default=False, verbose_name="Uses Cross polarization ", blank=True, null=True
     )
     uses_quad_or_octal_polarization = BooleanField(
         default=False,
-        verbose_name="This facility uses Quad or Octal polarization",
+        verbose_name="Uses Quad or Octal polarization",
         blank=True,
         null=True,
     )
@@ -433,9 +456,7 @@ class Facility(AbstractBaseFacility):
             ("free_space", "Free Space"),
         ),
     )
-    erpd_per_num_tx = CharField(
-        max_length=256, blank=True, verbose_name="ERPd per # of Transmitters"
-    )
+
     height_of_first_obstacle = FloatField(
         null=True, blank=True, verbose_name="Height of First Obstacle (ft)"
     )
@@ -457,13 +478,7 @@ class Facility(AbstractBaseFacility):
     tap_file = CharField(max_length=256, blank=True)
     tx_power = FloatField(null=True, blank=True, verbose_name="TX Power (dBm)")
     aeirp_to_gbt = FloatField(null=True, blank=True, verbose_name="AEiRP to GBT")
-    az_bearing = CharField(
-        max_length=256,
-        null=True,
-        blank=True,
-        verbose_name="AZ bearing degrees True",
-        help_text="The Azimuth bearing between the Facility and the GBT, as imported from existing data",
-    )
+
     # calc_az = FloatField(
     #     verbose_name="Calculated Azimuth Bearing (°)",
     #     null=True,
@@ -544,6 +559,7 @@ class AbstractBaseCase(
     num_freqs = PositiveIntegerField(null=True, blank=True, verbose_name="Num. Freq.")
     num_sites = PositiveIntegerField(null=True, blank=True, verbose_name="Num Sites")
     radio_service = CharField(max_length=256, blank=True, verbose_name="Radio Service")
+    date_recorded = DateTimeField(null=True, blank=True, verbose_name="Date Recorded")
 
     slug = SlugField(unique=True)
 
@@ -638,7 +654,6 @@ class Case(AbstractBaseCase):
     si_waived = BooleanField(default=False, blank=True, verbose_name="SI Waived")
     si = BooleanField(default=False, blank=True, verbose_name="SI")
     si_done = DateField(null=True, blank=True, verbose_name="SI Done")
-    date_recorded = DateTimeField(null=True, blank=True, verbose_name="Date Recorded")
 
     sgrs_service_num = PositiveIntegerField(null=True, blank=True)
     agency_num = CharField(max_length=256, null=True, blank=True)
