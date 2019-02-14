@@ -190,6 +190,7 @@ class BasePreliminaryFacilityForm(forms.ModelForm):
     class Meta:
         model = PreliminaryFacility
         fields = (
+            "nrqz_id",
             "original_created_on",
             "original_modified_on",
             "data_source",

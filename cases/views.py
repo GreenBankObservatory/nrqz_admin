@@ -166,6 +166,13 @@ class PreliminaryFacilityListView(FilterTableView):
     filterset_class = PreliminaryFacilityFilter
     template_name = "cases/prelim_facility_list.html"
 
+    def get_queryset(self):
+        return (
+            PreliminaryFacility.objects.annotate_in_nrqz()
+            .annotate_azimuth_to_gbt()
+            .annotate_distance_to_gbt()
+        )
+
 
 class FacilityListView(FilterTableView):
     table_class = FacilityTable

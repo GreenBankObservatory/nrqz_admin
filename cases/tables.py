@@ -63,36 +63,8 @@ class LetterFacilityTable(tables.Table):
         return coords_to_string(latitude=latitude, longitude=longitude, concise=True)
 
 
-class PreliminaryFacilityTable(tables.Table):
-    id = tables.Column(linkify=True)
+class BaseFacilityTable(tables.Table):
     comments = TrimmedTextColumn()
-
-    class Meta:
-        model = models.PreliminaryFacility
-        fields = ["id"] + PreliminaryFacilityFilter.Meta.fields
-
-    # TODO: Consolidate!
-    def render_location(self, value):
-        """Render a coordinate as DD MM SS.sss"""
-        longitude, latitude = value.coords
-        return coords_to_string(latitude=latitude, longitude=longitude, concise=True)
-
-
-class FacilityTable(tables.Table):
-    nrqz_id = tables.Column(
-        linkify=True, empty_values=(), order_by=["case__case_num", "-nrqz_id"]
-    )
-    # comments = TrimmedTextColumn()
-    # structure = tables.Column(linkify=True)
-    case = tables.Column(linkify=True)
-    path = tables.Column(empty_values=())
-    dominant_path = tables.Column(verbose_name="Dom. Path")
-    calc_az = tables.Column(
-        verbose_name="Az. Bearing to GBT", accessor="azimuth_to_gbt"
-    )
-    applicant = tables.Column(linkify=True, accessor="case.applicant")
-    latitude = tables.Column(accessor="location", verbose_name="Latitude")
-    longitude = tables.Column(accessor="location", verbose_name="Longitude")
     in_nrqz = tables.Column(empty_values=(), accessor="in_nrqz", verbose_name="In NRQZ")
     distance_to_gbt = tables.Column(
         empty_values=(), accessor="distance_to_gbt", verbose_name="Distance to GBT"
@@ -102,6 +74,59 @@ class FacilityTable(tables.Table):
         accessor="azimuth_to_gbt",
         verbose_name="Azimuth Bearing to GBT",
     )
+
+    def render_location(self, value):
+        """Render a coordinate as DD MM SS.sss"""
+        longitude, latitude = value.coords
+        return coords_to_string(latitude=latitude, longitude=longitude, concise=True)
+
+    def render_nrqz_id(self, record):
+        return record.nrqz_id or record.case.case_num
+
+    def render_in_nrqz(self, record):
+        in_nrqz = getattr(record, "in_nrqz", None)
+        if in_nrqz is None:
+            in_nrqz = record.get_in_nrqz()
+        return in_nrqz
+
+    def render_distance_to_gbt(self, record):
+        distance_to_gbt = getattr(record, "distance_to_gbt", None)
+        if distance_to_gbt is None:
+            distance_to_gbt = record.get_distance_to_gbt()
+        return f"{distance_to_gbt.mi:.2f} miles"
+
+    def render_azimuth_to_gbt(self, record):
+        azimuth_to_gbt = getattr(record, "azimuth_to_gbt", None)
+        if azimuth_to_gbt is None:
+            azimuth_to_gbt = record.get_azimuth_to_gbt()
+        return f"{azimuth_to_gbt:.2f}°"
+
+
+class PreliminaryFacilityTable(BaseFacilityTable):
+    nrqz_id = tables.Column(linkify=True, verbose_name="PFacility ID")
+    pcase = tables.Column(
+        linkify=True, verbose_name="PCase", order_by=["pcase__case_num"]
+    )
+
+    class Meta:
+        model = models.PreliminaryFacility
+        fields = PreliminaryFacilityFilter.Meta.fields
+        order_by = ["-pcase", "site_num", "freq_low"]
+
+
+class FacilityTable(BaseFacilityTable):
+    nrqz_id = tables.Column(
+        linkify=True, empty_values=(), order_by=["case__case_num", "-nrqz_id"]
+    )
+    case = tables.Column(linkify=True, order_by=["case_num"])
+    # path = tables.Column(empty_values=())
+    dominant_path = tables.Column(verbose_name="Dom. Path")
+    # calc_az = tables.Column(
+    #     verbose_name="Az. Bearing to GBT", accessor="azimuth_to_gbt"
+    # )
+    applicant = tables.Column(linkify=True, accessor="case.applicant")
+    latitude = tables.Column(accessor="location", verbose_name="Latitude")
+    longitude = tables.Column(accessor="location", verbose_name="Longitude")
 
     class Meta:
         model = models.Facility
@@ -123,6 +148,7 @@ class FacilityTable(tables.Table):
 
     def render_path(self, record):
         fia = record.model_import_attempt.file_import_attempt
+        # TODO: HACK, remove at some point!
         if "stripped_data_only_" in fia.name:
             path = fia.name[len("stripped_data_only_") :].replace("_", " ")
         else:
@@ -131,12 +157,6 @@ class FacilityTable(tables.Table):
 
     def render_nrao_aerpd(self, value):
         return f"{value:.2f}"
-
-    def render_calc_az(self, value):
-        return f"{value:.2f}°"
-
-    def render_nrqz_id(self, record):
-        return record.nrqz_id or record.case.case_num
 
     def render_case(self, value):
         return value.case_num
@@ -147,25 +167,12 @@ class FacilityTable(tables.Table):
 
     # TODO: Consolidate!
     def render_longitude(self, value):
-        return lat_to_string(latitude=value.x, concise=True)
+        return long_to_string(longitude=value.x, concise=True)
 
     def render_dominant_path(self, value):
         if value:
             return value[0]
         return value
-
-    def render_in_nrqz(self, record):
-        return record.in_nrqz
-
-    def render_distance_to_gbt(self, record):
-        if record.distance_to_gbt is not None:
-            return f"{record.distance_to_gbt.mi:.2f} miles"
-        return None
-
-    def render_azimuth_to_gbt(self, record):
-        if record.azimuth_to_gbt is not None:
-            return f"{record.azimuth_to_gbt:.2f}°"
-        return None
 
 
 class FacilityExportTable(FacilityTable):
@@ -204,12 +211,14 @@ class PreliminaryCaseGroupTable(tables.Table):
     #     return f"P{value}"
 
 
-class PreliminaryCaseTable(tables.Table):
+class BaseCaseTable(tables.Table):
     case_num = tables.Column(linkify=True)
     applicant = tables.Column(linkify=True)
     contact = tables.Column(linkify=True)
     comments = TrimmedTextColumn()
 
+
+class PreliminaryCaseTable(BaseCaseTable):
     class Meta:
         model = models.PreliminaryCase
         fields = PreliminaryCaseFilter.Meta.fields
@@ -219,22 +228,14 @@ class PreliminaryCaseTable(tables.Table):
         return f"P{value}"
 
 
-class CaseTable(tables.Table):
-    case_num = tables.Column(linkify=True)
-    applicant = tables.Column(linkify=True)
-    contact = tables.Column(linkify=True)
-    comments = TrimmedTextColumn()
-
-    nrao_approval = tables.Column(empty_values=())
-    sgrs_approval = tables.Column(empty_values=())
+class CaseTable(BaseCaseTable):
+    nrao_approval = tables.BooleanColumn(accessor="nrao_approval")
+    sgrs_approval = tables.BooleanColumn(accessor="nrao_approval")
 
     class Meta:
         model = models.Case
         fields = CaseFilter.Meta.fields
         order_by = ["-case_num"]
-
-    def render_nrao_approval(self, record):
-        return record.nrao_approval
 
 
 class CaseExportTable(CaseTable):
@@ -254,8 +255,8 @@ class PersonTable(tables.Table):
 
 
 class AttachmentTable(tables.Table):
-    path = tables.Column(linkify=True)
-    file = UnboundFileColumn(accessor="path")
+    path = tables.Column(linkify=True, verbose_name="Attachment")
+    file = UnboundFileColumn(accessor="path", verbose_name="Link")
 
     class Meta:
         model = models.Attachment

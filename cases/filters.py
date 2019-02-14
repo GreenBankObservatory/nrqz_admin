@@ -52,15 +52,25 @@ class PointFilter(django_filters.Filter):
             return super().filter(qs, value)
 
 
-class PreliminaryFacilityFilter(HelpedFilterSet):
-    site_name = django_filters.CharFilter(lookup_expr="icontains")
+class BaseFacilityFilter(HelpedFilterSet):
     nrqz_id = django_filters.CharFilter(lookup_expr="icontains")
+    location = PointFilter()
+    in_nrqz = django_filters.BooleanFilter(field_name="in_nrqz", label="In NRQZ")
+    distance_to_gbt = django_filters.RangeFilter(
+        field_name="distance_to_gbt", label="Distance to GBT (meters)"
+    )
+    azimuth_to_gbt = django_filters.RangeFilter(
+        field_name="azimuth_to_gbt", label="Azimuth Bearing to GBT"
+    )
+
+
+class PreliminaryFacilityFilter(BaseFacilityFilter):
+    site_name = django_filters.CharFilter(lookup_expr="icontains")
     call_sign = django_filters.CharFilter(lookup_expr="icontains")
     freq_low = django_filters.RangeFilter()
     freq_high = django_filters.RangeFilter()
     amsl = django_filters.RangeFilter()
     agl = django_filters.RangeFilter()
-    location = PointFilter()
     structure = django_filters.CharFilter(lookup_expr="asr__exact")
     main_beam_orientation = django_filters.CharFilter(lookup_expr="icontains")
     antenna_model_number = django_filters.CharFilter(lookup_expr="icontains")
@@ -72,15 +82,15 @@ class PreliminaryFacilityFilter(HelpedFilterSet):
         fields = discover_fields(formhelper_class.layout)
 
 
-class FacilityFilter(HelpedFilterSet):
+class FacilityFilter(BaseFacilityFilter):
     site_name = django_filters.CharFilter(lookup_expr="icontains")
-    nrqz_id = django_filters.CharFilter(lookup_expr="icontains")
+
     call_sign = django_filters.CharFilter(lookup_expr="icontains")
     freq_low = django_filters.RangeFilter()
     freq_high = django_filters.RangeFilter()
     amsl = django_filters.RangeFilter()
     agl = django_filters.RangeFilter()
-    location = PointFilter()
+
     structure = django_filters.CharFilter(lookup_expr="asr__exact")
     main_beam_orientation = django_filters.CharFilter(lookup_expr="icontains")
     antenna_model_number = django_filters.CharFilter(lookup_expr="icontains")
@@ -101,13 +111,6 @@ class FacilityFilter(HelpedFilterSet):
         lookup_expr="icontains",
         label="Imported-from Path contains",
     )
-    in_nrqz = django_filters.BooleanFilter(field_name="in_nrqz", label="In NRQZ")
-    distance_to_gbt = django_filters.RangeFilter(
-        field_name="distance_to_gbt", label="Distance to GBT (meters)"
-    )
-    azimuth_to_gbt = django_filters.RangeFilter(
-        field_name="azimuth_to_gbt", label="Azimuth Bearing to GBT"
-    )
 
     class Meta:
         model = models.Facility
@@ -124,30 +127,27 @@ class PreliminaryCaseGroupFilter(HelpedFilterSet):
         fields = discover_fields(formhelper_class.layout)
 
 
-class PreliminaryCaseFilter(HelpedFilterSet):
+class BaseCaseFilter(HelpedFilterSet):
     created_on = django_filters.DateFromToRangeFilter(lookup_expr="range")
     name = django_filters.CharFilter(lookup_expr="icontains")
     applicant = django_filters.CharFilter(lookup_expr="name__icontains")
     contact = django_filters.CharFilter(lookup_expr="name__icontains")
     comments = django_filters.CharFilter(lookup_expr="search")
 
+
+class PreliminaryCaseFilter(BaseCaseFilter):
     class Meta:
         model = models.PreliminaryCase
         formhelper_class = PreliminaryCaseFilterFormHelper
         fields = discover_fields(formhelper_class.layout)
 
 
-class CaseFilter(HelpedFilterSet):
-    created_on = django_filters.DateFromToRangeFilter(lookup_expr="range")
-    name = django_filters.CharFilter(lookup_expr="icontains")
-    applicant = django_filters.CharFilter(lookup_expr="name__unaccent__trigram_similar")
-    contact = django_filters.CharFilter(lookup_expr="name__unaccent__trigram_similar")
-    comments = django_filters.CharFilter(lookup_expr="search")
+class CaseFilter(BaseCaseFilter):
     freq_coord = django_filters.CharFilter(lookup_expr="icontains")
     fcc_file_num = django_filters.CharFilter(lookup_expr="icontains")
     call_sign = django_filters.CharFilter(lookup_expr="icontains")
-    nrao_approval = django_filters.CharFilter(label="NRAO Approval")
-    sgrs_approval = django_filters.CharFilter(label="SGRS Approval")
+    nrao_approval = django_filters.BooleanFilter(label="NRAO Approval")
+    sgrs_approval = django_filters.BooleanFilter(label="SGRS Approval")
 
     class Meta:
         model = models.Case

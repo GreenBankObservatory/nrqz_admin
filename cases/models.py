@@ -148,6 +148,15 @@ class AbstractBaseFacility(
 ):
     """Stores concrete fields common between PFacility and Facility"""
 
+    nrqz_id = CharField(
+        max_length=256,
+        blank=True,
+        null=True,
+        verbose_name="NRQZ ID",
+        help_text="Assigned by NRAO. Do not put any of your data in this column.",
+        db_index=True,
+        # unique=True,
+    )
     site_num = PositiveIntegerField(
         verbose_name="Site #", blank=True, null=True, help_text="???"
     )
@@ -273,6 +282,8 @@ class PreliminaryFacility(AbstractBaseFacility):
         "Attachment", related_name="prelim_facilities", blank=True
     )
 
+    objects = LocationQuerySet.as_manager()
+
     class Meta:
         verbose_name = "Preliminary Facility"
         verbose_name_plural = "Preliminary Facilities"
@@ -351,15 +362,6 @@ class Facility(AbstractBaseFacility):
     )
     antenna_model_number = CharField(
         verbose_name="Antenna Model No.", max_length=256, blank=True, null=True
-    )
-    nrqz_id = CharField(
-        max_length=256,
-        blank=True,
-        null=True,
-        verbose_name="NRQZ ID",
-        help_text="Assigned by NRAO. Do not put any of your data in this column.",
-        db_index=True,
-        # unique=True,
     )
     tx_per_sector = CharField(
         max_length=256,

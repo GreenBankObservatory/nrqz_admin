@@ -88,8 +88,8 @@ def coerce_scientific_notation(value):
     return float(digits) * 10 ** float(exponent)
 
 
-def coerce_none(value, none_str_values=("", "None", "#N/A")):
-    clean = value.strip().lower()
+def coerce_none(value, none_str_values=("", "None", "#N/A", "Not provided")):
+    clean = str(value).strip().lower()
     if clean in [v.lower() for v in none_str_values]:
         return None
     return value
@@ -401,3 +401,10 @@ def convert_array(**kwargs):
     if not values:
         return None
     return ",".join(values)
+
+
+def convert_case_num_and_site_num_to_nrqz_id(case_num, site_num=None):
+    if site_num:
+        return f"{case_num}-{site_num}"
+    else:
+        return f"{case_num}"

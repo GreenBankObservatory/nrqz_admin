@@ -17,6 +17,7 @@ from importers.converters import (
     coerce_scientific_notation,
     convert_access_path,
     convert_case_num,
+    convert_case_num_and_site_num_to_nrqz_id,
 )
 from utils.constants import ACCESS_PRELIM_TECHNICAL
 
@@ -41,6 +42,11 @@ class PcaseFormMap(FormMap):
 
 class PfacilityFormMap(FormMap):
     field_maps = [
+        ManyToOneFieldMap(
+            from_fields={"case_num": "PNRQZ_NO", "site_num": "Site Number"},
+            converter=convert_case_num_and_site_num_to_nrqz_id,
+            to_field="nrqz_id",
+        ),
         OneToOneFieldMap(
             to_field="site_num", converter=coerce_positive_int, from_field="Site Number"
         ),

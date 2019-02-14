@@ -335,6 +335,7 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="antenna_model_number",
+            converter=coerce_none,
             from_field={
                 "antenna_model_number": [
                     "Antenna Model #",

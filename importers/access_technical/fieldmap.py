@@ -17,6 +17,7 @@ from importers.converters import (
     convert_access_path,
     convert_array,
     convert_case_num,
+    convert_case_num_and_site_num_to_nrqz_id,
 )
 from utils.constants import ACCESS_TECHNICAL
 
@@ -47,6 +48,11 @@ APPLICANT_FORM_MAP = ApplicantFormMap()
 
 class FacilityFormMap(FormMap):
     field_maps = [
+        ManyToOneFieldMap(
+            from_fields={"case_num": "NRQZ_NO", "site_num": "Site Number"},
+            converter=convert_case_num_and_site_num_to_nrqz_id,
+            to_field="nrqz_id",
+        ),
         OneToOneFieldMap(
             to_field="antenna_model_number", converter=None, from_field="ANT_MODEL"
         ),
