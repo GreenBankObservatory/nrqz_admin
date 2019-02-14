@@ -79,12 +79,15 @@ class FilterTableView(ExportMixin, SingleTableMixin, FilterView):
         self.export_requested = "_export" in request.GET
         return super().get(request, *args, **kwargs)
 
+    def get_queryset(self):
+        return self.table_class.Meta.model.objects.all()
+
     def get_context_data(self, **kwargs):
         # If there are no query params, then no results are
         # displayed -- but that's not what we want!
         if not self.request.GET:
             # Need this here to avoid a blank table appearing on first load
-            self.object_list = self.table_class.Meta.model.objects.all()
+            self.object_list = self.get_queryset()
 
         return super().get_context_data(**kwargs)
 
