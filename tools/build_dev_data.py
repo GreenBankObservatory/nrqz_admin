@@ -49,12 +49,12 @@ def create_boundaries():
     # 80d 29m 59.2s W and latitudes of 37d 30m 0.4s N and 39d 15m 0.4s N,
     # and encloses a land area of approximately 13,000 square miles
     west = parse_coord("80d 29m 59.2s W")
-    north = parse_coord("37d 30m 0.4s N")
+    south = parse_coord("37d 30m 0.4s N")
     east = parse_coord("78d 29m 59.0s W")
-    south = parse_coord("39d 15m 0.4s N")
-
-    assert west < east
-    assert south < north
+    north = parse_coord("39d 15m 0.4s N")
+    print(west, north, east, south)
+    assert west < east < 0
+    assert 0 < south < north
     points = (
         Point((west, south), srid=NAD83_SRID),
         Point((west, north), srid=NAD83_SRID),
@@ -68,10 +68,15 @@ def create_boundaries():
 
     nrqz_boundaries = Boundaries.objects.create(name="NRQZ", bounds=nrqz_polygon)
 
-    assert math.isclose(
-        nrqz_boundaries.area.sq_mi, 13107.260_187_534_166, rel_tol=0.000_000_000_001
-    )
-    print(f"The NRQZ is {nrqz_boundaries.area.sq_mi:.2f} square miles")
+    nrqz_area_str = f"{nrqz_boundaries.area.sq_mi:.2f} square miles"
+    expected_nrqz_area = 13107.604_462_396_526
+    if not math.isclose(
+        nrqz_boundaries.area.sq_mi, expected_nrqz_area, rel_tol=0.000_000_000_001
+    ):
+        raise AssertionError(
+            f"Expected NRQZ area ({nrqz_area_str}) to be close to {expected_nrqz_area} square miles"
+        )
+    print(f"The NRQZ is {nrqz_area_str}")
 
 
 def create_locations():
@@ -83,11 +88,18 @@ def create_locations():
     print(f"The GBT is located at: {point_to_string(gbt_location.location)}")
 
 
+def sanity_checks():
+    gbt = Location.objects.first().location
+    nrqz = Boundaries.objects.first().bounds
+    assert nrqz.covers(gbt)
+
+
 def main():
     create_users()
     create_templates()
     create_boundaries()
     create_locations()
+    sanity_checks()
 
 
 if __name__ == "__main__":

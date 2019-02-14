@@ -169,6 +169,13 @@ class FacilityListView(FilterTableView):
     filterset_class = FacilityFilter
     template_name = "cases/facility_list.html"
 
+    def get_queryset(self):
+        return (
+            Facility.objects.annotate_in_nrqz()
+            .annotate_azimuth_to_gbt()
+            .annotate_distance_to_gbt()
+        )
+
     def get(self, request, *args, **kwargs):
         if "kml" in request.GET:
             # TODO: Must be a cleaner way to do this

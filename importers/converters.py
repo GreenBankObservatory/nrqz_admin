@@ -149,6 +149,10 @@ MDY_REGEX = re.compile(r"(?P<month>\d{1,2})[/\\](?P<day>\d{1,2})[/\\](?P<year>\d
 
 
 def convert_mdy_datetime(value):
+    if isinstance(value, int):
+        import ipdb
+
+        ipdb.set_trace()
     # Strip all whitespace
     clean_value = "".join(value.split())
     m = MDY_REGEX.match(clean_value)
@@ -378,8 +382,10 @@ def convert_access_attachment(**kwargs):
 
 
 def coerce_access_location(latitude, longitude, nad27=None, nad83=None):
-    if nad27 and nad83:
-        raise ValueError("Both NAD27 and NAD83 are indicated; this must be resolved")
+    if nad27 is nad83 is True:
+        raise ValueError(
+            "Both NAD27 and NAD83 are indicated as True; this must be resolved!"
+        )
 
     if nad27:
         srid = NAD27_SRID

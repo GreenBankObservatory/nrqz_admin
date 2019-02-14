@@ -76,8 +76,8 @@ class PfacilityFormMap(FormMap):
                 {
                     "latitude": "LATITUDE",
                     "longitude": "LONGITUDE",
-                    "nad27": "NAD27_SRID?",
-                    "nad83": "NAD82?",
+                    "nad27": "NAD27?",
+                    "nad83": "NAD83?",
                 }
             ),
         ),

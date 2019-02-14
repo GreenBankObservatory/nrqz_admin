@@ -15,6 +15,7 @@ from importers.converters import (
     coerce_scientific_notation,
     convert_access_path,
     convert_case_num,
+    coerce_bool,
 )
 from utils.constants import ACCESS_TECHNICAL
 
@@ -81,8 +82,8 @@ class FacilityFormMap(FormMap):
                 {
                     "latitude": "LATITUDE",
                     "longitude": "LONGITUDE",
-                    "nad27": "NAD27_SRID?",
-                    "nad83": "NAD82?",
+                    "nad27": "NAD27?",
+                    "nad83": "NAD83?",
                 }
             ),
         ),
@@ -93,6 +94,7 @@ class FacilityFormMap(FormMap):
             to_field="agl", converter=coerce_feet_to_meters, from_field="ANT_HEIGHT"
         ),
         OneToOneFieldMap(to_field="comments", converter=None, from_field="REMARKS"),
+        OneToOneFieldMap(to_field="s367", converter=coerce_bool, from_field="S367"),
     ]
     form_class = FacilityImportForm
     form_defaults = {"data_source": ACCESS_TECHNICAL}

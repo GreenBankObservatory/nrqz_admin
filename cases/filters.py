@@ -87,15 +87,26 @@ class FacilityFilter(HelpedFilterSet):
     comments = django_filters.CharFilter(lookup_expr="search")
     case = django_filters.NumberFilter(label="Case", field_name="case__case_num")
     applicant = django_filters.CharFilter(
-        field_name="case__applicant__name", lookup_expr="unaccent__trigram_similar"
+        field_name="case__applicant__name",
+        lookup_expr="unaccent__icontains",
+        label="Applicant Name",
     )
     contact = django_filters.CharFilter(
-        field_name="case__contact__name", lookup_expr="unaccent__trigram_similar"
+        field_name="case__contact__name",
+        lookup_expr="unaccent__icontains",
+        label="Contact Name",
     )
     path = django_filters.CharFilter(
         field_name="model_import_attempt__file_import_attempt__imported_from",
         lookup_expr="icontains",
         label="Imported-from Path contains",
+    )
+    in_nrqz = django_filters.BooleanFilter(field_name="in_nrqz", label="In NRQZ")
+    distance_to_gbt = django_filters.RangeFilter(
+        field_name="distance_to_gbt", label="Distance to GBT"
+    )
+    azimuth_to_gbt = django_filters.RangeFilter(
+        field_name="azimuth_to_gbt", label="Azimuth Bearing to GBT"
     )
 
     class Meta:

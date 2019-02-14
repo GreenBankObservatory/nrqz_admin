@@ -93,8 +93,14 @@ class FacilityTable(tables.Table):
     applicant = tables.Column(linkify=True, accessor="case.applicant")
     latitude = tables.Column(accessor="location", verbose_name="Latitude")
     longitude = tables.Column(accessor="location", verbose_name="Longitude")
+    in_nrqz = tables.Column(empty_values=(), accessor="in_nrqz", verbose_name="In NRQZ")
     distance_to_gbt = tables.Column(
-        accessor="distance_to_gbt", verbose_name="Distance to GBT"
+        empty_values=(), accessor="distance_to_gbt", verbose_name="Distance to GBT"
+    )
+    azimuth_to_gbt = tables.Column(
+        empty_values=(),
+        accessor="azimuth_to_gbt",
+        verbose_name="Azimuth Bearing to GBT",
     )
 
     class Meta:
@@ -148,8 +154,14 @@ class FacilityTable(tables.Table):
             return value[0]
         return value
 
-    def render_distance_to_gbt(self, value):
-        return f"{value.mi:.2f} miles"
+    def render_in_nrqz(self, record):
+        return record.in_nrqz
+
+    def render_distance_to_gbt(self, record):
+        return f"{record.distance_to_gbt.mi:.2f} miles"
+
+    def render_azimuth_to_gbt(self, record):
+        return f"{record.azimuth_to_gbt:.2f}°"
 
 
 class FacilityExportTable(FacilityTable):

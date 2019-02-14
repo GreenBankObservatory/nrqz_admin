@@ -89,7 +89,13 @@ class FacilityFilterFormHelper(FormHelper):
                 "main_beam_orientation",
                 css_class="col-sm-2",
             ),
-            Div("freq_low", "freq_high", "applicant", "contact", css_class="col-sm-5"),
+            Div(
+                "freq_low",
+                "freq_high",
+                "distance_to_gbt",
+                "azimuth_to_gbt",
+                css_class="col-sm-5",
+            ),
             Div(
                 "structure",
                 "site_name",
@@ -98,18 +104,19 @@ class FacilityFilterFormHelper(FormHelper):
                 css_class="col-sm-2",
             ),
             Div(
+                "applicant",
+                "contact",
                 "nrao_aerpd",
-                "az_bearing",
-                "calc_az",
+                "in_nrqz",
                 "dominant_path",
                 css_class="col-sm-3",
             ),
             css_class="row",
         ),
         Div(
-            Div("location", css_class="col-sm-8"),
+            Div("location", css_class="col-sm-7"),
             Div("comments", css_class="col-sm-2"),
-            Div("data_source", css_class="col-sm-2"),
+            Div("data_source", css_class="col-sm-3"),
             css_class="row",
         ),
         extra_buttons=[

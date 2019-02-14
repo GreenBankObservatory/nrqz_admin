@@ -23,6 +23,12 @@ from django.db.models import (
     SET_NULL,
     SlugField,
     F,
+    Func,
+    Manager,
+    When,
+    Case as Case_,
+    Value,
+    QuerySet,
 )
 from django.urls import reverse
 from django.utils.functional import cached_property
@@ -34,6 +40,7 @@ from utils.coord_utils import dd_to_dms
 from .kml import facility_as_kml, case_as_kml, kml_to_string
 from .mixins import DataSourceModel, TrackedOriginalModel, IsActiveModel, TrackedModel
 
+# TODO: Make proper field
 LOCATION_FIELD = lambda: PointField(
     blank=True,
     null=True,
@@ -45,6 +52,25 @@ LOCATION_FIELD = lambda: PointField(
     srid=WGS84_SRID,
     help_text="A physical location on the Earth",
 )
+
+
+class Boundaries(IsActiveModel, Model):
+    name = CharField(max_length=64, default=None, unique=True)
+    bounds = PolygonField(geography=True, srid=WGS84_SRID)
+
+    @cached_property
+    def area(self):
+        return (
+            Boundaries.objects.filter(id=self.id)
+            .annotate(area=Area(F("bounds")))
+            .values("area")
+            .last()["area"]
+        )
+
+
+class Location(IsActiveModel, Model):
+    name = CharField(max_length=64, default=None, unique=True)
+    location = PointField(geography=True, srid=WGS84_SRID)
 
 
 class Structure(IsActiveModel, TrackedModel, DataSourceModel, Model):
@@ -69,6 +95,36 @@ class Structure(IsActiveModel, TrackedModel, DataSourceModel, Model):
 
     def get_absolute_url(self):
         return reverse("structure_detail", args=[str(self.id)])
+
+
+class LocationQuerySet(QuerySet):
+    @cached_property
+    def GBT(self):
+        return Location.objects.get(name="GBT").location
+
+    @cached_property
+    def NRQZ(self):
+        return Boundaries.objects.get(name="NRQZ").bounds
+
+    def annotate_distance_to_gbt(self):
+        return self.annotate(distance_to_gbt=Distance(F("location"), self.GBT))
+
+    def annotate_azimuth_to_gbt(self):
+        """Add an "azimuth_to_gbt" annotation that indicates the azimuth bearing to the GBT (in degrees)"""
+        return self.annotate(
+            azimuth_radians_to_gbt=Azimuth(F("location"), self.GBT),
+            azimuth_to_gbt=Func(F("azimuth_radians_to_gbt"), function="DEGREES"),
+        )
+
+    def annotate_in_nrqz(self):
+        """Add an "in_nrqz" annotation that indicates whether each Facility is inside or outside the NRQZ"""
+        return self.annotate(
+            in_nrqz=Case_(
+                When(location__intersects=self.NRQZ, then=Value(True)),
+                default=Value(False),
+                output_field=BooleanField(),
+            )
+        )
 
 
 class AbstractBaseFacility(
@@ -158,7 +214,10 @@ class AbstractBaseFacility(
     class Meta:
         abstract = True
 
-    def distance_to_gbt(self):
+    # @cached_property
+    def get_distance_to_gbt(self):
+        if self.location is None:
+            return None
         return (
             Location.objects.filter(name="GBT")
             .annotate(distance=Distance(F("location"), self.location))
@@ -166,13 +225,26 @@ class AbstractBaseFacility(
             .last()["distance"]
         )
 
-    def azimuth_to_gbt(self):
+    # @cached_property
+    def get_azimuth_to_gbt(self):
+        if self.location is None:
+            return None
         return math.degrees(
             Location.objects.filter(name="GBT")
             .annotate(azimuth=Azimuth(F("location"), self.location))
             .values("azimuth")
             .last()["azimuth"]
         )
+
+    # @cached_property
+    def get_in_nrqz(self):
+        if self.location is None:
+            return None
+        return Boundaries.objects.filter(
+            name="NRQZ", bounds__covers=self.location
+        ).exists()
+
+    objects = LocationQuerySet.as_manager()
 
 
 class PreliminaryFacility(AbstractBaseFacility):
@@ -399,6 +471,7 @@ class Facility(AbstractBaseFacility):
 
     emission1 = FloatField(null=True, blank=True)
     emission2 = FloatField(null=True, blank=True)
+    s367 = BooleanField(null=True, blank=True)
 
     class Meta:
         verbose_name = "Facility"
@@ -669,22 +742,3 @@ class LetterTemplate(IsActiveModel, TrackedModel, Model):
     class Meta:
         verbose_name = "Letter Template"
         verbose_name_plural = "Letter Templates"
-
-
-class Boundaries(IsActiveModel, Model):
-    name = CharField(max_length=64, default=None, unique=True)
-    bounds = PolygonField(geography=True, srid=WGS84_SRID)
-
-    @cached_property
-    def area(self):
-        return (
-            Boundaries.objects.filter(id=self.id)
-            .annotate(area=Area(F("bounds")))
-            .values("area")
-            .last()["area"]
-        )
-
-
-class Location(IsActiveModel, Model):
-    name = CharField(max_length=64, default=None, unique=True)
-    location = PointField(geography=True, srid=WGS84_SRID)

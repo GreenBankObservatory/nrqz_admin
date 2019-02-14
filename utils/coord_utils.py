@@ -65,12 +65,19 @@ def coords_to_string(latitude, longitude, concise=False):
     return f"{latitude_str}, {longitude_str}"
 
 
-# https://regex101.com/r/vMa4Ov/5
+# https://regex101.com/r/vMa4Ov/7
 coord_regex_str = (
-    r"(?P<degrees>\-?\d{1,3}(?:\.\d+)?)\D*(?:(?P<minutes>\d{1,2})\D+"
-    r"(?P<seconds>\d{1,2}(?:\.\d+)?)[^NnEeWwSs]+)?(?P<hemisphere>[NnEeWwSs])?"
+    r"(?P<degrees>\-?\d{1,3}(?:\.\d+)?)[d°]?"
+    r"\s?"
+    r"(?:"
+    r"(?P<minutes>\d{1,2})[m′]?"
+    r"\s?"
+    r"(?P<seconds>\d{1,2}(?:\.\d+)?)[s\"″]?"
+    r")?"
+    r"\s?"
+    r"(?P<hemisphere>[nsew])?"
 )
-coord_regex = re.compile(coord_regex_str)
+coord_regex = re.compile(coord_regex_str, re.IGNORECASE + re.MULTILINE)
 
 
 def point_to_string(point, concise=False):
@@ -91,7 +98,6 @@ def parse_coord(coord):
         seconds = float(match["seconds"])
     else:
         seconds = None
-
     if match["hemisphere"]:
         if degrees < 0:
             raise ValueError(
