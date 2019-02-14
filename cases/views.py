@@ -17,7 +17,7 @@ from django.views.generic.list import ListView
 from docxtpl import DocxTemplate
 from dal import autocomplete
 from django_filters.views import FilterView
-from django_tables2.views import SingleTableMixin
+from django_tables2.views import SingleTableMixin, MultiTableMixin
 from django_tables2.export.views import ExportMixin
 from django_tables2.export.export import TableExport
 
@@ -388,61 +388,52 @@ class PreliminaryCaseGroupDetailView(DetailView):
         return context
 
 
-class PreliminaryCaseDetailView(DetailView):
+class PreliminaryCaseDetailView(MultiTableMixin, DetailView):
     model = PreliminaryCase
+    tables = [PreliminaryFacilityTable, AttachmentTable]
+    table_pagination = {"per_page": 10}
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.attachment_filter = None
-        self.pfacility_filter = None
+    def get_tables_data(self):
+        pfacility_filter_qs = PreliminaryFacilityFilter(
+            self.request.GET,
+            queryset=self.object.pfacilities.all(),
+            form_helper_kwargs={"form_class": "collapse"},
+        ).qs
+        attachment_filter_qs = AttachmentFilter(
+            self.request.GET,
+            queryset=self.object.attachments.all(),
+            form_helper_kwargs={"form_class": "collapse"},
+        ).qs
+        return [pfacility_filter_qs, attachment_filter_qs]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
         context["status_info"] = ["completed", "completed_on"]
-
         context["application_info"] = ["radio_service", "num_freqs", "num_sites"]
-
-        if not self.pfacility_filter:
-            self.pfacility_filter = PreliminaryFacilityFilter(
-                self.request.GET,
-                queryset=self.object.pfacilities.all(),
-                form_helper_kwargs={"form_class": "collapse"},
-            )
-            context["pfacility_filter"] = self.pfacility_filter
-
-        if "pfacility_table" not in context:
-            table = PreliminaryFacilityTable(data=self.pfacility_filter.qs)
-            table.paginate(page=self.request.GET.get("page", 1), per_page=10)
-            context["pfacility_table"] = table
-
-        if not self.attachment_filter:
-            self.attachment_filter = AttachmentFilter(
-                self.request.GET,
-                queryset=self.object.attachments.all(),
-                form_helper_kwargs={"form_class": "collapse"},
-            )
-            context["attachment_filter"] = self.attachment_filter
-
-        if "attachment_table" not in context:
-            table = AttachmentTable(data=self.attachment_filter.qs)
-            table.paginate(page=self.request.GET.get("page", 1), per_page=10)
-            context["attachment_table"] = table
-
         return context
 
 
-class CaseDetailView(DetailView):
+class CaseDetailView(MultiTableMixin, DetailView):
     model = Case
+    tables = [FacilityTable, AttachmentTable]
+    table_pagination = {"per_page": 10}
 
-    def __init__(self, *args, **kwargs):
-        super(CaseDetailView, self).__init__(*args, **kwargs)
-        self.facility_filter = None
-        self.attachment_filter = None
+    def get_tables_data(self):
+        facility_filter_qs = FacilityFilter(
+            self.request.GET,
+            queryset=self.object.facilities.all(),
+            form_helper_kwargs={"form_class": "collapse"},
+        ).qs
+        attachment_filter_qs = AttachmentFilter(
+            self.request.GET,
+            queryset=self.object.attachments.all(),
+            form_helper_kwargs={"form_class": "collapse"},
+        ).qs
+
+        return [facility_filter_qs, attachment_filter_qs]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
         context["status_info"] = [
             "completed",
             "shutdown",
@@ -464,33 +455,6 @@ class CaseDetailView(DetailView):
             "erpd_limit",
         ]
         context["sgrs_info"] = ["sgrs_notify", "sgrs_responded_on", "sgrs_service_num"]
-
-        if not self.facility_filter:
-            self.facility_filter = FacilityFilter(
-                self.request.GET,
-                queryset=self.object.facilities.all(),
-                form_helper_kwargs={"form_class": "collapse"},
-            )
-            context["facility_filter"] = self.facility_filter
-
-        if "facility_table" not in context:
-            table = FacilityTableWithConcur(data=self.facility_filter.qs)
-            table.paginate(page=self.request.GET.get("page", 1), per_page=10)
-            context["facility_table"] = table
-
-        if not self.attachment_filter:
-            self.attachment_filter = AttachmentFilter(
-                self.request.GET,
-                queryset=self.object.attachments.all(),
-                form_helper_kwargs={"form_class": "collapse"},
-            )
-            context["attachment_filter"] = self.attachment_filter
-
-        if "attachment_table" not in context:
-            table = AttachmentTable(data=self.attachment_filter.qs)
-            table.paginate(page=self.request.GET.get("page", 1), per_page=10)
-            context["attachment_table"] = table
-
         return context
 
     def as_kml(self):

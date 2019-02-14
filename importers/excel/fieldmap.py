@@ -576,7 +576,7 @@ class FacilityFormMap(FormMap):
             to_field="tap_file", converter=None, from_field={"tap_file": ["TAP file"]}
         ),
         OneToOneFieldMap(
-            to_field="tpa", converter=None, from_field={"tpa": ["TAP", "TPA"]}
+            to_field="tpa", converter=coerce_float, from_field={"tpa": ["TAP", "TPA"]}
         ),
         OneToOneFieldMap(
             to_field="tx_power",

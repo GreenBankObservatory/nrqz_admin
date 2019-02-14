@@ -53,7 +53,9 @@ class PointFilter(django_filters.Filter):
 
 
 class BaseFacilityFilter(HelpedFilterSet):
-    nrqz_id = django_filters.CharFilter(lookup_expr="icontains")
+    nrqz_id = django_filters.CharFilter(
+        lookup_expr="icontains", label="Facility ID contains"
+    )
     location = PointFilter()
     in_nrqz = django_filters.BooleanFilter(field_name="in_nrqz", label="In NRQZ")
     distance_to_gbt = django_filters.RangeFilter(
@@ -95,7 +97,7 @@ class FacilityFilter(BaseFacilityFilter):
     main_beam_orientation = django_filters.CharFilter(lookup_expr="icontains")
     antenna_model_number = django_filters.CharFilter(lookup_expr="icontains")
     comments = django_filters.CharFilter(lookup_expr="search")
-    case = django_filters.NumberFilter(label="Case", field_name="case__case_num")
+    case = django_filters.NumberFilter(label="Case Num", field_name="case__case_num")
     applicant = django_filters.CharFilter(
         field_name="case__applicant__name",
         lookup_expr="unaccent__icontains",

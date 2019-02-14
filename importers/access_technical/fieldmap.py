@@ -56,11 +56,6 @@ class FacilityFormMap(FormMap):
         OneToOneFieldMap(
             to_field="antenna_model_number", converter=None, from_field="ANT_MODEL"
         ),
-        OneToOneFieldMap(
-            to_field="original_created_on",
-            converter=convert_access_datetime,
-            from_field="DATEREC",
-        ),
         OneToOneFieldMap(to_field="call_sign", converter=None, from_field="CALLSIGN"),
         OneToOneFieldMap(
             to_field="freq_low", converter=coerce_positive_float, from_field="FREQUENCY"

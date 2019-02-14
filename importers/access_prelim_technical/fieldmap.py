@@ -51,11 +51,6 @@ class PfacilityFormMap(FormMap):
             to_field="site_num", converter=coerce_positive_int, from_field="Site Number"
         ),
         OneToOneFieldMap(
-            to_field="original_created_on",
-            converter=convert_access_datetime,
-            from_field="DATE",
-        ),
-        OneToOneFieldMap(
             to_field="freq_low", converter=coerce_positive_float, from_field="FREQUENCY"
         ),
         OneToOneFieldMap(

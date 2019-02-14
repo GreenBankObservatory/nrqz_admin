@@ -289,7 +289,7 @@ class PreliminaryFacility(AbstractBaseFacility):
         verbose_name_plural = "Preliminary Facilities"
 
     def __str__(self):
-        return f"{self.antenna_model_number} <{self.id}>"
+        return f"{self.nrqz_id}"
 
     def get_absolute_url(self):
         return reverse("prelim_facility_detail", args=[str(self.id)])
@@ -648,7 +648,7 @@ class Case(AbstractBaseCase):
         verbose_name_plural = "Cases"
 
     def __str__(self):
-        return f"{self.case_num}"
+        return f"C{self.case_num}"
 
     def get_absolute_url(self):
         return reverse("case_detail", args=[str(self.case_num)])

@@ -65,40 +65,19 @@
 {% endif %}
 
 <h2>Preliminary Facilities</h2>
-{% if preliminarycase.pfacilities.all %}
-<div class="container-fluid" style="border:1px solid #D3D3D3; border-radius: 10px">
-    {% if pfacility_filter %}
-    {% crispy pfacility_filter.form %}
-    <button class="btn btn-info btn-sm filter-button" type="button" data-toggle="collapse" data-target="#facility-filter-form" aria-expanded="true" aria-controls="facility-filter-form">
-        Show Filters
-    </button>
-    <p>{{ pfacility_table.data|length }} facilities</p>
-    {% endif %}
-    <form method="get" action={% url 'letters' %}>
-        {% render_table pfacility_table %}
-    </form>
-
-</div>
+<p><a href="{% url 'prelim_facility_index'%}?pcase={{preliminarycase.id}}">View in Preliminary Facility Index</a></p>
+{% if tables.0.data %}
+{% render_table tables.0 %}
 {% else %}
 <p>No Preliminary Facilities</p>
 {% endif %}
 
-<h2>Comments</h2>
-{% if preliminarycase.comments %}
-{{ preliminarycase.comments | linebreaks}}
-{% else %}
-<p>No comments</p>
-{% endif %}
-
-
 
 <h2>Attachments</h2>
-{% if attachment_table.data %}
-<div class="container-fluid">
-    {% filter_table attachment_table attachment_filter %}
-</div>
-{% else %}
-<p>No attachments</p>
+{% if tables.1.data %}
+{% render_table tables.1 %}
+<p>No Attachments</p>
 {% endif %}
+
 
 {% endblock %}

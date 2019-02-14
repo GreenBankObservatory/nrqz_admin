@@ -50,7 +50,7 @@ class PcaseFormMap(FormMap):
         ),
         OneToOneFieldMap(to_field="comments", converter=None, from_field="COMMENTS"),
         OneToOneFieldMap(
-            to_field="original_created_on",
+            to_field="date_recorded",
             converter=convert_access_datetime,
             from_field="DATEREC",
         ),

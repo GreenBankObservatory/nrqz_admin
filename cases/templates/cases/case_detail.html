@@ -18,24 +18,8 @@
 {% include "cases/base_detail.html" %}
 
 <h2>Facilities</h2>
-{% if case.facilities.all %}
-<div class="container-fluid" style="border:1px solid #D3D3D3; border-radius: 10px">
-    {% if facility_filter %}
-    {% crispy facility_filter.form %}
-    <button class="btn btn-info btn-sm filter-button" type="button" data-toggle="collapse" data-target="#facility-filter-form" aria-expanded="true" aria-controls="facility-filter-form">
-        Show Filters
-    </button>
-    <p>{{ facility_table.data|length }} facilities</p>
-    {% endif %}
-    <form method="get" action={% url 'letters' %}>
-        {% render_table facility_table %}
-        <input type="hidden" name="cases" value="{{ case.case_num }}">
-        <button type="submit" class="btn btn-primary" title="Generate letter from selected Facilities">
-            Generate Letter
-        </button>
-    </form>
-
-</div>
+{% if tables.0.data %}
+{% render_table tables.0 %}
 {% else %}
 <p>No Facilities</p>
 {% endif %}
@@ -116,10 +100,8 @@
 
 
 <h2>Attachments</h2>
-{% if attachment_table.data %}
-<div class="container-fluid">
-    {% filter_table attachment_table attachment_filter %}
-</div>
+{% if tables.1.data %}
+{% render_table tables.1 %}
 {% else %}
 <p>No attachments</p>
 {% endif %}

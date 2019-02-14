@@ -18,7 +18,7 @@ from .columns import SelectColumn, TrimmedTextColumn, UnboundFileColumn
 
 
 class LetterFacilityTable(tables.Table):
-    nrqz_id = tables.Column(verbose_name="NRQZ ID")
+    nrqz_id = tables.Column(verbose_name="Facility ID")
     site_name = tables.Column(verbose_name="Site Name")
     max_output = tables.Column(verbose_name="Max TX Power (W)")
     # antenna_gain = tables.Column(verbose_name="Max Gain (dBi)")
@@ -93,12 +93,16 @@ class BaseFacilityTable(tables.Table):
         distance_to_gbt = getattr(record, "distance_to_gbt", None)
         if distance_to_gbt is None:
             distance_to_gbt = record.get_distance_to_gbt()
+        if distance_to_gbt is None:
+            return "—"
         return f"{distance_to_gbt.mi:.2f} miles"
 
     def render_azimuth_to_gbt(self, record):
         azimuth_to_gbt = getattr(record, "azimuth_to_gbt", None)
         if azimuth_to_gbt is None:
             azimuth_to_gbt = record.get_azimuth_to_gbt()
+        if azimuth_to_gbt is None:
+            return "—"
         return f"{azimuth_to_gbt:.2f}°"
 
 
@@ -157,9 +161,6 @@ class FacilityTable(BaseFacilityTable):
 
     def render_nrao_aerpd(self, value):
         return f"{value:.2f}"
-
-    def render_case(self, value):
-        return value.case_num
 
     # TODO: Consolidate!
     def render_latitude(self, value):
