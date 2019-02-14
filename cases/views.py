@@ -546,7 +546,7 @@ class FacilityDetailView(DetailView):
             "max_erp_per_tx",
         ]
 
-        context["emissions_info"] = ["bandwidth"]
+        context["emissions_info"] = ["bandwidth", "emissions"]
 
         context["path_attenuation_info"] = [
             # diffraction
@@ -554,7 +554,6 @@ class FacilityDetailView(DetailView):
             # free space
             "tpa",
             # "attachments" prop study
-            "calc_az",
             "distance_to_first_obstacle",
             "height_of_first_obstacle",
             "dominant_path",
@@ -571,8 +570,9 @@ class FacilityDetailView(DetailView):
             # Emission AERPd
         ]
         context["federal_info"] = [
+            # TODO: How to get this cleanly?
             # "case.is_federal",
-            # "sgrs367"
+            "s367"
         ]
 
         context["sgrs_info"] = [

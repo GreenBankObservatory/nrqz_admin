@@ -43,15 +43,19 @@ def convert_agency_num(AgencyNo):
 
 
 def convert_to_system_loss(lbot=None, ltl=None, ltop=None):
-    if not any([lbot, ltl, ltop]):
+    lbot_float = coerce_float(lbot)
+    ltl_float = coerce_float(ltl)
+    ltop_float = coerce_float(ltop)
+    system_loss_as_tuple = (lbot_float, ltl_float, ltop_float)
+    if not any(f is None for f in system_loss_as_tuple):
         return None
 
-    if not all([lbot, ltl, ltop]):
+    if not all(f is not None for f in system_loss_as_tuple):
         raise ValueError(
             "Either all values or no values must be given! "
             f"lbot: {lbot}, ltl: {ltl}, ltop: {ltop}"
         )
-    return coerce_float(lbot) + coerce_float(ltl) + coerce_float(ltop)
+    return sum(system_loss_as_tuple)
 
 
 def convert_tpa(tpa):
@@ -68,8 +72,15 @@ class CaseFormMap(FormMap):
             converter=convert_nrqz_id_to_case_num,
             to_field="case_num",
         ),
-        # TODO: Should this base Facility-level?
+        # TODO: Should this be Facility-level?
         OneToOneFieldMap(from_field="service", to_field="radio_service"),
+        OneToOneFieldMap(from_field="fccfn", to_field="fcc_file_num"),
+        OneToOneFieldMap(
+            from_field="AgencyNo", converter=convert_agency_num, to_field="agency_num"
+        ),
+        OneToOneFieldMap(
+            from_field={"fed": "Fed"}, converter=coerce_bool, to_field="is_federal"
+        ),
     ]
     form_class = CaseForm
     form_defaults = {"data_source": NAM_APPLICATION}
@@ -78,11 +89,6 @@ class CaseFormMap(FormMap):
 class FacilityFormMap(FormMap):
     field_maps = [
         OneToOneFieldMap(from_field="nrqzID", to_field="nrqz_id"),
-        OneToOneFieldMap(
-            from_field="nrqzID",
-            converter=convert_nrqz_id_to_case_num,
-            to_field="case_num",
-        ),
         ManyToOneFieldMap(
             from_fields={"latitude": ["lat"], "longitude": ["lon"]},
             converter=coerce_location,
@@ -105,14 +111,9 @@ class FacilityFormMap(FormMap):
         OneToOneFieldMap(
             from_field={"sitename": ("sitename", "site_name")}, to_field="site_name"
         ),
-        # TODO
-        OneToOneFieldMap(from_field="fccfn", to_field="fcc_file_num"),
         OneToOneFieldMap(from_field="call", to_field="call_sign"),
         OneToOneFieldMap(
             from_field="mxtxpo", converter=coerce_float, to_field="max_tx_power"
-        ),
-        OneToOneFieldMap(
-            from_field="AgencyNo", converter=convert_agency_num, to_field="agency_num"
         ),
         OneToOneFieldMap(from_field="aaz", to_field="main_beam_orientation"),
         OneToOneFieldMap(
@@ -163,9 +164,6 @@ class FacilityFormMap(FormMap):
             converter=coerce_positive_float,
             to_field="tx_power",
             explanation="Paulette said this should map to max tx power, but I have a separate field for tx power....",
-        ),
-        OneToOneFieldMap(
-            from_field={"fed": "Fed"}, converter=coerce_bool, to_field="fed"
         ),
         # NOTE: This is "synthetic", in the sense that there is no one "comments"
         # column. See import_nam_application for details

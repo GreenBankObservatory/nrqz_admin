@@ -109,6 +109,7 @@ class PreliminaryCaseForm(forms.ModelForm):
     class Meta:
         model = PreliminaryCase
         fields = (
+            "is_federal",
             "original_created_on",
             "original_modified_on",
             "data_source",
@@ -132,6 +133,7 @@ class CaseForm(forms.ModelForm):
     class Meta:
         model = Case
         fields = (
+            "sgrs_service_num",
             "original_created_on",
             "original_modified_on",
             "data_source",
@@ -159,6 +161,7 @@ class CaseForm(forms.ModelForm):
             "si_done",
             "agency_num",
             "date_recorded",
+            "is_federal",
         )
 
         widgets = {
@@ -177,7 +180,7 @@ class CaseForm(forms.ModelForm):
 class AttachmentForm(forms.ModelForm):
     class Meta:
         model = Attachment
-        fields = ("path", "comments")
+        fields = ("path", "comments", "original_index")
 
 
 class BasePreliminaryFacilityForm(forms.ModelForm):
@@ -203,6 +206,8 @@ class BasePreliminaryFacilityForm(forms.ModelForm):
             "attachments",
             "srid_used_for_import",
             "usgs_dataset",
+            "location_description",
+            "tpa",
         )
         widgets = {"pcase": PCaseWidget(), "attachments": AttachmentsWidget()}
 
@@ -218,6 +223,7 @@ class PreliminaryFacilityForm(BasePreliminaryFacilityForm):
 class BaseFacilityForm(forms.ModelForm):
     class Meta:
         model = Facility
+        # fields = (f.name for f in Facility._meta.get_fields() if f.editable)
         fields = (
             "original_created_on",
             "original_modified_on",
@@ -278,6 +284,10 @@ class BaseFacilityForm(forms.ModelForm):
             "attachments",
             "srid_used_for_import",
             "usgs_dataset",
+            "emissions",
+            "s367",
+            "location_description",
+            "sgrs_responded_on",
         )
 
         widgets = {"case": CaseWidget(), "attachments": AttachmentsWidget()}

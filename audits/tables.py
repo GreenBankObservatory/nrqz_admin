@@ -23,6 +23,7 @@ class FileImportBatchTable(tables.Table):
     created_on = tables.DateColumn(verbose_name="Date Imported")
     file_import_attempts = tables.Column(verbose_name="# of File Imports Attempted")
     status = ImportStatusColumn()
+    is_active = tables.BooleanColumn(verbose_name="Active")
 
     class Meta:
         model = FileImportBatch

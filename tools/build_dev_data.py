@@ -52,8 +52,9 @@ def create_boundaries():
     south = parse_coord("37d 30m 0.4s N")
     east = parse_coord("78d 29m 59.0s W")
     north = parse_coord("39d 15m 0.4s N")
-    print(west, north, east, south)
+    # Wholly west of PM
     assert west < east < 0
+    # Wholly north of equator
     assert 0 < south < north
     points = (
         Point((west, south), srid=NAD83_SRID),

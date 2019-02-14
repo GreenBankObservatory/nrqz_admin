@@ -89,6 +89,7 @@ class PfacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(to_field="comments", converter=None, from_field="REMARKS"),
         OneToOneFieldMap(to_field="tpa", converter=None, from_field="NRAO_TPA"),
+        # OneToOneFieldMap(to_field="weighted_12_point", converter=None, from_field="12-Point"),
     ]
     form_class = PreliminaryFacilityImportForm
     form_defaults = {"data_source": ACCESS_PRELIM_TECHNICAL}
@@ -119,7 +120,6 @@ todo = [
     "PATH_AZ",
     "CLASS",
     "FCC4-Point",
-    "12-Point",
     "NRAO_DIFF",
     "NRAO_TROPO",
     "NRAO_SPACE",

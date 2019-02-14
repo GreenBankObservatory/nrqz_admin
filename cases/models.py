@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib.gis.db.backends.postgis.models import PostGISSpatialRefSys
 from django.contrib.gis.db.models import PointField, PolygonField
 from django.contrib.gis.db.models.functions import Area, Azimuth, Distance
+from django.contrib.postgres.fields import ArrayField
 from django.db.models import (
     BooleanField,
     CharField,
@@ -210,6 +211,7 @@ class AbstractBaseFacility(
     usgs_dataset = CharField(
         max_length=3, choices=(("3m", "3m"), ("10m", "10m"), ("30m", "30m")), blank=True
     )
+    tpa = CharField(max_length=256, blank=True)
 
     class Meta:
         abstract = True
@@ -437,8 +439,10 @@ class Facility(AbstractBaseFacility):
         null=True, blank=True, verbose_name="Power Density Limit"
     )
     sgrs_approval = BooleanField(null=True, blank=True)
+    sgrs_responded_on = DateTimeField(
+        null=True, blank=True, verbose_name="SGRS Responded On"
+    )
     tap_file = CharField(max_length=256, blank=True)
-    tpa = CharField(max_length=256, blank=True)
     tx_power = FloatField(null=True, blank=True, verbose_name="TX Power (dBm)")
     aeirp_to_gbt = FloatField(null=True, blank=True, verbose_name="AEiRP to GBT")
     az_bearing = CharField(
@@ -448,15 +452,15 @@ class Facility(AbstractBaseFacility):
         verbose_name="AZ bearing degrees True",
         help_text="The Azimuth bearing between the Facility and the GBT, as imported from existing data",
     )
-    calc_az = FloatField(
-        verbose_name="Calculated Azimuth Bearing (°)",
-        null=True,
-        blank=True,
-        help_text=(
-            "Azimuth bearing between the Facility and the GBT, "
-            "as calculated based on this Facility's, location"
-        ),
-    )
+    # calc_az = FloatField(
+    #     verbose_name="Calculated Azimuth Bearing (°)",
+    #     null=True,
+    #     blank=True,
+    #     help_text=(
+    #         "Azimuth bearing between the Facility and the GBT, "
+    #         "as calculated based on this Facility's, location"
+    #     ),
+    # )
     num_tx_per_facility = IntegerField(
         null=True, blank=True, verbose_name="# of TX per facility"
     )
@@ -469,9 +473,8 @@ class Facility(AbstractBaseFacility):
 
     attachments = ManyToManyField("Attachment", related_name="facilities", blank=True)
 
-    emission1 = FloatField(null=True, blank=True)
-    emission2 = FloatField(null=True, blank=True)
-    s367 = BooleanField(null=True, blank=True)
+    emissions = ArrayField(CharField(max_length=64), null=True, blank=True)
+    s367 = BooleanField(default=False)
 
     class Meta:
         verbose_name = "Facility"

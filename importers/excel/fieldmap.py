@@ -86,15 +86,18 @@ def convert_dominant_path(dominant_path):
 def convert_nrao_aerpd(nrao_aerpd, nrao_approval=None):
     """Convert nrqao_aerpd to a float. Convert nrao_approval to a bool"""
     known_truthy_values = ["meets nrao limit"]
+    known_falsey_values = ["exceedes app requested erpd"]
     if isinstance(nrao_approval, str):
         clean_nrao_approval = nrao_approval.strip().lower()
         if coerce_none(clean_nrao_approval) is None:
             nrao_approval = False
         elif clean_nrao_approval in known_truthy_values:
             nrao_approval = True
+        elif clean_nrao_approval in known_falsey_values:
+            nrao_approval = False
         else:
             raise ValueError(
-                f"nrao_aerpd ({nrao_aerpd}) is an unknown string value! "
+                f"nrao_approval ({nrao_approval!r}) is an unknown string value! "
                 f"Known values: {known_truthy_values}"
             )
     else:

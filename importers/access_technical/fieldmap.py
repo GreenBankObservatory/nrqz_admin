@@ -8,14 +8,15 @@ from importers.access_application.fieldmap import (
     coerce_positive_int,
 )
 from importers.converters import (
-    coerce_feet_to_meters,
     coerce_access_location,
+    coerce_bool,
+    coerce_feet_to_meters,
     coerce_none,
     coerce_positive_float,
     coerce_scientific_notation,
     convert_access_path,
+    convert_array,
     convert_case_num,
-    coerce_bool,
 )
 from utils.constants import ACCESS_TECHNICAL
 
@@ -95,6 +96,11 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(to_field="comments", converter=None, from_field="REMARKS"),
         OneToOneFieldMap(to_field="s367", converter=coerce_bool, from_field="S367"),
+        ManyToOneFieldMap(
+            to_field="emissions",
+            converter=convert_array,
+            from_fields=("EMISSION", "EMISSION1"),
+        ),
     ]
     form_class = FacilityImportForm
     form_defaults = {"data_source": ACCESS_TECHNICAL}

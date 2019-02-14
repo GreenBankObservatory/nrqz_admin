@@ -19,6 +19,8 @@ from .form_helpers import (
 
 
 class FileImportBatchFilter(HelpedFilterSet):
+    is_active = django_filters.BooleanFilter(field_name="is_active", label="Active")
+
     class Meta:
         model = FileImportBatch
         formhelper_class = FileImportBatchFilterFormHelper

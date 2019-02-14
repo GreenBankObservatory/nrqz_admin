@@ -38,6 +38,7 @@ COORD_PATTERN = re.compile(COORD_PATTERN_STR)
 
 CASE_REGEX_STR = r"^P?(?P<case_num>\d+).*"
 CASE_REGEX = re.compile(CASE_REGEX_STR)
+MDY_REGEX = re.compile(r"(?P<month>\d{1,2})[/\\](?P<day>\d{1,2})[/\\](?P<year>\d{1,4})")
 
 # TODO:
 # https://regex101.com/r/gRPTN8/5
@@ -145,17 +146,10 @@ def coerce_coord_from_number(value):
     return dms_to_dd(decimal, minutes, seconds)
 
 
-MDY_REGEX = re.compile(r"(?P<month>\d{1,2})[/\\](?P<day>\d{1,2})[/\\](?P<year>\d{1,4})")
-
-
 def convert_mdy_datetime(value):
-    if isinstance(value, int):
-        import ipdb
-
-        ipdb.set_trace()
     # Strip all whitespace
-    clean_value = "".join(value.split())
-    m = MDY_REGEX.match(clean_value)
+    clean_value = "".join(str(value).split())
+    m = MDY_REGEX.search(clean_value)
     if not m:
         raise ValueError(
             f"Could not match MDY date {value!r} with regex {MDY_REGEX.pattern}"
@@ -291,10 +285,8 @@ def coerce_long(value):
 def coerce_location_(latitude, longitude, srid=NAD83_SRID):
     converted_latitude = coerce_lat(latitude)
     converted_longitude = coerce_long(longitude)
-    # tqdm.write(f"Converted latitude from {latitude} to {converted_latitude}")
-    # tqdm.write(f"Converted longitude from {longitude} to {converted_longitude}")
-    if converted_latitude is None or converted_longitude is None:
-        tqdm.write(f"Invalid coordinates given: ({latitude!r}, {longitude!r})")
+    if not converted_latitude or not converted_longitude:
+        # tqdm.write(f"Null coordinates given: ({latitude!r}, {longitude!r})")
         return None
 
     if converted_longitude > 0:
@@ -395,3 +387,12 @@ def coerce_access_location(latitude, longitude, nad27=None, nad83=None):
         "location": coerce_location(latitude, longitude, srid=srid),
         "srid_used_for_import": PostGISSpatialRefSys.objects.get(srid=srid).pk,
     }
+
+
+def convert_array(**kwargs):
+    values = tuple(kwargs.values())
+    if any("," in value for value in values):
+        raise AssertionError(
+            f"Uh oh, one or more values contains a comma! This will need to be handled... {values}"
+        )
+    return ",".join(values)
