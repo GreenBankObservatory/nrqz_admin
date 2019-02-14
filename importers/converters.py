@@ -155,7 +155,7 @@ def convert_mdy_datetime(value):
             f"Could not match MDY date {value!r} with regex {MDY_REGEX.pattern}"
         )
 
-    return date(float(m["year"]), float(m["month"]), float(m["day"]))
+    return date(int(m["year"]), int(m["month"]), int(m["day"]))
 
 
 def convert_access_datetime(value):
