@@ -8,12 +8,14 @@ from dal import autocomplete
 
 from .models import (
     Attachment,
+    Boundaries,
     Case,
-    Person,
-    PreliminaryFacility,
-    PreliminaryCase,
     Facility,
     LetterTemplate,
+    Location,
+    Person,
+    PreliminaryCase,
+    PreliminaryFacility,
     Structure,
 )
 from .form_helpers import LetterFormHelper
@@ -300,3 +302,17 @@ class FacilityImportForm(BaseFacilityForm):
 
 class FacilityForm(BaseFacilityForm):
     location = PointField()
+
+
+class BoundariesForm(forms.ModelForm):
+    class Meta:
+        model = Boundaries
+        fields = ("name", "bounds")
+
+
+class LocationForm(forms.ModelForm):
+    location = PointField()
+
+    class Meta:
+        model = Location
+        fields = ("name", "location")

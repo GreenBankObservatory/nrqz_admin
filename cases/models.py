@@ -59,6 +59,13 @@ class Boundaries(IsActiveModel, Model):
     name = CharField(max_length=64, default=None, unique=True)
     bounds = PolygonField(geography=True, srid=WGS84_SRID)
 
+    class Meta:
+        verbose_name = "Boundaries"
+        verbose_name_plural = "Boundaries"
+
+    def __str__(self):
+        return self.name
+
     @cached_property
     def area(self):
         return (
@@ -72,6 +79,9 @@ class Boundaries(IsActiveModel, Model):
 class Location(IsActiveModel, Model):
     name = CharField(max_length=64, default=None, unique=True)
     location = PointField(geography=True, srid=WGS84_SRID)
+
+    def __str__(self):
+        return self.name
 
 
 class Structure(IsActiveModel, TrackedModel, DataSourceModel, Model):

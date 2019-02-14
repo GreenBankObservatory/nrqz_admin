@@ -158,10 +158,14 @@ class FacilityTable(tables.Table):
         return record.in_nrqz
 
     def render_distance_to_gbt(self, record):
-        return f"{record.distance_to_gbt.mi:.2f} miles"
+        if record.distance_to_gbt is not None:
+            return f"{record.distance_to_gbt.mi:.2f} miles"
+        return None
 
     def render_azimuth_to_gbt(self, record):
-        return f"{record.azimuth_to_gbt:.2f}°"
+        if record.azimuth_to_gbt is not None:
+            return f"{record.azimuth_to_gbt:.2f}°"
+        return None
 
 
 class FacilityExportTable(FacilityTable):

@@ -7,16 +7,20 @@ from django.apps import apps
 
 from .forms import (
     AttachmentForm,
+    BoundariesForm,
     CaseForm,
     FacilityForm,
+    LocationForm,
     PersonForm,
     PreliminaryCaseForm,
     PreliminaryFacilityForm,
 )
 from .models import (
     Attachment,
+    Boundaries,
     Case,
     Facility,
+    Location,
     Person,
     PreliminaryCase,
     PreliminaryFacility,
@@ -62,3 +66,15 @@ class PersonAdmin(admin.ModelAdmin):
 @admin.register(Attachment)
 class AttachmentAdmin(admin.ModelAdmin):
     search_fields = ["path"]
+
+
+@admin.register(Location)
+class LocationAdmin(admin.ModelAdmin):
+    form = LocationForm
+    search_fields = ["name"]
+
+
+@admin.register(Boundaries)
+class BoundariesAdmin(admin.ModelAdmin):
+    form = BoundariesForm
+    search_fields = ["name"]

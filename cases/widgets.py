@@ -19,7 +19,7 @@ class PointWidget(forms.widgets.TextInput):
             return value
 
         if isinstance(value, Point):
-            return point_to_string(point, concise=True)
+            return point_to_string(value, concise=True)
 
         longitude, latitude = value.coords
         return coords_to_string(latitude, longitude, concise=True)

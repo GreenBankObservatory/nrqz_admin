@@ -103,7 +103,7 @@ class FacilityFilter(HelpedFilterSet):
     )
     in_nrqz = django_filters.BooleanFilter(field_name="in_nrqz", label="In NRQZ")
     distance_to_gbt = django_filters.RangeFilter(
-        field_name="distance_to_gbt", label="Distance to GBT"
+        field_name="distance_to_gbt", label="Distance to GBT (meters)"
     )
     azimuth_to_gbt = django_filters.RangeFilter(
         field_name="azimuth_to_gbt", label="Azimuth Bearing to GBT"
