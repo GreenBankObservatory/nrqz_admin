@@ -32,6 +32,7 @@ class FileImporterFilter(HelpedFilterSet):
     acknowledged = django_filters.BooleanFilter(
         field_name="file_import_attempts__acknowledged", initial=False
     )
+    is_active = django_filters.BooleanFilter(field_name="is_active", label="Active")
 
     class Meta:
         model = FileImporter
@@ -42,6 +43,7 @@ class FileImporterFilter(HelpedFilterSet):
 class FileImportAttemptFilter(HelpedFilterSet):
     imported_from = django_filters.CharFilter(lookup_expr="icontains")
     acknowledged = django_filters.BooleanFilter(initial=False)
+    is_active = django_filters.BooleanFilter(field_name="is_active", label="Active")
 
     class Meta:
         model = FileImportAttempt

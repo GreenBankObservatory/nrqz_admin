@@ -45,6 +45,7 @@ class FileImporterTable(tables.Table):
         },
     )
     acknowledged = tables.BooleanColumn()
+    is_active = tables.BooleanColumn(verbose_name="Active")
 
     class Meta:
         model = FileImporter
@@ -58,6 +59,7 @@ class FileImporterTable(tables.Table):
 class FileImportAttemptTable(tables.Table):
     imported_from = tables.Column(linkify=True)
     status = ImportStatusColumn()
+    is_active = tables.BooleanColumn(verbose_name="Active")
 
     class Meta:
         model = FileImportAttempt
