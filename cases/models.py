@@ -705,8 +705,6 @@ class Person(
     zipcode = CharField(max_length=256, blank=True)
     comments = TextField(blank=True)
 
-    # organization = ForeignKey("Organization", on_delete=CASCADE)
-
     def __str__(self):
         return f"{self.name}"
 
@@ -714,12 +712,17 @@ class Person(
         return reverse("person_detail", args=[str(self.id)])
 
     class Meta:
+        verbose_name = "Person"
         verbose_name_plural = "People"
 
 
 class AlsoKnownAs(IsActiveModel, TrackedModel, DataSourceModel, Model):
     person = ForeignKey("Person", on_delete=CASCADE, related_name="aka")
     name = CharField(max_length=256)
+
+    class Meta:
+        verbose_name = "Also Known As"
+        verbose_name_plural = "Also Known As"
 
     def __str__(self):
         return self.name
@@ -735,6 +738,10 @@ class Attachment(
     # path = FilePathField(path=settings.NRQZ_ATTACHMENT_DIR, max_length=256, unique=True)
     comments = TextField(blank=True)
     original_index = PositiveIntegerField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Attachment"
+        verbose_name_plural = "Attachments"
 
     def __str__(self):
         return f"{self.path}"
