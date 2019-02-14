@@ -23,6 +23,8 @@ from utils.constants import (
     NAD83_SRID,
 )
 
+ARRAY_DELIMITER_REGEX = re.compile("[,/]")
+
 FEET_IN_A_METER = 0.3048
 
 # https://regex101.com/r/4DTp5D/1
@@ -218,7 +220,7 @@ def coerce_bool(value):
 
 def coerce_str(value):
     clean_value = str(value).strip().lower()
-    if clean_value in ["", "na", "n/a", "#n/a"]:
+    if clean_value in ["", "na", "n/a", "#n/a", "'#n/a'"]:
         return None
     else:
         return value
@@ -390,9 +392,12 @@ def coerce_access_location(latitude, longitude, nad27=None, nad83=None):
 
 
 def convert_array(**kwargs):
-    values = tuple(kwargs.values())
-    if any("," in value for value in values):
-        raise AssertionError(
-            f"Uh oh, one or more values contains a comma! This will need to be handled... {values}"
-        )
+    values = tuple(
+        v.strip().upper()
+        for value in kwargs.values()
+        for v in ARRAY_DELIMITER_REGEX.split(value)
+        if v.strip()
+    )
+    if not values:
+        return None
     return ",".join(values)

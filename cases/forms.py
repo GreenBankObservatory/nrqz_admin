@@ -2,6 +2,7 @@
 
 from django import forms
 from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.postgres.forms import SimpleArrayField
 
 from dal import autocomplete
 
