@@ -260,13 +260,12 @@ class AbstractBaseFacility(
     nrao_aerpd_cdma2000 = FloatField(null=True, blank=True)
     nrao_aerpd_gsm = FloatField(null=True, blank=True)
     nrao_aerpd_analog = FloatField(null=True, blank=True)
-    nrao_aerpd_emission = FloatField(null=True, blank=True)
     nrao_diff = FloatField(null=True, blank=True)
     nrao_space = FloatField(null=True, blank=True)
     nrao_tropo = FloatField(null=True, blank=True)
     original_outside_nrqz = BooleanField(null=True, blank=True)
-    erpd_per_num_tx = CharField(
-        max_length=256, blank=True, verbose_name="ERPd per # of Transmitters"
+    requested_max_erp_per_tx = CharField(
+        max_length=256, blank=True, verbose_name="Max ERPd per TX"
     )
     az_bearing = CharField(
         max_length=256,
@@ -370,12 +369,6 @@ class Facility(AbstractBaseFacility):
         blank=True,
         null=True,
     )
-    max_output = FloatField(
-        verbose_name="Max Output Pwr (W)",
-        help_text="Per Transmitter or RRH (remote radio head) polarization",
-        blank=True,
-        null=True,
-    )
     antenna_gain = FloatField(verbose_name="Antenna Gain (dBi)", blank=True, null=True)
     system_loss = FloatField(verbose_name="System Loss (dB)", blank=True, null=True)
     main_beam_orientation = CharField(
@@ -399,47 +392,6 @@ class Facility(AbstractBaseFacility):
         verbose_name="Total number of TXers per sector",
         help_text="(or No. of RRH's ports with feed power",
     )
-    tx_antennas_per_sector = CharField(
-        max_length=256,
-        blank=True,
-        verbose_name="Number of transmitting antennas per sector",
-    )
-    technology = CharField(
-        max_length=256,
-        blank=True,
-        null=True,
-        help_text="i.e.  FM, 2G, 3G, 4G, GSM, LTE, UMTS, CDMA2000 (specify other)",
-    )
-    uses_split_sectorization = BooleanField(
-        default=False,
-        verbose_name="Uses Split Sectorization",
-        help_text="This facility uses split sectorization or dual-beam sectorization",
-        blank=True,
-        null=True,
-    )
-    uses_cross_polarization = BooleanField(
-        default=False, verbose_name="Uses Cross polarization ", blank=True, null=True
-    )
-    uses_quad_or_octal_polarization = BooleanField(
-        default=False,
-        verbose_name="Uses Quad or Octal polarization",
-        blank=True,
-        null=True,
-    )
-    num_quad_or_octal_ports_with_feed_power = PositiveIntegerField(
-        blank=True,
-        null=True,
-        verbose_name="Number of Quad or Octal ports with feed power",
-    )
-    tx_power_pos_45 = FloatField(
-        null=True, blank=True, verbose_name="Max TX output PWR at +45 degrees"
-    )
-    tx_power_neg_45 = FloatField(
-        null=True, blank=True, verbose_name="Max TX output PWR at -45 degrees"
-    )
-    # TODO: Is this needed? Doesn't structure store this?
-    asr_is_from_applicant = BooleanField(null=True, blank=True)
-
     case = ForeignKey("Case", on_delete=CASCADE, related_name="facilities")
     structure = ForeignKey(
         "Structure", blank=True, null=True, on_delete=CASCADE, related_name="facilities"
@@ -466,7 +418,8 @@ class Facility(AbstractBaseFacility):
     )
     loc = CharField(max_length=256, blank=True, verbose_name="LOC")
     max_aerpd = FloatField(null=True, blank=True, verbose_name="Max AERPd (dBm)")
-    max_erp_per_tx = FloatField(
+    max_eirp = FloatField(null=True, blank=True, verbose_name="Max AEiRP")
+    requested_max_erp_per_tx = FloatField(
         null=True, blank=True, verbose_name="Max ERP per TX (W)"
     )
     max_gain = FloatField(null=True, blank=True, verbose_name="Max Gain (dBi)")
@@ -652,7 +605,7 @@ class Case(AbstractBaseCase):
     num_outside = PositiveIntegerField(
         null=True, blank=True, verbose_name="Num. Sites Outside NRQZ"
     )
-    erpd_limit = BooleanField(default=False, blank=True, verbose_name="ERPD Limit")
+    erpd_limit = BooleanField(default=False, blank=True, verbose_name="ERPd Limit")
     si_waived = BooleanField(default=False, blank=True, verbose_name="SI Waived")
     si = BooleanField(default=False, blank=True, verbose_name="SI Req.")
     si_done = DateField(null=True, blank=True, verbose_name="SI Done")

@@ -130,7 +130,7 @@ class PfacilityFormMap(FormMap):
         OneToOneFieldMap(
             from_field="REQ_ERP",
             converter=coerce_positive_float,
-            to_field="erpd_per_num_tx",
+            to_field="requested_max_erp_per_tx",
         ),
         OneToOneFieldMap(
             from_field="NRAO_AERPD_CDMA",

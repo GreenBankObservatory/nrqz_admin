@@ -521,7 +521,6 @@ class BaseFacilityDetailView(DetailView):
             "nrao_aerpd_cdma2000",
             "nrao_aerpd_gsm",
             "nrao_aerpd_analog",
-            "nrao_aerpd_emission",
             "nrao_diff",
             "nrao_space",
             "nrao_tropo",

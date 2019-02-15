@@ -274,18 +274,6 @@ class FacilityFormMap(FormMap):
             },
         ),
         OneToOneFieldMap(
-            to_field="max_output",
-            converter=coerce_positive_float,
-            from_field={
-                "max_output": [
-                    "Max Tx Pwr (W)",
-                    "Max Output Pwr (W) Per TX",
-                    "Max Output Pwr (W)      Per Transmitter or RH",
-                    "Max Output Pwr (W)      Per Transmitter or RRH (remote radio head) polarization",
-                ]
-            },
-        ),
-        OneToOneFieldMap(
             to_field="antenna_gain",
             converter=coerce_positive_float,
             from_field={
@@ -294,6 +282,7 @@ class FacilityFormMap(FormMap):
                     "11036 ANTenna Gain (dBi)",
                     "Antenna Gain ()",
                     "Antenna Gain (actual)",
+                    "Max Gain (dBi)",
                 ]
             },
         ),
@@ -304,7 +293,7 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="main_beam_orientation",
-            converter=coerce_positive_float,
+            converter=coerce_none,
             from_field={
                 "main_beam_orientation": [
                     "Main Beam Orientation (All Sectors)",
@@ -371,91 +360,6 @@ class FacilityFormMap(FormMap):
             },
         ),
         OneToOneFieldMap(
-            to_field="tx_antennas_per_sector",
-            converter=coerce_positive_int,
-            from_field={
-                "tx_antennas_per_sector": [
-                    "Number of TX antennas per sector",
-                    "Number of TX antennas per sector (Each polarization fed with TX power is considered an antenna).",
-                    "Number of Transmit antennas per sector",
-                    "Number of TX 11036 ANTennas per sector (Each polarization fed with TX power is considered an 11036 ANTenna).",
-                    "Number of TX antennas per sector (Each polarization fed with TX power is considered an antenna)",
-                ]
-            },
-        ),
-        OneToOneFieldMap(
-            to_field="technology",
-            from_field={
-                "technology": [
-                    "Technology 2G, 3G, 4G, other (specify)",
-                    "Technology i.e. FM, 2G, 3G, 4G, GSM, LTE, UMTS, CDMA2000 (specify other)",
-                ]
-            },
-        ),
-        OneToOneFieldMap(
-            to_field="uses_split_sectorization",
-            converter=coerce_bool,
-            from_field={
-                "uses_split_sectorization": [
-                    "This faciltiy uses Split sectorization (Yes or No)",
-                    "This faciltiy uses Split sectorization (or dual-beam sectorization) Indidate Yes or No",
-                    "This faciltiy uses Split sectorization (Yes oro)",
-                    "This faciltiy uses Split sectorization Indidate Yes or No",
-                    "This faciltiy uses Split sectorization (or dualbeam sectorization) Indidate Yes or No",
-                ]
-            },
-        ),
-        OneToOneFieldMap(
-            to_field="uses_cross_polarization",
-            converter=coerce_bool,
-            from_field={
-                "uses_cross_polarization": [
-                    "This facility uses Cross polarization (Yes or No)",
-                    "This facility uses Cross polarization   Indicate Yes or No",
-                    "This facility uses Cross polarization (Yes oro)",
-                ]
-            },
-        ),
-        OneToOneFieldMap(
-            to_field="uses_quad_or_octal_polarization",
-            converter=coerce_bool,
-            from_field={
-                "uses_quad_or_octal_polarization": [
-                    "If this facility uses Quad or Octal polarization, specify type here"
-                ]
-            },
-        ),
-        OneToOneFieldMap(
-            to_field="num_quad_or_octal_ports_with_feed_power",
-            converter=coerce_float,
-            from_field={
-                "num_quad_or_octal_ports_with_feed_power": [
-                    "Number of Quad or Octal ports with  feed power"
-                ]
-            },
-        ),
-        OneToOneFieldMap(
-            to_field="tx_power_pos_45",
-            converter=coerce_float,
-            from_field={
-                "tx_power_pos_45": [
-                    'If YES to Col. "W", then what is the Max TX output PWR at +45 degrees',
-                    # 'If YES to Col. "W", then what is the Max TX output PWR at 45 degrees',
-                    'If YES to Col. "W", thenhat is the Max TX output PWR at +45 degrees',
-                ]
-            },
-        ),
-        OneToOneFieldMap(
-            to_field="tx_power_neg_45",
-            converter=coerce_float,
-            from_field={
-                "tx_power_neg_45": [
-                    'If YES to Col. "W", then what is the Max TX output PWR at -45 degrees',
-                    'If YES to Col. "W", thenhat is the Max TX output PWR at -45 degrees',
-                ]
-            },
-        ),
-        OneToOneFieldMap(
             to_field="comments",
             from_field={
                 "comments": [
@@ -512,13 +416,6 @@ class FacilityFormMap(FormMap):
             },
         ),
         OneToOneFieldMap(
-            to_field="erpd_per_num_tx",
-            converter=coerce_positive_float,
-            from_field={
-                "erpd_per_num_tx": ["ERPd per # of Transmitters", "ERPd per TX"]
-            },
-        ),
-        OneToOneFieldMap(
             to_field="height_of_first_obstacle",
             converter=coerce_positive_float,
             from_field={"height_of_first_obstacle": ["Height of 1st obstacle (ft)"]},
@@ -530,19 +427,28 @@ class FacilityFormMap(FormMap):
             from_field={"max_aerpd": ["Max AERPd (dBm)"]},
         ),
         OneToOneFieldMap(
-            to_field="max_erp_per_tx",
+            to_field="requested_max_erp_per_tx",
             converter=coerce_positive_float,
-            from_field={"max_erp_per_tx": ["Max ERP per TX (W)"]},
-        ),
-        OneToOneFieldMap(
-            to_field="max_gain",
-            converter=coerce_positive_float,
-            from_field={"max_gain": ["Max Gain (dBi)"]},
+            from_field={
+                "requested_max_erp_per_tx": [
+                    "Max ERP per TX (W)",
+                    "ERPd per # of Transmitters",
+                    "ERPd per TX",
+                ]
+            },
         ),
         OneToOneFieldMap(
             to_field="max_tx_power",
             converter=coerce_positive_float,
-            from_field={"max_tx_power": ["Max TX Pwr (W)"]},
+            from_field={
+                "max_tx_power": [
+                    "Max TX Pwr (W)",
+                    "Max Tx Pwr (W)",
+                    "Max Output Pwr (W) Per TX",
+                    "Max Output Pwr (W)      Per Transmitter or RH",
+                    "Max Output Pwr (W)      Per Transmitter or RRH (remote radio head) polarization",
+                ]
+            },
         ),
         ManyToManyFieldMap(
             to_fields=("nrao_aerpd", "nrao_approval"),
@@ -563,7 +469,7 @@ class FacilityFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="power_density_limit",
-            converter=coerce_positive_float,
+            converter=coerce_none,
             from_field={"power_density_limit": ["Power Density Limit"]},
         ),
         OneToManyFieldMap(

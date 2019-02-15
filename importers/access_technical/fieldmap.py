@@ -122,7 +122,7 @@ class FacilityFormMap(FormMap):
             to_field="tpa", converter=coerce_positive_float, from_field="NRAO_TPA"
         ),
         OneToOneFieldMap(
-            to_field="erpd_per_num_tx",
+            to_field="requested_max_erp_per_tx",
             converter=coerce_positive_float,
             from_field="REQ_ERP",
         ),
@@ -141,7 +141,7 @@ class FacilityFormMap(FormMap):
         OneToOneFieldMap(
             from_field="NRAO_AERPD_Emission",
             converter=coerce_positive_float,
-            to_field="nrao_aerpd_emission",
+            to_field="nrao_aerpd",
         ),
         OneToOneFieldMap(
             from_field="NRAO-AERPD-CDMA",
