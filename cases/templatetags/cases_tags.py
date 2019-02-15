@@ -3,17 +3,18 @@
 import json as json_
 import os
 
-from django_import_data.utils import DjangoErrorJSONEncoder
-
-from django.urls import reverse
-from django import template
-from django.utils.safestring import mark_safe
 from pygments import highlight
 from pygments.lexers.data import JsonLexer
 from pygments.formatters import HtmlFormatter
 
-from utils.coord_utils import dd_to_dms, coords_to_string
+from django import template
+from django.urls import reverse
+from django.utils.safestring import mark_safe
+
+from django_import_data.utils import DjangoErrorJSONEncoder
+
 from utils.constants import NAD27_SRID, NAD83_SRID
+from utils.coord_utils import dd_to_dms, coords_to_string
 
 register = template.Library()
 
@@ -121,25 +122,30 @@ def attachment_table(instance, title, fields):
 
 @register.inclusion_tag("cases/info_table.html")
 def location_table(instance, title, fields):
-    if "location" not in fields:
-        return {}
-    fields.remove("location")
-    wgs84 = instance.location
-    # Need clone in order to create a new object rather than transform in-place
-    nad27 = wgs84.transform(NAD27_SRID, clone=True)
-    nad83 = wgs84.transform(NAD83_SRID, clone=True)
-    url = reverse("facility_kml", args=[str(instance.id)])
     rows = []
-    for point in (wgs84, nad83, nad27):
-        point_str = coords_to_string(latitude=point.y, longitude=point.x, concise=True)
-        # point_str = "<br>".join(point_str.split(", "))
-        if point.srid == instance.original_srs.srid:
-            point_label = (
-                f"<b title='SRID: {point.srid}'>{point.srs.name} (original)</b>"
+    if instance.location:
+        wgs84 = instance.location
+        # Need clone in order to create a new object rather than transform in-place
+        nad27 = wgs84.transform(NAD27_SRID, clone=True)
+        nad83 = wgs84.transform(NAD83_SRID, clone=True)
+
+        url = reverse("facility_kml", args=[str(instance.id)])
+        for point in (wgs84, nad83, nad27):
+            point_str = coords_to_string(
+                latitude=point.y, longitude=point.x, concise=True
             )
-        else:
-            point_label = f"<span title='SRID: {point.srid}'> {point.srs.name}</span>"
-        rows.append((point_label, f"<a href={url}>{point_str}</a>", ""))
+            # point_str = "<br>".join(point_str.split(", "))
+            if point.srid == instance.original_srs.srid:
+                point_label = (
+                    f"<b title='SRID: {point.srid}'>{point.srs.name} (original)</b>"
+                )
+            else:
+                point_label = (
+                    f"<span title='SRID: {point.srid}'> {point.srs.name}</span>"
+                )
+            rows.append((point_label, f"<a href={url}>{point_str}</a>", ""))
+    else:
+        rows.append(("Location", None, None))
 
     rows.extend(
         [

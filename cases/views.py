@@ -483,7 +483,6 @@ class BaseFacilityDetailView(DetailView):
         context["topography_info"] = [
             "site_name",
             "location_description",
-            "location",
             "amsl",
             "survey_1a",
             "survey_2c",
@@ -552,7 +551,9 @@ class PreliminaryFacilityDetailView(BaseFacilityDetailView):
             "antenna_model_number",
             (
                 "Azimuth Bearing",
-                f"{self.object.get_azimuth_to_gbt():.2f}°",
+                f"{self.object.get_azimuth_to_gbt():.2f}°"
+                if self.object.location
+                else None,
                 "Azimuth bearing to GBT in degrees",
             ),
             # TODO: az deg true
@@ -583,7 +584,7 @@ class FacilityDetailView(BaseFacilityDetailView):
             "antenna_gain",
             (
                 "Azimuth Bearing",
-                self.object.get_azimuth_to_gbt(),
+                self.object.get_azimuth_to_gbt() if self.object.location else None,
                 "Azimuth bearing to GBT in degrees",
             ),
             # az deg true
