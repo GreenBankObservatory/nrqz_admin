@@ -34,11 +34,13 @@ def lat_to_string(latitude, concise=False):
     if latitude[0] < 0:
         latitude = (abs(i) for i in latitude)
         lat_hemi = "S"
+        sign = "-"
     else:
         lat_hemi = "N"
+        sign = ""
 
     if concise:
-        return f"{CONCISE_COORD_FORMAT.format(*latitude)}"
+        return f"{sign}{CONCISE_COORD_FORMAT.format(*latitude)}"
     return f"{VERBOSE_COORD_FORMAT.format(*latitude, lat_hemi)}"
 
 
@@ -51,11 +53,13 @@ def long_to_string(longitude, concise=False):
     if longitude[0] < 0:
         longitude = (abs(i) for i in longitude)
         long_hemi = "W"
+        sign = "-"
     else:
         long_hemi = "E"
+        sign = ""
 
     if concise:
-        return f"{CONCISE_COORD_FORMAT.format(*longitude)}"
+        return f"{sign}{CONCISE_COORD_FORMAT.format(*longitude)}"
     return f"{VERBOSE_COORD_FORMAT.format(*longitude, long_hemi)}"
 
 

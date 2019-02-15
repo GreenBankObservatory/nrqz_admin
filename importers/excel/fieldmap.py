@@ -587,7 +587,7 @@ class FacilityFormMap(FormMap):
     form_class = FacilityImportForm
     form_defaults = {
         "data_source": EXCEL,
-        "srid_used_for_import": PostGISSpatialRefSys.objects.get(srid=NAD83_SRID).pk,
+        "original_srs": PostGISSpatialRefSys.objects.get(srid=NAD83_SRID).pk,
     }
 
 

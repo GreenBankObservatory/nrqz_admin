@@ -74,3 +74,12 @@ class DataSourceModel(models.Model):
 
     class Meta:
         abstract = True
+
+
+class AllFieldsModel(models.Model):
+    def all_fields(self):
+        for field in self._meta.fields:
+            yield (field.name, field.verbose_name, field.value_to_string(self))
+
+    class Meta:
+        abstract = True

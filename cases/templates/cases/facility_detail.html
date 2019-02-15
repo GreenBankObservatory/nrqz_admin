@@ -31,36 +31,21 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-lg">
-            <div class="row">
-                {% location_table facility "Topography Data" topography_info %}
-            </div>
-        </div>
-        <div class="col-lg">
+            {% location_table facility "Topography Data" topography_info %}
             {% info_table facility "Antenna Data" antenna_info %}
+            {% info_table facility "Path Data Interpolation" path_data_interpolation_info %}
+            {% info_table facility "USGS Dataset" usgs_dataset_info %}
+
         </div>
         <div class="col-lg">
             {% info_table facility "Transmitter Data" transmitter_info %}
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-lg">
             {% info_table facility "Emissions Data" emissions_info %}
-        </div>
-        <div class="col-lg">
             {% info_table facility "Path Attenuation Results" path_attenuation_info %}
         </div>
         <div class="col-lg">
             {% info_table facility "Analysis Results" analysis_results_info %}
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-lg">
-            {% info_table facility "FED" federal_info %}
-        </div>
-        <div class="col-lg">
             {% info_table facility "SGRS" sgrs_info %}
+            {% info_table facility "FED" federal_info %}
         </div>
     </div>
 </div>

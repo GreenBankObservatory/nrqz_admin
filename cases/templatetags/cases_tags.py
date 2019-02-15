@@ -13,6 +13,7 @@ from pygments.lexers.data import JsonLexer
 from pygments.formatters import HtmlFormatter
 
 from utils.coord_utils import dd_to_dms, coords_to_string
+from utils.constants import NAD27_SRID, NAD83_SRID
 
 register = template.Library()
 
@@ -97,6 +98,8 @@ def info_table(instance, title, fields):
             instance._meta.get_field(field).value_to_string(instance),
             instance._meta.get_field(field).help_text,
         )
+        if not isinstance(field, tuple)
+        else field
         for field in fields
     ]
     return {"title": title, "rows": rows}
@@ -121,11 +124,22 @@ def location_table(instance, title, fields):
     if "location" not in fields:
         return {}
     fields.remove("location")
-    longitude, latitude = instance.location.coords
-    location_str = coords_to_string(latitude, longitude, concise=True)
-
+    wgs84 = instance.location
+    # Need clone in order to create a new object rather than transform in-place
+    nad27 = wgs84.transform(NAD27_SRID, clone=True)
+    nad83 = wgs84.transform(NAD83_SRID, clone=True)
     url = reverse("facility_kml", args=[str(instance.id)])
-    rows = [("Coordinates", f"<a href={url}>{location_str}</a>", "")]
+    rows = []
+    for point in (wgs84, nad83, nad27):
+        point_str = coords_to_string(latitude=point.y, longitude=point.x, concise=True)
+        # point_str = "<br>".join(point_str.split(", "))
+        if point.srid == instance.original_srs.srid:
+            point_label = (
+                f"<b title='SRID: {point.srid}'>{point.srs.name} (original)</b>"
+            )
+        else:
+            point_label = f"<span title='SRID: {point.srid}'> {point.srs.name}</span>"
+        rows.append((point_label, f"<a href={url}>{point_str}</a>", ""))
 
     rows.extend(
         [
@@ -134,6 +148,8 @@ def location_table(instance, title, fields):
                 instance._meta.get_field(field).value_to_string(instance),
                 instance._meta.get_field(field).help_text,
             )
+            if not isinstance(field, tuple)
+            else field
             for field in fields
         ]
     )

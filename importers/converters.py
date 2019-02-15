@@ -394,7 +394,7 @@ def coerce_access_location(latitude, longitude, nad27=None, nad83=None):
         srid = NAD83_SRID
     return {
         "location": coerce_location(latitude, longitude, srid=srid),
-        "srid_used_for_import": PostGISSpatialRefSys.objects.get(srid=srid).pk,
+        "original_srs": PostGISSpatialRefSys.objects.get(srid=srid).pk,
     }
 
 

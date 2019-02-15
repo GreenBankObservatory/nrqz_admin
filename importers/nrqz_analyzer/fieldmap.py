@@ -43,19 +43,24 @@ def convert_agency_num(AgencyNo):
 
 
 def convert_to_system_loss(lbot=None, ltl=None, ltop=None):
+    # Convert all to float or None. If that can't be done,
+    # a ValueError is raised. So, we know going forward they
+    # are all either float or None
     lbot_float = coerce_float(lbot)
     ltl_float = coerce_float(ltl)
     ltop_float = coerce_float(ltop)
-    system_loss_as_tuple = (lbot_float, ltl_float, ltop_float)
-    if not any(f is None for f in system_loss_as_tuple):
+
+    # If they are ALL None, return none
+    if lbot_float is ltl_float is ltop_float is None:
         return None
 
-    if not all(f is not None for f in system_loss_as_tuple):
-        raise ValueError(
-            "Either all values or no values must be given! "
-            f"lbot: {lbot}, ltl: {ltl}, ltop: {ltop}"
-        )
-    return sum(system_loss_as_tuple)
+    # Otherwise, treat None as 0
+    lbot_float = 0 if lbot_float is None else lbot_float
+    ltl_float = 0 if ltl_float is None else ltl_float
+    ltop_float = 0 if ltop_float is None else ltop_float
+
+    # Then sum and return
+    return lbot_float + ltl_float + ltop_float
 
 
 def convert_tpa(tpa):
@@ -172,7 +177,7 @@ class FacilityFormMap(FormMap):
     form_class = FacilityImportForm
     form_defaults = {
         "data_source": NAM_APPLICATION,
-        "srid_used_for_import": PostGISSpatialRefSys.objects.get(srid=NAD83_SRID).pk,
+        "original_srs": PostGISSpatialRefSys.objects.get(srid=NAD83_SRID).pk,
     }
 
 

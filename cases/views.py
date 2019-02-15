@@ -66,6 +66,17 @@ from .kml import (
 )
 
 
+def get_fields_missing_from_info_tables(context, all_model_fields):
+    known_fields = [
+        value
+        for info_key, info_list in context.items()
+        if isinstance(info_list, list)
+        for value in info_list
+        if info_key.endswith("info")
+    ]
+    return sorted(f[0] for f in all_model_fields if f[0] not in known_fields)
+
+
 class FilterTableView(ExportMixin, SingleTableMixin, FilterView):
     table_class = None
     filterset_class = None
@@ -461,87 +472,53 @@ class CaseDetailView(MultiTableMixin, DetailView):
         case_as_kml(self.object)
 
 
-class PreliminaryFacilityDetailView(DetailView):
-    model = PreliminaryFacility
-
+class BaseFacilityDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["meta_info"] = ["id", "created_on", "modified_on"]
-
-        context["location_info"] = ["latitude", "longitude", "amsl", "agl"]
-        context["antenna_info"] = ["freq_low", "antenna_model_number"]
-
-        context["other_info"] = ["site_num", "site_name"]
-
-        return context
-
-
-class FacilityDetailView(DetailView):
-    model = Facility
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        # context["meta_info"] = ["id", "created_on", "modified_on"]
         context["topography_info"] = [
             "site_name",
             "location_description",
-            # geographic location,
-            # lat
-            # long
             "location",
-            # nad88 nad83 nad27
             "amsl",
-            # survey 1a/2a
-        ]
-        context["antenna_info"] = [
-            "agl",
-            "antenna_model_number",
-            "antenna_gain",
-            # az deg true
-            "main_beam_orientation",
-            "mechanical_downtilt",
-            "electrical_downtilt",
+            "survey_1a",
+            "survey_2c",
+            (
+                "Inside NRQZ?",
+                self.object.get_in_nrqz(),
+                "Indicates whether the facility is inside the boundaries of the NRQZ",
+            ),
         ]
 
-        # TODO
-        # context["path_data_info"] [
-
-        # ]
+        context["path_data_interpolation_info"] = [
+            "topo_4_point",
+            "topo_12_point",
+            "propagation_model",
+        ]
         # TODO:
-        # context["usgs_dataset_info"]
-
-        context["transmitter_info"] = [
-            "freq_low",
-            "freq_high",
-            "power_density_limit",
-            "tx_per_sector",
-            "max_tx_power",
-            "num_tx_per_facility",
-            "max_erp_per_tx",
-        ]
+        context["usgs_dataset_info"] = ["usgs_dataset"]
 
         context["emissions_info"] = ["bandwidth", "emissions"]
 
         context["path_attenuation_info"] = [
-            # diffraction
-            # troposcatter
-            # free space
+            "nrao_diff",
+            "nrao_space",
+            "nrao_tropo",
             "tpa",
-            # "attachments" prop study
+            # TODO: "attachments" prop study
             "distance_to_first_obstacle",
             "height_of_first_obstacle",
             "dominant_path",
         ]
 
         context["analysis_results_info"] = [
-            # TODO: Check
-            # ERPd Restriction True/False
-            # "erpd_limit",
-            # analog AERPd
-            # CDMA AERPd
-            # CDMA 2000 AERPd
-            # GSM AERPd
-            # Emission AERPd
+            "nrao_aerpd_cdma",
+            "nrao_aerpd_cdma2000",
+            "nrao_aerpd_gsm",
+            "nrao_aerpd_analog",
+            "nrao_aerpd_emission",
+            "nrao_diff",
+            "nrao_space",
+            "nrao_tropo",
         ]
         context["federal_info"] = [
             # TODO: How to get this cleanly?
@@ -554,53 +531,78 @@ class FacilityDetailView(DetailView):
             # TODO
             # date
         ]
+        context["analysis_results_info"]
 
-        known_fields = [
-            value
-            for info_key, info_list in context.items()
-            if isinstance(info_list, list)
-            for value in info_list
-            if info_key.endswith("info")
+        return context
+
+
+class PreliminaryFacilityDetailView(BaseFacilityDetailView):
+    model = PreliminaryFacility
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["location_info"] = ["location", "amsl", "agl"]
+        context["antenna_info"] = [
+            "agl",
+            "antenna_model_number",
+            (
+                "Azimuth Bearing",
+                f"{self.object.get_azimuth_to_gbt():.2f}°",
+                "Azimuth bearing to GBT in degrees",
+            ),
+            # TODO: az deg true
         ]
-        context["unsorted_info"] = sorted(
-            f[0] for f in self.object.all_fields() if f[0] not in known_fields
+        context["transmitter_info"] = [
+            "freq_low",
+            "freq_high",
+            "power_density_limit",
+            # "tx_per_sector",
+            # "max_tx_power",
+            # "num_tx_per_facility",
+            # "max_erp_per_tx",
+        ]
+        context["unsorted_info"] = get_fields_missing_from_info_tables(
+            context, self.object.all_fields()
         )
-        # "max_output",
-        # "system_loss",
-        # "main_beam_orientation",
-        # context["unsorted_info1"] = [
-        #     "asr_is_from_applicant",
-        #     "band_allowance",
-        #     "erpd_per_num_tx",
-        #     "loc",
-        # ]
-        # context["unsorted_info2"] = [
-        #     "max_aerpd",
-        #     "max_gain",
-        #     "nrao_aerpd",
-        #     "sgrs_approval",
-        #     "tap_file",
-        # ]
-        # context["unsorted_info3"] = [
-        #     "tx_power",
-        #     "aeirp_to_gbt",
-        #     "az_bearing",
-        #     "nrao_approval",
-        # ]
+        return context
 
-        # context["cell_info"] = [
-        #     "tx_antennas_per_sector",
-        #     "technology",
-        #     "uses_split_sectorization",
-        #     "uses_cross_polarization",
-        #     "uses_quad_or_octal_polarization",
-        #     "num_quad_or_octal_ports_with_feed_power",
-        #     "tx_power_pos_45",
-        #     "tx_power_neg_45",
-        # ]
 
-        # context["other_info"] = ["site_num", "call_sign", "fcc_file_number"]
+class FacilityDetailView(BaseFacilityDetailView):
+    model = Facility
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["antenna_info"] = [
+            "agl",
+            "antenna_model_number",
+            "antenna_gain",
+            (
+                "Azimuth Bearing",
+                self.object.get_azimuth_to_gbt(),
+                "Azimuth bearing to GBT in degrees",
+            ),
+            # az deg true
+            "main_beam_orientation",
+            "mechanical_downtilt",
+            "electrical_downtilt",
+        ]
+        context["transmitter_info"] = [
+            "freq_low",
+            "freq_high",
+            "power_density_limit",
+            "tx_per_sector",
+            "max_tx_power",
+            "num_tx_per_facility",
+            "max_erp_per_tx",
+        ]
+        context["unsorted_info"] = get_fields_missing_from_info_tables(
+            context, self.object.all_fields()
+        )
+
+        context["analysis_results_info"] = [
+            # "erpd_limit",
+            *context["analysis_results_info"]
+        ]
         return context
 
     def as_kml(self):

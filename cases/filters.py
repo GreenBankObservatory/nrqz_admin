@@ -16,6 +16,7 @@ from .form_helpers import (
     PreliminaryCaseGroupFilterFormHelper,
 )
 from .fields import PointSearchField
+from .widgets import PCaseWidget
 
 
 class HelpedFilterSet(django_filters.FilterSet):
@@ -77,6 +78,9 @@ class PreliminaryFacilityFilter(BaseFacilityFilter):
     main_beam_orientation = django_filters.CharFilter(lookup_expr="icontains")
     antenna_model_number = django_filters.CharFilter(lookup_expr="icontains")
     comments = django_filters.CharFilter(lookup_expr="search")
+    pcase = django_filters.ModelChoiceFilter(
+        queryset=models.PreliminaryCase.objects.all(), widget=PCaseWidget()
+    )
 
     class Meta:
         model = models.PreliminaryFacility

@@ -4,36 +4,61 @@
 
 {% block content %}
 {% make_breadcrumb preliminaryfacility %}
-{% include "cases/base_detail_header.html" %}
 
-<a href={% url "prelim_case_detail" preliminaryfacility.pcase.case_num %}>View Preliminary Case</a>
-
-<p><a href={% url "admin:cases_preliminaryfacility_change" preliminaryfacility.id %}>Edit</a></p>
-
-<h1>{{ preliminaryfacility }}</h1>
-{% include "cases/base_detail.html" %}
-
-<div class="row">
-    <div class="col-sm">
-        <div class="row">
-            {% info_table preliminaryfacility "Metadata" meta_info %}
-        </div>
-        <div class="row">
-            {% location_table preliminaryfacility "Location Info" location_info %}
-        </div>
+<div class="row ">
+    <div class="col-lg-2">
+        <h1>{{ preliminaryfacility }}</h1>
     </div>
-    <div class="col-sm">
-        {% info_table preliminaryfacility "Antenna Info" antenna_info %}
+    <div class="col-l-2">
+        <p>Date Received: {{ preliminaryfacility.pcase.date_received|default:"None" }}</p>
     </div>
-    <div class="col-sm">
-        {% info_table preliminaryfacility "Other Info" other_info %}
+    <div class="col-lg-2">
+    <a href={% url "prelim_case_detail" preliminaryfacility.pcase.case_num %}>View Preliminary Case</a>
+    </div>
+
+    <div class="col-lg-2">
+        <p><a href={% url "admin:cases_preliminaryfacility_change" preliminaryfacility.id %}>Edit</a></p>
+    </div>
+
+    <div class="col-lg-2">
+        {% include "cases/base_detail_header.html" %}
     </div>
 </div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg">
+            {% location_table preliminaryfacility "Topography Data" topography_info %}
+            {% info_table preliminaryfacility "Antenna Data" antenna_info %}
+        </div>
+        <div class="col-lg">
+            {% info_table preliminaryfacility "Transmitter Data" transmitter_info %}
+            {% info_table preliminaryfacility "Analysis Results" analysis_results_info %}
+        </div>
+        <div class="col-lg">
+            {% info_table preliminaryfacility "Path Data Interpolation" path_data_interpolation_info %}
+            {% info_table preliminaryfacility "USGS Dataset" usgs_dataset_info %}
+            <h2>Comments</h2>
+            <table class="table">
+                <tr title="{{ help_text }}">
+                    <td>{{ preliminaryfacility.comments | linebreaks }}
+                </tr>
+            </table>
+        </div>
+    </div>
+
+</div>
+
 {% if preliminaryfacility.comments %}
-<h2>Comments</h2>
 <div class="row">
-    {{ preliminaryfacility.comments | linebreaks }}
+
 </div>
 {% endif %}
+
+<div class="row">
+    <div class="col-lg">
+        {% info_table preliminaryfacility "TODO: Unsorted" unsorted_info %}
+    </div>
+</div>
 
 {% endblock %}

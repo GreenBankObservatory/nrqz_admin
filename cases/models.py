@@ -37,9 +37,14 @@ from django.utils.functional import cached_property
 from django_import_data.models import AbstractBaseAuditedModel
 
 from utils.constants import WGS84_SRID
-from utils.coord_utils import dd_to_dms
 from .kml import facility_as_kml, case_as_kml, kml_to_string
-from .mixins import DataSourceModel, TrackedOriginalModel, IsActiveModel, TrackedModel
+from .mixins import (
+    AllFieldsModel,
+    DataSourceModel,
+    IsActiveModel,
+    TrackedModel,
+    TrackedOriginalModel,
+)
 
 # TODO: Make proper field
 LOCATION_FIELD = lambda: PointField(
@@ -139,6 +144,7 @@ class LocationQuerySet(QuerySet):
 
 
 class AbstractBaseFacility(
+    AllFieldsModel,
     AbstractBaseAuditedModel,
     TrackedOriginalModel,
     IsActiveModel,
@@ -165,6 +171,12 @@ class AbstractBaseFacility(
         null=True,
         blank=True,
         help_text="Frequency specific or lower part of band.",
+    )
+    freq_high = FloatField(
+        verbose_name="Freq High (MHz)",
+        help_text="Frequency specific or upper part of band.",
+        blank=True,
+        null=True,
     )
     antenna_model_number = CharField(
         verbose_name="Antenna Model No.",
@@ -202,10 +214,10 @@ class AbstractBaseFacility(
         blank=True,
         null=True,
         max_length=512,
-        verbose_name="Location Description",
+        verbose_name="Geographic Location",
         help_text="A long-form description of the facility location",
     )
-    srid_used_for_import = ForeignKey(
+    original_srs = ForeignKey(
         PostGISSpatialRefSys,
         on_delete=PROTECT,
         help_text="The spatial reference system of the original imported coordinates",
@@ -237,6 +249,9 @@ class AbstractBaseFacility(
     topo_4_point = BooleanField(null=True, blank=True, verbose_name="FCC 4 Point")
     topo_12_point = BooleanField(
         null=True, blank=True, verbose_name="Weighted 12 Point"
+    )
+    propagation_model = CharField(
+        max_length=256, default="Rounded Obstacle", verbose_name="Propagation Model"
     )
     nrao_aerpd_cdma = FloatField(null=True, blank=True)
     nrao_aerpd_cdma2000 = FloatField(null=True, blank=True)
@@ -324,12 +339,6 @@ class PreliminaryFacility(AbstractBaseFacility):
 class Facility(AbstractBaseFacility):
     """Describes a single, physical antenna"""
 
-    freq_low = FloatField(
-        verbose_name="Freq Low (MHz)",
-        null=True,
-        blank=True,
-        help_text="Frequency specific or lower part of band.",
-    )
     site_name = CharField(
         max_length=256,
         blank=True,
@@ -351,12 +360,7 @@ class Facility(AbstractBaseFacility):
         verbose_name="FCC File Number",
         help_text="???",
     )
-    freq_high = FloatField(
-        verbose_name="Freq High (MHz)",
-        help_text="Frequency specific or upper part of band.",
-        blank=True,
-        null=True,
-    )
+
     bandwidth = FloatField(
         verbose_name="Bandwidth (MHz)",
         help_text="Minimum utilized per TX (i.e. 11K0F0E is a value of 0.011)",
@@ -378,16 +382,13 @@ class Facility(AbstractBaseFacility):
         blank=True,
     )
     mechanical_downtilt = CharField(
-        verbose_name="Mechanical Downtilt", max_length=256, blank=True, null=True
+        verbose_name="Mechanical Downtilt", max_length=256, blank=True
     )
     electrical_downtilt = CharField(
-        verbose_name="Electrical Downtilt Sector",
+        verbose_name="Electrical Downtilt",
         max_length=256,
         blank=True,
         help_text="Specific and/or RET range",
-    )
-    antenna_model_number = CharField(
-        verbose_name="Antenna Model No.", max_length=256, blank=True, null=True
     )
     tx_per_sector = CharField(
         max_length=256,
@@ -510,10 +511,6 @@ class Facility(AbstractBaseFacility):
     def __iter__(self):
         for field in self._meta.fields:
             yield (field.verbose_name, field.value_to_string(self))
-
-    def all_fields(self):
-        for field in self._meta.fields:
-            yield (field.name, field.verbose_name, field.value_to_string(self))
 
     def __str__(self):
         if self.nrqz_id:
@@ -663,7 +660,7 @@ class Case(AbstractBaseCase):
         verbose_name_plural = "Cases"
 
     def __str__(self):
-        return f"C{self.case_num}"
+        return f"{self.case_num}"
 
     def get_absolute_url(self):
         return reverse("case_detail", args=[str(self.case_num)])

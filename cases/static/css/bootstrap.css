@@ -109,3 +109,7 @@ ul.messages li.error {
     size: auto;
 }
 */
+
+.table td, th {
+    padding: .25rem
+}
