@@ -419,7 +419,7 @@ class PreliminaryCaseDetailView(MultiTableMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["status_info"] = ["completed", "completed_on"]
+        context["status_info"] = ["completed_on"]
         context["application_info"] = ["radio_service", "num_freqs", "num_sites"]
         context["unsorted_info"] = get_fields_missing_from_info_tables(
             context, self.object.all_fields()
@@ -449,7 +449,6 @@ class CaseDetailView(MultiTableMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["status_info"] = [
-            "completed",
             "shutdown",
             "completed_on",
             "si_waived",
@@ -509,26 +508,22 @@ class BaseFacilityDetailView(DetailView):
             "nrao_diff",
             "nrao_space",
             "nrao_tropo",
-            "tpa",
-            # TODO: "attachments" prop study
             "distance_to_first_obstacle",
             "height_of_first_obstacle",
             "dominant_path",
         ]
 
         context["analysis_results_info"] = [
+            "nrao_aerpd",
+            "nrao_aerpd_analog",
+            "nrao_aerpd_gsm",
             "nrao_aerpd_cdma",
             "nrao_aerpd_cdma2000",
-            "nrao_aerpd_gsm",
-            "nrao_aerpd_analog",
-            "nrao_diff",
-            "nrao_space",
-            "nrao_tropo",
+            "tpa",
         ]
         context["federal_info"] = [
-            # TODO: How to get this cleanly?
-            # "case.is_federal",
-            "s367"
+            ("Is Federal?", self.object.case.is_federal, ""),
+            "s367",
         ]
 
         context["sgrs_info"] = [
