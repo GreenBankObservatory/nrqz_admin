@@ -134,16 +134,18 @@ def location_table(instance, title, fields):
             point_str = coords_to_string(
                 latitude=point.y, longitude=point.x, concise=True
             )
-            # point_str = "<br>".join(point_str.split(", "))
             if point.srid == instance.original_srs.srid:
                 point_label = (
                     f"<b title='SRID: {point.srid}'>{point.srs.name} (original)</b>"
                 )
+            elif point.srid == instance.location.srid:
+                point_label = f"<span title='SRID: {point.srid}'>{point.srs.name} (internal)</span>"
+                point_str = f"<a href={url}>{point_str}</a>"
             else:
                 point_label = (
                     f"<span title='SRID: {point.srid}'> {point.srs.name}</span>"
                 )
-            rows.append((point_label, f"<a href={url}>{point_str}</a>", ""))
+            rows.append((point_label, point_str, ""))
     else:
         rows.append(("Location", None, None))
 
