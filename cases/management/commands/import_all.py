@@ -43,6 +43,7 @@ class Command(BaseMetaImportCommand):
                         "no_transaction",
                         "start_index",
                         "end_index",
+                        "verbosity",
                     ]
                     if option in options
                 },

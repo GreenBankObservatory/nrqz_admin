@@ -229,6 +229,8 @@ class BasePreliminaryFacilityForm(forms.ModelForm):
             "topo_12_point",
             "survey_1a",
             "survey_2c",
+            "freq_high",
+            "propagation_model",
         )
         widgets = {"pcase": PCaseWidget(), "attachments": AttachmentsWidget()}
 
@@ -323,6 +325,7 @@ class BaseFacilityForm(forms.ModelForm):
             "topo_12_point",
             "survey_1a",
             "survey_2c",
+            "propagation_model",
         )
 
         widgets = {"case": CaseWidget(), "attachments": AttachmentsWidget()}
