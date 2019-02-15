@@ -236,7 +236,7 @@ class AttachmentFilterFormHelper(FormHelper):
     """Provides layout information for AttachmentFilter.form"""
 
     layout = CollapsibleFilterFormLayout(
-        Div(Div("path", css_class="col"), css_class="row")
+        Div(Div("path", "original_index", css_class="col"), css_class="row")
     )
 
 

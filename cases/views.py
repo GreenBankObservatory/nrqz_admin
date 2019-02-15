@@ -421,6 +421,9 @@ class PreliminaryCaseDetailView(MultiTableMixin, DetailView):
         context = super().get_context_data(**kwargs)
         context["status_info"] = ["completed", "completed_on"]
         context["application_info"] = ["radio_service", "num_freqs", "num_sites"]
+        context["unsorted_info"] = get_fields_missing_from_info_tables(
+            context, self.object.all_fields()
+        )
         return context
 
 
@@ -452,7 +455,6 @@ class CaseDetailView(MultiTableMixin, DetailView):
             "si_waived",
             "si",
             "si_done",
-            "name",
             "is_federal",
         ]
         context["application_info"] = [
@@ -466,6 +468,9 @@ class CaseDetailView(MultiTableMixin, DetailView):
             "erpd_limit",
         ]
         context["sgrs_info"] = ["sgrs_notify", "sgrs_responded_on", "sgrs_service_num"]
+        context["unsorted_info"] = get_fields_missing_from_info_tables(
+            context, self.object.all_fields()
+        )
         return context
 
     def as_kml(self):

@@ -6,10 +6,29 @@
 
 {% block content %}
 {% make_breadcrumb preliminarycase %}
-{% include "cases/base_detail_header.html" %}
 
-<h1>Preliminary Case {{ preliminarycase.case_num }}</h1>
-{% include "cases/base_detail.html" %}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-3">
+            <h1>Preliminary Case {{ preliminarycase.case_num }}</h1>
+        </div>
+
+        <div class="col-lg-3 d-print-none">
+            <p>Date Received: {{ preliminarycase.date_recorded|default:"None" }}</p>
+        </div>
+
+        <div class="col-lg d-print-none">
+            <a href="{% url 'admin:cases_preliminarycase_change' preliminarycase.id %}">Edit</a>
+        </div>
+
+        <div class="col-lg d-print-none">
+            {% include "cases/base_detail.html" %}
+        </div>
+    </div>
+</div>
+
+
 
 <h2>Applicant Info</h2>
 <table class="table">
@@ -79,5 +98,9 @@
 <p>No Attachments</p>
 {% endif %}
 
-
+<div class="row">
+    <div class="col-lg">
+        {% info_table preliminarycase "TODO: Unsorted" unsorted_info %}
+    </div>
+</div>
 {% endblock %}

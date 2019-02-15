@@ -9,8 +9,8 @@
     <div class="col-lg-2">
         <h1>{{ preliminaryfacility }}</h1>
     </div>
-    <div class="col-l-2">
-        <p>Date Received: {{ preliminaryfacility.pcase.date_received|default:"None" }}</p>
+    <div class="col-lg-2">
+        <p>Date Received: {{ preliminaryfacility.pcase.date_recorded|default:"None" }}</p>
     </div>
     <div class="col-lg-2">
     <a href={% url "prelim_case_detail" preliminaryfacility.pcase.case_num %}>View Preliminary Case</a>

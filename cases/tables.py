@@ -258,11 +258,15 @@ class PersonTable(tables.Table):
 class AttachmentTable(tables.Table):
     path = tables.Column(linkify=True, verbose_name="Attachment")
     file = UnboundFileColumn(accessor="path", verbose_name="Link")
+    original_index = tables.Column(verbose_name="Letter #")
 
     class Meta:
         model = models.Attachment
         fields = AttachmentFilter.Meta.fields
         order_by = ["original_index"]
+
+    # def render_original_index(self, value):
+    #     return f"Letter {value}"
 
 
 class StructureTable(tables.Table):

@@ -543,6 +543,7 @@ class PreliminaryCaseGroup(
 
 
 class AbstractBaseCase(
+    AllFieldsModel,
     AbstractBaseAuditedModel,
     TrackedOriginalModel,
     IsActiveModel,
@@ -551,13 +552,14 @@ class AbstractBaseCase(
     Model,
 ):
 
-    name = CharField(max_length=256, blank=True, null=True)
     comments = TextField(blank=True)
     completed = BooleanField(default=False, blank=True, verbose_name="Completed")
     completed_on = DateTimeField(null=True, blank=True, verbose_name="Completed On")
-    is_federal = BooleanField(null=True)
+    is_federal = BooleanField(null=True, verbose_name="Gov.")
     num_freqs = PositiveIntegerField(null=True, blank=True, verbose_name="Num. Freq.")
-    num_sites = PositiveIntegerField(null=True, blank=True, verbose_name="Num Sites")
+    num_sites = PositiveIntegerField(
+        null=True, blank=True, verbose_name="Num. Facilities"
+    )
     radio_service = CharField(max_length=256, blank=True, verbose_name="Radio Service")
     date_recorded = DateTimeField(null=True, blank=True, verbose_name="Date Recorded")
 
@@ -652,7 +654,7 @@ class Case(AbstractBaseCase):
     )
     erpd_limit = BooleanField(default=False, blank=True, verbose_name="ERPD Limit")
     si_waived = BooleanField(default=False, blank=True, verbose_name="SI Waived")
-    si = BooleanField(default=False, blank=True, verbose_name="SI")
+    si = BooleanField(default=False, blank=True, verbose_name="SI Req.")
     si_done = DateField(null=True, blank=True, verbose_name="SI Done")
 
     sgrs_service_num = PositiveIntegerField(null=True, blank=True)

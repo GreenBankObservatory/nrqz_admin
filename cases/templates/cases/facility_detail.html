@@ -5,28 +5,37 @@
 {% block content %}
 {% make_breadcrumb facility %}
 
-{% include "cases/base_detail_header.html" %}
 
 <div class="container-fluid">
     <div class="row">
-        <div class="col-lg">
+        <div class="col-lg-2">
+            <h1>{{ facility }}</h1>
+        </div>
+        <div class="col-lg-2 d-print-none">
+            <p>Date Received: {{ facility.case.date_recorded|default:"None" }}</p>
+        </div>
+        <div class="col-lg d-print-none">
             <a href="{% url 'case_detail' facility.case.case_num %}">View case</a>
         </div>
 
         {% if facility.structure %}
-        <div class="col-lg">
+        <div class="col-lg d-print-none">
             <a href="{% url 'structure_detail' facility.structure.id %}">View structure</a>
         </div>
         {% endif %}
 
-        <div class="col-lg">
+        <div class="col-lg d-print-none">
             <a href="{% url 'admin:cases_facility_change' facility.id %}">Edit</a>
+        </div>
+
+
+        <div class="col-lg d-print-none">
+            {% include "cases/base_detail.html" %}
         </div>
     </div>
 </div>
 
-<h1>{{ facility }}</h1>
-{% include "cases/base_detail.html" %}
+
 
 <div class="container-fluid">
     <div class="row">

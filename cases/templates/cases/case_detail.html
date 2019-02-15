@@ -8,21 +8,19 @@
 
 {% make_breadcrumb case %}
 
+<div class="row">
+    <div class="col-lg-3">
+        <h1>Case {{ case.case_num }}</h1>
+    </div>
 
-{% include "cases/base_detail_header.html" %}
+    <div class="col-lg-3 d-print-none">
+        <p>Date Received: {{ case.date_recorded|default:"None" }}</p>
+    </div>
 
-<p class="d-print-none"><a href={% url "admin:cases_case_change" case.id %}>Edit</a></p>
-
-
-<h1>Case {{ case.case_num }} {% if case.applicant %}({{ case.applicant.name }}){% endif %}</h1>
-{% include "cases/base_detail.html" %}
-
-<h2>Facilities</h2>
-{% if tables.0.data %}
-{% render_table tables.0 %}
-{% else %}
-<p>No Facilities</p>
-{% endif %}
+    <div class="col-lg d-print-none">
+        <a href="{% url 'admin:cases_case_change' case.id %}">Edit</a>
+    </div>
+</div>
 
 <h2>Applicant Info</h2>
 <table class="table">
@@ -76,6 +74,14 @@
     </tr>
 </table>
 
+<h2>Facilities</h2>
+{% if tables.0.data %}
+{% render_table tables.0 %}
+{% else %}
+<p>No Facilities</p>
+{% endif %}
+
+
 <div class="container-fluid">
     <div class="row">
         <div class="col-lg">
@@ -111,4 +117,10 @@
 <p>Map of column headers to list of unique invalid values (values that caused errors)</p>
 {{ case.import_error_summary|json|safe }}
 {% endif %}
+
+<div class="row">
+    <div class="col-lg">
+        {% info_table case "TODO: Unsorted" unsorted_info %}
+    </div>
+</div>
 {% endblock %}

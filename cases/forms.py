@@ -116,7 +116,6 @@ BASE_CASE_FIELDS = (
     "data_source",
     "date_recorded",
     "is_federal",
-    "name",
     "num_freqs",
     "num_sites",
     "original_created_on",
