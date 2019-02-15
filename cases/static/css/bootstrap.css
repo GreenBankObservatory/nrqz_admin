@@ -121,3 +121,12 @@ ul.messages li.error {
 .h2, h2 {
     font-size: 1.5rem;
 }
+
+
+.form-control {
+    height: calc(1.75rem + 2px)
+}
+
+.col-form-label {
+    padding-bottom: calc(.1rem + 1px)
+}
