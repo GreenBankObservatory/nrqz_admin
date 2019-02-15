@@ -8,6 +8,13 @@
     }
 }
 
+@media print {
+    .container{
+        max-width: none;
+    }
+}
+
+
 .form-group{
     margin-bottom: 0;
 }
@@ -31,17 +38,6 @@ we simply disable the offending attributes here.*/
     padding: unset;
     height: unset;
 }
-
-/* Needed to keep tables from escaping their containers in bootstrap */
-/*td {
-    word-break: unset;
-}*/
-
-/*.vertical-text {
-    display: flex;
-    align-items: center;
-}
-*/
 
 .filter-button {
     margin-right: 10px;
@@ -105,28 +101,28 @@ ul.messages li.error {
     padding: 2px 15px;
 }
 
-/*@page {
-    size: auto;
-}
-*/
 
+/* Decrease padding between table rows */
 .table td, th {
-    padding: .25rem
+    padding: .2rem
 }
 
+/* Make headings a little smaller */
 .h1, h1 {
     font-size: 2rem;
 }
 
+/* Make headings a little smaller */
 .h2, h2 {
     font-size: 1.5rem;
 }
 
-
+/* Make form fields a little shorter */
 .form-control {
     height: calc(1.75rem + 2px)
 }
 
+/* Make form field labels a little shorter */
 .col-form-label {
     padding-bottom: calc(.1rem + 1px)
 }

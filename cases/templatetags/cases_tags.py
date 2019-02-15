@@ -123,44 +123,42 @@ def attachment_table(instance, title, fields):
 @register.inclusion_tag("cases/info_table.html")
 def location_table(instance, title, fields):
     rows = []
-    if instance.location:
-        wgs84 = instance.location
-        # Need clone in order to create a new object rather than transform in-place
-        nad27 = wgs84.transform(NAD27_SRID, clone=True)
-        nad83 = wgs84.transform(NAD83_SRID, clone=True)
+    for field in fields:
+        if field == "location":
+            if instance.location:
+                wgs84 = instance.location
+                # Need clone in order to create a new object rather than transform in-place
+                nad27 = wgs84.transform(NAD27_SRID, clone=True)
+                nad83 = wgs84.transform(NAD83_SRID, clone=True)
 
-        url = reverse("facility_kml", args=[str(instance.id)])
-        for point in (wgs84, nad83, nad27):
-            point_str = coords_to_string(
-                latitude=point.y, longitude=point.x, concise=True
-            )
-            if point.srid == instance.original_srs.srid:
-                point_label = (
-                    f"<b title='SRID: {point.srid}'>{point.srs.name} (original)</b>"
-                )
-            elif point.srid == instance.location.srid:
-                point_label = f"<span title='SRID: {point.srid}'>{point.srs.name} (internal)</span>"
-                point_str = f"<a href={url}>{point_str}</a>"
+                url = reverse("facility_kml", args=[str(instance.id)])
+                for point in (wgs84, nad83, nad27):
+                    point_str = coords_to_string(
+                        latitude=point.y, longitude=point.x, concise=True
+                    )
+                    if point.srid == instance.original_srs.srid:
+                        point_label = f"<b title='SRID: {point.srid}'>{point.srs.name} (original)</b>"
+                    elif point.srid == instance.location.srid:
+                        point_label = f"<span title='SRID: {point.srid}'>{point.srs.name} (internal)</span>"
+                        point_str = f"<a href={url}>{point_str}</a>"
+                    else:
+                        point_label = (
+                            f"<span title='SRID: {point.srid}'> {point.srs.name}</span>"
+                        )
+                    rows.append((point_label, point_str, ""))
             else:
-                point_label = (
-                    f"<span title='SRID: {point.srid}'> {point.srs.name}</span>"
+                rows.append(("Location", None, None))
+        else:
+            if not isinstance(field, tuple):
+                rows.append(
+                    (
+                        instance._meta.get_field(field).verbose_name,
+                        instance._meta.get_field(field).value_to_string(instance),
+                        instance._meta.get_field(field).help_text,
+                    )
                 )
-            rows.append((point_label, point_str, ""))
-    else:
-        rows.append(("Location", None, None))
-
-    rows.extend(
-        [
-            (
-                instance._meta.get_field(field).verbose_name,
-                instance._meta.get_field(field).value_to_string(instance),
-                instance._meta.get_field(field).help_text,
-            )
-            if not isinstance(field, tuple)
-            else field
-            for field in fields
-        ]
-    )
+            else:
+                rows.append(field)
     return {"title": title, "rows": rows}
 
 

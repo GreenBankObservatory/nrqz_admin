@@ -8,10 +8,10 @@
 
 <div class="container-fluid">
     <div class="row">
-        <div class="col-lg-2">
+        <div class="col-lg">
             <h1>{{ facility }}</h1>
         </div>
-        <div class="col-lg-2 d-print-none">
+        <div class="col-lg d-print-none">
             <p>Date Received: {{ facility.case.date_recorded|default:"None" }}</p>
         </div>
         <div class="col-lg d-print-none">
@@ -27,11 +27,6 @@
         <div class="col-lg d-print-none">
             <a href="{% url 'admin:cases_facility_change' facility.id %}">Edit</a>
         </div>
-
-
-        <div class="col-lg d-print-none">
-            {% include "cases/base_detail.html" %}
-        </div>
     </div>
 </div>
 
@@ -41,18 +36,18 @@
     <div class="row">
         <div class="col-lg">
             {% location_table facility "Topography Data" topography_info %}
-            {% info_table facility "Antenna Data" antenna_info %}
-            {% info_table facility "Path Data Interpolation" path_data_interpolation_info %}
-            {% info_table facility "USGS Dataset" usgs_dataset_info %}
+            {% info_table facility "Analysis Results" analysis_results_info %}
 
         </div>
         <div class="col-lg">
-            {% info_table facility "Transmitter Data" transmitter_info %}
+            {% info_table facility "System Configuration Data" transmitter_info %}
+            {% info_table facility "Antenna Data" antenna_info %}
             {% info_table facility "Emissions Data" emissions_info %}
-            {% info_table facility "Path Attenuation Results" path_attenuation_info %}
         </div>
         <div class="col-lg">
-            {% info_table facility "Analysis Results" analysis_results_info %}
+            {% info_table facility "Path Attenuation Results" path_attenuation_info %}
+            {% info_table facility "Path Data Interpolation" path_data_interpolation_info %}
+            {% info_table facility "USGS Dataset" usgs_dataset_info %}
             {% info_table facility "SGRS" sgrs_info %}
             {% info_table facility "FED" federal_info %}
         </div>

@@ -482,7 +482,9 @@ class BaseFacilityDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         context["topography_info"] = [
             "site_name",
+            "call_sign",
             "location_description",
+            "location",
             "amsl",
             "survey_1a",
             "survey_2c",
@@ -546,6 +548,9 @@ class PreliminaryFacilityDetailView(BaseFacilityDetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["location_info"] = ["location", "amsl", "agl"]
+        context["topography_info"] = [
+            item for item in context["topography_info"] if item != "call_sign"
+        ]
         context["antenna_info"] = [
             "agl",
             "antenna_model_number",
@@ -556,7 +561,6 @@ class PreliminaryFacilityDetailView(BaseFacilityDetailView):
                 else None,
                 "Azimuth bearing to GBT in degrees",
             ),
-            # TODO: az deg true
         ]
         context["transmitter_info"] = [
             "freq_low",
