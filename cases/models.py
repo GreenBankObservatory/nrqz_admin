@@ -251,7 +251,10 @@ class AbstractBaseFacility(
         null=True, blank=True, verbose_name="Weighted 12 Point"
     )
     propagation_model = CharField(
-        max_length=256, default="Rounded Obstacle", verbose_name="Propagation Model"
+        max_length=256,
+        default="Rounded Obstacle",
+        verbose_name="Propagation Model",
+        blank=True,
     )
     nrao_aerpd_cdma = FloatField(null=True, blank=True)
     nrao_aerpd_cdma2000 = FloatField(null=True, blank=True)
