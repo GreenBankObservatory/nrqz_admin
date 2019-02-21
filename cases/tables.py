@@ -1,4 +1,5 @@
 """Custom django_tables2.Table sub-classes for cases app"""
+from django.utils.safestring import mark_safe
 
 import django_tables2 as tables
 
@@ -73,6 +74,23 @@ class BaseFacilityTable(tables.Table):
         accessor="azimuth_to_gbt",
         verbose_name="Azimuth Bearing to GBT",
     )
+    # TODO: Consolidate!
+    def render_latitude(self, value):
+        return mark_safe(
+            f"<span style='white-space:nowrap'>{lat_to_string(latitude=value.y, concise=True)}</span>"
+        )
+
+    # TODO: Consolidate!
+    def render_longitude(self, value):
+        return mark_safe(
+            f"<span style='white-space:nowrap'>{long_to_string(longitude=value.x, concise=True)}</span>"
+        )
+
+    def value_latitude(self, value):
+        return lat_to_string(latitude=value.y, concise=True)
+
+    def value_longitude(self, value):
+        return long_to_string(longitude=value.x, concise=True)
 
     def render_location(self, value):
         """Render a coordinate as DD MM SS.sss"""
@@ -161,14 +179,6 @@ class FacilityTable(BaseFacilityTable):
 
     def render_nrao_aerpd(self, value):
         return f"{value:.2E}"
-
-    # TODO: Consolidate!
-    def render_latitude(self, value):
-        return lat_to_string(latitude=value.y, concise=True)
-
-    # TODO: Consolidate!
-    def render_longitude(self, value):
-        return long_to_string(longitude=value.x, concise=True)
 
     def render_dominant_path(self, value):
         if value:

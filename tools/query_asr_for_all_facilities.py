@@ -8,6 +8,8 @@ from cases.models import Facility, Structure
 from cases.forms import StructureForm
 from tools.query_asr import query_asr_by_location
 
+from utils.constants import FCC_ASR
+
 m = {
     "DD_TEMP": "latitude",
     "DD_TEMP0": "longitude",
@@ -43,6 +45,8 @@ def create_structure_from_feature(feature, facility):
     structure_dict["location"] = GEOSGeometry(
         f"Point({longitude} {latitude})", srid=4326
     )
+
+    structure_dict["data_source"] = FCC_ASR
 
     structure_dict["facility"] = facility.id
     try:

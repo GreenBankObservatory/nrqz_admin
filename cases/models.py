@@ -610,8 +610,12 @@ class Case(AbstractBaseCase):
     si = BooleanField(default=False, blank=True, verbose_name="SI Req.")
     si_done = DateField(null=True, blank=True, verbose_name="SI Done")
 
-    sgrs_service_num = PositiveIntegerField(null=True, blank=True)
-    agency_num = CharField(max_length=256, null=True, blank=True)
+    sgrs_service_num = PositiveIntegerField(
+        null=True, blank=True, help_text="SGRS Service Num."
+    )
+    agency_num = CharField(
+        max_length=256, null=True, blank=True, help_text="Agency Num."
+    )
 
     class Meta:
         verbose_name = "Case"

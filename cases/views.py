@@ -466,7 +466,13 @@ class CaseDetailView(MultiTableMixin, DetailView):
             "num_outside",
             "erpd_limit",
         ]
-        context["sgrs_info"] = ["sgrs_notify", "sgrs_responded_on", "sgrs_service_num"]
+        context["sgrs_info"] = [
+            "sgrs_notify",
+            "sgrs_responded_on",
+            "sgrs_service_num",
+            ("NRAO Approval", self.object.nrao_approval, ""),
+            ("SGRS Approval", self.object.sgrs_approval, ""),
+        ]
         context["unsorted_info"] = get_fields_missing_from_info_tables(
             context, self.object.all_fields()
         )

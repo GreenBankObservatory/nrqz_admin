@@ -17,7 +17,7 @@ from utils.coord_utils import parse_coord, point_to_string
 
 
 def create_users():
-    users = ["tchamber", "pwoody", "mholstin", "mwhitehe", "koneil"]
+    users = ["tchamber", "pwoody"]
 
     for user in users:
         try:

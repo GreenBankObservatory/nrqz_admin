@@ -11,6 +11,7 @@ ACCESS_TECHNICAL = "access_technical"
 ACCESS_PRELIM_APPLICATION = "access_prelim_application"
 ACCESS_APPLICATION = "access_application"
 NAM_APPLICATION = "nam_application"
+FCC_ASR = "fcc_asr"
 
 
 # Misc.

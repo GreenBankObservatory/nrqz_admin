@@ -21,7 +21,7 @@ def dd_to_dms(decimal):
     return (d, m, s)
 
 
-CONCISE_COORD_FORMAT = "{:3d} {:02d} {:2.3f}"
+CONCISE_COORD_FORMAT = "{:d} {:02d} {:2.3f}"
 VERBOSE_COORD_FORMAT = "{:3d}° {:02d}′ {:2.3f}″ {}"
 
 

@@ -104,7 +104,8 @@ ul.messages li.error {
 
 /* Decrease padding between table rows */
 .table td, th {
-    padding: .2rem
+    padding-top: .2rem;
+    padding-bottom: .2rem;
 }
 
 /* Make headings a little smaller */

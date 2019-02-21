@@ -166,11 +166,7 @@ class CaseFilterFormHelper(FormHelper):
                 css_class="col",
             ),
             Div(
-                "original_created_on",
-                "completed",
-                "comments",
-                "is_federal",
-                css_class="col",
+                "date_recorded", "completed", "comments", "is_federal", css_class="col"
             ),
             css_class="row",
         ),

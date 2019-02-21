@@ -178,7 +178,7 @@ def parse_args():
     )
     args = parser.parse_args()
 
-    if not args.coords or args.regnum:
+    if not (args.coords or args.regnum):
         parser.error("One of --coords or --regnum is required")
     return args
 

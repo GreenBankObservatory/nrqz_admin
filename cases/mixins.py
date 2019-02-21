@@ -1,12 +1,13 @@
 from django.db import models
 from utils.constants import (
-    WEB,
-    EXCEL,
+    ACCESS_APPLICATION,
+    ACCESS_PRELIM_APPLICATION,
     ACCESS_PRELIM_TECHNICAL,
     ACCESS_TECHNICAL,
-    ACCESS_PRELIM_APPLICATION,
-    ACCESS_APPLICATION,
+    EXCEL,
+    FCC_ASR,
     NAM_APPLICATION,
+    WEB,
 )
 
 
@@ -68,6 +69,7 @@ class DataSourceModel(models.Model):
             (ACCESS_PRELIM_APPLICATION, "Access Prelim. Application Table"),
             (ACCESS_APPLICATION, "Access Application Table"),
             (NAM_APPLICATION, "NRQZ Analyzer Application"),
+            (FCC_ASR, "FCC ASR Database"),
         ),
         help_text="The source that this object was created from",
     )
