@@ -65,7 +65,6 @@ class LetterFacilityTable(tables.Table):
 
 class BaseFacilityTable(tables.Table):
     comments = TrimmedTextColumn()
-    in_nrqz = tables.Column(empty_values=(), accessor="in_nrqz", verbose_name="In NRQZ")
     distance_to_gbt = tables.Column(
         empty_values=(), accessor="distance_to_gbt", verbose_name="Distance to GBT"
     )
@@ -95,7 +94,7 @@ class BaseFacilityTable(tables.Table):
             distance_to_gbt = record.get_distance_to_gbt()
         if distance_to_gbt is None:
             return "—"
-        return f"{distance_to_gbt.mi:.2f} miles"
+        return f"{distance_to_gbt.km:.2f} km"
 
     def render_azimuth_to_gbt(self, record):
         azimuth_to_gbt = getattr(record, "azimuth_to_gbt", None)
@@ -120,35 +119,36 @@ class PreliminaryFacilityTable(BaseFacilityTable):
 
 class FacilityTable(BaseFacilityTable):
     nrqz_id = tables.Column(
-        linkify=True, empty_values=(), order_by=["case__case_num", "-nrqz_id"]
+        linkify=True,
+        empty_values=(),
+        order_by=["case__case_num", "-nrqz_id"],
+        verbose_name="Facility ID",
     )
     case = tables.Column(linkify=True, order_by=["case_num"])
-    # path = tables.Column(empty_values=())
-    dominant_path = tables.Column(verbose_name="Dom. Path")
-    # calc_az = tables.Column(
-    #     verbose_name="Az. Bearing to GBT", accessor="azimuth_to_gbt"
-    # )
-    applicant = tables.Column(linkify=True, accessor="case.applicant")
+    # applicant = tables.Column(linkify=True, accessor="case.applicant")
     latitude = tables.Column(accessor="location", verbose_name="Latitude")
     longitude = tables.Column(accessor="location", verbose_name="Longitude")
 
     class Meta:
         model = models.Facility
         fields = [
-            field
-            for field in FacilityFilter.Meta.fields
-            if field
-            not in [
-                "structure",
-                "data_source",
-                "site_num",
-                "comments",
-                "az_bearing",
-                "contact",
-                "location",
-            ]
+            "nrqz_id",
+            "case",
+            "site_name",
+            "latitude",
+            "longitude",
+            "freq_low",
+            "freq_high",
+            "main_beam_orientation",
+            "distance_to_gbt",
+            "azimuth_to_gbt",
+            "nrao_aerpd",
+            "requested_max_erp_per_tx",
         ]
         order_by = ["-nrqz_id", "freq_low"]
+
+    def render_requested_max_erp_per_tx(self, value):
+        return f"{value:.2f}"
 
     def render_path(self, record):
         fia = record.model_import_attempt.file_import_attempt
@@ -160,7 +160,7 @@ class FacilityTable(BaseFacilityTable):
         return path
 
     def render_nrao_aerpd(self, value):
-        return f"{value:.2f}"
+        return f"{value:.2E}"
 
     # TODO: Consolidate!
     def render_latitude(self, value):

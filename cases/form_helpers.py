@@ -85,7 +85,7 @@ class FacilityFilterFormHelper(FormHelper):
             Div(
                 "nrqz_id",
                 "case",
-                "site_num",
+                "site_name",
                 "main_beam_orientation",
                 css_class="col-sm-2",
             ),
@@ -97,28 +97,15 @@ class FacilityFilterFormHelper(FormHelper):
                 css_class="col-sm-5",
             ),
             Div(
-                "structure",
-                "site_name",
-                "antenna_model_number",
-                # "path",
-                css_class="col-sm-2",
-            ),
-            Div(
-                "applicant",
-                "contact",
                 "nrao_aerpd",
-                "in_nrqz",
-                "dominant_path",
-                css_class="col-sm-3",
+                "requested_max_erp_per_tx",
+                "data_source",
+                "comments",
+                css_class="col-sm-5",
             ),
             css_class="row",
         ),
-        Div(
-            Div("location", css_class="col-sm-7"),
-            Div("comments", css_class="col-sm-2"),
-            Div("data_source", css_class="col-sm-3"),
-            css_class="row",
-        ),
+        Div(Div("location", css_class="col-sm-7"), css_class="row"),
         extra_buttons=[
             Submit(
                 "kml",

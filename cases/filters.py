@@ -117,6 +117,8 @@ class FacilityFilter(BaseFacilityFilter):
         lookup_expr="icontains",
         label="Imported-from Path contains",
     )
+    nrao_aerpd = django_filters.RangeFilter()
+    requested_max_erp_per_tx = django_filters.RangeFilter()
 
     class Meta:
         model = models.Facility
