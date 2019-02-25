@@ -603,7 +603,7 @@ class FacilityDetailView(BaseFacilityDetailView):
             "tx_per_sector",
             "max_tx_power",
             "num_tx_per_facility",
-            "max_erp_per_tx",
+            "requested_max_erp_per_tx",
         ]
         context["unsorted_info"] = get_fields_missing_from_info_tables(
             context, self.object.all_fields()
