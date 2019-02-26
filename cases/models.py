@@ -61,11 +61,17 @@ LOCATION_FIELD = lambda: PointField(
 
 
 def get_case_num():
-    return Case.objects.order_by("case_num").last().case_num + 1
+    try:
+        return Case.objects.order_by("case_num").last().case_num + 1
+    except AttributeError:
+        return 1
 
 
 def get_pcase_num():
-    return PreliminaryCase.objects.order_by("case_num").last().case_num + 1
+    try:
+        return PreliminaryCase.objects.order_by("case_num").last().case_num + 1
+    except AttributeError:
+        return 1
 
 
 class Boundaries(IsActiveModel, Model):
