@@ -3,7 +3,7 @@
     <span class="navbar-toggler-icon"></span>
   </button>
   <div class="collapse navbar-collapse" id="navbarSupportedContent">
-    {# <a class="navbar-brand" href="/">NRQZ Admin</a> #}
+    <a class="navbar-brand" href="/">NRQZ Admin</a>
     <ul class="navbar-nav mr-auto">
       <li class="nav-item">
         <a class="nav-link" href={% url "case_index" %}>Cases</a>
@@ -37,22 +37,26 @@
         <a class="nav-link" href={% url "letters" %}>Letters</a>
       </li>
 
-      <li class="nav-item">
-        <a class="nav-link" href={% url "fileimportbatch_index" %}>File Imports</a>
-      </li>
-
-      <li class="nav-item">
-        <a class="nav-link" href={% url "modelimportattempt_index" %}>Model Imports</a>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Audits
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <a class="nav-link" href={% url "fileimportbatch_index" %}>File Import Batches</a>
+          <a class="nav-link" href={% url "fileimporter_index" %}>File Import Histories</a>
+          <a class="nav-link" href={% url "fileimportattempt_index" %}>File Import Attempts</a>
+          <a class="nav-link" href={% url "modelimportattempt_index" %}>Model Import Attempts</a>
+        </div>
       </li>
 
       <li class="nav-item">
         <a class="nav-link text-info" href={% url "admin:index" %}>Admin</a>
       </li>
-      <li class="nav-item">
-        <form action="{% url 'search' %}" method="get">
-          <input class="nav-search" required type="text" name="q" placeholder="Search..." >
-        </form>
-      </li>
     </ul>
+
+    <form class="form-inline my-2 my-lg-0" action="{% url 'search' %}" method="get">
+      <input class="form-control mr-sm-2" name="q" type="search" placeholder="Search" aria-label="Search">
+    </form>
+
   </div>
 </nav>

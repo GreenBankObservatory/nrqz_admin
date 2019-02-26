@@ -751,6 +751,7 @@ class SearchView(SingleTableMixin, ListView):
         #     cases = Case.objects.none()
 
         self.query = request.GET.get("q", None)
+        print(self.query, "!!")
 
         self.object_list = self.get_queryset()
         if self.object_list.count() == 1:
