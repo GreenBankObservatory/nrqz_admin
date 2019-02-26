@@ -269,31 +269,6 @@ class LetterView(FormView):
     form_class = LetterTemplateForm
     template_name = "cases/concurrence_letter.html"
 
-    # def get_success_url(self):
-    #     return reverse("letters")
-
-    # def get(self, request, *args, **kwargs):
-    #     print("GET")
-    #     facilities_q = Q()
-    #     if "facilities" in request.GET:
-    #         kwargs.update({"facilities": request.GET.getlist("facilities")})
-    #         facilities_q |= Q(id__in=request.GET.getlist("facilities"))
-
-    #     if "cases" in request.GET:
-    #         kwargs.update({"cases": request.GET.getlist("cases")})
-    #         facilities_q |= Q(case__case_num__in=request.GET.getlist("cases"))
-
-    #     if "template" in request.GET:
-    #         kwargs.update({"template": request.GET["template"]})
-
-    #     if facilities_q:
-    #         facilities = Facility.objects.filter(facilities_q)
-    #     else:
-    #         facilities = Facility.objects.none()
-    #     kwargs.update({"facilities_result": facilities})
-    #     print("KWARGS", kwargs)
-    #     return super().get(request, *args, **kwargs)
-
     def get_initial(self):
         initial = super().get_initial()
         if "facilities" in self.request.GET:
@@ -307,26 +282,14 @@ class LetterView(FormView):
 
         return initial
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context.update(self.get_letter_context(self.request.GET))
-        return context
-
     def get_letter_context(self, post_dict):
-        if "facilities" in post_dict:
-            facilities = Facility.objects.filter(id__in=post_dict.getlist("facilities"))
-            cases = Case.objects.filter(facilities__in=facilities)
-        else:
-            if "cases" in post_dict:
-                cases = Case.objects.filter(case_num__in=post_dict.getlist("cases"))
-                cases = (
-                    cases | Case.objects.filter(facilities__in=facilities)
-                ).distinct()
-            else:
-                raise ValueError("At least one of cases or facilities must be here...")
+        cases = post_dict["cases"]
+        facilities = post_dict["facilities"]
 
         if cases.count() != 1:
-            raise ValueError("Womp womp")
+            raise ValueError(
+                f"There should only be one unique case! Got {cases.count()}!"
+            )
 
         case = cases.first()
 
@@ -341,35 +304,31 @@ class LetterView(FormView):
 
         return letter_context
 
-    def render_to_response(self, context, **response_kwargs):
-        if "download" in self.request.GET:
-            # We make a temp file...
-            letter_context = self.get_letter_context(self.request.GET)
-            letter_template = get_object_or_404(
-                LetterTemplate, path__endswith=self.request.GET.get("template", None)
-            )
-            dt = DocxTemplate(letter_template.path)
-            with tempfile.NamedTemporaryFile() as fp:
-                dt.render(letter_context)
-                # ...write the converted document to it...
-                dt.save(fp.name)
-                # ...and then read it into memory
-                docx = fp.read()
+    def form_valid(self, form):
+        # We make a temp file...
+        letter_context = self.get_letter_context(form.cleaned_data)
+        letter_template = form.cleaned_data["template"]
+        dt = DocxTemplate(letter_template.path)
 
-            # Generate the filename based on the case number(s)
-            filename = f"{letter_context['case'].case_num}_letter.docx"
+        with tempfile.NamedTemporaryFile() as fp:
+            dt.render(letter_context)
+            # ...write the converted document to it...
+            dt.save(fp.name)
+            # ...and then read it into memory
+            docx = fp.read()
 
-            # And serve the document
-            # TODO: Large files will probably cause issues here... will need to set up streaming if
-            # this happens
-            response = HttpResponse(
-                docx,
-                content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            )
-            response["Content-Disposition"] = f'application; filename="{filename}"'
-            return response
+        # Generate the filename based on the case number(s)
+        filename = f"{letter_context['case'].case_num}_letter.docx"
 
-        return super().render_to_response(context, **response_kwargs)
+        # And serve the document
+        # TODO: Large files will probably cause issues here... will need to set up streaming if
+        # this happens
+        response = HttpResponse(
+            docx,
+            content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        )
+        response["Content-Disposition"] = f'application; filename="{filename}"'
+        return response
 
 
 class PreliminaryCaseGroupDetailView(DetailView):

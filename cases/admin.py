@@ -24,6 +24,7 @@ from .models import (
     Person,
     PreliminaryCase,
     PreliminaryFacility,
+    LetterTemplate,
 )
 
 
@@ -78,3 +79,10 @@ class LocationAdmin(admin.ModelAdmin):
 class BoundariesAdmin(admin.ModelAdmin):
     form = BoundariesForm
     search_fields = ["name"]
+
+
+@admin.register(LetterTemplate)
+class LetterTemplateAdmin(admin.ModelAdmin):
+    # form =
+
+    pass

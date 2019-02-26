@@ -545,7 +545,12 @@ class PreliminaryCase(AbstractBaseCase):
         related_name="prelim_cases",
     )
     case_num = PositiveIntegerField(
-        unique=True, db_index=True, verbose_name="Prelim. Case Num."
+        unique=True,
+        db_index=True,
+        verbose_name="Prelim. Case Num.",
+        default=lambda: (
+            PreliminaryCase.objects.order_by("case_num").last().case_num + 1
+        ),
     )
 
     case = ForeignKey(
@@ -587,7 +592,10 @@ class Case(AbstractBaseCase):
         blank=True,
     )
     case_num = PositiveIntegerField(
-        unique=True, db_index=True, verbose_name="Case Num."
+        unique=True,
+        db_index=True,
+        verbose_name="Case Num.",
+        default=lambda: Case.objects.order_by("case_num").last().case_num + 1,
     )
 
     attachments = ManyToManyField("Attachment", related_name="cases", blank=True)

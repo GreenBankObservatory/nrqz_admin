@@ -62,12 +62,23 @@ class LetterTemplateForm(forms.Form):
         self.helper = LetterFormHelper()
 
     def clean(self):
-        print("clenanana")
         cleaned_data = super().clean()
-        if not (cleaned_data.get("cases") or self.cleaned_data.get("facilities")):
+        cases = cleaned_data["cases"]
+        facilities = cleaned_data["facilities"]
+        if not (cases or facilities):
             raise forms.ValidationError(
                 "At least one of Cases or Facilities must be populated!"
             )
+
+        if facilities:
+            cases |= Case.objects.filter(facilities__in=facilities.values("id"))
+
+        if cases.count() != 1:
+            raise forms.ValidationError(
+                f"There should only be one unique case! Got {cases.count()}!"
+            )
+
+        cleaned_data["cases"] = cases
 
         return cleaned_data
 
@@ -157,6 +168,13 @@ class CaseForm(forms.ModelForm):
             "contact": PersonWidget(),
             "attachments": AttachmentsWidget(),
         }
+
+    # def get_initial_for_field(self, field, field_name):
+    #     import ipdb
+
+    #     ipdb.set_trace()
+
+    # case = forms.IntegerField(initial=1)
 
 
 class AttachmentForm(forms.ModelForm):

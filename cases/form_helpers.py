@@ -26,7 +26,7 @@ class CollapsibleFilterFormLayout(Layout):
 
 
 class LetterFormHelper(FormHelper):
-    form_method = "get"
+    form_method = "post"
 
     layout = Layout(
         Div(
@@ -36,12 +36,7 @@ class LetterFormHelper(FormHelper):
             css_class="row",
         ),
         FormActions(
-            Submit(
-                "submit",
-                "Preview",
-                title="Preview the data that will be passed to the template",
-            ),
-            Submit("download", "Download", title="Download as .docx"),
+            Submit("submit", "Download", title="Download as .docx"),
             css_class="float-right filter-form-buttons",
         ),
     )
