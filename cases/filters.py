@@ -3,6 +3,8 @@
 from django.contrib.gis.measure import Distance
 import django_filters
 
+from watson import search as watson
+
 from utils.layout import discover_fields
 from . import models
 from .form_helpers import (
@@ -17,6 +19,12 @@ from .form_helpers import (
 )
 from .fields import PointSearchField
 from .widgets import PCaseWidget
+
+
+class WatsonFilter(django_filters.CharFilter):
+    def filter(self, qs, value):
+        model_class = qs.model
+        return watson.filter(model_class, value)
 
 
 class HelpedFilterSet(django_filters.FilterSet):
@@ -119,6 +127,7 @@ class FacilityFilter(BaseFacilityFilter):
     )
     nrao_aerpd = django_filters.RangeFilter()
     requested_max_erp_per_tx = django_filters.RangeFilter()
+    search = WatsonFilter(label="Search all text fields")
 
     class Meta:
         model = models.Facility
@@ -156,6 +165,7 @@ class CaseFilter(BaseCaseFilter):
     call_sign = django_filters.CharFilter(lookup_expr="icontains")
     nrao_approval = django_filters.BooleanFilter(label="NRAO Approval")
     sgrs_approval = django_filters.BooleanFilter(label="SGRS Approval")
+    search = WatsonFilter(label="Search all text fields")
 
     class Meta:
         model = models.Case

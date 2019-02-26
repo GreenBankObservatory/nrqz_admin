@@ -1,10 +1,19 @@
 {% extends "cases/base.html" %}
 {% load cases_tags %}
 {% load render_table from django_tables2 %}
+{% load django_import_data_tags %}
 
 {% block content %}
 <h1>Search Results</h1>
 <p>{{ object_list.count }} results for '{{ query }}'</p>
 
-{% render_table table %}
+{% for model, table in tables_with_model_names %}
+    <h2>{{ model }} Results ({{ table.data|length }})</h2>
+    {% if table.data %}
+    {% render_table table %}
+    {% else %}
+    <p>No results</p>
+    {% endif %}
+{% endfor %}
+
 {% endblock %}

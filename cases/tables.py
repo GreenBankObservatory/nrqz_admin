@@ -2,6 +2,7 @@
 from django.utils.safestring import mark_safe
 
 import django_tables2 as tables
+from watson.models import SearchEntry
 
 from utils.coord_utils import lat_to_string, long_to_string, coords_to_string
 from . import models
@@ -246,6 +247,7 @@ class CaseTable(BaseCaseTable):
     class Meta:
         model = models.Case
         fields = CaseFilter.Meta.fields
+        exclude = ("search",)
         order_by = ["-case_num"]
 
 
@@ -263,6 +265,7 @@ class PersonTable(tables.Table):
     class Meta:
         model = models.Person
         fields = PersonFilter.Meta.fields
+        exclude = ("search",)
 
 
 class AttachmentTable(tables.Table):
@@ -290,3 +293,41 @@ class StructureTable(tables.Table):
         """Render a coordinate as DD MM SS.sss"""
         longitude, latitude = value.coords
         return coords_to_string(latitude=latitude, longitude=longitude, concise=True)
+
+
+class SearchEntryTable(tables.Table):
+    title = tables.Column(linkify=True)
+
+    class Meta:
+        model = SearchEntry
+        fields = ("title", "content")
+
+    def __init__(self, *args, **kwargs):
+        if not hasattr(self, "query"):
+            raise ValueError(
+                "'SearchEntryTable.query' attribute must be set prior to instantiation!"
+            )
+        super().__init__(*args, **kwargs)
+
+    def render_content(self, value, record):
+        window_size = 60
+        try:
+            found_index = value.lower().index(self.query.lower())
+        except ValueError:
+            return value
+
+        bold_value = (
+            value[:found_index]
+            + "<b>"
+            + value[found_index : found_index + len(self.query)]
+            + "</b>"
+            + value[found_index + len(self.query) :]
+        )
+        start_index = 0 if found_index - window_size < 0 else found_index - window_size
+        end_index = (
+            None
+            if found_index + window_size > len(bold_value)
+            else found_index + window_size
+        )
+        substring = bold_value[start_index:end_index]
+        return mark_safe(f"...{substring}...")

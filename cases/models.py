@@ -60,6 +60,14 @@ LOCATION_FIELD = lambda: PointField(
 )
 
 
+def get_case_num():
+    return Case.objects.order_by("case_num").last().case_num + 1
+
+
+def get_pcase_num():
+    return PreliminaryCase.objects.order_by("case_num").last().case_num + 1
+
+
 class Boundaries(IsActiveModel, Model):
     name = CharField(max_length=64, default=None, unique=True)
     bounds = PolygonField(geography=True, srid=WGS84_SRID)
@@ -474,8 +482,6 @@ class Facility(AbstractBaseFacility):
         else:
             nrqz_id_str = "Facility"
 
-        if self.site_num:
-            nrqz_id_str += f" ({self.site_num})"
         return f"{nrqz_id_str}"
 
     def get_absolute_url(self):
@@ -548,9 +554,7 @@ class PreliminaryCase(AbstractBaseCase):
         unique=True,
         db_index=True,
         verbose_name="Prelim. Case Num.",
-        default=lambda: (
-            PreliminaryCase.objects.order_by("case_num").last().case_num + 1
-        ),
+        default=get_pcase_num,
     )
 
     case = ForeignKey(
@@ -592,10 +596,7 @@ class Case(AbstractBaseCase):
         blank=True,
     )
     case_num = PositiveIntegerField(
-        unique=True,
-        db_index=True,
-        verbose_name="Case Num.",
-        default=lambda: Case.objects.order_by("case_num").last().case_num + 1,
+        unique=True, db_index=True, verbose_name="Case Num.", default=get_case_num
     )
 
     attachments = ManyToManyField("Attachment", related_name="cases", blank=True)

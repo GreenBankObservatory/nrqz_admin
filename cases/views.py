@@ -1,7 +1,10 @@
 from datetime import date
 import tempfile
 
+from docxtpl import DocxTemplate
+
 from django.contrib import messages
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.search import SearchVector
 from django.db.models import Min, Max
 from django.db.models import Q
@@ -14,12 +17,12 @@ from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 
-from docxtpl import DocxTemplate
 from dal import autocomplete
 from django_filters.views import FilterView
-from django_tables2.views import SingleTableMixin, MultiTableMixin
-from django_tables2.export.views import ExportMixin
 from django_tables2.export.export import TableExport
+from django_tables2.export.views import ExportMixin
+from django_tables2.views import SingleTableMixin, MultiTableMixin
+from watson import search as watson
 
 from .forms import LetterTemplateForm
 from .models import (
@@ -55,6 +58,7 @@ from .tables import (
     PreliminaryCaseGroupTable,
     PreliminaryCaseTable,
     PreliminaryFacilityTable,
+    SearchEntryTable,
     StructureTable,
 )
 from .kml import (
@@ -718,60 +722,37 @@ class StructureDetailView(DetailView):
         return context
 
 
-class SearchView(SingleTableMixin, ListView):
-    table_class = CaseTable
+class SearchView(MultiTableMixin, ListView):
+    tables = [SearchEntryTable, SearchEntryTable, SearchEntryTable]
+    table_pagination = {"per_page": 10}
     template_name = "cases/search_results.html"
 
-    def search(self, query):
-        self.searched_by_case_num = False
+    def get_tables_data(self):
+        for table in self.tables:
+            table.query = self.query
 
-        try:
-            case_qs_from_case_num = Case.objects.filter(case_num=query)
-            if case_qs_from_case_num.exists():
-                self.searched_by_case_num = True
-                return case_qs_from_case_num.all()
-        except ValueError:
-            pass
-
-        # print("No exact match by case number; continuing to full text search")
-        return Case.objects.annotate(
-            search=SearchVector("applicant__name", "contact__name", "comments")
-        ).filter(search=query)
+        data = [
+            self.object_list.filter(
+                content_type=ContentType.objects.get_for_model(model)
+            )
+            for model in [Case, Facility, Person]
+        ]
+        return data
 
     def get_context_data(self, **kwargs):
-        kwargs["searched_by_case_num"] = self.searched_by_case_num
-        kwargs["query"] = self.query
-        return super().get_context_data(**kwargs)
+
+        context = super().get_context_data(**kwargs)
+        context["query"] = self.query
+        context["tables_with_model_names"] = zip(
+            ["Case", "Facility", "Person"], context["tables"]
+        )
+        return context
 
     def get(self, request, *args, **kwargs):
-        # query = request.GET.get("q", None)
-        # if query:
-        #     cases = self.search(query)
-        # else:
-        #     cases = Case.objects.none()
-
         self.query = request.GET.get("q", None)
-        print(self.query, "!!")
-
-        self.object_list = self.get_queryset()
-        if self.object_list.count() == 1:
-            return HttpResponseRedirect(
-                reverse("case_detail", args=[self.object_list.first().case_num])
-            )
+        self.object_list = watson.search(self.query)
         context = self.get_context_data()
         return self.render_to_response(context)
-
-    def get_queryset(self):
-        if self.query:
-            cases = self.search(self.query)
-        else:
-            cases = Case.objects.none()
-
-        return cases
-
-
-def search(request):
-    return HttpResponse("yo")
 
 
 def facility_as_kml_view(request, pk):

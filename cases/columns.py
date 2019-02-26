@@ -60,3 +60,37 @@ title={os.path.basename(path)}
     Open Attachment
 </a>"""
         return mark_safe(foo)
+
+
+class SearchResultColumn(Column):
+    def __init__(self, foo, *args, **kwargs):
+        import ipdb
+
+        ipdb.set_trace()
+        super().__init__(*args, **kwargs)
+
+    def render(self, value, bound_column, record):
+        import ipdb
+
+        ipdb.set_trace()
+        window_size = 60
+        try:
+            found_index = value.lower().index(self.query.lower())
+        except ValueError:
+            return value
+
+        bold_value = (
+            value[:found_index]
+            + "<b>"
+            + value[found_index : found_index + len(self.query)]
+            + "</b>"
+            + value[found_index + len(self.query) :]
+        )
+        start_index = 0 if found_index - window_size < 0 else found_index - window_size
+        end_index = (
+            None
+            if found_index + window_size > len(bold_value)
+            else found_index + window_size
+        )
+        substring = bold_value[start_index:end_index]
+        return mark_safe(f"...{substring}...")

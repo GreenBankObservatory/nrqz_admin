@@ -8,6 +8,7 @@ django-resetdb
 django-sql-explorer==1.1.2
 django-stronghold==0.3.0
 django-tables2==2.0.3
+django-watson==1.5.2
 django_import_data
 docxtpl==0.5.17
 ipython-genutils==0.2.0

@@ -96,6 +96,7 @@ class FacilityFilterFormHelper(FormHelper):
                 "requested_max_erp_per_tx",
                 "data_source",
                 "comments",
+                "search",
                 css_class="col-sm-5",
             ),
             css_class="row",
@@ -161,7 +162,12 @@ class CaseFilterFormHelper(FormHelper):
                 css_class="col",
             ),
             Div(
-                "date_recorded", "completed", "comments", "is_federal", css_class="col"
+                "date_recorded",
+                "completed",
+                "comments",
+                "is_federal",
+                "search",
+                css_class="col",
             ),
             css_class="row",
         ),
