@@ -424,16 +424,15 @@ class CaseDetailView(MultiTableMixin, DetailView):
             "call_sign",
             "freq_coord",
             "fcc_file_num",
-            "num_freqs",
             "num_sites",
+            "num_freqs",
             "num_outside",
-            "erpd_limit",
+            ("Meets ERPd Limit", self.object.meets_erpd_limit, ""),
         ]
         context["sgrs_info"] = [
             "sgrs_notify",
             "sgrs_responded_on",
             "sgrs_service_num",
-            ("NRAO Approval", self.object.nrao_approval, ""),
             ("SGRS Approval", self.object.sgrs_approval, ""),
         ]
         context["unsorted_info"] = get_fields_missing_from_info_tables(
@@ -477,6 +476,7 @@ class BaseFacilityDetailView(DetailView):
             "nrao_diff",
             "nrao_space",
             "nrao_tropo",
+            "tpa",
             "distance_to_first_obstacle",
             "height_of_first_obstacle",
             "dominant_path",
@@ -488,7 +488,6 @@ class BaseFacilityDetailView(DetailView):
             "nrao_aerpd_gsm",
             "nrao_aerpd_cdma",
             "nrao_aerpd_cdma2000",
-            "tpa",
         ]
         context["federal_info"] = [
             ("Is Federal?", self.object.case.is_federal, ""),
@@ -573,8 +572,8 @@ class FacilityDetailView(BaseFacilityDetailView):
         )
 
         context["analysis_results_info"] = [
-            # "erpd_limit",
-            *context["analysis_results_info"]
+            "meets_erpd_limit",
+            *context["analysis_results_info"],
         ]
         return context
 

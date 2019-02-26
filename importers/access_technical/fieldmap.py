@@ -30,9 +30,6 @@ class CaseFormMap(FormMap):
             to_field="case_num", converter=convert_case_num, from_field="NRQZ_NO"
         ),
         OneToOneFieldMap(
-            to_field="erpd_limit", converter=coerce_bool, from_field="ERP_LIMIT"
-        ),
-        OneToOneFieldMap(
             to_field="agency_num", converter=coerce_none, from_field="AGENCY_NO"
         ),
     ]
@@ -54,6 +51,9 @@ class FacilityFormMap(FormMap):
             from_fields={"case_num": "NRQZ_NO", "site_num": "Site Number"},
             converter=convert_case_num_and_site_num_to_nrqz_id,
             to_field="nrqz_id",
+        ),
+        OneToOneFieldMap(
+            to_field="meets_erpd_limit", converter=coerce_bool, from_field="ERP_LIMIT"
         ),
         OneToOneFieldMap(
             to_field="antenna_model_number", converter=None, from_field="ANT_MODEL"

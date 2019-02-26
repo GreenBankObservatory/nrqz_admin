@@ -241,8 +241,8 @@ class PreliminaryCaseTable(BaseCaseTable):
 
 
 class CaseTable(BaseCaseTable):
-    nrao_approval = tables.BooleanColumn(accessor="nrao_approval")
-    sgrs_approval = tables.BooleanColumn(accessor="nrao_approval")
+    meets_erpd_limit = tables.BooleanColumn(accessor="meets_erpd_limit")
+    sgrs_approval = tables.BooleanColumn(accessor="sgrs_approval")
 
     class Meta:
         model = models.Case

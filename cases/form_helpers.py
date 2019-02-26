@@ -157,7 +157,7 @@ class CaseFilterFormHelper(FormHelper):
             Div(
                 "freq_coord",
                 "fcc_file_num",
-                "nrao_approval",
+                "meets_erpd_limit",
                 "sgrs_approval",
                 css_class="col",
             ),

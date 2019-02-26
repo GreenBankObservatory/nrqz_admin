@@ -373,7 +373,7 @@ class Facility(AbstractBaseFacility):
         max_length=256,
         blank=True,
         null=True,
-        verbose_name="FCC File Number",
+        verbose_name="FCC ULS Number",
         help_text="???",
     )
 
@@ -463,7 +463,7 @@ class Facility(AbstractBaseFacility):
         null=True, blank=True, verbose_name="# of TX per facility"
     )
 
-    nrao_approval = BooleanField(
+    meets_erpd_limit = BooleanField(
         null=True,
         blank=True,
         help_text="Indicates whether NRAO approves of this Facility or not",
@@ -615,12 +615,14 @@ class Case(AbstractBaseCase):
     )
     # TODO: Propagate to Facility
     call_sign = CharField(max_length=256, blank=True, verbose_name="Call Sign")
-    freq_coord = CharField(max_length=256, blank=True, verbose_name="Freq. Coord.")
-    fcc_file_num = CharField(max_length=256, blank=True, verbose_name="FCC File Num.")
+    freq_coord = CharField(max_length=256, blank=True, verbose_name="Freq. Coord. Num.")
+    fcc_file_num = CharField(max_length=256, blank=True, verbose_name="FCC ULS Num.")
     num_outside = PositiveIntegerField(
         null=True, blank=True, verbose_name="Num. Sites Outside NRQZ"
     )
-    erpd_limit = BooleanField(default=False, blank=True, verbose_name="ERPd Limit")
+    original_meets_erpd_limit = BooleanField(
+        default=False, blank=True, verbose_name="Original ERPd Limit"
+    )
     si_waived = BooleanField(default=False, blank=True, verbose_name="SI Waived")
     si = BooleanField(default=False, blank=True, verbose_name="SI Req.")
     si_done = DateField(null=True, blank=True, verbose_name="SI Done")
@@ -650,11 +652,11 @@ class Case(AbstractBaseCase):
         super(Case, self).save(*args, **kwargs)
 
     @property
-    def nrao_approval(self):
-        approvals = self.facilities.values("nrao_approval").distinct()
-        if not approvals.exists() or approvals.filter(nrao_approval=None).exists():
+    def meets_erpd_limit(self):
+        approvals = self.facilities.values("meets_erpd_limit").distinct()
+        if not approvals.exists() or approvals.filter(meets_erpd_limit=None).exists():
             return None
-        if approvals.filter(nrao_approval=False).exists():
+        if approvals.filter(meets_erpd_limit=False).exists():
             return False
 
         return True

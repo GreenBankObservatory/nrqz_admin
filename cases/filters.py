@@ -163,7 +163,7 @@ class CaseFilter(BaseCaseFilter):
     freq_coord = django_filters.CharFilter(lookup_expr="icontains")
     fcc_file_num = django_filters.CharFilter(lookup_expr="icontains")
     call_sign = django_filters.CharFilter(lookup_expr="icontains")
-    nrao_approval = django_filters.BooleanFilter(label="NRAO Approval")
+    meets_erpd_limit = django_filters.BooleanFilter(label="Meets ERPd Limit")
     sgrs_approval = django_filters.BooleanFilter(label="SGRS Approval")
     search = WatsonFilter(label="Search all text fields")
 

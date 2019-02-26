@@ -30,7 +30,7 @@ IGNORED_HEADERS = [
     "Applicant Name",
     "Name of Applicant",
     # This is important to allow duplicates for; in fact we depend on that
-    # fact for the population of nrao_approval. See below...
+    # fact for the population of meets_erpd_limit. See below...
     "NRAO AERPd (W)",
 ]
 
@@ -83,27 +83,30 @@ def convert_dominant_path(dominant_path):
     raise ValueError(f"Dominant path {dominant_path} could not be converted!")
 
 
-def convert_nrao_aerpd(nrao_aerpd, nrao_approval=None):
-    """Convert nrqao_aerpd to a float. Convert nrao_approval to a bool"""
-    known_nrao_approval_truthy_values = ["meets nrao limit"]
-    known_nrao_approval_falsey_values = ["exceedes app requested erpd", "pending"]
-    if isinstance(nrao_approval, str):
-        clean_nrao_approval = nrao_approval.strip().lower()
-        if coerce_none(clean_nrao_approval) is None:
-            nrao_approval = False
-        elif clean_nrao_approval in known_nrao_approval_truthy_values:
-            nrao_approval = True
-        elif clean_nrao_approval in known_nrao_approval_falsey_values:
-            nrao_approval = False
+def convert_nrao_aerpd(nrao_aerpd, meets_erpd_limit=None):
+    """Convert nrqao_aerpd to a float. Convert meets_erpd_limit to a bool"""
+    known_meets_erpd_limit_truthy_values = ["meets nrao limit"]
+    known_meets_erpd_limit_falsey_values = ["exceedes app requested erpd", "pending"]
+    if isinstance(meets_erpd_limit, str):
+        clean_meets_erpd_limit = meets_erpd_limit.strip().lower()
+        if coerce_none(clean_meets_erpd_limit) is None:
+            meets_erpd_limit = False
+        elif clean_meets_erpd_limit in known_meets_erpd_limit_truthy_values:
+            meets_erpd_limit = True
+        elif clean_meets_erpd_limit in known_meets_erpd_limit_falsey_values:
+            meets_erpd_limit = False
         else:
             raise ValueError(
-                f"nrao_approval ({nrao_approval!r}) is an unknown string value! "
-                f"Known values: {known_nrao_approval_truthy_values}"
+                f"meets_erpd_limit ({meets_erpd_limit!r}) is an unknown string value! "
+                f"Known values: {known_meets_erpd_limit_truthy_values}"
             )
     else:
-        nrao_approval = False
+        meets_erpd_limit = False
 
-    return {"nrao_aerpd": coerce_float(nrao_aerpd), "nrao_approval": nrao_approval}
+    return {
+        "nrao_aerpd": coerce_float(nrao_aerpd),
+        "meets_erpd_limit": meets_erpd_limit,
+    }
 
 
 class CaseFormMap(FormMap):
@@ -451,7 +454,7 @@ class FacilityFormMap(FormMap):
             },
         ),
         ManyToManyFieldMap(
-            to_fields=("nrao_aerpd", "nrao_approval"),
+            to_fields=("nrao_aerpd", "meets_erpd_limit"),
             converter=convert_nrao_aerpd,
             from_fields={
                 "nrao_aerpd": "NRAO AERPd (W)",
@@ -460,7 +463,7 @@ class FacilityFormMap(FormMap):
                 # one is actually a boolean, so it needs to be treated as such
                 # TODO: There will be new aliases for this after Paulette has
                 # made some tweaks
-                "nrao_approval": "NRAO AERPd (W)-1",
+                "meets_erpd_limit": "NRAO AERPd (W)-1",
             },
             explanation="NRAO AERPd column does double duty: in cases where NRAO approves, "
             "this value will be 'Meets NRAO limit'. In cases where it doesn't, "

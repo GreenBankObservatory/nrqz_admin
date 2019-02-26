@@ -104,7 +104,9 @@ class CaseFormMap(FormMap):
             from_field="NO_OUTSIDE",
         ),
         OneToOneFieldMap(
-            to_field="erpd_limit", converter=coerce_bool, from_field="ERPD_LIMIT"
+            to_field="original_meets_erpd_limit",
+            converter=coerce_bool,
+            from_field="ERPD_LIMIT",
         ),
         OneToOneFieldMap(
             to_field="si_waived", converter=coerce_bool, from_field="SIWAIVED"
