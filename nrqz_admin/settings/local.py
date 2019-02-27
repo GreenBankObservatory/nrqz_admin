@@ -22,7 +22,7 @@ DATABASES = {
         "ENGINE": "django.contrib.gis.db.backends.postgis",
         "NAME": f"nrqz_{user}_dev",
         "USER": "postgres",
-        "PASSWORD": "",
+        "PASSWORD": "potato",
         "HOST": "galileo.gb.nrao.edu",
         "PORT": "5432",
         # Possibly important for import speed?

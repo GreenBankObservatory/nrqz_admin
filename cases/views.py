@@ -539,8 +539,18 @@ class PreliminaryFacilityDetailView(BaseFacilityDetailView):
         return context
 
 
-class FacilityDetailView(BaseFacilityDetailView):
+class FacilityDetailView(MultiTableMixin, BaseFacilityDetailView):
     model = Facility
+    tables = [AttachmentTable]
+    table_pagination = {"per_page": 10}
+
+    def get_tables_data(self):
+        attachment_filter_qs = AttachmentFilter(
+            self.request.GET,
+            queryset=self.object.attachments.all(),
+            form_helper_kwargs={"form_class": "collapse"},
+        ).qs
+        return [attachment_filter_qs]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

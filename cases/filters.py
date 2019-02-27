@@ -23,7 +23,6 @@ from .widgets import PCaseWidget
 
 class WatsonFilter(django_filters.CharFilter):
     def filter(self, qs, value):
-        print("hmmm", qs.count())
         return watson.filter(qs, value)
 
 

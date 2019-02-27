@@ -1,6 +1,7 @@
 {% extends "cases/base.html" %}
 {% load cases_tags %}
 {% load django_import_data_tags %}
+{% load render_table from django_tables2 %}
 
 {% block content %}
 {% make_breadcrumb facility %}
@@ -53,6 +54,7 @@
         </div>
     </div>
 </div>
+
 <h2>Comments</h2>
 <div class="row">
     {% if facility.comments %}
@@ -61,6 +63,14 @@
     <p>No Comments</p>
     {% endif %}
 </div>
+
+<h2>Attachments</h2>
+{% if tables.0.data %}
+{% render_table tables.0 %}
+{% else %}
+<p>No attachments</p>
+{% endif %}
+
 <div class="row">
     <div class="col-lg">
         {% info_table facility "TODO: Unsorted" unsorted_info %}
