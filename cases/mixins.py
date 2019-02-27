@@ -72,6 +72,7 @@ class DataSourceModel(models.Model):
             (FCC_ASR, "FCC ASR Database"),
         ),
         help_text="The source that this object was created from",
+        default=None,
     )
 
     class Meta:

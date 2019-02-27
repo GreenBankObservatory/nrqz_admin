@@ -180,7 +180,7 @@ class CaseForm(forms.ModelForm):
 class AttachmentForm(forms.ModelForm):
     class Meta:
         model = Attachment
-        fields = ("path", "comments", "original_index")
+        fields = ("path", "comments", "original_index", "data_source")
 
 
 BASE_FACILITY_FIELDS = (

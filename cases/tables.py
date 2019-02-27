@@ -197,7 +197,7 @@ class FacilityExportTable(FacilityTable):
             "original_modfied_on",
             "created_on",
             "modified_on",
-            "data-source",
+            "data_source",
             "id",
         ]
         order_by = ["-nrqz_id", "freq_low"]
@@ -278,8 +278,8 @@ class AttachmentTable(tables.Table):
         fields = AttachmentFilter.Meta.fields
         order_by = ["original_index"]
 
-    # def render_original_index(self, value):
-    #     return f"Letter {value}"
+    def render_data_source(self, value):
+        return f"Letter {value}"
 
 
 class StructureTable(tables.Table):

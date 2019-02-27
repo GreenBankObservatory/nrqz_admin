@@ -21,7 +21,7 @@ DATABASES = {
     "default": {
         "ENGINE": "django.contrib.gis.db.backends.postgis",
         "NAME": f"nrqz_{user}_dev",
-        "USER": "postgres",
+        "USER": "tchamber",
         "PASSWORD": "potato",
         "HOST": "galileo.gb.nrao.edu",
         "PORT": "5432",

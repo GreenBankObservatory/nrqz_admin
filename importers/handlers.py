@@ -42,7 +42,6 @@ def handle_case(
 def get_or_create_attachment(row_data, form_map, file_import_attempt, imported_by):
     attachment = None
     attachment_created = False
-
     attachment_form, conversion_errors = form_map.render(row_data.data)
     if attachment_form:
         path = attachment_form["path"].value()

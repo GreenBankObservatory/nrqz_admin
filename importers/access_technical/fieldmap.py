@@ -187,7 +187,7 @@ class PropagationStudyFormMap(FormMap):
         )
     ]
     form_class = AttachmentForm
-    form_defaults = {"data_source": ACCESS_TECHNICAL, "comments": "QZ Path Loss"}
+    form_defaults = {"data_source": ACCESS_TECHNICAL, "comments": "Propagation Study"}
 
 
 APPLICANT_FORM_MAP = ApplicantFormMap()
