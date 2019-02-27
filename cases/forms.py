@@ -169,13 +169,6 @@ class CaseForm(forms.ModelForm):
             "attachments": AttachmentsWidget(),
         }
 
-    # def get_initial_for_field(self, field, field_name):
-    #     import ipdb
-
-    #     ipdb.set_trace()
-
-    # case = forms.IntegerField(initial=1)
-
 
 class AttachmentForm(forms.ModelForm):
     class Meta:

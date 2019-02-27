@@ -249,6 +249,14 @@ class CaseAutocompleteView(autocomplete.Select2QuerySetView):
         return str(result.case_num)
 
 
+class PreliminaryFacilityAutocompleteView(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        pfacilities = PreliminaryFacility.objects.order_by("nrqz_id", "id")
+        if self.q:
+            pfacilities = pfacilities.filter(nrqz_id__icontains=self.q)
+        return pfacilities
+
+
 class FacilityAutocompleteView(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         facilities = Facility.objects.order_by("nrqz_id", "id")
@@ -602,30 +610,24 @@ class AttachmentListView(FilterTableView):
     template_name = "cases/attachment_list.html"
 
 
-class AttachmentDetailView(DetailView):
+class AttachmentDetailView(MultiTableMixin, DetailView):
     model = Attachment
+    tables = [CaseTable, PreliminaryCaseTable, FacilityTable, PreliminaryFacilityTable]
+    table_pagination = {"per_page": 10}
 
-    def __init__(self, *args, **kwargs):
-        super(AttachmentDetailView, self).__init__(*args, **kwargs)
-        self.case_filter = None
+    def get_tables_data(self):
+        attachment = self.object
+        return [
+            table._meta.model.objects.filter(id__in=attachment.cases.values("id"))
+            for table in self.tables
+        ]
 
     def get_context_data(self, **kwargs):
+
         context = super().get_context_data(**kwargs)
-        context["meta_info"] = ["id", "created_on", "modified_on"]
-
-        if self.case_filter is None:
-            self.case_filter = CaseFilter(
-                self.request.GET,
-                queryset=self.object.cases.all(),
-                form_helper_kwargs={"form_class": "collapse"},
-            )
-            context["case_filter"] = self.case_filter
-
-        if "case_table" not in context:
-            table = CaseTable(data=self.case_filter.qs)
-            table.paginate(page=self.request.GET.get("page", 1), per_page=10)
-            context["case_table"] = table
-
+        context["tables_with_model_names"] = zip(
+            [table._meta.model for table in self.tables], context["tables"]
+        )
         return context
 
 

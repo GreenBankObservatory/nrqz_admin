@@ -61,3 +61,5 @@ class Command(BaseImportCommand):
             )
             facility.propagation_study = propagation_study
             facility.save()
+            if propagation_study:
+                facility.attachments.add(propagation_study)

@@ -344,6 +344,7 @@ class PreliminaryFacility(AbstractBaseFacility):
         on_delete=CASCADE,
         null=True,
         blank=True,
+        # limit_choices_to={"facilities__contains"}
     )
 
     objects = LocationManager()

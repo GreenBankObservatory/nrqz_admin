@@ -66,6 +66,7 @@ class PersonAdmin(admin.ModelAdmin):
 
 @admin.register(Attachment)
 class AttachmentAdmin(admin.ModelAdmin):
+    form = AttachmentForm
     search_fields = ["path"]
 
 
@@ -83,6 +84,4 @@ class BoundariesAdmin(admin.ModelAdmin):
 
 @admin.register(LetterTemplate)
 class LetterTemplateAdmin(admin.ModelAdmin):
-    # form =
-
     pass

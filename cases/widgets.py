@@ -65,3 +65,16 @@ PersonWidget = lambda: autocomplete.ModelSelect2(
 AttachmentsWidget = lambda: autocomplete.ModelSelect2Multiple(
     url="attachment_autocomplete", attrs={"data-placeholder": ""}
 )
+
+PCasesWidget = lambda: autocomplete.ModelSelect2Multiple(
+    url="pcase_autocomplete", attrs={"data-placeholder": ""}
+)
+CasesWidget = lambda: autocomplete.ModelSelect2Multiple(
+    url="case_autocomplete", attrs={"data-placeholder": ""}
+)
+PFacilitiesWidget = lambda: autocomplete.ModelSelect2Multiple(
+    url="pfacility_autocomplete", attrs={"data-placeholder": ""}
+)
+FacilitiesWidget = lambda: autocomplete.ModelSelect2Multiple(
+    url="facility_autocomplete", attrs={"data-placeholder": ""}
+)

@@ -620,7 +620,7 @@ class TapFileAttachmentFormMap(FormMap):
         )
     ]
     form_class = AttachmentForm
-    form_defaults = {"data_source": EXCEL, "comments": "TAP file"}
+    form_defaults = {"data_source": EXCEL, "comments": "Propagation Study"}
 
 
 TAP_FILE_FORM_MAP = TapFileAttachmentFormMap()

@@ -43,6 +43,11 @@ urlpatterns = [
         views.FacilityAutocompleteView.as_view(),
         name="facility_autocomplete",
     ),
+    path(
+        "pfacility-autocomplete/",
+        views.PreliminaryFacilityAutocompleteView.as_view(),
+        name="pfacility_autocomplete",
+    ),
     path("letters/", views.LetterView.as_view(), name="letters"),
     path(
         "pfacilities/",
