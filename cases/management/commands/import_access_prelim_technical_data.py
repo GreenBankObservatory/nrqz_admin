@@ -1,9 +1,9 @@
-from importers.handlers import handle_attachments, handle_case
+from importers.handlers import get_or_create_attachment, handle_case
 from importers.access_prelim_technical.fieldmap import (
     APPLICANT_FORM_MAP,
     PCASE_FORM_MAP,
     PFACILITY_FORM_MAP,
-    ATTACHMENT_FORM_MAP,
+    PROPAGATION_STUDY_FORM_MAP,
     IGNORED_HEADERS,
 )
 from django_import_data import BaseImportCommand
@@ -20,7 +20,7 @@ class Command(BaseImportCommand):
         APPLICANT_FORM_MAP,
         PCASE_FORM_MAP,
         PFACILITY_FORM_MAP,
-        ATTACHMENT_FORM_MAP,
+        PROPAGATION_STUDY_FORM_MAP,
     ]
     IGNORED_HEADERS = IGNORED_HEADERS
 
@@ -52,10 +52,11 @@ class Command(BaseImportCommand):
             imported_by=self.__module__,
         )
         if pfacility:
-            attachments = handle_attachments(
+            propagation_study, created = get_or_create_attachment(
                 row_data,
-                pfacility,
-                [ATTACHMENT_FORM_MAP],
+                PROPAGATION_STUDY_FORM_MAP,
                 file_import_attempt=file_import_attempt,
                 imported_by=self.__module__,
             )
+            pfacility.propagation_study = propagation_study
+            pfacility.save()

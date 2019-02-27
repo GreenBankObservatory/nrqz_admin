@@ -411,7 +411,7 @@ def convert_array(**kwargs):
 
 
 def convert_case_num_and_site_num_to_nrqz_id(case_num, site_num=None):
-    case_num = int(case_num)
+    case_num = convert_nrqz_id_to_case_num(case_num)
     if site_num:
         return f"{case_num}-{site_num}"
     return f"{case_num}"

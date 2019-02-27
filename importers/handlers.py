@@ -39,25 +39,36 @@ def handle_case(
     return case, case_created
 
 
-def handle_attachments(row_data, model, form_maps, file_import_attempt, imported_by):
-    attachments = []
-    for form_map in form_maps:
-        attachment_form, conversion_errors = form_map.render(row_data.data)
-        if attachment_form:
-            path = attachment_form["path"].value()
-            if path:
-                if Attachment.objects.filter(path=path).exists():
-                    attachment = Attachment.objects.get(path=path)
-                    attachment_created = False
-                else:
-                    attachment, __ = form_map.save_with_audit(
-                        form=attachment_form,
-                        row_data=row_data,
-                        file_import_attempt=file_import_attempt,
-                        imported_by=imported_by,
-                    )
-                    attachment_created = True
+def get_or_create_attachment(row_data, form_map, file_import_attempt, imported_by):
+    attachment = None
+    attachment_created = False
 
-                attachments.append((attachment, attachment_created))
-                model.attachments.add(attachment)
-    return attachments
+    attachment_form, conversion_errors = form_map.render(row_data.data)
+    if attachment_form:
+        path = attachment_form["path"].value()
+        if path:
+            if Attachment.objects.filter(path=path).exists():
+                attachment = Attachment.objects.get(path=path)
+            else:
+                attachment, __ = form_map.save_with_audit(
+                    form=attachment_form,
+                    row_data=row_data,
+                    file_import_attempt=file_import_attempt,
+                    imported_by=imported_by,
+                )
+                attachment_created = True
+
+    return attachment, attachment_created
+
+
+def handle_attachments(row_data, model, form_maps, file_import_attempt, imported_by):
+    attachments_info = []
+    for form_map in form_maps:
+        attachments_info.append(
+            get_or_create_attachment(
+                row_data, form_map, file_import_attempt, imported_by
+            )
+        )
+
+    model.attachments.add(*[info[0] for info in attachments_info if info[0]])
+    return attachments_info

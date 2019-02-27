@@ -480,6 +480,7 @@ class BaseFacilityDetailView(DetailView):
             "distance_to_first_obstacle",
             "height_of_first_obstacle",
             "dominant_path",
+            ("Propagation Study", self.object.get_prop_study_as_link(), ""),
         ]
 
         context["analysis_results_info"] = [

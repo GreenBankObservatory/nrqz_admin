@@ -14,9 +14,10 @@ from importers.excel.fieldmap import (
     FACILITY_FORM_MAP,
     IGNORED_HEADERS,
     ATTACHMENT_FORM_MAPS,
+    TAP_FILE_FORM_MAP,
 )
 from utils.constants import EXCEL
-from importers.handlers import handle_attachments
+from importers.handlers import handle_attachments, get_or_create_attachment
 from importers.excel.strip_excel_non_data import row_is_invalid
 
 DEFAULT_THRESHOLD = 0.7
@@ -28,7 +29,12 @@ class Command(BaseImportCommand):
 
     PROGRESS_TYPE = BaseImportCommand.PROGRESS_TYPES.FILE
 
-    FORM_MAPS = [CASE_FORM_MAP, FACILITY_FORM_MAP, *ATTACHMENT_FORM_MAPS]
+    FORM_MAPS = [
+        CASE_FORM_MAP,
+        FACILITY_FORM_MAP,
+        *ATTACHMENT_FORM_MAPS,
+        TAP_FILE_FORM_MAP,
+    ]
     IGNORED_HEADERS = IGNORED_HEADERS
 
     def add_arguments(self, parser):
@@ -102,7 +108,7 @@ class Command(BaseImportCommand):
         duplicate_headers = self.get_duplicate_headers(headers)
         if duplicate_headers:
             raise ValueError(
-                f"One or more duplicate headers detected!\n{duplicate_headers}"
+                f"One or more duplicate headers detected: {duplicate_headers}"
             )
 
         row_number = 1
@@ -233,6 +239,11 @@ class Command(BaseImportCommand):
                 file_import_attempt=file_import_attempt,
                 imported_by=self.__module__,
             )
-
-        if not case or not facility:
-            tqdm.write("-" * 80)
+            propagation_study, attachment_created = get_or_create_attachment(
+                row_data=row_data,
+                form_map=TAP_FILE_FORM_MAP,
+                file_import_attempt=file_import_attempt,
+                imported_by=self.__module__,
+            )
+            facility.propagation_study = propagation_study
+            facility.save()

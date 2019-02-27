@@ -167,7 +167,8 @@ class PfacilityFormMap(FormMap):
     form_defaults = {"data_source": ACCESS_PRELIM_TECHNICAL}
 
 
-class AttachmentFormMap(FormMap):
+# PROP STUDY
+class PropagationStudyFormMap(FormMap):
     field_maps = [
         OneToOneFieldMap(
             to_field="path",
@@ -185,4 +186,4 @@ class AttachmentFormMap(FormMap):
 APPLICANT_FORM_MAP = ApplicantFormMap()
 PCASE_FORM_MAP = PcaseFormMap()
 PFACILITY_FORM_MAP = PfacilityFormMap()
-ATTACHMENT_FORM_MAP = AttachmentFormMap()
+PROPAGATION_STUDY_FORM_MAP = PropagationStudyFormMap()

@@ -5,9 +5,9 @@
 {% block content %}
 {% make_breadcrumb preliminaryfacility %}
 
-<div class="row ">
+<div class="row">
     <div class="col-lg-2">
-        <h1>{{ preliminaryfacility }}</h1>
+        <h1>Preliminary Facility {{ preliminaryfacility }}</h1>
     </div>
     <div class="col-lg-2">
         <p>Date Received: {{ preliminaryfacility.pcase.date_recorded|default:"None" }}</p>

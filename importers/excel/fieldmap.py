@@ -103,9 +103,11 @@ def convert_sgrs_approval(sgrs_approval):
                     raise ValueError(
                         f"sgrs_approval ({sgrs_approval!r}) couldn't be converted to a date, boolean, or path!"
                     )
+                sgrs_responded_on = None
             else:
                 # If it did work, sgrs_approval must be true (since we know the date on which they approved)
                 sgrs_approval = True
+                sgrs_responded_on = None
         else:
             # If we successfully convert to bool, we obviously can't know the date on which they
             # responed (because a bool was there instead of a date)
@@ -587,7 +589,7 @@ class SiEngineeringAttachmentFormMap(FormMap):
         )
     ]
     form_class = AttachmentForm
-    form_defaults = {"data_source": EXCEL, "comments": "SI Engineering file"}
+    form_defaults = {"data_source": EXCEL, "comments": "FEW file"}
 
 
 SI_ENGINEERING_ATTACHMENT_FORM_MAP = SiEngineeringAttachmentFormMap()
@@ -608,6 +610,7 @@ class LocAttachmentFormMap(FormMap):
 LOC_ATTACHMENT_FORM_MAP = LocAttachmentFormMap()
 
 
+# PROP STUDY
 class TapFileAttachmentFormMap(FormMap):
     field_maps = [
         OneToOneFieldMap(
@@ -626,5 +629,4 @@ ATTACHMENT_FORM_MAPS = [
     LOC_ATTACHMENT_FORM_MAP,
     SGRS_APPROVAL_ATTACHMENT_FORM_MAP,
     SI_ENGINEERING_ATTACHMENT_FORM_MAP,
-    TAP_FILE_FORM_MAP,
 ]

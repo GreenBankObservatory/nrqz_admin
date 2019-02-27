@@ -1,4 +1,5 @@
 import math
+import ntpath
 
 from django.conf import settings
 from django.contrib.gis.db.backends.postgis.models import PostGISSpatialRefSys
@@ -33,6 +34,7 @@ from django.db.models import (
 )
 from django.urls import reverse
 from django.utils.functional import cached_property
+from django.utils.safestring import mark_safe
 
 from django_import_data.models import AbstractBaseAuditedModel
 
@@ -322,6 +324,17 @@ class AbstractBaseFacility(
             name="NRQZ", bounds__covers=self.location
         ).exists()
 
+    def get_prop_study_as_link(self, text=None):
+        if not self.propagation_study:
+            return None
+        propagation_study_path = self.propagation_study.path
+        link = (
+            f"<a href='file://{propagation_study_path}' "
+            f"title={propagation_study_path}>"
+            f"{text if text else ntpath.basename(propagation_study_path)}</a>"
+        )
+        return mark_safe(link)
+
     objects = LocationQuerySet.as_manager()
 
 
@@ -337,6 +350,13 @@ class PreliminaryFacility(AbstractBaseFacility):
 
     attachments = ManyToManyField(
         "Attachment", related_name="prelim_facilities", blank=True
+    )
+    propagation_study = ForeignKey(
+        "Attachment",
+        related_name="propagation_study_for_pfacilities",
+        on_delete=CASCADE,
+        null=True,
+        blank=True,
     )
 
     objects = LocationQuerySet.as_manager()
@@ -449,6 +469,13 @@ class Facility(AbstractBaseFacility):
     tap_file = CharField(max_length=256, blank=True)
     tx_power = FloatField(null=True, blank=True, verbose_name="TX Power (dBm)")
     aeirp_to_gbt = FloatField(null=True, blank=True, verbose_name="AEiRP to GBT")
+    propagation_study = ForeignKey(
+        "Attachment",
+        related_name="propagation_study_for_facilities",
+        on_delete=CASCADE,
+        null=True,
+        blank=True,
+    )
 
     # calc_az = FloatField(
     #     verbose_name="Calculated Azimuth Bearing (°)",
@@ -467,6 +494,7 @@ class Facility(AbstractBaseFacility):
         null=True,
         blank=True,
         help_text="Indicates whether NRAO approves of this Facility or not",
+        verbose_name="Meets NRAO ERPd Limit",
     )
 
     attachments = ManyToManyField("Attachment", related_name="facilities", blank=True)

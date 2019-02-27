@@ -178,7 +178,7 @@ class FacilityFormMap(FormMap):
     form_defaults = {"data_source": ACCESS_TECHNICAL}
 
 
-class AttachmentFormMap(FormMap):
+class PropagationStudyFormMap(FormMap):
     field_maps = [
         OneToOneFieldMap(
             to_field="path",
@@ -193,4 +193,4 @@ class AttachmentFormMap(FormMap):
 APPLICANT_FORM_MAP = ApplicantFormMap()
 CASE_FORM_MAP = CaseFormMap()
 FACILITY_FORM_MAP = FacilityFormMap()
-ATTACHMENT_FORM_MAP = AttachmentFormMap()
+PROPAGATION_STUDY_FORM_MAP = PropagationStudyFormMap()

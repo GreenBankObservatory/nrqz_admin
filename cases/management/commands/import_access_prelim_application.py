@@ -43,10 +43,11 @@ class Command(BaseImportCommand):
             file_import_attempt=file_import_attempt,
             imported_by=self.__module__,
         )
-        attachments = handle_attachments(
-            row_data,
-            pcase,
-            ATTACHMENT_FORM_MAPS,
-            file_import_attempt=file_import_attempt,
-            imported_by=self.__module__,
-        )
+        if pcase:
+            attachments = handle_attachments(
+                row_data,
+                pcase,
+                ATTACHMENT_FORM_MAPS,
+                file_import_attempt=file_import_attempt,
+                imported_by=self.__module__,
+            )
