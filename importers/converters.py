@@ -415,3 +415,10 @@ def convert_case_num_and_site_num_to_nrqz_id(case_num, site_num=None):
     if site_num:
         return f"{case_num}-{site_num}"
     return f"{case_num}"
+
+
+def convert_empty_string(string_):
+    # print(string_)
+    if string_ is None:
+        return ""
+    return string_

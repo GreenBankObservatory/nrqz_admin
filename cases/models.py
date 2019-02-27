@@ -46,6 +46,23 @@ from .mixins import (
 )
 from utils.constants import WGS84_SRID
 
+
+class SensibleCharField(CharField):
+    def __init__(self, *args, **kwargs):
+        # If null is given and is True (if not given default to False)...
+        if kwargs.get("null", False) is True:
+            # ...raise an error, since this isn't allowed
+            raise ValueError("SensibleCharField doesn't allow null=True!")
+        # If blank is either given and False, or not given at all...
+        if kwargs.get("blank", False) is False:
+            # ...if default is either not given, or is given as None...
+            if kwargs.get("default", None) is None:
+                # ...set it to None
+                kwargs["default"] = None
+
+        super().__init__(*args, **kwargs)
+
+
 # TODO: Make proper field
 LOCATION_FIELD = lambda: PointField(
     blank=True,
@@ -76,7 +93,9 @@ def get_pcase_num():
 
 
 class Boundaries(IsActiveModel, Model):
-    name = CharField(max_length=64, default=None, unique=True, verbose_name="Name")
+    name = SensibleCharField(
+        max_length=64, default=None, unique=True, verbose_name="Name"
+    )
     bounds = PolygonField(geography=True, srid=WGS84_SRID, verbose_name="Bounds")
 
     class Meta:
@@ -97,7 +116,9 @@ class Boundaries(IsActiveModel, Model):
 
 
 class Location(IsActiveModel, Model):
-    name = CharField(max_length=64, default=None, unique=True, verbose_name="Name")
+    name = SensibleCharField(
+        max_length=64, default=None, unique=True, verbose_name="Name"
+    )
     location = PointField(geography=True, srid=WGS84_SRID, verbose_name="Location")
 
     def __str__(self):
@@ -110,10 +131,16 @@ class Structure(IsActiveModel, TrackedModel, DataSourceModel, Model):
     asr = PositiveIntegerField(
         unique=True, verbose_name="Antenna Registration Number", db_index=True
     )
-    file_num = CharField(max_length=256, verbose_name="File Number")
+    file_num = SensibleCharField(
+        max_length=256, default=None, verbose_name="File Number"
+    )
     location = LOCATION_FIELD()
-    faa_circ_num = CharField(max_length=256, verbose_name="FAA Circulation Number")
-    faa_study_num = CharField(max_length=256, verbose_name="FAA Study Number")
+    faa_circ_num = SensibleCharField(
+        max_length=256, default=None, verbose_name="FAA Circulation Number"
+    )
+    faa_study_num = SensibleCharField(
+        max_length=256, default=None, verbose_name="FAA Study Number"
+    )
     issue_date = DateField(verbose_name="Issue Date")
     height = FloatField(verbose_name="Height (m)")
 
@@ -135,14 +162,13 @@ class AbstractBaseFacility(
 ):
     """Stores concrete fields common between PFacility and Facility"""
 
-    nrqz_id = CharField(
+    nrqz_id = SensibleCharField(
         max_length=256,
         blank=True,
-        null=True,
         verbose_name="NRQZ ID",
         help_text="Assigned by NRAO. Do not put any of your data in this column.",
         db_index=True,
-        # unique=True,
+        default=None,
     )
     site_num = PositiveIntegerField(
         verbose_name="Site #", blank=True, null=True, help_text="???"
@@ -159,41 +185,36 @@ class AbstractBaseFacility(
         blank=True,
         null=True,
     )
-    antenna_model_number = CharField(
+    antenna_model_number = SensibleCharField(
         verbose_name="Antenna Model No.",
         max_length=256,
         blank=True,
-        null=True,
         help_text="Antenna Model Number",
     )
     power_density_limit = FloatField(
         null=True, blank=True, verbose_name="Power Density Limit", help_text="???"
     )
-    site_name = CharField(
+    site_name = SensibleCharField(
         max_length=256,
         blank=True,
-        null=True,
         verbose_name="Site Name",
         help_text="What you call it! Include MCN and eNB information.",
     )
-    latitude = CharField(
+    latitude = SensibleCharField(
         blank=True,
-        null=True,
         max_length=256,
         verbose_name="Latitude",
         help_text="Latitude of site, in degrees",
     )
-    longitude = CharField(
+    longitude = SensibleCharField(
         blank=True,
-        null=True,
         max_length=256,
         verbose_name="Longitude",
         help_text="Longitude of site, in degrees",
     )
     location = LOCATION_FIELD()
-    location_description = CharField(
+    location_description = SensibleCharField(
         blank=True,
-        null=True,
         max_length=512,
         verbose_name="Geographic Location",
         help_text="A long-form description of the facility location",
@@ -220,18 +241,20 @@ class AbstractBaseFacility(
         blank=True,
         help_text="Additional information or comments from the applicant",
     )
-    usgs_dataset = CharField(
+    usgs_dataset = SensibleCharField(
         max_length=3, choices=(("3m", "3m"), ("10m", "10m"), ("30m", "30m")), blank=True
     )
     tpa = FloatField(null=True, blank=True)
     survey_1a = BooleanField(null=True, blank=True)
     survey_2c = BooleanField(null=True, blank=True)
-    radio_service = CharField(max_length=256, blank=True, verbose_name="Radio Service")
+    radio_service = SensibleCharField(
+        max_length=256, blank=True, verbose_name="Radio Service"
+    )
     topo_4_point = BooleanField(null=True, blank=True, verbose_name="FCC 4 Point")
     topo_12_point = BooleanField(
         null=True, blank=True, verbose_name="Weighted 12 Point"
     )
-    propagation_model = CharField(
+    propagation_model = SensibleCharField(
         max_length=256,
         default="Rounded Obstacle",
         verbose_name="Propagation Model",
@@ -245,12 +268,11 @@ class AbstractBaseFacility(
     nrao_space = FloatField(null=True, blank=True)
     nrao_tropo = FloatField(null=True, blank=True)
     original_outside_nrqz = BooleanField(null=True, blank=True)
-    requested_max_erp_per_tx = CharField(
+    requested_max_erp_per_tx = SensibleCharField(
         max_length=256, blank=True, verbose_name="Max ERPd per TX"
     )
-    az_bearing = CharField(
+    az_bearing = SensibleCharField(
         max_length=256,
-        null=True,
         blank=True,
         verbose_name="AZ bearing degrees True",
         help_text="The Azimuth bearing between the Facility and the GBT, as imported from existing data",
@@ -340,26 +362,20 @@ class PreliminaryFacility(AbstractBaseFacility):
 class Facility(AbstractBaseFacility):
     """Describes a single, physical antenna"""
 
-    site_name = CharField(
+    site_name = SensibleCharField(
         max_length=256,
         blank=True,
-        null=True,
         verbose_name="Site Name",
         help_text="What you call it! Include MCN and eNB information.",
     )
-    call_sign = CharField(
+    call_sign = SensibleCharField(
         max_length=256,
         blank=True,
-        null=True,
         verbose_name="Call Sign",
         help_text="The radio call sign of the Facility",
     )
-    fcc_file_number = CharField(
-        max_length=256,
-        blank=True,
-        null=True,
-        verbose_name="FCC ULS Number",
-        help_text="???",
+    fcc_file_number = SensibleCharField(
+        max_length=256, blank=True, verbose_name="FCC ULS Number", help_text="???"
     )
 
     bandwidth = FloatField(
@@ -370,22 +386,22 @@ class Facility(AbstractBaseFacility):
     )
     antenna_gain = FloatField(verbose_name="Antenna Gain (dBi)", blank=True, null=True)
     system_loss = FloatField(verbose_name="System Loss (dB)", blank=True, null=True)
-    main_beam_orientation = CharField(
+    main_beam_orientation = SensibleCharField(
         max_length=256,
         verbose_name="Main Beam Orientation",
         help_text="or sectorized AZ bearings (in ° True NOT ° Magnetic)",
         blank=True,
     )
-    mechanical_downtilt = CharField(
+    mechanical_downtilt = SensibleCharField(
         verbose_name="Mechanical Downtilt", max_length=256, blank=True
     )
-    electrical_downtilt = CharField(
+    electrical_downtilt = SensibleCharField(
         verbose_name="Electrical Downtilt",
         max_length=256,
         blank=True,
         help_text="Specific and/or RET range",
     )
-    tx_per_sector = CharField(
+    tx_per_sector = SensibleCharField(
         max_length=256,
         blank=True,
         verbose_name="Total number of TXers per sector",
@@ -398,10 +414,10 @@ class Facility(AbstractBaseFacility):
 
     # From Working Data
     band_allowance = FloatField(null=True, blank=True, verbose_name="Band Allowance")
-    distance_to_first_obstacle = CharField(
-        max_length=256, null=True, blank=True, verbose_name="Distance to First Obstacle"
+    distance_to_first_obstacle = SensibleCharField(
+        max_length=256, blank=True, verbose_name="Distance to First Obstacle"
     )
-    dominant_path = CharField(
+    dominant_path = SensibleCharField(
         max_length=256,
         blank=True,
         verbose_name="Dominant Path",
@@ -415,7 +431,7 @@ class Facility(AbstractBaseFacility):
     height_of_first_obstacle = FloatField(
         null=True, blank=True, verbose_name="Height of First Obstacle (ft)"
     )
-    loc = CharField(max_length=256, blank=True, verbose_name="LOC")
+    loc = SensibleCharField(max_length=256, blank=True, verbose_name="LOC")
     max_aerpd = FloatField(null=True, blank=True, verbose_name="Max AERPd (dBm)")
     max_eirp = FloatField(null=True, blank=True, verbose_name="Max AEiRP")
     requested_max_erp_per_tx = FloatField(
@@ -431,7 +447,7 @@ class Facility(AbstractBaseFacility):
     sgrs_responded_on = DateTimeField(
         null=True, blank=True, verbose_name="SGRS Responded On"
     )
-    tap_file = CharField(max_length=256, blank=True)
+    tap_file = SensibleCharField(max_length=256, blank=True)
     tx_power = FloatField(null=True, blank=True, verbose_name="TX Power (dBm)")
     aeirp_to_gbt = FloatField(null=True, blank=True, verbose_name="AEiRP to GBT")
     propagation_study = ForeignKey(
@@ -464,7 +480,7 @@ class Facility(AbstractBaseFacility):
 
     attachments = ManyToManyField("Attachment", related_name="facilities", blank=True)
 
-    emissions = ArrayField(CharField(max_length=64), null=True, blank=True)
+    emissions = ArrayField(SensibleCharField(max_length=64), null=True, blank=True)
     s367 = BooleanField(default=False)
 
     class Meta:
@@ -518,7 +534,9 @@ class AbstractBaseCase(
     num_sites = PositiveIntegerField(
         null=True, blank=True, verbose_name="Num. Facilities"
     )
-    radio_service = CharField(max_length=256, blank=True, verbose_name="Radio Service")
+    radio_service = SensibleCharField(
+        max_length=256, blank=True, verbose_name="Radio Service"
+    )
     date_recorded = DateTimeField(null=True, blank=True, verbose_name="Date Recorded")
 
     slug = SlugField(unique=True)
@@ -607,9 +625,13 @@ class Case(AbstractBaseCase):
         null=True, blank=True, verbose_name="SGRS Responded On"
     )
     # TODO: Propagate to Facility
-    call_sign = CharField(max_length=256, blank=True, verbose_name="Call Sign")
-    freq_coord = CharField(max_length=256, blank=True, verbose_name="Freq. Coord. Num.")
-    fcc_file_num = CharField(max_length=256, blank=True, verbose_name="FCC ULS Num.")
+    call_sign = SensibleCharField(max_length=256, blank=True, verbose_name="Call Sign")
+    freq_coord = SensibleCharField(
+        max_length=256, blank=True, verbose_name="Freq. Coord. Num."
+    )
+    fcc_file_num = SensibleCharField(
+        max_length=256, blank=True, verbose_name="FCC ULS Num."
+    )
     num_outside = PositiveIntegerField(
         null=True, blank=True, verbose_name="Num. Sites Outside NRQZ"
     )
@@ -623,9 +645,7 @@ class Case(AbstractBaseCase):
     sgrs_service_num = PositiveIntegerField(
         null=True, blank=True, help_text="SGRS Service Num."
     )
-    agency_num = CharField(
-        max_length=256, null=True, blank=True, help_text="Agency Num."
-    )
+    agency_num = SensibleCharField(max_length=256, blank=True, help_text="Agency Num.")
 
     class Meta:
         verbose_name = "Case"
@@ -680,15 +700,15 @@ class Person(
 ):
     """A single, physical person"""
 
-    name = CharField(max_length=256)
-    phone = CharField(max_length=256, blank=True)
-    fax = CharField(max_length=256, blank=True)
-    email = EmailField(null=True, blank=True)
-    street = CharField(max_length=256, blank=True)
-    city = CharField(max_length=256, blank=True)
-    county = CharField(max_length=256, blank=True)
-    state = CharField(max_length=256, blank=True)
-    zipcode = CharField(max_length=256, blank=True)
+    name = SensibleCharField(max_length=256)
+    phone = SensibleCharField(max_length=256, blank=True)
+    fax = SensibleCharField(max_length=256, blank=True)
+    email = EmailField(blank=True)
+    street = SensibleCharField(max_length=256, blank=True)
+    city = SensibleCharField(max_length=256, blank=True)
+    county = SensibleCharField(max_length=256, blank=True)
+    state = SensibleCharField(max_length=256, blank=True)
+    zipcode = SensibleCharField(max_length=256, blank=True)
     comments = TextField(blank=True)
 
     def __str__(self):
@@ -704,7 +724,7 @@ class Person(
 
 class AlsoKnownAs(IsActiveModel, TrackedModel, DataSourceModel, Model):
     person = ForeignKey("Person", on_delete=CASCADE, related_name="aka")
-    name = CharField(max_length=256)
+    name = SensibleCharField(max_length=256)
 
     class Meta:
         verbose_name = "Also Known As"
@@ -720,7 +740,7 @@ class Attachment(
     """Holds the path to a file along with some metadata"""
 
     # TODO: This will need to be a proper FilePathField eventually...
-    path = CharField(max_length=256, unique=True)
+    path = SensibleCharField(max_length=256, unique=True)
     # path = FilePathField(path=settings.NRQZ_ATTACHMENT_DIR, max_length=256, unique=True)
     comments = TextField(blank=True)
     original_index = PositiveIntegerField(null=True, blank=True)
@@ -737,7 +757,7 @@ class Attachment(
 
 
 class LetterTemplate(IsActiveModel, TrackedModel, Model):
-    name = CharField(max_length=256, unique=True)
+    name = SensibleCharField(max_length=256, unique=True)
     path = FilePathField(
         path=settings.NRQZ_LETTER_TEMPLATE_DIR, max_length=512, unique=True
     )

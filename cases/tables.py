@@ -278,9 +278,6 @@ class AttachmentTable(tables.Table):
         fields = AttachmentFilter.Meta.fields
         order_by = ["original_index"]
 
-    def render_data_source(self, value):
-        return f"Letter {value}"
-
 
 class StructureTable(tables.Table):
     asr = tables.Column(linkify=True)
