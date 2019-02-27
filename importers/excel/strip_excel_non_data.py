@@ -59,19 +59,26 @@ def strip_excel_directory(
     print(f"Errors: {errors}")
 
 
+def row_is_invalid(row, threshold=DEFAULT_THRESHOLD):
+    invalid_cells = 0
+    for cell in row:
+        value = cell.value
+        if value is None:
+            invalid_cells += 1
+
+    if not invalid_cells or invalid_cells / len(row) > threshold:
+        # tqdm.write(
+        #     f"Found invalid row ({invalid_cells} / {len(row)} {invalid_cells / len(row) * 100}%>"
+        #     f"{threshold * 100}% cells invalid): {row}"
+        # )
+        return True
+    return False
+
+
 def identify_invalid_rows(rows, threshold=DEFAULT_THRESHOLD):
     invalid_row_indices = []
     for ri, row in enumerate(rows):
-        invalid_cells = 0
-        for cell in row:
-            if not str(cell):
-                # tqdm.write(f"Found invalid cell: {cell!r}")
-                invalid_cells += 1
-
-        if invalid_cells / len(row) > threshold:
-            # tqdm.write(
-            #     f"Found invalid row {ri} (>{threshold * 100}% cells invalid): {row}"
-            # )
+        if row_is_invalid(row):
             invalid_row_indices.append(ri)
 
     return invalid_row_indices

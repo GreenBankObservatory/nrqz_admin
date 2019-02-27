@@ -39,6 +39,7 @@ class Command(BaseMetaImportCommand):
                         "limit",
                         "rows",
                         "overwrite",
+                        "skip",
                         "dry_run",
                         "no_transaction",
                         "start_index",

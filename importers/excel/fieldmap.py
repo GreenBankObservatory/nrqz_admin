@@ -10,7 +10,7 @@ from django_import_data import (
     ManyToManyFieldMap,
 )
 
-from cases.forms import CaseForm, FacilityImportForm
+from cases.forms import AttachmentForm, CaseForm, FacilityImportForm
 from importers.converters import (
     coerce_bool,
     coerce_float,
@@ -32,9 +32,49 @@ IGNORED_HEADERS = [
     # This is important to allow duplicates for; in fact we depend on that
     # fact for the population of meets_erpd_limit. See below...
     "NRAO AERPd (W)",
+    # "Site Inspection Date",
+    "Lat1 (dd.dd)N",
+    "Lon1 (-dd.dd)W",
 ]
 
 from datetime import date
+
+
+def convert_excel_path(path):
+    # If the value is a date, then it can't be a path; return None
+    if isinstance(path, date):
+        return None
+
+    # If the value can be converted to a bool, then it can't be a path; return None
+    try:
+        coerce_bool(path)
+    except ValueError:
+        pass
+    else:
+        return None
+
+    # If the value can be converted to a date, then it can't be a path; return None
+    try:
+        convert_mdy_datetime(path)
+    except ValueError:
+        pass
+    else:
+        return None
+
+    # If the value can be converted to a float, then it can't be a path; return None
+    try:
+        coerce_float(path)
+    except ValueError:
+        pass
+    else:
+        return None
+
+    # If the value has a slash of some kind in it, then it is a path
+    if r"\\" or r"/" in path:
+        return path
+
+    # Otherwise blow up
+    raise ValueError(f"Something is wrong with path value: {path}")
 
 
 def convert_sgrs_approval(sgrs_approval):
@@ -53,10 +93,16 @@ def convert_sgrs_approval(sgrs_approval):
             try:
                 sgrs_responded_on = convert_mdy_datetime(sgrs_approval)
             except ValueError:
-                # And if that didn't work, raise an error
-                raise ValueError(
-                    f"sgrs_approval ({sgrs_approval!r}) couldn't be converted to either a date or a boolean!"
-                )
+                # 3. If that doesn't work, do a very basic check
+                # to see if it's a path or not. If it is, then SGRS has NOT approved!
+                if r"\\" or r"/" in sgrs_approval:
+                    sgrs_approval = False
+                # If it isn't a path, then reject it; something is wrong
+                else:
+                    # And if that didn't work, raise an error
+                    raise ValueError(
+                        f"sgrs_approval ({sgrs_approval!r}) couldn't be converted to a date, boolean, or path!"
+                    )
             else:
                 # If it did work, sgrs_approval must be true (since we know the date on which they approved)
                 sgrs_approval = True
@@ -69,7 +115,10 @@ def convert_sgrs_approval(sgrs_approval):
 
 
 def convert_dominant_path(dominant_path):
-    clean_dominant_path = dominant_path.strip().lower()
+    if coerce_none(dominant_path) is None:
+        return None
+
+    clean_dominant_path = str(dominant_path).strip().lower()
     if not clean_dominant_path:
         return None
 
@@ -423,7 +472,6 @@ class FacilityFormMap(FormMap):
             converter=coerce_positive_float,
             from_field={"height_of_first_obstacle": ["Height of 1st obstacle (ft)"]},
         ),
-        OneToOneFieldMap(to_field="loc", converter=None, from_field={"loc": ["LOC"]}),
         OneToOneFieldMap(
             to_field="max_aerpd",
             converter=coerce_positive_float,
@@ -434,7 +482,8 @@ class FacilityFormMap(FormMap):
             converter=coerce_positive_float,
             from_field={
                 "requested_max_erp_per_tx": [
-                    "Max ERP per TX (W)",
+                    # TODO: DUP
+                    # "Max ERP per TX (W)",
                     "ERPd per # of Transmitters",
                     "ERPd per TX",
                 ]
@@ -501,3 +550,81 @@ class FacilityFormMap(FormMap):
 
 
 FACILITY_FORM_MAP = FacilityFormMap()
+
+
+class SgrsApprovalAttachmentFormMap(FormMap):
+    field_maps = [
+        OneToOneFieldMap(
+            to_field="path",
+            converter=convert_excel_path,
+            from_field={"path": ["SGRS Approval", "SG Approval", "SGRS approval"]},
+        )
+    ]
+    form_class = AttachmentForm
+    form_defaults = {"data_source": EXCEL, "comments": "SGRS Approval file"}
+
+
+SGRS_APPROVAL_ATTACHMENT_FORM_MAP = SgrsApprovalAttachmentFormMap()
+
+
+class SiEngineeringAttachmentFormMap(FormMap):
+    field_maps = [
+        OneToOneFieldMap(
+            to_field="path",
+            converter=convert_excel_path,
+            from_field={
+                "path": [
+                    "SI Worksheet",
+                    "SI Engineering",
+                    "FEW",
+                    "FEW Engineering Worksheet",
+                    "FEW - Final Engineering Worksheet",
+                    "GBO SI Worksheet",
+                    "NRAO SI Worksheet",
+                    "SI Inspection Worksheet",
+                ]
+            },
+        )
+    ]
+    form_class = AttachmentForm
+    form_defaults = {"data_source": EXCEL, "comments": "SI Engineering file"}
+
+
+SI_ENGINEERING_ATTACHMENT_FORM_MAP = SiEngineeringAttachmentFormMap()
+
+
+class LocAttachmentFormMap(FormMap):
+    field_maps = [
+        OneToOneFieldMap(
+            to_field="path",
+            converter=convert_excel_path,
+            from_field={"path": ["LOC", "NRAO LOC"]},
+        )
+    ]
+    form_class = AttachmentForm
+    form_defaults = {"data_source": EXCEL, "comments": "LOC file"}
+
+
+LOC_ATTACHMENT_FORM_MAP = LocAttachmentFormMap()
+
+
+class TapFileAttachmentFormMap(FormMap):
+    field_maps = [
+        OneToOneFieldMap(
+            to_field="path",
+            converter=convert_excel_path,
+            from_field={"path": ["TAP file", "TAP File"]},
+        )
+    ]
+    form_class = AttachmentForm
+    form_defaults = {"data_source": EXCEL, "comments": "TAP file"}
+
+
+TAP_FILE_FORM_MAP = TapFileAttachmentFormMap()
+
+ATTACHMENT_FORM_MAPS = [
+    LOC_ATTACHMENT_FORM_MAP,
+    SGRS_APPROVAL_ATTACHMENT_FORM_MAP,
+    SI_ENGINEERING_ATTACHMENT_FORM_MAP,
+    TAP_FILE_FORM_MAP,
+]

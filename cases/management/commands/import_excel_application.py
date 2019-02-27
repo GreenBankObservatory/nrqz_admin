@@ -1,14 +1,23 @@
 """Import Excel Technical Data"""
 
-import pyexcel
+from urllib.parse import unquote
+
+import openpyxl
 from tqdm import tqdm
 
 from django_import_data import BaseImportCommand
 
 
 from cases.models import Case
-from importers.excel.fieldmap import CASE_FORM_MAP, FACILITY_FORM_MAP, IGNORED_HEADERS
+from importers.excel.fieldmap import (
+    CASE_FORM_MAP,
+    FACILITY_FORM_MAP,
+    IGNORED_HEADERS,
+    ATTACHMENT_FORM_MAPS,
+)
 from utils.constants import EXCEL
+from importers.handlers import handle_attachments
+from importers.excel.strip_excel_non_data import row_is_invalid
 
 DEFAULT_THRESHOLD = 0.7
 DEFAULT_PREPROCESS = False
@@ -19,7 +28,7 @@ class Command(BaseImportCommand):
 
     PROGRESS_TYPE = BaseImportCommand.PROGRESS_TYPES.FILE
 
-    FORM_MAPS = [CASE_FORM_MAP, FACILITY_FORM_MAP]
+    FORM_MAPS = [CASE_FORM_MAP, FACILITY_FORM_MAP, *ATTACHMENT_FORM_MAPS]
     IGNORED_HEADERS = IGNORED_HEADERS
 
     def add_arguments(self, parser):
@@ -47,32 +56,88 @@ class Command(BaseImportCommand):
     def load_rows(self, path):
         """Given path to Excel file, extract data and return"""
 
-        book = pyexcel.get_book(file_name=path)
-
         # TODO: This should be defined elsewhere
         primary_sheet = "Working Data"
-
         try:
-            sheet = book.sheet_by_name(primary_sheet)
+            # This sheet is used for "values" -- the last-calculated values in each cell
+            book_with_values = openpyxl.load_workbook(
+                path, read_only=True, data_only=True
+            )
+            # This workbook is used for hyperlinks only (because they don't appear when doing a "data only" export)
+            # We can't get values from this workbook; it stores formulas instead
+            book_with_formulas = openpyxl.load_workbook(path)
+        except openpyxl.utils.exceptions.InvalidFileException as error:
+            raise ValueError(f"{path} must be manually converted to .xlsx!")
+        # TODO: this is a file-level error!
+        try:
+            sheet_with_values = book_with_values[primary_sheet]
+            sheet_with_formulas = book_with_formulas[primary_sheet]
         except KeyError:
-            # TODO: this is a file-level error!
-            raise ValueError(f"Sheet {primary_sheet!r} not found!")
+            raise ValueError(f"'{path}' is missing sheet '{primary_sheet}'")
 
         # TODO: Re-enable preprocessing
         # if self.preprocess:
         #     tqdm.write("Pre-processing sheet")
         #     strip_excel_sheet(sheet, threshold=self.threshold)
+        rows_with_values = sheet_with_values.rows
+        rows_with_formulas = sheet_with_formulas.rows
 
+        headers_from_rows_with_values = next(rows_with_values)
+        headers_from_rows_with_formulas = next(rows_with_formulas)
+        assert len(headers_from_rows_with_values) == len(
+            headers_from_rows_with_formulas
+        )
+        headers = [
+            c.value if c.value is not None else ""
+            for c in headers_from_rows_with_values
+        ]
+
+        # assert len(headers) == len(rows_with_values) == len(rows_with_formulas)
+        # num_rows = len(rows_with_values)
+
+        invalid_row_run = 0
         # Create a new sheet, this time with the column names mapped
         # We couldn't do this before because we weren't sure that our
         # headers were on the first row, but they should be now
-        duplicate_headers = self.get_duplicate_headers(sheet.array[0])
+        duplicate_headers = self.get_duplicate_headers(headers)
         if duplicate_headers:
             raise ValueError(
                 f"One or more duplicate headers detected!\n{duplicate_headers}"
             )
-        sheet = pyexcel.Sheet(sheet.array, name_columns_by_row=0)
-        return sheet.records
+
+        row_number = 1
+        sheet = []
+        for row_with_values, row_with_formulas in zip(
+            rows_with_values, rows_with_formulas
+        ):
+            if invalid_row_run > 100:
+                tqdm.write(
+                    f"More than 100 empty rows in a row! Exiting on row {row_number}!"
+                )
+                break
+
+            if row_is_invalid(row_with_values):
+                invalid_row_run += 1
+            else:
+                invalid_row_run = 0
+                row_dict = {}
+                for header, cell_with_values, cell_with_formulas in zip(
+                    headers, row_with_values, row_with_formulas
+                ):
+                    hyperlink = getattr(cell_with_formulas, "hyperlink", None)
+                    if hyperlink:
+                        value = unquote(hyperlink.target)
+                    else:
+                        value = cell_with_values.value
+                    if header in row_dict:
+                        header = f"{header}-1"
+                    if header in row_dict:
+                        raise ValueError("Whoops")
+                    row_dict[header] = value
+                sheet.append(row_dict)
+            row_number += 1
+
+        return sheet
 
     def _handle_case(self, row_data, file_import_attempt):
         # tqdm.write("-" * 80)
@@ -149,7 +214,7 @@ class Command(BaseImportCommand):
             row_data, file_import_attempt=file_import_attempt
         )
         if case_created:
-            error_str = "PCase should never be created from technical data; only found!"
+            error_str = "Case should never be created from technical data; only found!"
             if durable:
                 row_data.errors.setdefault("case_not_found_errors", [])
                 row_data.errors["case_not_found_errors"].append(error_str)
@@ -159,6 +224,15 @@ class Command(BaseImportCommand):
         facility, facility_created = self._handle_facility(
             row_data, case, file_import_attempt=file_import_attempt
         )
+
+        if facility:
+            attachments = handle_attachments(
+                row_data=row_data,
+                model=facility,
+                form_maps=ATTACHMENT_FORM_MAPS,
+                file_import_attempt=file_import_attempt,
+                imported_by=self.__module__,
+            )
 
         if not case or not facility:
             tqdm.write("-" * 80)
