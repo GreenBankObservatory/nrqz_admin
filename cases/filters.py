@@ -23,8 +23,8 @@ from .widgets import PCaseWidget
 
 class WatsonFilter(django_filters.CharFilter):
     def filter(self, qs, value):
-        model_class = qs.model
-        return watson.filter(model_class, value)
+        print("hmmm", qs.count())
+        return watson.filter(qs, value)
 
 
 class HelpedFilterSet(django_filters.FilterSet):
@@ -62,6 +62,7 @@ class PointFilter(django_filters.Filter):
 
 
 class BaseFacilityFilter(HelpedFilterSet):
+    site_name = django_filters.CharFilter(lookup_expr="icontains")
     nrqz_id = django_filters.CharFilter(
         lookup_expr="icontains", label="Facility ID contains"
     )
@@ -76,7 +77,6 @@ class BaseFacilityFilter(HelpedFilterSet):
 
 
 class PreliminaryFacilityFilter(BaseFacilityFilter):
-    site_name = django_filters.CharFilter(lookup_expr="icontains")
     call_sign = django_filters.CharFilter(lookup_expr="icontains")
     freq_low = django_filters.RangeFilter()
     freq_high = django_filters.RangeFilter()
@@ -97,8 +97,6 @@ class PreliminaryFacilityFilter(BaseFacilityFilter):
 
 
 class FacilityFilter(BaseFacilityFilter):
-    site_name = django_filters.CharFilter(lookup_expr="icontains")
-
     call_sign = django_filters.CharFilter(lookup_expr="icontains")
     freq_low = django_filters.RangeFilter()
     freq_high = django_filters.RangeFilter()

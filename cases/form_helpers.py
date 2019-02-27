@@ -81,10 +81,12 @@ class FacilityFilterFormHelper(FormHelper):
                 "nrqz_id",
                 "case",
                 "site_name",
-                "main_beam_orientation",
+                "applicant",
+                "contact",
                 css_class="col-sm-2",
             ),
             Div(
+                "main_beam_orientation",
                 "freq_low",
                 "freq_high",
                 "distance_to_gbt",
