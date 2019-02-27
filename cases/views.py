@@ -167,7 +167,9 @@ class CaseListView(FilterTableView):
             # TODO: Must be a cleaner way to do this
             qs = self.get_filterset(self.filterset_class).qs
             response = HttpResponse(
-                kml_to_string(cases_as_kml(qs)),
+                kml_to_string(
+                    cases_as_kml(qs.filter(facility__location__isnull=False).all())
+                ),
                 content_type="application/vnd.google-earth.kml+xml.",
             )
             response["Content-Disposition"] = 'application; filename="nrqz_apps.kml"'
@@ -206,7 +208,9 @@ class FacilityListView(FilterTableView):
             # TODO: Must be a cleaner way to do this
             qs = self.get_filterset(self.filterset_class).qs
             response = HttpResponse(
-                kml_to_string(facilities_as_kml(qs)),
+                kml_to_string(
+                    facilities_as_kml(qs.filter(location__isnull=False).all())
+                ),
                 content_type="application/vnd.google-earth.kml+xml.",
             )
             response[
@@ -768,7 +772,16 @@ class SearchView(MultiTableMixin, ListView):
 def facility_as_kml_view(request, pk):
     facility = Facility.objects.get(id=pk)
     response = HttpResponse(
-        facility.location.kml, content_type="application/vnd.google-earth.kml+xml."
+        facility.as_kml(), content_type="application/vnd.google-earth.kml+xml."
     )
     response["Content-Disposition"] = f'application; filename="{facility.nrqz_id}.kml"'
+    return response
+
+
+def case_as_kml_view(request, pk):
+    case = Case.objects.get(id=pk)
+    response = HttpResponse(
+        case.as_kml(), content_type="application/vnd.google-earth.kml+xml."
+    )
+    response["Content-Disposition"] = f'application; filename="{case.case_num}.kml"'
     return response

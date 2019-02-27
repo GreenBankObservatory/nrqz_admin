@@ -1,3 +1,5 @@
+"""Case models"""
+
 import math
 import ntpath
 
@@ -8,10 +10,12 @@ from django.contrib.gis.db.models.functions import Area, Azimuth, Distance
 from django.contrib.postgres.fields import ArrayField
 from django.db.models import (
     BooleanField,
+    CASCADE,
     CharField,
     DateField,
     DateTimeField,
     EmailField,
+    F,
     FilePathField,
     FloatField,
     ForeignKey,
@@ -19,18 +23,11 @@ from django.db.models import (
     ManyToManyField,
     Model,
     PositiveIntegerField,
-    TextField,
-    CASCADE,
     PROTECT,
     SET_NULL,
     SlugField,
-    F,
-    Func,
-    Manager,
-    When,
-    Case as Case_,
+    TextField,
     Value,
-    QuerySet,
 )
 from django.urls import reverse
 from django.utils.functional import cached_property
@@ -38,8 +35,8 @@ from django.utils.safestring import mark_safe
 
 from django_import_data.models import AbstractBaseAuditedModel
 
-from utils.constants import WGS84_SRID
 from .kml import facility_as_kml, case_as_kml, kml_to_string
+from .managers import LocationManager
 from .mixins import (
     AllFieldsModel,
     DataSourceModel,
@@ -47,6 +44,7 @@ from .mixins import (
     TrackedModel,
     TrackedOriginalModel,
 )
+from utils.constants import WGS84_SRID
 
 # TODO: Make proper field
 LOCATION_FIELD = lambda: PointField(
@@ -59,6 +57,7 @@ LOCATION_FIELD = lambda: PointField(
     # WGS84_SRID
     srid=WGS84_SRID,
     help_text="A physical location on the Earth",
+    verbose_name="Location",
 )
 
 
@@ -77,8 +76,8 @@ def get_pcase_num():
 
 
 class Boundaries(IsActiveModel, Model):
-    name = CharField(max_length=64, default=None, unique=True)
-    bounds = PolygonField(geography=True, srid=WGS84_SRID)
+    name = CharField(max_length=64, default=None, unique=True, verbose_name="Name")
+    bounds = PolygonField(geography=True, srid=WGS84_SRID, verbose_name="Bounds")
 
     class Meta:
         verbose_name = "Boundaries"
@@ -98,8 +97,8 @@ class Boundaries(IsActiveModel, Model):
 
 
 class Location(IsActiveModel, Model):
-    name = CharField(max_length=64, default=None, unique=True)
-    location = PointField(geography=True, srid=WGS84_SRID)
+    name = CharField(max_length=64, default=None, unique=True, verbose_name="Name")
+    location = PointField(geography=True, srid=WGS84_SRID, verbose_name="Location")
 
     def __str__(self):
         return self.name
@@ -117,46 +116,12 @@ class Structure(IsActiveModel, TrackedModel, DataSourceModel, Model):
     faa_study_num = CharField(max_length=256, verbose_name="FAA Study Number")
     issue_date = DateField(verbose_name="Issue Date")
     height = FloatField(verbose_name="Height (m)")
-    # owner = ForeignKey("Person", on_delete=PROTECT, related_name="owner_for_structures")
-    # contact = ForeignKey(
-    #     "Person", on_delete=PROTECT, related_name="contact_for_structures"
-    # )
 
     def __str__(self):
         return str(self.asr)
 
     def get_absolute_url(self):
         return reverse("structure_detail", args=[str(self.id)])
-
-
-class LocationQuerySet(QuerySet):
-    @cached_property
-    def GBT(self):
-        return Location.objects.get(name="GBT").location
-
-    @cached_property
-    def NRQZ(self):
-        return Boundaries.objects.get(name="NRQZ").bounds
-
-    def annotate_distance_to_gbt(self):
-        return self.annotate(distance_to_gbt=Distance(F("location"), self.GBT))
-
-    def annotate_azimuth_to_gbt(self):
-        """Add an "azimuth_to_gbt" annotation that indicates the azimuth bearing to the GBT (in degrees)"""
-        return self.annotate(
-            azimuth_radians_to_gbt=Azimuth(F("location"), self.GBT),
-            azimuth_to_gbt=Func(F("azimuth_radians_to_gbt"), function="DEGREES"),
-        )
-
-    def annotate_in_nrqz(self):
-        """Add an "in_nrqz" annotation that indicates whether each Facility is inside or outside the NRQZ"""
-        return self.annotate(
-            in_nrqz=Case_(
-                When(location__intersects=self.NRQZ, then=Value(True)),
-                default=Value(False),
-                output_field=BooleanField(),
-            )
-        )
 
 
 class AbstractBaseFacility(
@@ -335,7 +300,7 @@ class AbstractBaseFacility(
         )
         return mark_safe(link)
 
-    objects = LocationQuerySet.as_manager()
+    objects = LocationManager()
 
 
 class PreliminaryFacility(AbstractBaseFacility):
@@ -359,7 +324,7 @@ class PreliminaryFacility(AbstractBaseFacility):
         blank=True,
     )
 
-    objects = LocationQuerySet.as_manager()
+    objects = LocationManager()
 
     class Meta:
         verbose_name = "Preliminary Facility"

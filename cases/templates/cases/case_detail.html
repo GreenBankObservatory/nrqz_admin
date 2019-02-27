@@ -76,6 +76,7 @@
 
 <h2>Facilities</h2>
 {% if tables.0.data %}
+<a href="{% url 'case_kml' case.id %}">As KML</a>
 {% render_table tables.0 %}
 {% else %}
 <p>No Facilities</p>

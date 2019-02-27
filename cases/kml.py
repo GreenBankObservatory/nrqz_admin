@@ -11,18 +11,23 @@ from lxml import etree
 
 
 def facility_as_kml(facility):
+    """Generate a Placemark from a single facility"""
     return KML.Placemark(
         KML.name(facility.nrqz_id),
-        KML.Point(KML.coordinates(f"{facility.longitude},{facility.latitude}")),
+        KML.Point(KML.coordinates(f"{facility.location.x},{facility.location.y}")),
     )
 
 
 def facilities_as_kml(facilities):
+    """Generate a Folder of Placemarks from an iterable of facilities"""
     return KML.Folder(*[facility_as_kml(facility) for facility in facilities])
 
 
 def case_as_kml(case):
-    return KML.Folder(KML.name(case.name), *facilities_as_kml(case.facilities.all()))
+    return KML.Folder(
+        KML.name(case.case_num),
+        *[facility_as_kml(facility) for facility in case.facilities.all()],
+    )
 
 
 def cases_as_kml(cases):
