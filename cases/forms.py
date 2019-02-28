@@ -98,8 +98,8 @@ class StructureForm(forms.ModelForm):
 
 
 class StructureImportForm(StructureForm):
-    Meta = StructureForm.Meta
-    Meta.fields = sorted([*Meta.fields, "data_source"])
+    class Meta(StructureForm.Meta):
+        fields = sorted([*StructureForm.Meta.fields, "data_source"])
 
 
 class PersonForm(forms.ModelForm):
@@ -120,8 +120,8 @@ class PersonForm(forms.ModelForm):
 
 
 class PersonImportForm(PersonForm):
-    Meta = PersonForm.Meta
-    Meta.fields = sorted([*Meta.fields, "data_source"])
+    class Meta(PersonForm.Meta):
+        fields = sorted([*PersonForm.Meta.fields, "data_source"])
 
 
 _BASE_CASE_FIELDS = (
@@ -149,8 +149,8 @@ class PreliminaryCaseForm(forms.ModelForm):
 
 
 class PreliminaryCaseImportForm(PreliminaryCaseForm):
-    Meta = PreliminaryCaseForm.Meta
-    Meta.fields = sorted([*Meta.fields, "data_source"])
+    class Meta(PreliminaryCaseForm.Meta):
+        fields = sorted([*PreliminaryCaseForm.Meta.fields, "data_source"])
 
 
 class CaseForm(forms.ModelForm):
@@ -183,8 +183,8 @@ class CaseForm(forms.ModelForm):
 
 
 class CaseImportForm(CaseForm):
-    Meta = CaseForm.Meta
-    Meta.fields = sorted([*Meta.fields, "data_source"])
+    class Meta(CaseForm.Meta):
+        fields = sorted([*CaseForm.Meta.fields, "data_source"])
 
 
 class AttachmentForm(forms.ModelForm):
@@ -194,8 +194,8 @@ class AttachmentForm(forms.ModelForm):
 
 
 class AttachmentImportForm(AttachmentForm):
-    Meta = AttachmentForm.Meta
-    Meta.fields = sorted([*Meta.fields, "data_source"])
+    class Meta(AttachmentForm.Meta):
+        fields = sorted([*AttachmentForm.Meta.fields, "data_source"])
 
 
 BASE_FACILITY_FIELDS = (
@@ -246,8 +246,8 @@ class BasePreliminaryFacilityForm(forms.ModelForm):
 
 
 class PreliminaryFacilityImportForm(BasePreliminaryFacilityForm):
-    Meta = BasePreliminaryFacilityForm.Meta
-    Meta.fields = sorted([*Meta.fields, "data_source"])
+    class Meta(BasePreliminaryFacilityForm.Meta):
+        fields = sorted([*BasePreliminaryFacilityForm.Meta.fields, "data_source"])
 
 
 class PreliminaryFacilityForm(BasePreliminaryFacilityForm):
@@ -297,8 +297,8 @@ class BaseFacilityForm(forms.ModelForm):
 
 
 class FacilityImportForm(BaseFacilityForm):
-    Meta = BaseFacilityForm.Meta
-    Meta.fields = sorted([*Meta.fields, "data_source"])
+    class Meta(BaseFacilityForm.Meta):
+        fields = sorted([*BaseFacilityForm.Meta.fields, "data_source"])
 
 
 class FacilityForm(BaseFacilityForm):
