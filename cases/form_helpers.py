@@ -53,10 +53,17 @@ class PreliminaryFacilityFilterFormHelper(FormHelper):
                 "site_num",
                 "location_description",
                 "freq_low",
+                "power_density_limit",
                 css_class="col",
             ),
-            Div("power_density_limit", "location", "comments", css_class="col"),
-            Div("distance_to_gbt", "azimuth_to_gbt", "in_nrqz", css_class="col"),
+            Div(
+                "location",
+                "comments",
+                "distance_to_gbt",
+                "azimuth_to_gbt",
+                "in_nrqz",
+                css_class="col",
+            ),
             css_class="row",
         ),
         extra_buttons=[
@@ -146,7 +153,17 @@ class PreliminaryCaseFilterFormHelper(FormHelper):
             Div("radio_service", "completed", "comments", css_class="col"),
             Div("is_federal", css_class="col"),
             css_class="row",
-        )
+        ),
+        extra_buttons=[
+            Submit(
+                "_export",
+                "csv",
+                title=(
+                    "Download the locations of all currently-filtered "
+                    "PCases as a .csv file"
+                ),
+            )
+        ],
     )
 
 

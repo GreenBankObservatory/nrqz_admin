@@ -129,6 +129,22 @@ class PreliminaryFacilityTable(BaseFacilityTable):
         order_by = ["-pcase", "site_num", "freq_low"]
 
 
+class PreliminaryFacilityExportTable(PreliminaryFacilityTable):
+    class Meta:
+        model = models.PreliminaryFacility
+        exclude = [
+            "model_import_attempt",
+            "is_active",
+            "original_created_on",
+            "original_modified_on",
+            "created_on",
+            "modified_on",
+            "data_source",
+            "id",
+        ]
+        order_by = ["-nrqz_id", "freq_low"]
+
+
 class FacilityTable(BaseFacilityTable):
     nrqz_id = tables.Column(
         linkify=True,
@@ -235,6 +251,22 @@ class PreliminaryCaseTable(BaseCaseTable):
         return f"P{value}"
 
 
+class PreliminaryCaseExportTable(PreliminaryCaseTable):
+    class Meta:
+        model = models.PreliminaryCase
+        exclude = [
+            "model_import_attempt",
+            "is_active",
+            "original_created_on",
+            "original_modified_on",
+            "created_on",
+            "modified_on",
+            "data_source",
+            "id",
+        ]
+        order_by = ["-case_num"]
+
+
 class CaseTable(BaseCaseTable):
     meets_erpd_limit = tables.BooleanColumn(accessor="meets_erpd_limit")
     sgrs_approval = tables.BooleanColumn(accessor="sgrs_approval")
@@ -249,7 +281,16 @@ class CaseTable(BaseCaseTable):
 class CaseExportTable(CaseTable):
     class Meta:
         model = models.Case
-        # fields = CaseFilter.Meta.fields
+        exclude = [
+            "model_import_attempt",
+            "is_active",
+            "original_created_on",
+            "original_modified_on",
+            "created_on",
+            "modified_on",
+            "data_source",
+            "id",
+        ]
         order_by = ["-case_num"]
 
 

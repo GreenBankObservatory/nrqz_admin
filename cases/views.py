@@ -56,7 +56,9 @@ from .tables import (
     LetterFacilityTable,
     PersonTable,
     PreliminaryCaseGroupTable,
+    PreliminaryCaseExportTable,
     PreliminaryCaseTable,
+    PreliminaryFacilityExportTable,
     PreliminaryFacilityTable,
     SearchEntryTable,
     StructureTable,
@@ -153,6 +155,7 @@ class PreliminaryCaseGroupListView(FilterTableView):
 class PreliminaryCaseListView(FilterTableView):
     table_class = PreliminaryCaseTable
     filterset_class = PreliminaryCaseFilter
+    export_table_class = PreliminaryCaseExportTable
     template_name = "cases/prelim_case_list.html"
 
 
@@ -181,6 +184,7 @@ class CaseListView(FilterTableView):
 class PreliminaryFacilityListView(FilterTableView):
     table_class = PreliminaryFacilityTable
     filterset_class = PreliminaryFacilityFilter
+    export_table_class = PreliminaryFacilityExportTable
     template_name = "cases/prelim_facility_list.html"
 
     def get_queryset(self):
