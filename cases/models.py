@@ -84,6 +84,10 @@ class SensibleTextField(SensibleTextyField, TextField):
     pass
 
 
+class SensibleEmailField(SensibleTextyField, EmailField):
+    pass
+
+
 # TODO: Make proper field
 LOCATION_FIELD = lambda: PointField(
     blank=True,
@@ -728,7 +732,7 @@ class Person(
     name = SensibleCharField(max_length=256)
     phone = SensibleCharField(max_length=256, blank=True)
     fax = SensibleCharField(max_length=256, blank=True)
-    email = EmailField(blank=True)
+    email = SensibleEmailField(blank=True)
     street = SensibleCharField(max_length=256, blank=True)
     city = SensibleCharField(max_length=256, blank=True)
     county = SensibleCharField(max_length=256, blank=True)
