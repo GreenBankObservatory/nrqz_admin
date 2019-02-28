@@ -626,7 +626,8 @@ class AttachmentDetailView(MultiTableMixin, DetailView):
 
         context = super().get_context_data(**kwargs)
         context["tables_with_model_names"] = zip(
-            [table._meta.model for table in self.tables], context["tables"]
+            [table._meta.model._meta.verbose_name for table in self.tables],
+            context["tables"],
         )
         return context
 

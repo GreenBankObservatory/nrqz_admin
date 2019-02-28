@@ -95,7 +95,7 @@ ATTACHMENT_FORM_MAPS = [
             "form_class": AttachmentForm,
             "form_defaults": {
                 "data_source": ACCESS_PRELIM_APPLICATION,
-                "comments": "Imported by script",
+                "comments": f"Letter {n}",
             },
         },
     )()

@@ -2,17 +2,20 @@
 {% load render_table from django_tables2 %}
 {% load crispy_forms_tags %}
 {% load cases_tags %}
+{% load django_import_data_tags %}
+
 
 {% block content %}
-{% include "cases/base_detail_header.html" %}
+{% make_breadcrumb attachment %}
 
-<h1>{{ attachment.path | basename }}</h1>
-<a
-    href="file://{{ attachment.path }}"
-    title={{ attachment.path | basename }}
->
-    Open Attachment
-</a>
+<h1>
+    <a
+        href="file://{{ attachment.path }}"
+        title={{ attachment.path | basename }}
+    >
+        {{ attachment.path | basename }}
+    </a>
+</h1>
 <h2>Comments</h2>
 <p>{{ attachment.comments }}</p>
 
