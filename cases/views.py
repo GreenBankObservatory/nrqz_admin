@@ -93,7 +93,15 @@ class FilterTableView(ExportMixin, SingleTableMixin, FilterView):
         if "show-all" in request.GET:
             self.table_pagination = False
 
-        self.export_requested = "_export" in request.GET
+        if "csv" in request.GET.get("_export", ""):
+            self.export_requested = True
+            # Change the value to csv so that django-tables2 understands the
+            # export request
+            request.GET = request.GET.copy()
+            request.GET["_export"] = "csv"
+        else:
+            self.export_requested = False
+
         return super().get(request, *args, **kwargs)
 
     def get_queryset(self):

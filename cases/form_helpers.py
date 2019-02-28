@@ -69,7 +69,7 @@ class PreliminaryFacilityFilterFormHelper(FormHelper):
         extra_buttons=[
             Submit(
                 "_export",
-                "csv",
+                "Export as .csv",
                 title=(
                     "Download the locations of all currently-filtered "
                     "PFacilities as a .csv file"
@@ -122,7 +122,7 @@ class FacilityFilterFormHelper(FormHelper):
             ),
             Submit(
                 "_export",
-                "csv",
+                "Export as .csv",
                 title=(
                     "Download the locations of all currently-filtered "
                     "Facilities as a .csv file"
@@ -157,7 +157,7 @@ class PreliminaryCaseFilterFormHelper(FormHelper):
         extra_buttons=[
             Submit(
                 "_export",
-                "csv",
+                "Export as .csv",
                 title=(
                     "Download the locations of all currently-filtered "
                     "PCases as a .csv file"
@@ -201,7 +201,7 @@ class CaseFilterFormHelper(FormHelper):
             ),
             Submit(
                 "_export",
-                "csv",
+                "Export as .csv",
                 title=(
                     "Download the locations of all currently-filtered "
                     "Facilities as a .csv file"
@@ -225,7 +225,7 @@ class PersonFilterFormHelper(FormHelper):
         extra_buttons=[
             Submit(
                 "_export",
-                "csv",
+                "Export as .csv",
                 title=(
                     "Download the locations of all currently-filtered "
                     "Facilities as a .csv file"
@@ -263,7 +263,7 @@ class StructureFilterFormHelper(FormHelper):
         extra_buttons=[
             Submit(
                 "_export",
-                "csv",
+                "Export as .csv",
                 title=(
                     "Download the locations of all currently-filtered "
                     "Facilities as a .csv file"
