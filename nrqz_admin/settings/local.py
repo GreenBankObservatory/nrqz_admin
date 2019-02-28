@@ -1,5 +1,6 @@
 import getpass
 from .base import *
+import sys
 
 user = getpass.getuser()
 
@@ -21,7 +22,8 @@ DATABASES = {
     "default": {
         "ENGINE": "django.contrib.gis.db.backends.postgis",
         "NAME": f"nrqz_{user}_dev",
-        "USER": "tchamber",
+        # Hack to change to admin user for unit tests, since the DB needs to be created (sometimes)
+        "USER": "tchamber" if "test" not in sys.argv else "postgres",
         "PASSWORD": "potato",
         "HOST": "galileo.gb.nrao.edu",
         "PORT": "5432",
