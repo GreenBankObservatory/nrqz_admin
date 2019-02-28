@@ -2,6 +2,7 @@
 
 import math
 import ntpath
+import os
 
 from django.conf import settings
 from django.contrib.gis.db.backends.postgis.models import PostGISSpatialRefSys
@@ -343,13 +344,8 @@ class AbstractBaseFacility(
     def get_prop_study_as_link(self, text=None):
         if not self.propagation_study:
             return None
-        propagation_study_path = self.propagation_study.path
-        link = (
-            f"<a href='file://{propagation_study_path}' "
-            f"title={propagation_study_path}>"
-            f"{text if text else ntpath.basename(propagation_study_path)}</a>"
-        )
-        return mark_safe(link)
+
+        return self.propagation_study.hyperlink
 
     objects = LocationManager()
 
@@ -783,6 +779,20 @@ class Attachment(
 
     def get_absolute_url(self):
         return reverse("attachment_detail", args=[str(self.id)])
+
+    @cached_property
+    def hyperlink(self):
+        if self.path.startswith("http"):
+            href = self.path
+            path = self.path
+        else:
+            href = f"file://{self.path}"
+            nt_path = ntpath.basename(self.path)
+            unix_path = os.path.basename(self.path)
+            path = unix_path if len(unix_path) < len(nt_path) else nt_path
+
+        link = f"<a href='{href}' " f"title={self.path}>" f"{path}</a>"
+        return mark_safe(link)
 
 
 class LetterTemplate(IsActiveModel, TrackedModel, Model):
