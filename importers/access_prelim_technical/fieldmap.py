@@ -1,8 +1,8 @@
 """Field mappings for Access Preliminary Technical Data"""
 from cases.forms import (
-    AttachmentForm,
-    PersonForm,
-    PreliminaryCaseForm,
+    AttachmentImportForm,
+    PersonImportForm,
+    PreliminaryCaseImportForm,
     PreliminaryFacilityImportForm,
 )
 
@@ -43,21 +43,21 @@ class ApplicantFormMap(FormMap):
     field_maps = [
         OneToOneFieldMap(to_field="name", converter=None, from_field="APPLICANT")
     ]
-    form_class = PersonForm
+    form_class = PersonImportForm
     form_defaults = {"data_source": ACCESS_PRELIM_TECHNICAL}
 
 
-class PcaseFormMap(FormMap):
+class PCaseImportFormMap(FormMap):
     field_maps = [
         OneToOneFieldMap(
             to_field="case_num", converter=convert_case_num, from_field="PNRQZ_NO"
         )
     ]
-    form_class = PreliminaryCaseForm
+    form_class = PreliminaryCaseImportForm
     form_defaults = {"data_source": ACCESS_PRELIM_TECHNICAL}
 
 
-class PfacilityFormMap(FormMap):
+class PFacilityImportFormMap(FormMap):
     field_maps = [
         ManyToOneFieldMap(
             from_fields={"case_num": "PNRQZ_NO", "site_num": "Site Number"},
@@ -176,7 +176,7 @@ class PropagationStudyFormMap(FormMap):
             from_field=f"PROP_STUDY_Link",
         )
     ]
-    form_class = AttachmentForm
+    form_class = AttachmentImportForm
     form_defaults = {
         "data_source": ACCESS_PRELIM_TECHNICAL,
         "comments": "Propagation Study",
@@ -184,6 +184,6 @@ class PropagationStudyFormMap(FormMap):
 
 
 APPLICANT_FORM_MAP = ApplicantFormMap()
-PCASE_FORM_MAP = PcaseFormMap()
-PFACILITY_FORM_MAP = PfacilityFormMap()
+PCASE_FORM_MAP = PCaseImportFormMap()
+PFACILITY_FORM_MAP = PFacilityImportFormMap()
 PROPAGATION_STUDY_FORM_MAP = PropagationStudyFormMap()

@@ -88,7 +88,6 @@ class StructureForm(forms.ModelForm):
         model = Structure
         fields = (
             "asr",
-            "data_source",
             "faa_circ_num",
             "faa_study_num",
             "file_num",
@@ -98,6 +97,11 @@ class StructureForm(forms.ModelForm):
         )
 
 
+class StructureImportForm(StructureForm):
+    Meta = StructureForm.Meta
+    Meta.fields = sorted([*Meta.fields, "data_source"])
+
+
 class PersonForm(forms.ModelForm):
     class Meta:
         model = Person
@@ -105,7 +109,6 @@ class PersonForm(forms.ModelForm):
             "city",
             "comments",
             "county",
-            "data_source",
             "email",
             "fax",
             "name",
@@ -116,7 +119,12 @@ class PersonForm(forms.ModelForm):
         )
 
 
-BASE_CASE_FIELDS = (
+class PersonImportForm(PersonForm):
+    Meta = PersonForm.Meta
+    Meta.fields = sorted([*Meta.fields, "data_source"])
+
+
+_BASE_CASE_FIELDS = (
     "applicant",
     "attachments",
     "case_num",
@@ -124,7 +132,6 @@ BASE_CASE_FIELDS = (
     "completed",
     "completed_on",
     "contact",
-    "data_source",
     "date_recorded",
     "is_federal",
     "num_freqs",
@@ -138,7 +145,12 @@ BASE_CASE_FIELDS = (
 class PreliminaryCaseForm(forms.ModelForm):
     class Meta:
         model = PreliminaryCase
-        fields = sorted((*BASE_CASE_FIELDS, "case", "pcase_group"))
+        fields = sorted((*_BASE_CASE_FIELDS, "case", "pcase_group"))
+
+
+class PreliminaryCaseImportForm(PreliminaryCaseForm):
+    Meta = PreliminaryCaseForm.Meta
+    Meta.fields = sorted([*Meta.fields, "data_source"])
 
 
 class CaseForm(forms.ModelForm):
@@ -146,7 +158,7 @@ class CaseForm(forms.ModelForm):
         model = Case
         fields = sorted(
             (
-                *BASE_CASE_FIELDS,
+                *_BASE_CASE_FIELDS,
                 "agency_num",
                 "call_sign",
                 "original_meets_erpd_limit",
@@ -170,10 +182,20 @@ class CaseForm(forms.ModelForm):
         }
 
 
+class CaseImportForm(CaseForm):
+    Meta = CaseForm.Meta
+    Meta.fields = sorted([*Meta.fields, "data_source"])
+
+
 class AttachmentForm(forms.ModelForm):
     class Meta:
         model = Attachment
-        fields = ("path", "comments", "original_index", "data_source")
+        fields = sorted(("path", "comments", "original_index"))
+
+
+class AttachmentImportForm(AttachmentForm):
+    Meta = AttachmentForm.Meta
+    Meta.fields = sorted([*Meta.fields, "data_source"])
 
 
 BASE_FACILITY_FIELDS = (
@@ -183,7 +205,6 @@ BASE_FACILITY_FIELDS = (
     "attachments",
     "az_bearing",
     "comments",
-    "data_source",
     "freq_high",
     "freq_low",
     "latitude",
@@ -225,10 +246,12 @@ class BasePreliminaryFacilityForm(forms.ModelForm):
 
 
 class PreliminaryFacilityImportForm(BasePreliminaryFacilityForm):
-    pass
+    Meta = BasePreliminaryFacilityForm.Meta
+    Meta.fields = sorted([*Meta.fields, "data_source"])
 
 
 class PreliminaryFacilityForm(BasePreliminaryFacilityForm):
+    # We DO NOT want this when importing; it interferes with our conversions
     location = PointField()
 
 
@@ -275,10 +298,12 @@ class BaseFacilityForm(forms.ModelForm):
 
 
 class FacilityImportForm(BaseFacilityForm):
-    pass
+    Meta = BaseFacilityForm.Meta
+    Meta.fields = sorted([*Meta.fields, "data_source"])
 
 
 class FacilityForm(BaseFacilityForm):
+    # We DO NOT want this when importing; it interferes with our conversions
     location = PointField()
 
 

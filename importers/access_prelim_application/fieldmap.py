@@ -1,6 +1,10 @@
 """Field mappings for Access Preliminary Application Data"""
 
-from cases.forms import AttachmentForm, PersonForm, PreliminaryCaseForm
+from cases.forms import (
+    AttachmentImportForm,
+    PersonImportForm,
+    PreliminaryCaseImportForm,
+)
 
 from django_import_data import FormMap, OneToOneFieldMap, OneToManyFieldMap
 from importers.converters import (
@@ -25,7 +29,7 @@ class ApplicantFormMap(FormMap):
         OneToOneFieldMap(to_field="state", converter=None, from_field="STATE"),
         OneToOneFieldMap(to_field="zipcode", converter=None, from_field="ZIPCODE"),
     ]
-    form_class = PersonForm
+    form_class = PersonImportForm
     form_defaults = {"data_source": ACCESS_PRELIM_APPLICATION}
 
 
@@ -36,14 +40,14 @@ class ContactFormMap(FormMap):
     field_maps = [
         OneToOneFieldMap(to_field="name", converter=None, from_field="CONTACT")
     ]
-    form_class = PersonForm
+    form_class = PersonImportForm
     form_defaults = {"data_source": ACCESS_PRELIM_APPLICATION}
 
 
 CONTACT_FORM_MAP = ContactFormMap()
 
 
-class PcaseFormMap(FormMap):
+class PCaseImportFormMap(FormMap):
     field_maps = [
         OneToOneFieldMap(
             to_field="case_num", converter=convert_case_num, from_field="PNRQZ_NO"
@@ -72,15 +76,15 @@ class PcaseFormMap(FormMap):
             to_field="num_sites", converter=coerce_positive_int, from_field="NO_SITES"
         ),
     ]
-    form_class = PreliminaryCaseForm
+    form_class = PreliminaryCaseImportForm
     form_defaults = {"data_source": ACCESS_PRELIM_APPLICATION}
 
 
-PCASE_FORM_MAP = PcaseFormMap()
+PCASE_FORM_MAP = PCaseImportFormMap()
 
 ATTACHMENT_FORM_MAPS = [
     type(
-        "AttachmentFormMap",
+        "AttachmentImportFormMap",
         (FormMap,),
         {
             "field_maps": [
@@ -92,7 +96,7 @@ ATTACHMENT_FORM_MAPS = [
                     "the path to the letter",
                 )
             ],
-            "form_class": AttachmentForm,
+            "form_class": AttachmentImportForm,
             "form_defaults": {
                 "data_source": ACCESS_PRELIM_APPLICATION,
                 "comments": f"Letter {n}",

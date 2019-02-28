@@ -23,23 +23,16 @@ class LetterFacilityTable(tables.Table):
     nrqz_id = tables.Column(verbose_name="Facility ID")
     site_name = tables.Column(verbose_name="Site Name")
     max_output = tables.Column(verbose_name="Max TX Power (W)")
-    # antenna_gain = tables.Column(verbose_name="Max Gain (dBi)")
     antenna_model_number = tables.Column(verbose_name="Antenna Model")
-    # = tables.Column(verbose_name="Calculated max ERPd per TX (W) prior to system loss")
     tx_per_sector = tables.Column(verbose_name="Num TX per sector")
-    # = tables.Column(verbose_name="Num TX per facility")
-    # latitude = tables.Column(verbose_name="Lat N (NAD83)")
-    # longitude = tables.Column(verbose_name="Lon W (NAD83)")
     amsl = tables.Column(verbose_name="MSL (m)")
     agl = tables.Column(verbose_name="AGL (m)")
     freq_low = tables.Column(verbose_name="Freq Low (MHz)")
     freq_high = tables.Column(verbose_name="Freq High (MHz)")
     bandwidth = tables.Column(verbose_name="Bandwidth BW (MHz)")
-    # = tables.Column(verbose_name="AZ° True")
     mechanical_downtilt = tables.Column(verbose_name="Mechanical-DT")
     electrical_downtilt = tables.Column(verbose_name="Electrical-DT")
-    # = tables.Column(verbose_name="NRAO AERPd (W)")
-    # = tables.Column(verbose_name="Max ERPd of Facility")
+
     class Meta:
         model = models.Facility
         fields = (

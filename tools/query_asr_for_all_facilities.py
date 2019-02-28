@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 from django.contrib.gis.geos import GEOSGeometry
 from cases.models import Facility, Structure
-from cases.forms import StructureForm
+from cases.forms import StructureImportForm
 from tools.query_asr import query_asr_by_location
 
 from utils.constants import FCC_ASR
@@ -52,7 +52,7 @@ def create_structure_from_feature(feature, facility):
     try:
         structure = Structure.objects.get(asr=structure_dict["asr"])
     except Structure.DoesNotExist:
-        structure_form = StructureForm(structure_dict)
+        structure_form = StructureImportForm(structure_dict)
         if structure_form.is_valid():
             structure = Structure.objects.create(**structure_form.cleaned_data)
             tqdm.write(f"Created Structure {structure}")

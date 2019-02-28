@@ -6,7 +6,7 @@ from django.contrib.gis.db.backends.postgis.models import PostGISSpatialRefSys
 
 from django_import_data import FormMap, OneToOneFieldMap, ManyToOneFieldMap
 
-from cases.forms import CaseForm, FacilityImportForm
+from cases.forms import CaseImportForm, FacilityImportForm
 
 from importers.converters import (
     coerce_location,
@@ -70,7 +70,7 @@ def convert_tpa(tpa):
     return float(clean_tpa)
 
 
-class CaseFormMap(FormMap):
+class CaseImportFormMap(FormMap):
     field_maps = [
         OneToOneFieldMap(
             from_field="nrqzID",
@@ -87,11 +87,11 @@ class CaseFormMap(FormMap):
             from_field={"fed": "Fed"}, converter=coerce_bool, to_field="is_federal"
         ),
     ]
-    form_class = CaseForm
+    form_class = CaseImportForm
     form_defaults = {"data_source": NAM_APPLICATION}
 
 
-class FacilityFormMap(FormMap):
+class FacilityImportFormMap(FormMap):
     field_maps = [
         OneToOneFieldMap(from_field="nrqzID", to_field="nrqz_id"),
         ManyToOneFieldMap(
@@ -187,8 +187,8 @@ class FacilityFormMap(FormMap):
 #     form_defaults = {"data_source": NAM_APPLICATION}
 
 
-CASE_FORM_MAP = CaseFormMap()
-FACILITY_FORM_MAP = FacilityFormMap()
+CASE_FORM_MAP = CaseImportFormMap()
+FACILITY_FORM_MAP = FacilityImportFormMap()
 # STRUCTURE_FORM_MAP = StructureFormMap()
 
 IGNORED_HEADERS = [

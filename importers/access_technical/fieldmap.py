@@ -1,6 +1,11 @@
 """Field mappings for Access Technical Data"""
 
-from cases.forms import AttachmentForm, CaseForm, FacilityImportForm, PersonForm
+from cases.forms import (
+    AttachmentImportForm,
+    CaseImportForm,
+    FacilityImportForm,
+    PersonImportForm,
+)
 
 from django_import_data import FormMap, ManyToOneFieldMap, OneToOneFieldMap
 from importers.access_application.fieldmap import (
@@ -24,7 +29,7 @@ from utils.constants import ACCESS_TECHNICAL
 IGNORED_HEADERS = ["QZPATHLOSS", "MAP", "DATEREC"]
 
 
-class CaseFormMap(FormMap):
+class CaseImportFormMap(FormMap):
     field_maps = [
         OneToOneFieldMap(
             to_field="case_num", converter=convert_case_num, from_field="NRQZ_NO"
@@ -33,7 +38,7 @@ class CaseFormMap(FormMap):
             to_field="agency_num", converter=coerce_none, from_field="AGENCY_NO"
         ),
     ]
-    form_class = CaseForm
+    form_class = CaseImportForm
     form_defaults = {"data_source": ACCESS_TECHNICAL}
 
 
@@ -41,11 +46,11 @@ class ApplicantFormMap(FormMap):
     field_maps = [
         OneToOneFieldMap(to_field="name", converter=None, from_field="APPLICANT")
     ]
-    form_class = PersonForm
+    form_class = PersonImportForm
     form_defaults = {"data_source": ACCESS_TECHNICAL}
 
 
-class FacilityFormMap(FormMap):
+class FacilityImportFormMap(FormMap):
     field_maps = [
         ManyToOneFieldMap(
             from_fields={"case_num": "NRQZ_NO", "site_num": "Site Number"},
@@ -186,11 +191,11 @@ class PropagationStudyFormMap(FormMap):
             from_field=f"QZPATHLOSS_Link",
         )
     ]
-    form_class = AttachmentForm
+    form_class = AttachmentImportForm
     form_defaults = {"data_source": ACCESS_TECHNICAL, "comments": "Propagation Study"}
 
 
 APPLICANT_FORM_MAP = ApplicantFormMap()
-CASE_FORM_MAP = CaseFormMap()
-FACILITY_FORM_MAP = FacilityFormMap()
+CASE_FORM_MAP = CaseImportFormMap()
+FACILITY_FORM_MAP = FacilityImportFormMap()
 PROPAGATION_STUDY_FORM_MAP = PropagationStudyFormMap()

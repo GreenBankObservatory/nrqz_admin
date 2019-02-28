@@ -4,7 +4,7 @@ import pytz
 
 from django_import_data import FormMap, OneToOneFieldMap, OneToManyFieldMap
 
-from cases.forms import AttachmentForm, CaseForm, PersonForm
+from cases.forms import AttachmentImportForm, CaseImportForm, PersonImportForm
 from importers.converters import (
     coerce_float,
     coerce_positive_int,
@@ -35,7 +35,7 @@ class ApplicantFormMap(FormMap):
         OneToOneFieldMap(to_field="zipcode", converter=None, from_field="ZIPCODE"),
     ]
 
-    form_class = PersonForm
+    form_class = PersonImportForm
     form_defaults = {"data_source": ACCESS_APPLICATION}
 
 
@@ -43,11 +43,11 @@ class ContactFormMap(FormMap):
     field_maps = [
         OneToOneFieldMap(to_field="name", converter=None, from_field="CONTACT")
     ]
-    form_class = PersonForm
+    form_class = PersonImportForm
     form_defaults = {"data_source": ACCESS_APPLICATION}
 
 
-class CaseFormMap(FormMap):
+class CaseImportFormMap(FormMap):
     field_maps = [
         OneToOneFieldMap(
             to_field="case_num", converter=convert_case_num, from_field="NRQZ_NO"
@@ -117,13 +117,13 @@ class CaseFormMap(FormMap):
         ),
     ]
 
-    form_class = CaseForm
+    form_class = CaseImportForm
     form_defaults = {"data_source": ACCESS_APPLICATION}
 
 
 ATTACHMENT_FORM_MAPS = [
     type(
-        "AttachmentFormMap",
+        "AttachmentImportFormMap",
         (FormMap,),
         {
             "field_maps": [
@@ -135,7 +135,7 @@ ATTACHMENT_FORM_MAPS = [
                     "the path to the letter",
                 )
             ],
-            "form_class": AttachmentForm,
+            "form_class": AttachmentImportForm,
             "form_defaults": {
                 "data_source": ACCESS_APPLICATION,
                 "comments": f"Letter {n}",
@@ -147,11 +147,11 @@ ATTACHMENT_FORM_MAPS = [
 
 APPLICANT_FORM_MAP = ApplicantFormMap()
 CONTACT_FORM_MAP = ContactFormMap()
-CASE_FORM_MAP = CaseFormMap()
+CASE_FORM_MAP = CaseImportFormMap()
 
 # access_application_fms = FormMapSet(form_maps={
 #     "applicant": ApplicantFormMap,
 #     "contact": ContactFormMap,
-#     "case": CaseFormMap,
+#     "case": CaseImportFormMap,
 #     **{""}
 #     })

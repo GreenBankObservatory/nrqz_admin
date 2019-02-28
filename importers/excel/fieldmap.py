@@ -10,7 +10,7 @@ from django_import_data import (
     ManyToManyFieldMap,
 )
 
-from cases.forms import AttachmentForm, CaseForm, FacilityImportForm
+from cases.forms import AttachmentImportForm, CaseImportForm, FacilityImportForm
 from importers.converters import (
     coerce_bool,
     coerce_float,
@@ -160,7 +160,7 @@ def convert_nrao_aerpd(nrao_aerpd, meets_erpd_limit=None):
     }
 
 
-class CaseFormMap(FormMap):
+class CaseImportFormMap(FormMap):
     field_maps = [
         OneToOneFieldMap(
             to_field="case_num",
@@ -175,14 +175,14 @@ class CaseFormMap(FormMap):
             },
         )
     ]
-    form_class = CaseForm
+    form_class = CaseImportForm
     form_defaults = {"data_source": EXCEL}
 
 
-CASE_FORM_MAP = CaseFormMap()
+CASE_FORM_MAP = CaseImportFormMap()
 
 
-class FacilityFormMap(FormMap):
+class FacilityImportFormMap(FormMap):
     field_maps = [
         OneToOneFieldMap(
             to_field="freq_low",
@@ -551,10 +551,10 @@ class FacilityFormMap(FormMap):
     }
 
 
-FACILITY_FORM_MAP = FacilityFormMap()
+FACILITY_FORM_MAP = FacilityImportFormMap()
 
 
-class SgrsApprovalAttachmentFormMap(FormMap):
+class SgrsApprovalAttachmentImportFormMap(FormMap):
     field_maps = [
         OneToOneFieldMap(
             to_field="path",
@@ -562,14 +562,14 @@ class SgrsApprovalAttachmentFormMap(FormMap):
             from_field={"path": ["SGRS Approval", "SG Approval", "SGRS approval"]},
         )
     ]
-    form_class = AttachmentForm
+    form_class = AttachmentImportForm
     form_defaults = {"data_source": EXCEL, "comments": "SGRS Approval file"}
 
 
-SGRS_APPROVAL_ATTACHMENT_FORM_MAP = SgrsApprovalAttachmentFormMap()
+SGRS_APPROVAL_ATTACHMENT_FORM_MAP = SgrsApprovalAttachmentImportFormMap()
 
 
-class SiEngineeringAttachmentFormMap(FormMap):
+class SiEngineeringAttachmentImportFormMap(FormMap):
     field_maps = [
         OneToOneFieldMap(
             to_field="path",
@@ -588,14 +588,14 @@ class SiEngineeringAttachmentFormMap(FormMap):
             },
         )
     ]
-    form_class = AttachmentForm
+    form_class = AttachmentImportForm
     form_defaults = {"data_source": EXCEL, "comments": "FEW file"}
 
 
-SI_ENGINEERING_ATTACHMENT_FORM_MAP = SiEngineeringAttachmentFormMap()
+SI_ENGINEERING_ATTACHMENT_FORM_MAP = SiEngineeringAttachmentImportFormMap()
 
 
-class LocAttachmentFormMap(FormMap):
+class LocAttachmentImportFormMap(FormMap):
     field_maps = [
         OneToOneFieldMap(
             to_field="path",
@@ -603,15 +603,15 @@ class LocAttachmentFormMap(FormMap):
             from_field={"path": ["LOC", "NRAO LOC"]},
         )
     ]
-    form_class = AttachmentForm
+    form_class = AttachmentImportForm
     form_defaults = {"data_source": EXCEL, "comments": "LOC file"}
 
 
-LOC_ATTACHMENT_FORM_MAP = LocAttachmentFormMap()
+LOC_ATTACHMENT_FORM_MAP = LocAttachmentImportFormMap()
 
 
 # PROP STUDY
-class TapFileAttachmentFormMap(FormMap):
+class TapFileAttachmentImportFormMap(FormMap):
     field_maps = [
         OneToOneFieldMap(
             to_field="path",
@@ -619,11 +619,11 @@ class TapFileAttachmentFormMap(FormMap):
             from_field={"path": ["TAP file", "TAP File"]},
         )
     ]
-    form_class = AttachmentForm
+    form_class = AttachmentImportForm
     form_defaults = {"data_source": EXCEL, "comments": "Propagation Study"}
 
 
-TAP_FILE_FORM_MAP = TapFileAttachmentFormMap()
+TAP_FILE_FORM_MAP = TapFileAttachmentImportFormMap()
 
 ATTACHMENT_FORM_MAPS = [
     LOC_ATTACHMENT_FORM_MAP,
