@@ -147,6 +147,13 @@ class PreliminaryCaseForm(forms.ModelForm):
         model = PreliminaryCase
         fields = sorted((*_BASE_CASE_FIELDS, "case", "pcase_group"))
 
+        widgets = {
+            "applicant": PersonWidget(),
+            "contact": PersonWidget(),
+            "attachments": AttachmentsWidget(),
+            "case": CaseWidget(),
+        }
+
 
 class PreliminaryCaseImportForm(PreliminaryCaseForm):
     class Meta(PreliminaryCaseForm.Meta):
