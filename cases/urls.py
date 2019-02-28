@@ -1,6 +1,7 @@
 from django.urls import path
 
 from . import views
+from . import autocomplete_views
 
 urlpatterns = [
     path("cases/", views.CaseListView.as_view(), name="case_index"),
@@ -30,22 +31,22 @@ urlpatterns = [
     ),
     path(
         "case-autocomplete/",
-        views.CaseAutocompleteView.as_view(),
+        autocomplete_views.CaseAutocompleteView.as_view(),
         name="case_autocomplete",
     ),
     path(
         "pcase-autocomplete/",
-        views.PreliminaryCaseAutocompleteView.as_view(),
+        autocomplete_views.PreliminaryCaseAutocompleteView.as_view(),
         name="pcase_autocomplete",
     ),
     path(
         "facility-autocomplete/",
-        views.FacilityAutocompleteView.as_view(),
+        autocomplete_views.FacilityAutocompleteView.as_view(),
         name="facility_autocomplete",
     ),
     path(
         "pfacility-autocomplete/",
-        views.PreliminaryFacilityAutocompleteView.as_view(),
+        autocomplete_views.PreliminaryFacilityAutocompleteView.as_view(),
         name="pfacility_autocomplete",
     ),
     path("letters/", views.LetterView.as_view(), name="letters"),
@@ -76,14 +77,14 @@ urlpatterns = [
     ),
     path(
         "attachment-autocomplete/",
-        views.AttachmentAutocompleteView.as_view(),
+        autocomplete_views.AttachmentAutocompleteView.as_view(),
         name="attachment_autocomplete",
     ),
     path("people/", views.PersonListView.as_view(), name="person_index"),
     path("people/<int:pk>/", views.PersonDetailView.as_view(), name="person_detail"),
     path(
         "person-autocomplete/",
-        views.PersonAutocompleteView.as_view(),
+        autocomplete_views.PersonAutocompleteView.as_view(),
         name="person_autocomplete",
     ),
     path("search/", views.SearchView.as_view(), name="search"),

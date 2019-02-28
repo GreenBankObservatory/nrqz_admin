@@ -15,6 +15,8 @@ class PointWidget(forms.widgets.TextInput):
     """
 
     def format_value(self, value):
+        if value is None:
+            return None
         if isinstance(value, str):
             return value
 

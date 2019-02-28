@@ -136,8 +136,6 @@ _BASE_CASE_FIELDS = (
     "is_federal",
     "num_freqs",
     "num_sites",
-    "original_created_on",
-    "original_modified_on",
     "radio_service",
 )
 
@@ -157,7 +155,14 @@ class PreliminaryCaseForm(forms.ModelForm):
 
 class PreliminaryCaseImportForm(PreliminaryCaseForm):
     class Meta(PreliminaryCaseForm.Meta):
-        fields = sorted([*PreliminaryCaseForm.Meta.fields, "data_source"])
+        fields = sorted(
+            [
+                *PreliminaryCaseForm.Meta.fields,
+                "data_source",
+                "original_created_on",
+                "original_modified_on",
+            ]
+        )
 
 
 class CaseForm(forms.ModelForm):
@@ -191,7 +196,14 @@ class CaseForm(forms.ModelForm):
 
 class CaseImportForm(CaseForm):
     class Meta(CaseForm.Meta):
-        fields = sorted([*CaseForm.Meta.fields, "data_source"])
+        fields = sorted(
+            [
+                *CaseForm.Meta.fields,
+                "data_source",
+                "original_created_on",
+                "original_modified_on",
+            ]
+        )
 
 
 class AttachmentForm(forms.ModelForm):
@@ -226,10 +238,6 @@ BASE_FACILITY_FIELDS = (
     "nrao_space",
     "nrao_tropo",
     "nrqz_id",
-    "original_created_on",
-    "original_modified_on",
-    "original_outside_nrqz",
-    "original_srs",
     "power_density_limit",
     "propagation_model",
     "radio_service",
@@ -254,7 +262,16 @@ class BasePreliminaryFacilityForm(forms.ModelForm):
 
 class PreliminaryFacilityImportForm(BasePreliminaryFacilityForm):
     class Meta(BasePreliminaryFacilityForm.Meta):
-        fields = sorted([*BasePreliminaryFacilityForm.Meta.fields, "data_source"])
+        fields = sorted(
+            [
+                *BasePreliminaryFacilityForm.Meta.fields,
+                "data_source",
+                "original_created_on",
+                "original_modified_on",
+                "original_outside_nrqz",
+                "original_srs",
+            ]
+        )
 
 
 class PreliminaryFacilityForm(BasePreliminaryFacilityForm):
@@ -305,7 +322,16 @@ class BaseFacilityForm(forms.ModelForm):
 
 class FacilityImportForm(BaseFacilityForm):
     class Meta(BaseFacilityForm.Meta):
-        fields = sorted([*BaseFacilityForm.Meta.fields, "data_source"])
+        fields = sorted(
+            [
+                *BaseFacilityForm.Meta.fields,
+                "data_source",
+                "original_created_on",
+                "original_modified_on",
+                "original_outside_nrqz",
+                "original_srs",
+            ]
+        )
 
 
 class FacilityForm(BaseFacilityForm):
