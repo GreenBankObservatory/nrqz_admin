@@ -114,7 +114,7 @@ class FacilityFilterFormHelper(FormHelper):
         extra_buttons=[
             Submit(
                 "kml",
-                "As .kml",
+                "Export as .kml",
                 title=(
                     "Download the locations of all currently-filtered "
                     "Facilities as a .kml file"
@@ -193,7 +193,7 @@ class CaseFilterFormHelper(FormHelper):
         extra_buttons=[
             Submit(
                 "kml",
-                "As .kml",
+                "Export as .kml",
                 title=(
                     "Download the locations of all currently-filtered "
                     "Facilities as a .kml file"
