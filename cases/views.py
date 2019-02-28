@@ -194,6 +194,7 @@ class PreliminaryFacilityListView(FilterTableView):
 class FacilityListView(FilterTableView):
     table_class = FacilityTable
     filterset_class = FacilityFilter
+    export_table_class = FacilityExportTable
     template_name = "cases/facility_list.html"
 
     def get_queryset(self):

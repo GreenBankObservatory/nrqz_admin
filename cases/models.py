@@ -432,7 +432,6 @@ class Facility(AbstractBaseFacility):
     height_of_first_obstacle = FloatField(
         null=True, blank=True, verbose_name="Height of First Obstacle (ft)"
     )
-    loc = SensibleCharField(max_length=256, blank=True, verbose_name="LOC")
     max_aerpd = FloatField(null=True, blank=True, verbose_name="Max AERPd (dBm)")
     max_eirp = FloatField(null=True, blank=True, verbose_name="Max AEiRP")
     requested_max_erp_per_tx = FloatField(

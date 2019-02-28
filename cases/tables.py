@@ -187,11 +187,13 @@ class FacilityExportTable(FacilityTable):
             "model_import_attempt",
             "is_active",
             "original_created_on",
-            "original_modfied_on",
+            "original_modified_on",
             "created_on",
             "modified_on",
             "data_source",
             "id",
+            "original_srs",
+            "structure",
         ]
         order_by = ["-nrqz_id", "freq_low"]
 

@@ -45,11 +45,8 @@ MDY_REGEX = re.compile(r"(?P<month>\d{1,2})[/\\](?P<day>\d{1,2})[/\\](?P<year>\d
 # nrqz_id_regex_str = r"^(?P<case_num>\d+)(?:[\-\_](?:REV
 # )?(?P<site_num>\d+))?(?:[\s_\*]+(?:\(.*\)[\s_]+)?(?P<site_name>(?:(?:\w+\s+)?\S{5}|\D+))[\s_]+(?P<facility_name>\S+))?"
 # nrqz_id_regex = re.compile(nrqz_id_regex_str)
-def convert_nrqz_id_to_case_num(nrqz_id, loc=None):
+def convert_nrqz_id_to_case_num(nrqz_id):
     match = CASE_REGEX.match(str(nrqz_id))
-    if loc and not match:
-        match = CASE_REGEX.match(str(loc))
-
     if not match:
         raise ValueError(
             f"Could not parse NRQZ ID '{nrqz_id}' using '{CASE_REGEX_STR}'!"

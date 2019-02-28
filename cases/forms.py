@@ -273,7 +273,6 @@ class BaseFacilityForm(forms.ModelForm):
                 "emissions",
                 "fcc_file_number",
                 "height_of_first_obstacle",
-                "loc",
                 "main_beam_orientation",
                 "max_aerpd",
                 "max_eirp",
