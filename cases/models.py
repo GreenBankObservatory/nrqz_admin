@@ -29,6 +29,7 @@ from django.db.models import (
     TextField,
     Value,
 )
+from django.db.models.fields import NOT_PROVIDED
 from django.urls import reverse
 from django.utils.functional import cached_property
 from django.utils.safestring import mark_safe
@@ -47,20 +48,40 @@ from .mixins import (
 from utils.constants import WGS84_SRID
 
 
-class SensibleCharField(CharField):
+class SensibleTextyField:
     def __init__(self, *args, **kwargs):
-        # If null is given and is True (if not given default to False)...
-        if kwargs.get("null", False) is True:
-            # ...raise an error, since this isn't allowed
-            raise ValueError("SensibleCharField doesn't allow null=True!")
-        # If blank is either given and False, or not given at all...
-        if kwargs.get("blank", False) is False:
-            # ...if default is either not given, or is given as None...
-            if kwargs.get("default", None) is None:
-                # ...set it to None
-                kwargs["default"] = None
+        null_given = "null" in kwargs
+        null = kwargs.get("null", False)
+        blank = kwargs.get("blank", False)
+        unique = kwargs.get("unique", False)
+        default = (kwargs.get("default", NOT_PROVIDED),)
+
+        if not (unique is True and blank is True) and null is True:
+            raise ValueError(
+                f"{self.__class__.__name__} doesn't allow null=True unless unique=True AND blank=True! "
+                "See https://docs.djangoproject.com/en/2.1/ref/models/fields/#null for more details"
+            )
+
+        if unique is True and blank is True:
+            if null_given and null is False:
+                raise ValueError(
+                    f"{self.__class__.__name__} doesn't allow null=False if unique=True AND blank=True! "
+                    "See https://docs.djangoproject.com/en/2.1/ref/models/fields/#null for more details"
+                )
+            kwargs["null"] = True
+
+        if blank is False and null is False:
+            kwargs["default"] = None
 
         super().__init__(*args, **kwargs)
+
+
+class SensibleCharField(SensibleTextyField, CharField):
+    pass
+
+
+class SensibleTextField(SensibleTextyField, TextField):
+    pass
 
 
 # TODO: Make proper field
@@ -192,7 +213,7 @@ class AbstractBaseFacility(
         help_text="Antenna Model Number",
     )
     power_density_limit = FloatField(
-        null=True, blank=True, verbose_name="Power Density Limit", help_text="???"
+        null=True, blank=True, verbose_name="Power Density Limit"
     )
     site_name = SensibleCharField(
         max_length=256,
@@ -223,6 +244,7 @@ class AbstractBaseFacility(
         PostGISSpatialRefSys,
         on_delete=PROTECT,
         help_text="The spatial reference system of the original imported coordinates",
+        verbose_name="Original Spatial Reference System",
     )
     amsl = FloatField(
         verbose_name="AMSL (meters)",
@@ -236,17 +258,20 @@ class AbstractBaseFacility(
         null=True,
         help_text="Facility height to center above ground level, in meters",
     )
-    comments = TextField(
-        null=True,
+    comments = SensibleTextField(
         blank=True,
         help_text="Additional information or comments from the applicant",
+        verbose_name="Comments",
     )
     usgs_dataset = SensibleCharField(
-        max_length=3, choices=(("3m", "3m"), ("10m", "10m"), ("30m", "30m")), blank=True
+        max_length=3,
+        choices=(("3m", "3m"), ("10m", "10m"), ("30m", "30m")),
+        blank=True,
+        verbose_name="USGS Dataset",
     )
-    tpa = FloatField(null=True, blank=True)
-    survey_1a = BooleanField(null=True, blank=True)
-    survey_2c = BooleanField(null=True, blank=True)
+    tpa = FloatField(null=True, blank=True, verbose_name="TPA")
+    survey_1a = BooleanField(null=True, blank=True, verbose_name="Survey 1A")
+    survey_2c = BooleanField(null=True, blank=True, verbose_name="Survey 2C")
     radio_service = SensibleCharField(
         max_length=256, blank=True, verbose_name="Radio Service"
     )
@@ -509,7 +534,7 @@ class Facility(AbstractBaseFacility):
 class PreliminaryCaseGroup(
     AbstractBaseAuditedModel, IsActiveModel, TrackedModel, DataSourceModel, Model
 ):
-    comments = TextField(blank=True)
+    comments = SensibleTextField(blank=True)
 
     class Meta:
         verbose_name = "Preliminary Case Group"
@@ -526,7 +551,7 @@ class AbstractBaseCase(
     Model,
 ):
 
-    comments = TextField(blank=True)
+    comments = SensibleTextField(blank=True)
     completed = BooleanField(default=False, blank=True, verbose_name="Completed")
     completed_on = DateTimeField(null=True, blank=True, verbose_name="Completed On")
     is_federal = BooleanField(null=True, verbose_name="Gov.")
@@ -709,7 +734,7 @@ class Person(
     county = SensibleCharField(max_length=256, blank=True)
     state = SensibleCharField(max_length=256, blank=True)
     zipcode = SensibleCharField(max_length=256, blank=True)
-    comments = TextField(blank=True)
+    comments = SensibleTextField(blank=True)
 
     def __str__(self):
         return f"{self.name}"
@@ -742,7 +767,7 @@ class Attachment(
     # TODO: This will need to be a proper FilePathField eventually...
     path = SensibleCharField(max_length=256, unique=True)
     # path = FilePathField(path=settings.NRQZ_ATTACHMENT_DIR, max_length=256, unique=True)
-    comments = TextField(blank=True)
+    comments = SensibleTextField(blank=True)
     original_index = PositiveIntegerField(null=True, blank=True)
 
     class Meta:
