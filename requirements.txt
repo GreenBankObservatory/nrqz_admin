@@ -17,7 +17,7 @@ psycopg2-binary==2.7.6.1
 pyexcel-xls==0.5.8
 pyexcel-xlsx==0.5.6
 pyexcel==0.5.10
-pykml==git+https://github.com/GreenBankObservatory/pykml.git@python3#egg=pykml
+git+https://github.com/GreenBankObservatory/pykml.git@python3
 requests==2.21.0
 tablib==0.12.1
 tabulate==0.8.2
