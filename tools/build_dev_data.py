@@ -22,7 +22,7 @@ def create_users():
     for user in users:
         try:
             User.objects.create_user(
-                username=user, password=user, is_staff=True, is_superuser=True
+                username=user, password=user, email=f"{user}@nrao.edu", is_staff=True, is_superuser=True
             )
         except django.db.utils.IntegrityError:
             print(f"{user} already exists!")

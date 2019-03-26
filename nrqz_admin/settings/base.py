@@ -167,3 +167,15 @@ SHELL_PLUS_PRE_IMPORTS = [
     )
 ]
 SHELL_PLUS_POST_IMPORTS = [("cases.models", ("Case",)), ("utils.constants", "*")]
+STRONGHOLD_PUBLIC_NAMED_URLS = (
+    "password_reset",
+    "password_reset_done",
+    "password_reset_confirm",
+    "password_reset_complete",
+)
+STRONGHOLD_PUBLIC_URLS = ("^/accounts/reset/.*",)
+SERVER_EMAIL = "noreply@nrao.edu"
+DEFAULT_FROM_EMAIL = "noreply@nrao.edu"
+EMAIL_HOST = "smtp.gb.nrao.edu"
+
+ADMINS = (("Thomas Chamberlin", "tchamber@nrao.edu"),)
