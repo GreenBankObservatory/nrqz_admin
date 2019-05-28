@@ -3,6 +3,7 @@ import tempfile
 
 from docxtpl import DocxTemplate
 
+from django.db import transaction
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.search import SearchVector
@@ -16,6 +17,7 @@ from django.views.generic import FormView
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
+from django.db.utils import IntegrityError
 
 from django_filters.views import FilterView
 from django_tables2.export.export import TableExport
@@ -23,7 +25,7 @@ from django_tables2.export.views import ExportMixin
 from django_tables2.views import SingleTableMixin, MultiTableMixin
 from watson import search as watson
 
-from .forms import LetterTemplateForm
+from .forms import LetterTemplateForm, DuplicateCaseForm
 from .models import (
     Attachment,
     PreliminaryCase,
@@ -402,6 +404,7 @@ class CaseDetailView(MultiTableMixin, DetailView):
         context["unsorted_info"] = get_fields_missing_from_info_tables(
             context, self.object.all_fields()
         )
+        context["duplicate_case_form"] = DuplicateCaseForm()
         return context
 
     def as_kml(self):
@@ -740,3 +743,53 @@ def case_as_kml_view(request, pk):
     )
     response["Content-Disposition"] = f'application; filename="{case.case_num}.kml"'
     return response
+
+
+@transaction.atomic
+def duplicate_case(request, case_num):
+    case = get_object_or_404(Case, case_num=case_num)
+    num_duplicates = int(request.POST.get("num_duplicates"))
+
+    successful_duplications = []
+    failed_duplications = []
+    for __ in range(num_duplicates):
+        case.id = None
+        case.case_num += 1
+        try:
+            with transaction.atomic():
+                case.save()
+        except IntegrityError as error:
+            if "duplicate" in error.args[0]:
+                failed_duplications.append(case.case_num)
+            else:
+                raise
+        else:
+            successful_duplications.append(case.case_num)
+
+    if failed_duplications:
+        transaction.set_rollback(True)
+        if len(failed_duplications) > 1:
+            message_text = (
+                f"Cases {failed_duplications} already exist! No new cases created"
+            )
+        elif len(failed_duplications) == 1:
+            message_text = (
+                f"Case {failed_duplications[0]} already exists! No new case created"
+            )
+        else:
+            raise ValueError("This shouldn't be possible...")
+
+        messages.error(request, message_text)
+        return HttpResponseRedirect(reverse("case_detail", args=[case_num]))
+
+    if len(successful_duplications) > 1:
+        message_text = f"Cases {successful_duplications} have been successfully duplicated from case {case_num}!"
+
+    elif len(successful_duplications) == 1:
+        message_text = f"Case {successful_duplications[0]} has been successfully duplicated from case {case_num}!"
+
+    else:
+        raise ValueError("This shouldn't be possible...")
+
+    messages.success(request, message_text)
+    return HttpResponseRedirect(reverse("case_detail", args=[case.case_num]))

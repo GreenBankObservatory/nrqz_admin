@@ -88,4 +88,5 @@ urlpatterns = [
         name="person_autocomplete",
     ),
     path("search/", views.SearchView.as_view(), name="search"),
+    path("cases/<int:case_num>/duplicate", views.duplicate_case, name="duplicate_case"),
 ]

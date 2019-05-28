@@ -351,3 +351,7 @@ class LocationForm(forms.ModelForm):
     class Meta:
         model = Location
         fields = ("name", "location")
+
+
+class DuplicateCaseForm(forms.Form):
+    num_duplicates = forms.IntegerField(min_value=1, label="Num. Duplicates")

@@ -6,20 +6,31 @@
 
 {% block content %}
 
-{% make_breadcrumb case %}
+{% if case.model_import_attempt %}
+    {% make_breadcrumb case %}
+{% endif %}
 
 <div class="row">
     <div class="col-lg-3">
         <h1>Case {{ case.case_num }}</h1>
     </div>
 
+    <div class="col-lg-1 d-print-none">
+        <a href="{% url 'admin:cases_case_change' case.id %}">Edit</a>
+    </div>
+
     <div class="col-lg-3 d-print-none">
         <p>Date Received: {{ case.date_recorded|default:"None" }}</p>
     </div>
 
-    <div class="col-lg d-print-none">
-        <a href="{% url 'admin:cases_case_change' case.id %}">Edit</a>
+    <div class="col-lg-5 d-print-none">
+        <form action="{% url 'duplicate_case' case.case_num %}" method="post">
+            {% csrf_token %}
+            {{ duplicate_case_form.as_p }}
+        </form>
     </div>
+
+
 </div>
 
 <h2>Applicant Info</h2>

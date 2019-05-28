@@ -271,3 +271,9 @@ class StructureFilterFormHelper(FormHelper):
             )
         ],
     )
+
+
+# class DuplicateCaseFormHelper(FormHelper):
+#     form_method = "post"
+#     form_action = reverse("duplicate_case", args=)
+#     layout = Div("num_duplicates", Submit("submit", "Filter"),
