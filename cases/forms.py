@@ -209,12 +209,12 @@ class CaseImportForm(CaseForm):
 class AttachmentForm(forms.ModelForm):
     class Meta:
         model = Attachment
-        fields = sorted(("path", "comments", "original_index"))
+        fields = sorted(("path", "comments"))
 
 
 class AttachmentImportForm(AttachmentForm):
     class Meta(AttachmentForm.Meta):
-        fields = sorted([*AttachmentForm.Meta.fields, "data_source"])
+        fields = sorted([*AttachmentForm.Meta.fields, "data_source", "original_index"])
 
 
 BASE_FACILITY_FIELDS = (
