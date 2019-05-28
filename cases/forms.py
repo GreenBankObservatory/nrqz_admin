@@ -4,6 +4,7 @@ from django import forms
 from django.contrib.gis.geos import GEOSGeometry
 from django.contrib.postgres.forms import SimpleArrayField
 
+from dal.forms import FutureModelForm
 from dal import autocomplete
 
 from .models import (
@@ -18,8 +19,8 @@ from .models import (
     PreliminaryFacility,
     Structure,
 )
-from .form_helpers import LetterFormHelper
-from .fields import PointField
+from .form_helpers import LetterFormHelper, CaseFormHelper
+from .fields import PointField, AttachmentField
 from .widgets import PCaseWidget, CaseWidget, PersonWidget, AttachmentsWidget
 
 
@@ -165,7 +166,9 @@ class PreliminaryCaseImportForm(PreliminaryCaseForm):
         )
 
 
-class CaseForm(forms.ModelForm):
+class CaseForm(FutureModelForm):
+    # attachments = AttachmentField(queryset=Attachment.objects.all())
+
     class Meta:
         model = Case
         fields = sorted(
@@ -192,6 +195,14 @@ class CaseForm(forms.ModelForm):
             "contact": PersonWidget(),
             "attachments": AttachmentsWidget(),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.helper = CaseFormHelper()
+        # self.helper.form_id = 'id-case-form'
+        # self.helper.form_class = 'my-form'
+        self.helper.form_method = "post"
 
 
 class CaseImportForm(CaseForm):

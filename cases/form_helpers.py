@@ -2,7 +2,7 @@
 
 from crispy_forms.bootstrap import FormActions
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Field, Submit, Layout, Div, Reset
+from crispy_forms.layout import Fieldset, Field, Submit, Layout, Div, Reset
 
 
 class CollapsibleFilterFormLayout(Layout):
@@ -33,7 +33,7 @@ class LetterFormHelper(FormHelper):
             Div(Field("cases", css_class="no-form-control"), css_class="col"),
             Div(Field("facilities", css_class="no-form-control"), css_class="col"),
             Div("template", css_class="col"),
-            css_class="row",
+            css_class="form-row",
         ),
         FormActions(
             Submit("submit", "Download", title="Download as .docx"),
@@ -64,7 +64,7 @@ class PreliminaryFacilityFilterFormHelper(FormHelper):
                 "in_nrqz",
                 css_class="col",
             ),
-            css_class="row",
+            css_class="form-row",
         ),
         extra_buttons=[
             Submit(
@@ -108,9 +108,9 @@ class FacilityFilterFormHelper(FormHelper):
                 "search",
                 css_class="col-sm-5",
             ),
-            css_class="row",
+            css_class="form-row",
         ),
-        Div(Div("location", css_class="col-sm-7"), css_class="row"),
+        Div(Div("location", css_class="col-sm-7"), css_class="form-row"),
         extra_buttons=[
             Submit(
                 "kml",
@@ -139,7 +139,7 @@ class PreliminaryCaseGroupFilterFormHelper(FormHelper):
         Div(
             Div("id", css_class="col"),
             Div("comments", css_class="col"),
-            css_class="row",
+            css_class="form-row",
         )
     )
 
@@ -152,7 +152,7 @@ class PreliminaryCaseFilterFormHelper(FormHelper):
             Div("case_num", "applicant", "contact", css_class="col"),
             Div("radio_service", "completed", "comments", css_class="col"),
             Div("is_federal", css_class="col"),
-            css_class="row",
+            css_class="form-row",
         ),
         extra_buttons=[
             Submit(
@@ -188,7 +188,7 @@ class CaseFilterFormHelper(FormHelper):
                 "search",
                 css_class="col",
             ),
-            css_class="row",
+            css_class="form-row",
         ),
         extra_buttons=[
             Submit(
@@ -220,7 +220,7 @@ class PersonFilterFormHelper(FormHelper):
             Div("email", "city", css_class="col"),
             Div("state", "phone", css_class="col"),
             Div("comments", "zipcode", css_class="col"),
-            css_class="row",
+            css_class="form-row",
         ),
         extra_buttons=[
             Submit(
@@ -244,7 +244,7 @@ class AttachmentFilterFormHelper(FormHelper):
             Div("comments", css_class="col"),
             Div("original_index", css_class="col"),
             Div("data_source", css_class="col"),
-            css_class="row",
+            css_class="form-row",
         )
     )
 
@@ -258,7 +258,7 @@ class StructureFilterFormHelper(FormHelper):
             Div("height", "faa_circ_num", css_class="col"),
             Div("faa_study_num", "issue_date", css_class="col"),
             Div("location", css_class="col-sm-12"),
-            css_class="row",
+            css_class="form-row",
         ),
         extra_buttons=[
             Submit(
@@ -277,3 +277,53 @@ class StructureFilterFormHelper(FormHelper):
 #     form_method = "post"
 #     form_action = reverse("duplicate_case", args=)
 #     layout = Div("num_duplicates", Submit("submit", "Filter"),
+
+
+class CaseFormHelper(FormHelper):
+    layout = Layout(
+        Div(
+            Div("case_num", css_class="col"),
+            Div("radio_service", css_class="col"),
+            Div("call_sign", css_class="col"),
+            css_class="form-row",
+        ),
+        Div(
+            Div("date_recorded", css_class="col"),
+            Div("completed_on", css_class="col"),
+            css_class="form-row",
+        ),
+        Div(
+            Div("agency_num", css_class="col"),
+            Div("applicant", css_class="col"),
+            Div("contact", css_class="col"),
+            css_class="form-row",
+        ),
+        Div(
+            Div("freq_coord", css_class="col"),
+            Div("fcc_file_num", css_class="col"),
+            css_class="form-row",
+        ),
+        Div(
+            Div("sgrs_notify", css_class="col"),
+            Div("sgrs_responded_on", css_class="col"),
+            Div("sgrs_service_num", css_class="col"),
+            css_class="form-row",
+        ),
+        Div(
+            Div("shutdown", css_class="col"),
+            Div("si", css_class="col"),
+            Div("si_done", css_class="col"),
+            Div("si_waived", css_class="col"),
+            css_class="form-row",
+        ),
+        Div(
+            Div("num_freqs", css_class="col"),
+            Div("num_sites", css_class="col"),
+            Div("num_outside", css_class="col"),
+            css_class="form-row",
+        ),
+        Div(Div("comments", css_class="col"), css_class="form-row"),
+        Div(Div("attachments", css_class="col"), css_class="form-row"),
+        # Fieldset("MISC.", "agency_num"),
+        Submit("submit", "Submit"),
+    )

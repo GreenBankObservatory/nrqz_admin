@@ -56,6 +56,8 @@ class CaseAdmin(admin.ModelAdmin):
     form = CaseForm
     search_fields = ["case_num", "applicant__name", "contact__name"]
     ordering = ("-case_num",)
+    # add_form_template = "cases/case_add_form.html"
+    change_form_template = "cases/case_change_form.html"
 
 
 @admin.register(Person)

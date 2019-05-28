@@ -8,7 +8,11 @@ import django_filters
 
 from utils.constants import WGS84_SRID
 from utils.coord_utils import parse_coords
-from .widgets import PointWidget, PointSearchWidget
+from .widgets import PointWidget, PointSearchWidget, AttachmentsWidget
+
+
+class AttachmentField(forms.ModelMultipleChoiceField):
+    widget = AttachmentsWidget()
 
 
 class PointField(forms.CharField):

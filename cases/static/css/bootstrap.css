@@ -127,3 +127,12 @@ ul.messages li.error {
 .col-form-label {
     padding-bottom: calc(.1rem + 1px)
 }
+
+.colM {
+    width: 50%;
+    /*margin: auto*/
+}
+
+.select2-selection {
+    height: auto;
+}
