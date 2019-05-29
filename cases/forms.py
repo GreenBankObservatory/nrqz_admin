@@ -6,6 +6,7 @@ from django.contrib.postgres.forms import SimpleArrayField
 
 from dal.forms import FutureModelForm
 from dal import autocomplete
+from tempus_dominus.widgets import DatePicker, TimePicker, DateTimePicker
 
 from .models import (
     Attachment,
@@ -194,6 +195,12 @@ class CaseForm(FutureModelForm):
             "applicant": PersonWidget(),
             "contact": PersonWidget(),
             "attachments": AttachmentsWidget(),
+            "date_recorded": DateTimePicker(options={"format": "MM/DD/YY h:mm:ss a"}),
+            "completed_on": DateTimePicker(options={"format": "MM/DD/YY h:mm:ss a"}),
+            "sgrs_responded_on": DateTimePicker(
+                options={"format": "MM/DD/YY h:mm:ss a"}
+            ),
+            "si_done": DatePicker(options={"format": "MM/DD/YY"}),
         }
 
     def __init__(self, *args, **kwargs):

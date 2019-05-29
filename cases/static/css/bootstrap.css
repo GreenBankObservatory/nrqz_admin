@@ -129,10 +129,11 @@ ul.messages li.error {
 }
 
 .colM {
-    width: 50%;
+    width: 60%;
     /*margin: auto*/
 }
 
 .select2-selection {
     height: auto;
 }
+

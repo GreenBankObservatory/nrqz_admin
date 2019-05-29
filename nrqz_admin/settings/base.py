@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     "watson",
     "django_import_data",
     "django_super_deduper",
+    "tempus_dominus",
     "massadmin",
     "cases",
     "audits",
