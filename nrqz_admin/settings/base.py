@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     "explorer",
     "watson",
     "django_import_data",
+    "django_super_deduper",
     "massadmin",
     "cases",
     "audits",
@@ -130,6 +131,7 @@ LOGGING = {
     "loggers": {
         "cases": {"handlers": ["console"], "level": "DEBUG", "propagate": True},
         "tools": {"handlers": ["console"], "level": "DEBUG", "propagate": True},
+        # "django_super_deduper": {"handlers": ["console"], "level": "DEBUG"},
     },
 }
 

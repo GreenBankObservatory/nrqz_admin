@@ -43,6 +43,7 @@ from .mixins import (
     AllFieldsModel,
     DataSourceModel,
     IsActiveModel,
+    MergeableModel,
     TrackedModel,
     TrackedOriginalModel,
 )
@@ -721,7 +722,12 @@ class Case(AbstractBaseCase):
 
 
 class Person(
-    AbstractBaseAuditedModel, IsActiveModel, TrackedModel, DataSourceModel, Model
+    MergeableModel,
+    AbstractBaseAuditedModel,
+    IsActiveModel,
+    TrackedModel,
+    DataSourceModel,
+    Model,
 ):
     """A single, physical person"""
 
