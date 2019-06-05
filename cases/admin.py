@@ -1,9 +1,4 @@
 from django.contrib import admin
-from django.apps import apps
-
-# Register all models
-# models = apps.get_app_config("cases").get_models()
-# admin.site.register(models)
 
 from .forms import (
     AttachmentForm,
@@ -26,6 +21,9 @@ from .models import (
     PreliminaryFacility,
     LetterTemplate,
 )
+
+
+admin.site.site_header = "NRQZ Admin"
 
 
 @admin.register(PreliminaryFacility)
@@ -55,6 +53,34 @@ class PreliminaryCaseAdmin(admin.ModelAdmin):
 class CaseAdmin(admin.ModelAdmin):
     form = CaseForm
     search_fields = ["case_num", "applicant__name", "contact__name"]
+    list_display = [
+        "case_num",
+        "applicant",
+        "contact",
+        "call_sign",
+        # "fcc_coord",
+        "fcc_file_num",
+        # "meets_erpd_limit",
+        # "sgrs_approval",
+        "date_recorded",
+        "completed",
+        # "comments",
+        "is_federal",
+    ]
+    list_editable = [
+        "applicant",
+        "contact",
+        # "call_sign",
+        # # "fcc_coord",
+        # "fcc_file_num",
+        # # "meets_erpd_limit",
+        # # "sgrs_approval",
+        # "date_recorded",
+        # "completed",
+        # # "comments",
+        # "is_federal",
+    ]
+    autocomplete_fields = ["applicant", "contact"]
     ordering = ("-case_num",)
     # add_form_template = "cases/case_add_form.html"
     change_form_template = "cases/case_change_form.html"
