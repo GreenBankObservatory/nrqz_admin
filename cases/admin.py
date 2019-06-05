@@ -112,4 +112,4 @@ class BoundariesAdmin(admin.ModelAdmin):
 
 @admin.register(LetterTemplate)
 class LetterTemplateAdmin(admin.ModelAdmin):
-    pass
+    list_display = ["name", "path", "description"]
