@@ -34,6 +34,8 @@ class FileImporterForm(forms.ModelForm):
         model = FileImporter
         fields = ("last_imported_path", "importer_name")
 
+    last_imported_path = forms.CharField(label="Path of file to import", help_text="")
+
     importer_name = forms.ChoiceField(
         help_text="The Importer to use",
         choices=generate_importer_name_choices(),

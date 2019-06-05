@@ -2,6 +2,15 @@
 {% load cases_tags %}
 
 {% block content %}
-<h1><a href="{% url 'facility_index' %}">Facility Index</a></h1>
+<div class="row">
+    <div class="col">
+        <h1><a href="{% url 'facility_index' %}">Facility Index</a></h1>
+    </div>
+
+    <div class="col">
+        <p><a href="{% url 'fileimporter_create' %}">Import a new file</a></p>
+    </div>
+
+</div>
 {% filter_table %}
 {% endblock %}

@@ -5,9 +5,11 @@
 
 {% block content %}
 
-<h1>Import File</h1>
+<h1>Import File (Technical Data)</h1>
 
-<p>Import a file using a File Importer</p>
+<p>To import a new file, enter its full path into the first field, then select the importer type and hit "Import File". If the file has already been imported, or it cannot be found, you will get an error.</p>
+
+<p>If everything goes well, one or more Facilities will be created and linked to existing Case(s). If something goes wrong, you will be presented with an "audit" report of the import process with information on what needs to be fixed.</p>
 
 <form method="POST">{% csrf_token %}
     {{ form | crispy }}
