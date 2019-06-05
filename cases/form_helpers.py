@@ -181,13 +181,13 @@ class CaseFilterFormHelper(FormHelper):
                 css_class="col",
             ),
             Div(
-                "date_recorded",
-                "completed",
-                "comments",
-                "is_federal",
-                "search",
-                css_class="col",
+                "date_recorded", "completed", "comments", "is_federal", css_class="col"
             ),
+            css_class="row",
+        ),
+        Div(
+            Div("num_facilities", css_class="col"),
+            Div("search", css_class="col"),
             css_class="row",
         ),
         extra_buttons=[
@@ -325,7 +325,6 @@ class CaseFormHelper(FormHelper):
             ),
             Div(Div("comments", css_class="col"), css_class="row"),
             Div(Div("attachments", css_class="col"), css_class="row"),
-            Submit("submit", "Submit"),
             css_class="",
         )
     )

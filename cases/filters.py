@@ -1,6 +1,7 @@
 """Custom django_filters.FilterSet sub-classes for cases app"""
 
 from django.contrib.gis.measure import Distance
+from django.db.models import Count
 import django_filters
 
 from watson import search as watson
@@ -163,6 +164,7 @@ class CaseFilter(BaseCaseFilter):
     meets_erpd_limit = django_filters.BooleanFilter(label="Meets ERPd Limit")
     sgrs_approval = django_filters.BooleanFilter(label="SGRS Approval")
     search = WatsonFilter(label="Search all text fields")
+    num_facilities = django_filters.RangeFilter(label="# Facilities")
 
     class Meta:
         model = models.Case

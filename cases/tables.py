@@ -272,6 +272,7 @@ class PreliminaryCaseExportTable(PreliminaryCaseTable):
 class CaseTable(BaseCaseTable):
     meets_erpd_limit = tables.BooleanColumn(accessor="meets_erpd_limit")
     sgrs_approval = tables.BooleanColumn(accessor="sgrs_approval")
+    num_facilities = tables.Column(verbose_name="# Facilities")
 
     class Meta:
         model = models.Case

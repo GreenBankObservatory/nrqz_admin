@@ -8,7 +8,7 @@ from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.search import SearchVector
 from django.db.models import Min, Max
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.template import Template, Context
@@ -173,6 +173,10 @@ class CaseListView(FilterTableView):
     export_table_class = CaseExportTable
     filterset_class = CaseFilter
     template_name = "cases/case_list.html"
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        return qs.annotate(num_facilities=Count("facilities"))
 
     def get(self, request, *args, **kwargs):
         if "kml" in request.GET:
