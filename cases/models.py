@@ -806,6 +806,7 @@ class LetterTemplate(IsActiveModel, TrackedModel, Model):
     path = FilePathField(
         path=settings.NRQZ_LETTER_TEMPLATE_DIR, max_length=512, unique=True
     )
+    description = SensibleTextField(blank=True)
 
     def __str__(self):
         return self.name
