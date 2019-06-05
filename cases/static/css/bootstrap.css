@@ -137,3 +137,7 @@ ul.messages li.error {
     height: auto;
 }
 
+
+.submit-row a.deletelink {
+    height: unset;
+}
