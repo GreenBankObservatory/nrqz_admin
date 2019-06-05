@@ -753,18 +753,6 @@ class Person(
         verbose_name_plural = "People"
 
 
-class AlsoKnownAs(IsActiveModel, TrackedModel, DataSourceModel, Model):
-    person = ForeignKey("Person", on_delete=CASCADE, related_name="aka")
-    name = SensibleCharField(max_length=256)
-
-    class Meta:
-        verbose_name = "Also Known As"
-        verbose_name_plural = "Also Known As"
-
-    def __str__(self):
-        return self.name
-
-
 class Attachment(
     AbstractBaseAuditedModel, IsActiveModel, TrackedModel, DataSourceModel, Model
 ):
