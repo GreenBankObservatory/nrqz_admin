@@ -68,6 +68,8 @@ class BaseFacilityTable(tables.Table):
         accessor="azimuth_to_gbt",
         verbose_name="Azimuth Bearing to GBT",
     )
+
+    in_nrqz = tables.Column(verbose_name="In NRQZ")
     # TODO: Consolidate!
     def render_latitude(self, value):
         return mark_safe(

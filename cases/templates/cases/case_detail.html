@@ -19,11 +19,15 @@
         <a href="{% url 'admin:cases_case_change' case.id %}">Edit</a>
     </div>
 
+    <div class="col-lg-1 d-print-none">
+        <a href="{% url 'admin:cases_case_delete' case.id %}"> Delete</a>
+    </div>
+
     <div class="col-lg-3 d-print-none">
         <p>Date Received: {{ case.date_recorded|default:"None" }}</p>
     </div>
 
-    <div class="col-lg-5 d-print-none">
+    <div class="col-lg-4 d-print-none">
         <form action="{% url 'duplicate_case' case.case_num %}" method="post">
             {% csrf_token %}
             {{ duplicate_case_form.as_p }}
@@ -94,17 +98,15 @@
 {% endif %}
 
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-lg">
-            {% info_table case "Case Info" application_info %}
-        </div>
-        <div class="col-lg">
-            {% info_table case "Case Status" status_info %}
-        </div>
-        <div class="col-lg">
-            {% info_table case "Sugar Grove Info" sgrs_info %}
-        </div>
+<div class="row">
+    <div class="col-lg">
+        {% info_table case "Case Info" application_info %}
+    </div>
+    <div class="col-lg">
+        {% info_table case "Case Status" status_info %}
+    </div>
+    <div class="col-lg">
+        {% info_table case "Sugar Grove Info" sgrs_info %}
     </div>
 </div>
 

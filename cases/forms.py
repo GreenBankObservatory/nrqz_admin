@@ -372,4 +372,8 @@ class LocationForm(forms.ModelForm):
 
 
 class DuplicateCaseForm(forms.Form):
-    num_duplicates = forms.IntegerField(min_value=1, label="Num. Duplicates")
+    num_duplicates = forms.IntegerField(
+        min_value=1,
+        label="Make Duplicates",
+        widget=forms.NumberInput(attrs={"placeholder": "# duplicates"}),
+    )

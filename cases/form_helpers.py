@@ -325,7 +325,6 @@ class CaseFormHelper(FormHelper):
             ),
             Div(Div("comments", css_class="col"), css_class="row"),
             Div(Div("attachments", css_class="col"), css_class="row"),
-            # Fieldset("MISC.", "agency_num"),
             Submit("submit", "Submit"),
             css_class="",
         )
