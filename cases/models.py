@@ -469,7 +469,7 @@ class Facility(AbstractBaseFacility):
     power_density_limit = FloatField(
         null=True, blank=True, verbose_name="Power Density Limit"
     )
-    sgrs_approval = BooleanField(null=True, blank=True)
+    sgrs_approval = BooleanField(null=True, blank=True, verbose_name="SGRS Approval")
     sgrs_responded_on = DateTimeField(
         null=True, blank=True, verbose_name="SGRS Responded On"
     )
