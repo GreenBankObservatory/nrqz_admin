@@ -23,6 +23,7 @@ from importers.converters import (
     convert_array,
     convert_case_num,
     convert_case_num_and_site_num_to_nrqz_id,
+    coerce_access_none,
 )
 from utils.constants import ACCESS_TECHNICAL
 
@@ -61,9 +62,13 @@ class FacilityImportFormMap(FormMap):
             to_field="meets_erpd_limit", converter=coerce_bool, from_field="ERP_LIMIT"
         ),
         OneToOneFieldMap(
-            to_field="antenna_model_number", converter=None, from_field="ANT_MODEL"
+            to_field="antenna_model_number",
+            converter=coerce_access_none,
+            from_field="ANT_MODEL",
         ),
-        OneToOneFieldMap(to_field="call_sign", converter=None, from_field="CALLSIGN"),
+        OneToOneFieldMap(
+            to_field="call_sign", converter=coerce_access_none, from_field="CALLSIGN"
+        ),
         OneToOneFieldMap(
             to_field="freq_low", converter=coerce_positive_float, from_field="FREQUENCY"
         ),
@@ -76,7 +81,9 @@ class FacilityImportFormMap(FormMap):
             to_field="site_num", converter=coerce_positive_int, from_field="SITE."
         ),
         OneToOneFieldMap(
-            to_field="location_description", converter=None, from_field="LOCATION"
+            to_field="location_description",
+            converter=coerce_access_none,
+            from_field="LOCATION",
         ),
         OneToOneFieldMap(
             to_field="latitude", converter=coerce_none, from_field="LATITUDE"
@@ -102,7 +109,9 @@ class FacilityImportFormMap(FormMap):
         OneToOneFieldMap(
             to_field="agl", converter=coerce_feet_to_meters, from_field="ANT_HEIGHT"
         ),
-        OneToOneFieldMap(to_field="comments", converter=None, from_field="REMARKS"),
+        OneToOneFieldMap(
+            to_field="comments", converter=coerce_access_none, from_field="REMARKS"
+        ),
         OneToOneFieldMap(to_field="s367", converter=coerce_bool, from_field="S367"),
         ManyToOneFieldMap(
             to_field="emissions",

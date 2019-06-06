@@ -91,12 +91,19 @@ def filter_table(context, table=None, filter_=None):
     )
 
 
+def do_format(value):
+    if isinstance(value, float):
+        return f"{value:.2f}"
+    return value
+
+
 @register.inclusion_tag("cases/info_table.html")
 def info_table(instance, title, fields):
     rows = [
         (
             instance._meta.get_field(field).verbose_name,
-            instance._meta.get_field(field).value_to_string(instance),
+            do_format(getattr(instance, field)),
+            # instance._meta.get_field(field).value_to_string(instance),
             instance._meta.get_field(field).help_text,
         )
         if not isinstance(field, tuple)
@@ -111,7 +118,7 @@ def attachment_table(instance, title, fields):
     rows = [
         (
             instance._meta.get_field(field).verbose_name,
-            instance._meta.get_field(field).value_to_string(instance),
+            do_format(getattr(instance, field)),
             instance._meta.get_field(field).help_text,
         )
         for field in fields
@@ -153,7 +160,7 @@ def location_table(instance, title, fields):
                 rows.append(
                     (
                         instance._meta.get_field(field).verbose_name,
-                        instance._meta.get_field(field).value_to_string(instance),
+                        do_format(getattr(instance, field)),
                         instance._meta.get_field(field).help_text,
                     )
                 )

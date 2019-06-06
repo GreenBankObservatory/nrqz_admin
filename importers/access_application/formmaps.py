@@ -6,12 +6,12 @@ from django_import_data import FormMap, OneToOneFieldMap, OneToManyFieldMap
 
 from cases.forms import AttachmentImportForm, CaseImportForm, PersonImportForm
 from importers.converters import (
-    coerce_float,
     coerce_positive_int,
     convert_access_datetime,
     coerce_bool,
     convert_access_attachment,
     convert_case_num,
+    coerce_access_none,
 )
 from utils.constants import ACCESS_APPLICATION
 
@@ -47,15 +47,33 @@ IGNORED_HEADERS = [
 
 class ApplicantFormMap(FormMap):
     field_maps = [
-        OneToOneFieldMap(to_field="name", converter=None, from_field="APPLICANT"),
-        OneToOneFieldMap(to_field="phone", converter=None, from_field="PHONE"),
-        OneToOneFieldMap(to_field="fax", converter=None, from_field="FAX"),
-        OneToOneFieldMap(to_field="email", converter=None, from_field="EMAIL"),
-        OneToOneFieldMap(to_field="street", converter=None, from_field="ADDRESS"),
-        OneToOneFieldMap(to_field="city", converter=None, from_field="CITY"),
-        OneToOneFieldMap(to_field="county", converter=None, from_field="COUNTY"),
-        OneToOneFieldMap(to_field="state", converter=None, from_field="STATE"),
-        OneToOneFieldMap(to_field="zipcode", converter=None, from_field="ZIPCODE"),
+        OneToOneFieldMap(
+            to_field="name", converter=coerce_access_none, from_field="APPLICANT"
+        ),
+        OneToOneFieldMap(
+            to_field="phone", converter=coerce_access_none, from_field="PHONE"
+        ),
+        OneToOneFieldMap(
+            to_field="fax", converter=coerce_access_none, from_field="FAX"
+        ),
+        OneToOneFieldMap(
+            to_field="email", converter=coerce_access_none, from_field="EMAIL"
+        ),
+        OneToOneFieldMap(
+            to_field="street", converter=coerce_access_none, from_field="ADDRESS"
+        ),
+        OneToOneFieldMap(
+            to_field="city", converter=coerce_access_none, from_field="CITY"
+        ),
+        OneToOneFieldMap(
+            to_field="county", converter=coerce_access_none, from_field="COUNTY"
+        ),
+        OneToOneFieldMap(
+            to_field="state", converter=coerce_access_none, from_field="STATE"
+        ),
+        OneToOneFieldMap(
+            to_field="zipcode", converter=coerce_access_none, from_field="ZIPCODE"
+        ),
     ]
 
     form_class = PersonImportForm
@@ -64,7 +82,9 @@ class ApplicantFormMap(FormMap):
 
 class ContactFormMap(FormMap):
     field_maps = [
-        OneToOneFieldMap(to_field="name", converter=None, from_field="CONTACT")
+        OneToOneFieldMap(
+            to_field="name", converter=coerce_access_none, from_field="CONTACT"
+        )
     ]
     form_class = PersonImportForm
     form_defaults = {"data_source": ACCESS_APPLICATION}
@@ -75,7 +95,9 @@ class CaseImportFormMap(FormMap):
         OneToOneFieldMap(
             to_field="case_num", converter=convert_case_num, from_field="NRQZ_NO"
         ),
-        OneToOneFieldMap(to_field="comments", converter=None, from_field="COMMENTS"),
+        OneToOneFieldMap(
+            to_field="comments", converter=coerce_access_none, from_field="COMMENTS"
+        ),
         OneToOneFieldMap(
             to_field="date_recorded",
             converter=convert_access_datetime,
@@ -110,10 +132,16 @@ class CaseImportFormMap(FormMap):
             converter=convert_radio_service,
             from_field={"radio_service": "RADIOSRV"},
         ),
-        OneToOneFieldMap(to_field="call_sign", converter=None, from_field="CALLSIGN"),
-        OneToOneFieldMap(to_field="freq_coord", converter=None, from_field="FCNUMBER"),
         OneToOneFieldMap(
-            to_field="fcc_file_num", converter=None, from_field="FCCNUMBER"
+            to_field="call_sign", converter=coerce_access_none, from_field="CALLSIGN"
+        ),
+        OneToOneFieldMap(
+            to_field="freq_coord", converter=coerce_access_none, from_field="FCNUMBER"
+        ),
+        OneToOneFieldMap(
+            to_field="fcc_file_num",
+            converter=coerce_access_none,
+            from_field="FCCNUMBER",
         ),
         OneToOneFieldMap(
             to_field="num_freqs", converter=coerce_positive_int, from_field="NO_FREQS"

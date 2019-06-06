@@ -383,10 +383,18 @@ class CaseDetailView(MultiTableMixin, DetailView):
         context = super().get_context_data(**kwargs)
         context["status_info"] = [
             "shutdown",
-            "completed_on",
+            (
+                "Completed On",
+                self.object.completed_on.date() if self.object.completed_on else None,
+                "",
+            ),
             "si_waived",
             "si",
-            "si_done",
+            (
+                "SI Done",
+                self.object.si_done.date() if self.object.si_done else None,
+                "",
+            ),
             "is_federal",
         ]
         context["application_info"] = [
@@ -401,7 +409,13 @@ class CaseDetailView(MultiTableMixin, DetailView):
         ]
         context["sgrs_info"] = [
             "sgrs_notify",
-            "sgrs_responded_on",
+            (
+                "SGRS Responded On",
+                self.object.sgrs_responded_on.date()
+                if self.object.sgrs_responded_on
+                else None,
+                "",
+            ),
             "sgrs_service_num",
             ("SGRS Approval", self.object.sgrs_approval, ""),
         ]
@@ -530,11 +544,6 @@ class FacilityDetailView(MultiTableMixin, BaseFacilityDetailView):
             "agl",
             "antenna_model_number",
             "antenna_gain",
-            (
-                "Azimuth Bearing",
-                self.object.get_azimuth_to_gbt() if self.object.location else None,
-                "Azimuth bearing to GBT in degrees",
-            ),
             # az deg true
             "main_beam_orientation",
             "mechanical_downtilt",

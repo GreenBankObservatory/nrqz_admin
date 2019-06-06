@@ -7,8 +7,8 @@ from cases.forms import (
 )
 
 from django_import_data import OneToOneFieldMap, ManyToOneFieldMap, FormMap
+
 from importers.converters import (
-    convert_access_datetime,
     coerce_feet_to_meters,
     coerce_access_location,
     coerce_none,
@@ -19,6 +19,7 @@ from importers.converters import (
     convert_case_num,
     convert_case_num_and_site_num_to_nrqz_id,
     coerce_bool,
+    coerce_access_none,
 )
 from utils.constants import ACCESS_PRELIM_TECHNICAL
 
@@ -71,7 +72,9 @@ class PFacilityImportFormMap(FormMap):
             to_field="freq_low", converter=coerce_positive_float, from_field="FREQUENCY"
         ),
         OneToOneFieldMap(
-            to_field="antenna_model_number", converter=None, from_field="ANT_MODEL"
+            to_field="antenna_model_number",
+            converter=coerce_access_none,
+            from_field="ANT_MODEL",
         ),
         OneToOneFieldMap(
             to_field="power_density_limit",
@@ -79,7 +82,9 @@ class PFacilityImportFormMap(FormMap):
             from_field="PWD_LIMIT",
         ),
         OneToOneFieldMap(
-            to_field="location_description", converter=None, from_field="LOCATION"
+            to_field="location_description",
+            converter=coerce_access_none,
+            from_field="LOCATION",
         ),
         OneToOneFieldMap(
             to_field="latitude", converter=coerce_none, from_field="LATITUDE"
@@ -105,7 +110,9 @@ class PFacilityImportFormMap(FormMap):
         OneToOneFieldMap(
             to_field="agl", converter=coerce_feet_to_meters, from_field="ANT_HEIGHT"
         ),
-        OneToOneFieldMap(to_field="comments", converter=None, from_field="REMARKS"),
+        OneToOneFieldMap(
+            to_field="comments", converter=coerce_access_none, from_field="REMARKS"
+        ),
         OneToOneFieldMap(
             to_field="tpa", converter=coerce_positive_float, from_field="NRAO_TPA"
         ),
