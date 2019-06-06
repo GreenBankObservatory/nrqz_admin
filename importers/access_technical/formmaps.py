@@ -8,7 +8,7 @@ from cases.forms import (
 )
 
 from django_import_data import FormMap, ManyToOneFieldMap, OneToOneFieldMap
-from importers.access_application.fieldmap import (
+from importers.access_application.formmaps import (
     convert_access_datetime,
     coerce_positive_int,
 )

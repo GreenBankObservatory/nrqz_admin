@@ -9,7 +9,7 @@ from django_import_data import BaseImportCommand
 
 
 from cases.models import Case
-from importers.excel.fieldmap import (
+from importers.excel.formmaps import (
     CASE_FORM_MAP,
     FACILITY_FORM_MAP,
     IGNORED_HEADERS,

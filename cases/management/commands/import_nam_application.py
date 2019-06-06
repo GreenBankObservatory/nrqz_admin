@@ -5,7 +5,7 @@ import re
 from django_import_data import BaseImportCommand
 
 from importers.handlers import handle_case
-from importers.nrqz_analyzer.fieldmap import (
+from importers.nrqz_analyzer.formmaps import (
     CASE_FORM_MAP,
     FACILITY_FORM_MAP,
     IGNORED_HEADERS,

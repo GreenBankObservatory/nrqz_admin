@@ -1,7 +1,7 @@
 """Import Access Preliminary Application Data"""
 
 from importers.handlers import handle_case, handle_attachments
-from importers.access_prelim_application.fieldmap import (
+from importers.access_prelim_application.formmaps import (
     APPLICANT_FORM_MAP,
     CONTACT_FORM_MAP,
     PCASE_FORM_MAP,

@@ -22,6 +22,29 @@ def convert_radio_service(radio_service):
     return {"radio_service": radio_service, "is_federal": is_federal}
 
 
+IGNORED_HEADERS = [
+    "C_BAND",
+    "HF_BAND",
+    "KA_BAND",
+    "KU_BAND",
+    "K_BAND",
+    "LETTER1",
+    "LETTER2",
+    "LETTER3",
+    "LETTER4",
+    "LETTER5",
+    "LETTER6",
+    "LETTER7",
+    "LETTER8",
+    "L_BAND",
+    "S_BAND",
+    "UHF1_BAND",
+    "UHF2_BAND",
+    "VHF_BAND",
+    "X_BAND",
+]
+
+
 class ApplicantFormMap(FormMap):
     field_maps = [
         OneToOneFieldMap(to_field="name", converter=None, from_field="APPLICANT"),

@@ -1,11 +1,12 @@
 """Import Access Application Data"""
 
 from importers.handlers import handle_case, handle_attachments
-from importers.access_application.fieldmap import (
+from importers.access_application.formmaps import (
     APPLICANT_FORM_MAP,
     CONTACT_FORM_MAP,
     CASE_FORM_MAP,
     ATTACHMENT_FORM_MAPS,
+    IGNORED_HEADERS,
 )
 from django_import_data import BaseImportCommand
 from django_import_data.models import RowData
@@ -23,6 +24,7 @@ class Command(BaseImportCommand):
         CASE_FORM_MAP,
         *ATTACHMENT_FORM_MAPS,
     ]
+    IGNORED_HEADERS = IGNORED_HEADERS
 
     def handle_record(self, row_data, file_import_attempt, durable=True):
         applicant, applicant_audit = APPLICANT_FORM_MAP.save_with_audit(

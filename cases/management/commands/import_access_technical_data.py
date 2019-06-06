@@ -1,7 +1,7 @@
 """Import Access Technical Data"""
 
 from importers.handlers import get_or_create_attachment, handle_case
-from importers.access_technical.fieldmap import (
+from importers.access_technical.formmaps import (
     APPLICANT_FORM_MAP,
     CASE_FORM_MAP,
     FACILITY_FORM_MAP,

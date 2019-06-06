@@ -1,5 +1,5 @@
 from importers.handlers import get_or_create_attachment, handle_case
-from importers.access_prelim_technical.fieldmap import (
+from importers.access_prelim_technical.formmaps import (
     APPLICANT_FORM_MAP,
     PCASE_FORM_MAP,
     PFACILITY_FORM_MAP,
