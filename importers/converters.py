@@ -94,7 +94,7 @@ def coerce_none(value, none_str_values=("", "None", "#N/A", "Not provided")):
 
 
 def coerce_access_none(value):
-    return convert_case_num(value, none_str_values=[0, ""])
+    return coerce_none(value, none_str_values=[0, ""])
 
 
 def coerce_coord_from_number(value):
