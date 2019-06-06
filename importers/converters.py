@@ -5,23 +5,17 @@ source and converting/validating it in some way in order to
 make it compatible with a database field
 """
 
-from django.contrib.gis.db.backends.postgis.models import PostGISSpatialRefSys
 from datetime import datetime, date
 import re
-import string
 
 import pytz
-from tqdm import tqdm
 
+from django.contrib.gis.db.backends.postgis.models import PostGISSpatialRefSys
 from django.contrib.gis.geos import Point
 
 from utils.coord_utils import dms_to_dd
-from utils.constants import (
-    MIN_VALID_CASE_NUMBER,
-    MAX_VALID_CASE_NUMBER,
-    NAD27_SRID,
-    NAD83_SRID,
-)
+from utils.constants import NAD27_SRID, NAD83_SRID
+from .constants import MIN_VALID_CASE_NUMBER, MAX_VALID_CASE_NUMBER
 
 ARRAY_DELIMITER_REGEX = re.compile("[,/]")
 

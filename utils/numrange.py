@@ -74,6 +74,7 @@ def get_str_from_nums(nums, join_str=","):
     item_list = []
 
     for r in ranges_list:
+        assert len(r) == 2
         if r[0] == r[1]:
             item_list.append(str(r[0]))
         else:

@@ -16,12 +16,6 @@ FCC_ASR = "fcc_asr"
 
 # Misc.
 
-# Empirically determined. This is solely to avoid obviously-wrong
-# case numbers from being imported
-MAX_VALID_CASE_NUMBER = 12000
-MIN_VALID_CASE_NUMBER = 100
-
-
 NAD27_SRID = 4267
 NAD83_SRID = 4269
 WGS84_SRID = 4326
