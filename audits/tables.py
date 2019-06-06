@@ -57,6 +57,7 @@ class FileImporterTable(tables.Table):
 
 
 class FileImportAttemptTable(tables.Table):
+    id = tables.DateColumn(linkify=True)
     imported_from = tables.Column(linkify=True)
     status = ImportStatusColumn()
     is_active = tables.BooleanColumn(verbose_name="Active")
@@ -70,11 +71,14 @@ class FileImportAttemptTable(tables.Table):
 
 
 class ModelImportAttemptTable(tables.Table):
-    id = tables.Column(linkify=True)
+    id = tables.Column(linkify=True, verbose_name="MIA")
+    created_on = tables.DateTimeColumn(verbose_name="Imported On")
     # Can't order this because it isn't a real field
     importee = tables.Column(linkify=True, empty_values=(), orderable=False)
-    created_on = tables.DateTimeColumn(verbose_name="Imported On")
-    content_type = tables.Column(verbose_name="Model")
+    content_type = tables.Column(
+        verbose_name="Model",
+        attrs={"th": {"title": "The model that the importer ATTEMPTED to create"}},
+    )
     fia_imported_from = tables.Column(
         linkify=True, accessor="file_import_attempt.imported_from"
     )
