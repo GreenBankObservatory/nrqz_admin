@@ -421,6 +421,8 @@ class FacilityImportFormMap(FormMap):
                     "Additional information or comments from the applicant",
                     "Additional information or comments from the applic11036 ANT",
                     "Applicant comments",
+                    "Comments:",
+                    "Comments",
                 ]
             },
         ),
@@ -455,7 +457,10 @@ class FacilityImportFormMap(FormMap):
             to_field="distance_to_first_obstacle",
             converter=coerce_positive_float,
             from_field={
-                "distance_to_first_obstacle": ["Distance to 1st obstacle (km)"]
+                "distance_to_first_obstacle": [
+                    "Distance to 1st obstacle (km)",
+                    "Distance (km) to 1st obstacle",
+                ]
             },
         ),
         OneToOneFieldMap(
@@ -542,6 +547,17 @@ class FacilityImportFormMap(FormMap):
             to_field="tx_power",
             converter=coerce_positive_float,
             from_field={"tx_power": ["TX Pwr (dBm)"]},
+        ),
+        OneToOneFieldMap(
+            to_field="si_done",
+            converter=coerce_positive_float,
+            from_field={
+                "si_done": [
+                    "Inspection Date",
+                    "Si Completed",
+                    "Site Inspection Completed",
+                ]
+            },
         ),
     ]
     form_class = FacilityImportForm
