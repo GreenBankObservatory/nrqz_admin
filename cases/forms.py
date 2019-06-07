@@ -123,14 +123,7 @@ class PersonForm(forms.ModelForm):
 
 class PersonImportForm(PersonForm):
     class Meta(PersonForm.Meta):
-        fields = sorted(
-            [
-                *PersonForm.Meta.fields,
-                "data_source",
-                "alias_field_values_summary",
-                "alias_field_values",
-            ]
-        )
+        fields = sorted([*PersonForm.Meta.fields, "data_source"])
 
 
 _BASE_CASE_FIELDS = (

@@ -1,7 +1,7 @@
 """Custom django_filters.FilterSet sub-classes for cases app"""
 
 from django.contrib.gis.measure import Distance
-from django.db.models import Count
+from django.db.models import Count, Case as CASE, Value, F, Q, BooleanField, When
 import django_filters
 
 from watson import search as watson
@@ -161,8 +161,16 @@ class CaseFilter(BaseCaseFilter):
     freq_coord = django_filters.CharFilter(lookup_expr="icontains")
     fcc_file_num = django_filters.CharFilter(lookup_expr="icontains")
     call_sign = django_filters.CharFilter(lookup_expr="icontains")
-    meets_erpd_limit = django_filters.BooleanFilter(label="Meets ERPd Limit")
-    sgrs_approval = django_filters.BooleanFilter(label="SGRS Approval")
+    meets_erpd_limit = django_filters.ChoiceFilter(
+        label="Meets ERPd Limit",
+        method="filter_meets_erpd_limit",
+        choices=(("false", "False"), ("true", "True"), ("none", "None")),
+    )
+    sgrs_approval = django_filters.ChoiceFilter(
+        label="SGRS Approval",
+        method="filter_sgrs_approval",
+        choices=(("false", "False"), ("true", "True"), ("none", "None")),
+    )
     search = WatsonFilter(label="Search all text fields")
     num_facilities = django_filters.RangeFilter(label="# Facilities")
 
@@ -170,6 +178,32 @@ class CaseFilter(BaseCaseFilter):
         model = models.Case
         formhelper_class = CaseFilterFormHelper
         fields = discover_fields(formhelper_class.layout)
+
+    def filter_sgrs_approval(self, queryset, name, value):
+        if value == "true":
+            status = True
+            return queryset.filter(sgrs_approval=status)
+        elif value == "false":
+            status = False
+            return queryset.filter(sgrs_approval=status)
+        elif value == "none":
+            status = None
+            return queryset.filter(sgrs_approval=status)
+        else:
+            return queryset
+
+    def filter_meets_erpd_limit(self, queryset, name, value):
+        if value == "true":
+            status = True
+            return queryset.filter(meets_erpd_limit=status)
+        elif value == "false":
+            status = False
+            return queryset.filter(meets_erpd_limit=status)
+        elif value == "none":
+            status = None
+            return queryset.filter(meets_erpd_limit=status)
+        else:
+            return queryset
 
 
 class PersonFilter(HelpedFilterSet):

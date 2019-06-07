@@ -19,21 +19,30 @@ from .columns import ImportStatusColumn
 
 
 class FileImportBatchTable(tables.Table):
-    command = tables.Column(empty_values=(), linkify=True, verbose_name="Importer")
-    created_on = tables.DateColumn(verbose_name="Date Imported")
+    id = tables.Column(linkify=True, verbose_name="FIB")
+    command = tables.Column(verbose_name="Importer")
+    created_on = tables.DateTimeColumn(verbose_name="Date Imported")
     file_import_attempts = tables.Column(verbose_name="# of File Imports Attempted")
     status = ImportStatusColumn()
     is_active = tables.BooleanColumn(verbose_name="Active")
 
     class Meta:
         model = FileImportBatch
-        fields = ("command", *FileImportBatchFilter.Meta.fields)
+        fields = (
+            FileImportBatchFilter.Meta.fields[0],
+            "command",
+            *FileImportBatchFilter.Meta.fields[1:],
+        )
+
+    def render_id(self, value):
+        return f"FIB {value}"
 
     def render_file_import_attempts(self, value):
         return value.count()
 
 
 class FileImporterTable(tables.Table):
+    id = tables.Column(linkify=True, verbose_name="FI")
     last_imported_path = tables.Column(linkify=True)
     status = ImportStatusColumn(
         verbose_name="Status",
@@ -52,19 +61,24 @@ class FileImporterTable(tables.Table):
         fields = FileImporterFilter.Meta.fields
         order_by = ["-modified_on"]
 
+    def render_id(self, value):
+        return f"FI {value}"
+
     def render_last_imported_path(self, value):
         return os.path.basename(value)
 
 
 class FileImportAttemptTable(tables.Table):
-    id = tables.DateColumn(linkify=True)
-    imported_from = tables.Column(linkify=True)
+    id = tables.Column(linkify=True, verbose_name="FIA")
     status = ImportStatusColumn()
     is_active = tables.BooleanColumn(verbose_name="Active")
 
     class Meta:
         model = FileImportAttempt
         fields = FileImportAttemptFilter.Meta.fields
+
+    def render_id(self, value):
+        return f"FIA {value}"
 
     def render_imported_from(self, value):
         return os.path.basename(value)
@@ -74,7 +88,9 @@ class ModelImportAttemptTable(tables.Table):
     id = tables.Column(linkify=True, verbose_name="MIA")
     created_on = tables.DateTimeColumn(verbose_name="Imported On")
     # Can't order this because it isn't a real field
-    importee = tables.Column(linkify=True, empty_values=(), orderable=False)
+    importee = tables.Column(
+        linkify=True, orderable=False, verbose_name="Imported Model"
+    )
     content_type = tables.Column(
         verbose_name="Model",
         attrs={"th": {"title": "The model that the importer ATTEMPTED to create"}},
@@ -106,6 +122,9 @@ class ModelImportAttemptTable(tables.Table):
             "fia_status",
         ]
         order_by = ["-created_on"]
+
+    def render_id(self, value):
+        return f"MIA {value}"
 
     def render_fia_imported_from(self, value):
         return os.path.basename(value)

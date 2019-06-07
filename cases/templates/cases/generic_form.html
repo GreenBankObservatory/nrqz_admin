@@ -3,7 +3,7 @@
 
 {% block content %}
 
-<h1>{{ form | model_name }} Form</h1>
+<h1>{{ view.model | model_name }} Form</h1>
 
 <form method="POST">{% csrf_token %}
     {{ form.as_p }}

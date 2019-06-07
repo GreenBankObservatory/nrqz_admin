@@ -105,3 +105,20 @@ ATTACHMENT_FORM_MAPS = [
     )()
     for n in range(1, 4)
 ]
+
+IGNORED_HEADERS = [
+    "HF_BAND",
+    "VHF_BAND",
+    "UHF1_BAND",
+    "UHF2_BAND",
+    "L_BAND",
+    "S_BAND",
+    "C_BAND",
+    "X_BAND",
+    "KU_BAND",
+    "K_BAND",
+    "KA_BAND",
+    "LETTER1",
+    "LETTER2",
+    "LETTER3",
+]

@@ -168,6 +168,9 @@ class PreliminaryCaseListView(FilterTableView):
     template_name = "cases/prelim_case_list.html"
 
 
+from django.db.models import Count, Case as CASE, Value, F, Q, BooleanField, When
+
+
 class CaseListView(FilterTableView):
     table_class = CaseTable
     export_table_class = CaseExportTable
@@ -175,8 +178,34 @@ class CaseListView(FilterTableView):
     template_name = "cases/case_list.html"
 
     def get_queryset(self):
-        qs = super().get_queryset()
-        return qs.annotate(num_facilities=Count("facilities"))
+        queryset = super().get_queryset()
+        queryset = queryset.annotate(
+            num_facilities=Count("facilities"),
+            sgrs_pending=Count("id", filter=Q(facilities__sgrs_approval=None)),
+            sgrs_approvals=Count("id", filter=Q(facilities__sgrs_approval=True)),
+        )
+        queryset = queryset.annotate(
+            sgrs_approval=CASE(
+                When(sgrs_pending__gt=0, then=Value(None)),
+                When(sgrs_approvals=F("num_facilities"), then=Value(True)),
+                default=Value(False),
+                output_field=BooleanField(),
+            )
+        )
+        queryset = queryset.annotate(
+            num_facilities=Count("facilities"),
+            erpd_limit_pending=Count("id", filter=Q(facilities__meets_erpd_limit=None)),
+            erpd_limit_pass=Count("id", filter=Q(facilities__meets_erpd_limit=True)),
+        )
+        queryset = queryset.annotate(
+            meets_erpd_limit=CASE(
+                When(erpd_limit_pending__gt=0, then=Value(None)),
+                When(erpd_limit_pass=F("num_facilities"), then=Value(True)),
+                default=Value(False),
+                output_field=BooleanField(),
+            )
+        )
+        return queryset.annotate(num_facilities=Count("facilities"))
 
     def get(self, request, *args, **kwargs):
         if "kml" in request.GET:

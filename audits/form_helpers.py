@@ -7,6 +7,7 @@ from cases.form_helpers import CollapsibleFilterFormLayout
 class FileImportBatchFilterFormHelper(FormHelper):
     layout = CollapsibleFilterFormLayout(
         Div(
+            Div("id", css_class="col"),
             Div("file_import_attempts", css_class="col"),
             Div("created_on", css_class="col"),
             Div("status", css_class="col"),
@@ -19,6 +20,7 @@ class FileImportBatchFilterFormHelper(FormHelper):
 class FileImporterFilterFormHelper(FormHelper):
     layout = CollapsibleFilterFormLayout(
         Div(
+            Div("id", css_class="col"),
             Div("last_imported_path", css_class="col"),
             Div("modified_on", css_class="col"),
             Div("status", css_class="col"),
@@ -32,6 +34,7 @@ class FileImporterFilterFormHelper(FormHelper):
 class FileImportAttemptFilterFormHelper(FormHelper):
     layout = CollapsibleFilterFormLayout(
         Div(
+            Div("id", css_class="col"),
             Div("imported_from", css_class="col"),
             Div("created_on", css_class="col"),
             Div("status", css_class="col"),

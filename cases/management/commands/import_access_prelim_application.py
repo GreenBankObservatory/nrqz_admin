@@ -6,6 +6,7 @@ from importers.access_prelim_application.formmaps import (
     CONTACT_FORM_MAP,
     PCASE_FORM_MAP,
     ATTACHMENT_FORM_MAPS,
+    IGNORED_HEADERS,
 )
 
 from django_import_data import BaseImportCommand
@@ -23,6 +24,7 @@ class Command(BaseImportCommand):
         PCASE_FORM_MAP,
         *ATTACHMENT_FORM_MAPS,
     ]
+    IGNORED_HEADERS = IGNORED_HEADERS
 
     def handle_record(self, row_data, file_import_attempt, durable=True):
         applicant, applicant_audit = APPLICANT_FORM_MAP.save_with_audit(

@@ -70,13 +70,14 @@
 
 {% filter_table mia_table mia_filter %}
 
-
+{% comment %}
 <h2 title="All keys/headers that were ignored during file import attempt">Ignored Headers</h2>
 <p>
 {% for header in fileimportattempt.ignored_headers %}
     <code>{{ header }}</code>{% if header != fileimportattempt.ignored_headers|last %},{% endif %}
 {% endfor %}
 </p>
+{% endcomment %}
 
 
 

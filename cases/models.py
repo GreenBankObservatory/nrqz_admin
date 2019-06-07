@@ -36,6 +36,7 @@ from django.utils.functional import cached_property
 from django.utils.safestring import mark_safe
 
 from django_import_data.models import AbstractBaseAuditedModel
+from django_super_deduper.models import MergeInfo
 
 from .kml import facility_as_kml, case_as_kml, kml_to_string
 from .managers import LocationManager
@@ -43,7 +44,6 @@ from .mixins import (
     AllFieldsModel,
     DataSourceModel,
     IsActiveModel,
-    MergeableModel,
     TrackedModel,
     TrackedOriginalModel,
 )
@@ -690,8 +690,7 @@ class Case(AbstractBaseCase):
         self.slug = str(self.case_num)
         super(Case, self).save(*args, **kwargs)
 
-    @property
-    def meets_erpd_limit(self):
+    def get_meets_erpd_limit(self):
         approvals = self.facilities.values("meets_erpd_limit").distinct()
         if not approvals.exists() or approvals.filter(meets_erpd_limit=None).exists():
             return None
@@ -700,11 +699,10 @@ class Case(AbstractBaseCase):
 
         return True
 
-    @property
-    def sgrs_approval(self):
+    def get_sgrs_approval(self):
         """Return the overall SGRS Approval status of this case
 
-        If any Facilites have not yet been approved/denied, return None,
+        If any Facilities have not yet been approved/denied, return None,
         indicating pending
 
         If any have been denied, return False, indicating denied
@@ -722,12 +720,7 @@ class Case(AbstractBaseCase):
 
 
 class Person(
-    MergeableModel,
-    AbstractBaseAuditedModel,
-    IsActiveModel,
-    TrackedModel,
-    DataSourceModel,
-    Model,
+    AbstractBaseAuditedModel, IsActiveModel, TrackedModel, DataSourceModel, Model
 ):
     """A single, physical person"""
 
@@ -741,6 +734,7 @@ class Person(
     state = SensibleCharField(max_length=256, blank=True)
     zipcode = SensibleCharField(max_length=256, blank=True)
     comments = SensibleTextField(blank=True)
+    merge_info = ForeignKey(MergeInfo, null=True, blank=True, on_delete=CASCADE)
 
     def __str__(self):
         return f"{self.name}"

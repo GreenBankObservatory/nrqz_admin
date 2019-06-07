@@ -1,7 +1,5 @@
 from django.db import models
 
-from django.contrib.postgres.fields import JSONField
-
 from utils.constants import (
     ACCESS_APPLICATION,
     ACCESS_PRELIM_APPLICATION,
@@ -86,23 +84,6 @@ class AllFieldsModel(models.Model):
     def all_fields(self):
         for field in self._meta.fields:
             yield (field.name, field.verbose_name, field.value_to_string(self))
-
-    class Meta:
-        abstract = True
-
-
-# TODO: Move to django-super-deduper ?
-class MergeableModel(models.Model):
-    alias_field_values_summary = JSONField(
-        null=True,
-        blank=True,
-        help_text="A summary of all unique differences between the alias models and the primary model",
-    )
-    alias_field_values = JSONField(
-        null=True,
-        blank=True,
-        help_text="A list of dicts, each containing the differences between the primary model and an alias model",
-    )
 
     class Meta:
         abstract = True
