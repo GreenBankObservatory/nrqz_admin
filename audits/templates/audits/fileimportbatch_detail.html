@@ -36,4 +36,7 @@
 
 {% filter_table fia_table fia_filter %}
 
+<h2>Error Summary</h2>
+{{ fileimportbatch.errors|json|safe }}
+
 {% endblock %}
