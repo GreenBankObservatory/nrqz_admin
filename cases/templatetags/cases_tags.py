@@ -92,8 +92,6 @@ def filter_table(context, table=None, filter_=None):
 
 
 def do_format(value):
-    if isinstance(value, float):
-        return f"{value:.2f}"
     return value
 
 
