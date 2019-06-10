@@ -325,6 +325,7 @@ class BaseFacilityForm(forms.ModelForm):
                 "meets_erpd_limit",
                 "num_tx_per_facility",
                 "s367",
+                "si_done",
                 "sgrs_approval",
                 "sgrs_responded_on",
                 "structure",

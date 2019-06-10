@@ -483,6 +483,7 @@ class Facility(AbstractBaseFacility):
         null=True,
         blank=True,
     )
+    si_done = DateField(null=True, blank=True, verbose_name="SI Done")
 
     # calc_az = FloatField(
     #     verbose_name="Calculated Azimuth Bearing (°)",

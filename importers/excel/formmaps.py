@@ -537,9 +537,9 @@ class FacilityImportFormMap(FormMap):
             from_field={"sgrs_approval": ["SGRS Approval"]},
         ),
         # TODO: Make attachment somehow?
-        OneToOneFieldMap(
-            to_field="tap_file", converter=None, from_field={"tap_file": ["TAP file"]}
-        ),
+        # OneToOneFieldMap(
+        #     to_field="tap_file", converter=None, from_field={"tap_file": ["TAP file"]}
+        # ),
         OneToOneFieldMap(
             to_field="tpa", converter=coerce_float, from_field={"tpa": ["TAP", "TPA"]}
         ),
@@ -550,7 +550,7 @@ class FacilityImportFormMap(FormMap):
         ),
         OneToOneFieldMap(
             to_field="si_done",
-            converter=coerce_positive_float,
+            converter=None,
             from_field={
                 "si_done": [
                     "Inspection Date",
@@ -632,7 +632,7 @@ class TapFileAttachmentImportFormMap(FormMap):
         OneToOneFieldMap(
             to_field="path",
             converter=convert_excel_path,
-            from_field={"path": ["TAP file", "TAP File"]},
+            from_field={"path": ["TAP file", "TAP File", "Propagation Study"]},
         )
     ]
     form_class = AttachmentImportForm
@@ -645,4 +645,5 @@ ATTACHMENT_FORM_MAPS = [
     LOC_ATTACHMENT_FORM_MAP,
     SGRS_APPROVAL_ATTACHMENT_FORM_MAP,
     SI_ENGINEERING_ATTACHMENT_FORM_MAP,
+    TAP_FILE_FORM_MAP,
 ]
