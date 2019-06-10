@@ -44,20 +44,11 @@ class Command(BaseImportCommand):
     help = "Merge Person objects together"
 
     def add_arguments(self, parser):
-        parser.add_argument(
+        group = parser.add_mutually_exclusive_group()
+        group.add_argument(
             "-i",
             "--input",
             help="The path to an input JSON file, as created by --output",
-        )
-        group = parser.add_mutually_exclusive_group()
-        group.add_argument(
-            "-o",
-            "--output",
-            help="The path to an output JSON file. This is a list of model groups, "
-            "where each model group is a list of IDs. e.g. [[1,2,3],[4,5,6]]. This "
-            "can be used by --input, and is helpful for testing because it "
-            "avoids the need to re-create merge groups (the most expensive part "
-            "of the process)",
         )
         group.add_argument(
             "-t",
@@ -67,7 +58,16 @@ class Command(BaseImportCommand):
             help="The threshold for which names are considered a match (based "
             "on trigram similarity). Value of '1' means exact matches only",
         )
-        group.add_argument("--merge", action="store_true", help="Merge people")
+        parser.add_argument("--merge", action="store_true", help="Merge people")
+        parser.add_argument(
+            "-o",
+            "--output",
+            help="The path to an output JSON file. This is a list of model groups, "
+            "where each model group is a list of IDs. e.g. [[1,2,3],[4,5,6]]. This "
+            "can be used by --input, and is helpful for testing because it "
+            "avoids the need to re-create merge groups (the most expensive part "
+            "of the process)",
+        )
 
         parser.add_argument(
             "-l",
