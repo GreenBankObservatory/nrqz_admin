@@ -309,7 +309,6 @@ class FileImportAttemptExplainView(DetailView):
         context["form_maps_to_field_maps"] = {
             form_map.get_name(): form_map.field_maps for form_map in form_maps
         }
-        print(context)
         return context
 
 
