@@ -92,6 +92,15 @@ def get_example_data(file_import_attempts, unmapped_header):
 
 
 class Command(BaseMetaImportCommand):
+    def add_arguments(self, parser):
+        super().add_arguments(parser)
+        parser.add_argument(
+            "--show-example-values",
+            action="store_true",
+            help="Attempt to derive example values for unmapped headers. "
+            "VERY SLOW, and not exhaustive!",
+        )
+
     def handle(self, *args, **options):
         command_info = self.handle_importer_spec(
             import_spec_path=options.pop("importer_spec"),
@@ -110,7 +119,17 @@ class Command(BaseMetaImportCommand):
 
         for importer_name, importer_info in form_maps_by_importer.items():
             importer_form_maps = importer_info["form_maps"]
-            print(importer_name)
+            print(f"Processing importer {importer_name}")
+            num_form_maps = len(
+                set(form_map.form_class for form_map in importer_form_maps)
+            )
+            num_field_maps = sum(
+                [len(form_map.field_maps) for form_map in importer_form_maps]
+            )
+            print(
+                f"  Total of {num_field_maps} fields are mapped, across "
+                f"{num_form_maps} unique models"
+            )
             for form_map in importer_form_maps:
                 form_map.explain()
 
@@ -120,11 +139,6 @@ class Command(BaseMetaImportCommand):
             unmapped_headers = fias_for_path.values_list(
                 "errors__unmapped_headers", flat=True
             )
-            # if not all(unmapped_headers):
-            #     unmapped_headers = fias_for_path.values_list(
-            #         "errors__unmapped_headers", flat=True
-            #     )
-
             if all(unmapped_headers):
                 unmapped_headers = sorted(
                     {unmapped_header for L in unmapped_headers for unmapped_header in L}
@@ -135,22 +149,42 @@ class Command(BaseMetaImportCommand):
             if unmapped_headers:
                 print("Unmapped headers (format is <header_name>: <example_value>):")
                 for unmapped_header in unmapped_headers:
-                    example_data, path, nrqz_id = get_example_data(
-                        fias_for_path, unmapped_header
-                    )
+                    if options["show_example_values"]:
+                        example_data, path, nrqz_id = get_example_data(
+                            fias_for_path, unmapped_header
+                        )
 
-                    explanation_str = (
-                        f"  * {unmapped_header}: {str(example_data).strip()}"
-                    )
-                    assert not (example_data is path is nrqz_id is None), "hmmm"
-                    if nrqz_id:
-                        explanation_str += f" [for nrqz ID: {nrqz_id}]"
+                        explanation_str = (
+                            f"  * {unmapped_header}: {str(example_data).strip()}"
+                        )
+                        assert not (example_data is path is nrqz_id is None), "hmmm"
+                        if nrqz_id:
+                            explanation_str += f" [for nrqz ID: {nrqz_id}]"
 
-                    # if path:
-                    #     explanation_str += f" (from: {path})"
-                    print(explanation_str)
+                        # if path:
+                        #     explanation_str += f" (from: {path})"
+                        print(explanation_str)
+                    else:
+                        print(f"  * {unmapped_header}")
 
             else:
                 print("  No unmapped headers!")
+
+            ignored_headers = fias_for_path.values_list(
+                "info__ignored_headers", flat=True
+            )
+            ignored_headers = sorted(
+                set(
+                    item
+                    for ignored_header in ignored_headers
+                    for item in ignored_header
+                )
+            )
+            if ignored_headers:
+                print("Ignored headers:")
+                for ignored_header in ignored_headers:
+                    print(f"  * {ignored_header}")
+            else:
+                print("  No ignored headers")
 
             print("=" * 80)
