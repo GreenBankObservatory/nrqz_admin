@@ -205,7 +205,9 @@ class CaseListView(FilterTableView):
                 output_field=BooleanField(),
             )
         )
-        return queryset.annotate(num_facilities=Count("facilities"))
+        queryset = queryset.annotate(num_facilities=Count("facilities"))
+        queryset = queryset.annotate(si_done=Max("facilities__si_done"))
+        return queryset
 
     def get(self, request, *args, **kwargs):
         if "kml" in request.GET:

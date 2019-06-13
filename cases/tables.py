@@ -59,7 +59,7 @@ class LetterFacilityTable(tables.Table):
 
 
 class BaseFacilityTable(tables.Table):
-    comments = TrimmedTextColumn()
+    # comments = TrimmedTextColumn()
     distance_to_gbt = tables.Column(
         empty_values=(), accessor="distance_to_gbt", verbose_name="Distance to GBT"
     )
@@ -69,7 +69,7 @@ class BaseFacilityTable(tables.Table):
         verbose_name="Azimuth Bearing to GBT",
     )
 
-    in_nrqz = tables.Column(verbose_name="In NRQZ")
+    # in_nrqz = tables.Column(verbose_name="In NRQZ")
     # TODO: Consolidate!
     def render_latitude(self, value):
         return mark_safe(
@@ -174,6 +174,7 @@ class FacilityTable(BaseFacilityTable):
             "azimuth_to_gbt",
             "nrao_aerpd",
             "requested_max_erp_per_tx",
+            "si_done",
         ]
         order_by = ["-nrqz_id", "freq_low"]
 
@@ -240,7 +241,7 @@ class BaseCaseTable(tables.Table):
     case_num = tables.Column(linkify=True)
     applicant = tables.Column(linkify=True)
     contact = tables.Column(linkify=True)
-    comments = TrimmedTextColumn()
+    # comments = TrimmedTextColumn()
 
 
 class PreliminaryCaseTable(BaseCaseTable):
@@ -271,8 +272,14 @@ class PreliminaryCaseExportTable(PreliminaryCaseTable):
 
 class CaseTable(BaseCaseTable):
     meets_erpd_limit = tables.BooleanColumn(accessor="meets_erpd_limit", null=True)
-    sgrs_approval = tables.BooleanColumn(accessor="sgrs_approval", null=True)
+    sgrs_approval = tables.BooleanColumn(
+        accessor="sgrs_approval", null=True, verbose_name="SGRS Approval"
+    )
     num_facilities = tables.Column(verbose_name="# Facilities")
+    si_done = tables.Column(
+        verbose_name="SI Done",
+        attrs={"th": {"title": "The date of the most recent site inspection (if any)"}},
+    )
 
     class Meta:
         model = models.Case

@@ -186,7 +186,7 @@ class CaseForm(FutureModelForm):
                 "sgrs_service_num",
                 "shutdown",
                 "si",
-                "si_done",
+                "original_si_done",
                 "si_waived",
             )
         )

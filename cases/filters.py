@@ -106,7 +106,7 @@ class FacilityFilter(BaseFacilityFilter):
     structure = django_filters.CharFilter(lookup_expr="asr__exact")
     main_beam_orientation = django_filters.CharFilter(lookup_expr="icontains")
     antenna_model_number = django_filters.CharFilter(lookup_expr="icontains")
-    comments = django_filters.CharFilter(lookup_expr="search")
+    # comments = django_filters.CharFilter(lookup_expr="search")
     case = django_filters.NumberFilter(label="Case Num", field_name="case__case_num")
     applicant = django_filters.CharFilter(
         field_name="case__applicant__name",
@@ -126,6 +126,7 @@ class FacilityFilter(BaseFacilityFilter):
     nrao_aerpd = django_filters.RangeFilter()
     requested_max_erp_per_tx = django_filters.RangeFilter()
     search = WatsonFilter(label="Search all text fields")
+    si_done = django_filters.DateFromToRangeFilter()
 
     class Meta:
         model = models.Facility
@@ -144,7 +145,6 @@ class PreliminaryCaseGroupFilter(HelpedFilterSet):
 
 class BaseCaseFilter(HelpedFilterSet):
     created_on = django_filters.DateFromToRangeFilter(lookup_expr="range")
-    name = django_filters.CharFilter(lookup_expr="icontains")
     applicant = django_filters.CharFilter(lookup_expr="name__icontains")
     contact = django_filters.CharFilter(lookup_expr="name__icontains")
     comments = django_filters.CharFilter(lookup_expr="search")
@@ -173,6 +173,9 @@ class CaseFilter(BaseCaseFilter):
     )
     search = WatsonFilter(label="Search all text fields")
     num_facilities = django_filters.RangeFilter(label="# Facilities")
+    si_done = django_filters.DateFromToRangeFilter(
+        field_name="si_done", label="SI Done"
+    )
 
     class Meta:
         model = models.Case
@@ -207,7 +210,7 @@ class CaseFilter(BaseCaseFilter):
 
 
 class PersonFilter(HelpedFilterSet):
-    name = django_filters.CharFilter(lookup_expr="trigram_similar")
+    name = django_filters.CharFilter(lookup_expr="icontains")
     email = django_filters.CharFilter(lookup_expr="icontains")
     phone = django_filters.CharFilter(lookup_expr="icontains")
     street = django_filters.CharFilter(lookup_expr="icontains")

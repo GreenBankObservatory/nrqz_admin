@@ -67,19 +67,6 @@ class CaseAdmin(admin.ModelAdmin):
         # "comments",
         "is_federal",
     ]
-    list_editable = [
-        "applicant",
-        "contact",
-        # "call_sign",
-        # # "fcc_coord",
-        # "fcc_file_num",
-        # # "meets_erpd_limit",
-        # # "sgrs_approval",
-        # "date_recorded",
-        # "completed",
-        # # "comments",
-        # "is_federal",
-    ]
     autocomplete_fields = ["applicant", "contact"]
     ordering = ("-case_num",)
     # add_form_template = "cases/case_add_form.html"

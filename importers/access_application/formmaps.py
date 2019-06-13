@@ -164,7 +164,9 @@ class CaseImportFormMap(FormMap):
         ),
         OneToOneFieldMap(to_field="si", converter=coerce_bool, from_field="SI"),
         OneToOneFieldMap(
-            to_field="si_done", converter=convert_access_datetime, from_field="SIDONE"
+            to_field="original_si_done",
+            converter=convert_access_datetime,
+            from_field="SIDONE",
         ),
     ]
 

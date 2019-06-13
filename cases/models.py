@@ -667,7 +667,7 @@ class Case(AbstractBaseCase):
     )
     si_waived = BooleanField(default=False, blank=True, verbose_name="SI Waived")
     si = BooleanField(default=False, blank=True, verbose_name="SI Req.")
-    si_done = DateField(null=True, blank=True, verbose_name="SI Done")
+    original_si_done = DateField(null=True, blank=True, verbose_name="SI Done")
 
     sgrs_service_num = PositiveIntegerField(
         null=True, blank=True, help_text="SGRS Service Num."

@@ -104,13 +104,17 @@ class FacilityFilterFormHelper(FormHelper):
                 "nrao_aerpd",
                 "requested_max_erp_per_tx",
                 "data_source",
-                "comments",
+                # "comments",
                 "search",
                 css_class="col-sm-5",
             ),
             css_class="row",
         ),
-        Div(Div("location", css_class="col-sm-7"), css_class="row"),
+        Div(
+            Div("si_done", css_class="col-sm-5"),
+            Div("location", css_class="col-sm-7"),
+            css_class="row",
+        ),
         extra_buttons=[
             Submit(
                 "kml",
@@ -180,14 +184,12 @@ class CaseFilterFormHelper(FormHelper):
                 "sgrs_approval",
                 css_class="col",
             ),
-            Div(
-                "date_recorded", "completed", "comments", "is_federal", css_class="col"
-            ),
+            Div("date_recorded", "completed", "is_federal", "search", css_class="col"),
             css_class="row",
         ),
         Div(
             Div("num_facilities", css_class="col"),
-            Div("search", css_class="col"),
+            Div("si_done", css_class="col"),
             css_class="row",
         ),
         extra_buttons=[
