@@ -8,7 +8,7 @@ user = getpass.getuser()
 DEBUG = True
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
-INSTALLED_APPS += ["django_extensions", "django-resetdb", "debug_toolbar"]
+INSTALLED_APPS += ["django_extensions", "debug_toolbar"]
 
 DATABASES = {
     # "readonly": {

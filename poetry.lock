@@ -138,10 +138,9 @@ version = "0.1.0"
 tqdm = "^4.32"
 
 [package.source]
-reference = ""
-type = "directory"
-url = "/home/sandboxes/tchamber/repos/django-import-data"
-
+reference = "cc98093785d6c6782e9ddbf646123854aa42ab2e"
+type = "git"
+url = "https://github.com/GreenBankObservatory/django-import-data.git"
 [[package]]
 category = "main"
 description = "Make bulk changes in the Django admin interface"
@@ -637,7 +636,7 @@ python-versions = "*"
 version = "1.3.0"
 
 [metadata]
-content-hash = "060e061d0c2479e5b016d4304dc70f79c679ee1a85bc13e7968120bfe6a55a97"
+content-hash = "d8dc2f149e50f7223ddded6b4b19ff4160043f05d162bf4baaad387664e4c4b8"
 python-versions = "^3.7"
 
 [metadata.hashes]

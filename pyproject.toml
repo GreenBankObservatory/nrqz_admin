@@ -28,7 +28,7 @@ requests = "^2.22"
 tablib = "^0.13.0"
 tabulate = "^0.8.3"
 tqdm = "^4.32"
-django-import-data = {path = "/home/sandboxes/tchamber/repos/django-import-data"}
+django-import-data = {git = "https://github.com/GreenBankObservatory/django-import-data.git"}
 django-super-deduper = {path = "/home/sandboxes/tchamber/repos/django-super-deduper/"}
 django-tempus-dominus = "^5.1"
 pykml = { git = "https://github.com/GreenBankObservatory/pykml.git", branch = "python3" }
