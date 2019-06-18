@@ -1,7 +1,7 @@
 [[package]]
 category = "main"
 description = "Disable App Nap on OS X 10.9"
-marker = "sys_platform == \"darwin\""
+marker = "python_version >= \"3.4\" and sys_platform == \"darwin\" or sys_platform == \"darwin\""
 name = "appnope"
 optional = false
 python-versions = "*"
@@ -42,7 +42,7 @@ version = "3.0.4"
 [[package]]
 category = "main"
 description = "Cross-platform colored terminal text."
-marker = "sys_platform == \"win32\""
+marker = "python_version >= \"3.4\" and sys_platform == \"win32\" or sys_platform == \"win32\""
 name = "colorama"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
@@ -141,6 +141,7 @@ tqdm = "^4.32"
 reference = "cc98093785d6c6782e9ddbf646123854aa42ab2e"
 type = "git"
 url = "https://github.com/GreenBankObservatory/django-import-data.git"
+
 [[package]]
 category = "main"
 description = "Make bulk changes in the Django admin interface"
@@ -249,6 +250,21 @@ name = "idna"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "2.8"
+
+[[package]]
+category = "dev"
+description = "IPython-enabled pdb"
+name = "ipdb"
+optional = false
+python-versions = ">=2.7"
+version = "0.12"
+
+[package.dependencies]
+setuptools = "*"
+
+[package.dependencies.ipython]
+python = ">=3.4"
+version = ">=5.1.0"
 
 [[package]]
 category = "main"
@@ -367,7 +383,7 @@ version = "0.4.0"
 [[package]]
 category = "main"
 description = "Pexpect allows easy control of interactive console applications."
-marker = "sys_platform != \"win32\""
+marker = "python_version >= \"3.4\" and sys_platform != \"win32\" or sys_platform != \"win32\""
 name = "pexpect"
 optional = false
 python-versions = "*"
@@ -407,7 +423,7 @@ version = "2.8.3"
 [[package]]
 category = "main"
 description = "Run a subprocess in a pseudo terminal"
-marker = "sys_platform != \"win32\""
+marker = "python_version >= \"3.4\" and sys_platform != \"win32\" or sys_platform != \"win32\""
 name = "ptyprocess"
 optional = false
 python-versions = "*"
@@ -485,6 +501,7 @@ lxml = ">=2.2.6"
 reference = "d6fc4f6107678fcac88731083b693f761facef00"
 type = "git"
 url = "https://github.com/GreenBankObservatory/pykml.git"
+
 [[package]]
 category = "main"
 description = "Create and update Microsoft Word .docx files."
@@ -636,7 +653,7 @@ python-versions = "*"
 version = "1.3.0"
 
 [metadata]
-content-hash = "d8dc2f149e50f7223ddded6b4b19ff4160043f05d162bf4baaad387664e4c4b8"
+content-hash = "a7954354b537dd37089b9ac7e3a81908c53e097f040c7660b35b5e918fe307e3"
 python-versions = "^3.7"
 
 [metadata.hashes]
@@ -665,6 +682,7 @@ django-watson = ["2697c8acf77fd8f0f957d4b71bd9f07f359bb3954a3516a339cac87b3c9f1c
 docxtpl = ["eb307fc0f38ee78bc4a2b08d0aa2ae69cc10add7be23fe204a5a9851946c960f", "ed273fbf355d4db6c330b943b9eaf9056792ee17504e003585477cfba5adac40"]
 et-xmlfile = ["614d9722d572f6246302c4491846d2c393c199cfa4edc9af593437691683335b"]
 idna = ["c357b3f628cf53ae2c4c05627ecc484553142ca23264e593d327bcde5e9c3407", "ea8b7f6188e6fa117537c3df7da9fc686d485087abf6ac197f9c46432f7e4a3c"]
+ipdb = ["dce2112557edfe759742ca2d0fee35c59c97b0cc7a05398b791079d78f1519ce"]
 ipython = ["54c5a8aa1eadd269ac210b96923688ccf01ebb2d0f21c18c3c717909583579a8", "e840810029224b56cd0d9e7719dc3b39cf84d577f8ac686547c8ba7a06eeab26"]
 ipython-genutils = ["72dd37233799e619666c9f639a9da83c34013a73e8bbc79a7a6348d93c61fab8", "eb2e116e75ecef9d4d228fdc66af54269afa26ab4463042e33785b887c628ba8"]
 jdcal = ["1abf1305fce18b4e8aa248cf8fe0c56ce2032392bc64bbd61b5dff2a19ec8bba", "472872e096eb8df219c23f2689fc336668bdb43d194094b5cc1707e1640acfc8"]
