@@ -25,6 +25,7 @@ from django_tables2.export.views import ExportMixin
 from django_tables2.views import SingleTableMixin, MultiTableMixin
 from watson import search as watson
 
+from utils.merge_people import find_similar_people, merge_people
 from .forms import LetterTemplateForm, DuplicateCaseForm
 from .models import (
     Attachment,
@@ -633,14 +634,41 @@ class PersonListView(FilterTableView):
     filterset_class = PersonFilter
     template_name = "cases/person_list.html"
 
+    # def get_context_data(self, **kwargs):
+    #     context = super().get_context_data(**kwargs)
+    #     context["status_info"] = ["completed_on"]
+    #     context["application_info"] = ["radio_service", "num_freqs", "num_sites"]
+    #     context["unsorted_info"] = get_fields_missing_from_info_tables(
+    #         context, self.object.all_fields()
+    #     )
+    #     return context
 
-class PersonDetailView(DetailView):
+
+class PersonDetailView(MultiTableMixin, DetailView):
+    tables = [CaseTable, PreliminaryCaseTable, PersonTable]
     model = Person
 
-    def __init__(self, *args, **kwargs):
-        super(PersonDetailView, self).__init__(*args, **kwargs)
-        self.case_filter = None
-        self.prelim_case_filter = None
+    def get_tables_data(self):
+        case_filter_qs = CaseFilter(
+            self.request.GET,
+            queryset=Case.objects.filter(
+                Q(applicant=self.object) | Q(contact=self.object)
+            ),
+            form_helper_kwargs={"form_class": "collapse"},
+        ).qs
+        pcase_filter_qs = PreliminaryCaseFilter(
+            self.request.GET,
+            queryset=PreliminaryCase.objects.filter(
+                Q(applicant=self.object) | Q(contact=self.object)
+            ),
+            form_helper_kwargs={"form_class": "collapse"},
+        ).qs
+        person_filter_qs = PersonFilter(
+            self.request.GET,
+            queryset=find_similar_people(self.object),
+            form_helper_kwargs={"form_class": "collapse"},
+        ).qs
+        return [case_filter_qs, pcase_filter_qs, person_filter_qs]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -658,39 +686,28 @@ class PersonDetailView(DetailView):
             "zipcode",
         ]
 
-        # Case table
-        if self.case_filter is None:
-            self.case_filter = CaseFilter(
-                self.request.GET,
-                queryset=Case.objects.filter(
-                    Q(applicant=self.object) | Q(contact=self.object)
-                ),
-                form_helper_kwargs={"form_class": "collapse"},
-            )
-            context["case_filter"] = self.case_filter
-
-        if "case_table" not in context:
-            table = CaseTable(data=self.case_filter.qs)
-            table.paginate(page=self.request.GET.get("page", 1), per_page=10)
-            context["case_table"] = table
-
-        # Prelim case table
-        if self.prelim_case_filter is None:
-            self.prelim_case_filter = PreliminaryCaseFilter(
-                self.request.GET,
-                queryset=PreliminaryCase.objects.filter(
-                    Q(applicant=self.object) | Q(contact=self.object)
-                ),
-                form_helper_kwargs={"form_class": "collapse"},
-            )
-            context["prelim_case_filter"] = self.prelim_case_filter
-
-        if "prelim_case_table" not in context:
-            table = PreliminaryCaseTable(data=self.prelim_case_filter.qs)
-            table.paginate(page=self.request.GET.get("page", 1), per_page=10)
-            context["prelim_case_table"] = table
-
         return context
+
+
+def merge_similar_people(request, pk):
+    """Given a Person ID, find people similar to them and merge them all together
+
+    Person with given ID will be kept; others will be merged
+    """
+
+    person = get_object_or_404(Person, id=pk)
+    similar_people = find_similar_people(person).exclude(id=person.id)
+    if similar_people:
+        with transaction.atomic():
+            merge_people(person_to_keep=person, people_to_merge=similar_people)
+        messages.success(
+            request,
+            f"Successfully merged {person.merge_info.num_instances_merged - 1} "
+            f"people into {person.name}",
+        )
+    else:
+        messages.warning(request, f"There are no similar people to merge!")
+    return HttpResponseRedirect(person.get_absolute_url())
 
 
 class StructureListView(FilterTableView):
