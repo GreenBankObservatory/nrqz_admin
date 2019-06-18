@@ -141,3 +141,7 @@ ul.messages li.error {
 .submit-row a.deletelink {
     height: unset;
 }
+
+.jumbotron-warning {
+    background: #ffefef;
+}

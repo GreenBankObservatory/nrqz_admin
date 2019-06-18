@@ -15,7 +15,7 @@ from .filters import (
     FileImportAttemptFilter,
     FileImportBatchFilter,
 )
-from .columns import ImportStatusColumn
+from .columns import BaseNameColumn, ImportStatusColumn
 
 
 class FileImportBatchTable(tables.Table):
@@ -43,7 +43,7 @@ class FileImportBatchTable(tables.Table):
 
 class FileImporterTable(tables.Table):
     id = tables.Column(linkify=True, verbose_name="FI")
-    last_imported_path = tables.Column(linkify=True)
+    file_path = BaseNameColumn(linkify=True)
     status = ImportStatusColumn(
         verbose_name="Status",
         attrs={
@@ -64,14 +64,12 @@ class FileImporterTable(tables.Table):
     def render_id(self, value):
         return f"FI {value}"
 
-    def render_last_imported_path(self, value):
-        return os.path.basename(value)
-
 
 class FileImportAttemptTable(tables.Table):
     id = tables.Column(linkify=True, verbose_name="FIA")
     status = ImportStatusColumn()
     is_active = tables.BooleanColumn(verbose_name="Active")
+    imported_from = BaseNameColumn()
 
     class Meta:
         model = FileImportAttempt
@@ -80,16 +78,16 @@ class FileImportAttemptTable(tables.Table):
     def render_id(self, value):
         return f"FIA {value}"
 
-    def render_imported_from(self, value):
-        return os.path.basename(value)
-
 
 class ModelImportAttemptTable(tables.Table):
     id = tables.Column(linkify=True, verbose_name="MIA")
     created_on = tables.DateTimeColumn(verbose_name="Imported On")
-    # Can't order this because it isn't a real field
     importee = tables.Column(
-        linkify=True, orderable=False, verbose_name="Imported Model"
+        linkify=True,
+        # Can't order this because it isn't a real field
+        orderable=False,
+        verbose_name="Imported Model",
+        attrs={"th": {"title": "The model, if any, that was ACTUALLY created"}},
     )
     content_type = tables.Column(
         verbose_name="Model",

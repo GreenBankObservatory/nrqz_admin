@@ -719,6 +719,28 @@ class Case(AbstractBaseCase):
 
         return True
 
+    def get_si_done(self):
+        """Return the overall SGRS Approval status of this case
+
+        If any Facilities have not yet been approved/denied, return None,
+        indicating pending
+
+        If any have been denied, return False, indicating denied
+
+        Otherwise return True. This indicates that all Facilities have been
+        approved by SGRS"""
+
+        site_inspection_dates = self.facilities.values("si_done").distinct()
+        if (
+            not site_inspection_dates.exists()
+            or site_inspection_dates.filter(si_done=None).exists()
+        ):
+            return None
+        if site_inspection_dates.filter(si_done=False).exists():
+            return False
+
+        return True
+
 
 class Person(
     AbstractBaseAuditedModel, IsActiveModel, TrackedModel, DataSourceModel, Model

@@ -1,5 +1,7 @@
 """Audits Column definitions"""
 
+import os
+
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
@@ -25,3 +27,8 @@ class ImportStatusColumn(Column):
             raise ValueError(f"Invalid value: {value}")
         value = escape(value)
         return mark_safe(f"<span class='{css_class}'>{value}</span>")
+
+
+class BaseNameColumn(Column):
+    def render(self, value):
+        return mark_safe(f"<span title='{value}'>{os.path.basename(value)}</span>")

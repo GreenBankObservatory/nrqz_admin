@@ -1,10 +1,13 @@
+import os
+
 from django.contrib import messages
 from django.core.management import call_command
 from django.db import transaction
-from django.http import HttpResponse, HttpResponseRedirect
+from django.db.utils import IntegrityError
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotAllowed
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
-from django.views.generic import CreateView
+from django.views.generic import CreateView, UpdateView
 from django.views.generic.base import RedirectView
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
@@ -151,14 +154,14 @@ class FileImportAttemptDetailView(DetailView):
 @transaction.atomic
 def _import_file(request, file_importer):
     importer_name = file_importer.importer_name
-    path = file_importer.last_imported_path
+    path = file_importer.file_path
     try:
         call_command(importer_name, path, overwrite=True, durable=True)
     except Exception as error:
         messages.error(request, f"FATAL ERROR: {error.__class__.__name__}: {error}")
         return HttpResponseRedirect(file_importer.get_absolute_url())
 
-    file_import_attempt = file_importer.most_recent_import
+    file_import_attempt = file_importer.latest_file_import_attempt
     messages.success(
         request,
         f"Successfully created {file_import_attempt._meta.verbose_name} "
@@ -182,7 +185,7 @@ def _import_file(request, file_importer):
         messager = messages.success
         message_stub = "All Model Import Attempts were successful!"
     else:
-        raise ValueError("This should never happen")
+        raise ValueError(f"This should never happen: status is {status}")
 
     messager(
         request,
@@ -253,7 +256,7 @@ class FileImporterCreateView(CreateView):
 
 def delete_file_import_models(request, pk):
     file_importer = get_object_or_404(FileImporter, id=pk)
-    file_import_attempt = file_importer.most_recent_import
+    file_import_attempt = file_importer.latest_file_import_attempt
     num_deleted, deleted_models = file_import_attempt.delete_imported_models()
 
     if num_deleted:
@@ -343,3 +346,39 @@ class FileImportBatchDetailView(DetailView):
             context["fia_table"] = table
 
         return context
+
+
+def file_importer_change_path(request, pk):
+    if request.method == "POST":
+        file_importer = get_object_or_404(FileImporter, id=pk)
+        path = request.POST.get("file_path", None)
+        if not path:
+            messages.error(request, "Path must be provided!")
+        else:
+            file_importer.file_path = path
+            try:
+                file_importer.save()
+            except IntegrityError as error:
+                if "duplicate" in error.args[0]:
+                    messages.error(
+                        request,
+                        "Duplicate path! All paths must be unique between File Importers",
+                    )
+                else:
+                    raise
+            else:
+                if not os.path.isfile(path):
+                    messages.warning(
+                        request,
+                        f"Path has been updated to {path}. However, this path does not exist! "
+                        "This should be remedied prior to reimport.",
+                    )
+                else:
+                    messages.success(request, f"Path has been updated to {path}.")
+                # We only need to refresh this one importer -- no need to waste
+                # time hashing everything
+                FileImporter.objects.filter(
+                    id=file_importer.id
+                ).refresh_from_filesystem()
+
+    return HttpResponseRedirect(file_importer.get_absolute_url())

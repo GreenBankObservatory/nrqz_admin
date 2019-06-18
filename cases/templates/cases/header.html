@@ -42,6 +42,7 @@
           Audits
         </a>
         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <a class="nav-link" href={% url "changed_file_import_attempts" %}>Files Changed Since Import</a>
           <a class="nav-link" href={% url "fileimportbatch_index" %}>File Import Batches</a>
           <a class="nav-link" href={% url "fileimporter_index" %}>File Import Histories</a>
           <a class="nav-link" href={% url "fileimportattempt_index" %}>File Import Attempts</a>

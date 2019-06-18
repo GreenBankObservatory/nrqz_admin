@@ -32,9 +32,11 @@ def generate_importer_name_choices():
 class FileImporterForm(forms.ModelForm):
     class Meta:
         model = FileImporter
-        fields = ("last_imported_path", "importer_name")
+        fields = ("file_path", "importer_name")
 
-    last_imported_path = forms.CharField(label="Path of file to import", help_text="")
+    # file_path = forms.CharField(
+    #     label="Path of file to import", help_text="", unique=True
+    # )
 
     importer_name = forms.ChoiceField(
         help_text="The Importer to use",

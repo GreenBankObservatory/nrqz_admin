@@ -1,10 +1,16 @@
 from django.contrib import admin
 from django.apps import apps
 
-# Register all models
-models = apps.get_app_config("audits").get_models()
-admin.site.register(models)
+from django_import_data.models import (
+    ModelImportAttempt,
+    FileImporter,
+    FileImportAttempt,
+)
 
-from django_import_data.models import ModelImportAttempt, FileImportAttempt
+
+@admin.register(FileImporter)
+class FileImporterAdmin(admin.ModelAdmin):
+    fields = ("file_path",)
+
 
 admin.site.register([ModelImportAttempt, FileImportAttempt])

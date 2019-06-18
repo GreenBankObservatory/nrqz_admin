@@ -1,5 +1,6 @@
 """Import Excel Technical Data"""
 
+import os
 from urllib.parse import unquote
 
 import openpyxl
@@ -64,6 +65,9 @@ class Command(BaseImportCommand):
 
         # TODO: This should be defined elsewhere
         primary_sheet = "Working Data"
+
+        if not os.path.isfile(path):
+            raise FileNotFoundError(f"{path} does not exist!")
         try:
             # This sheet is used for "values" -- the last-calculated values in each cell
             book_with_values = openpyxl.load_workbook(

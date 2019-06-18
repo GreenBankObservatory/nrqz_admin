@@ -412,6 +412,7 @@ class CaseDetailView(MultiTableMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        si_done = self.object.get_si_done()
         context["status_info"] = [
             "shutdown",
             (
@@ -421,11 +422,7 @@ class CaseDetailView(MultiTableMixin, DetailView):
             ),
             "si_waived",
             "si",
-            (
-                "SI Done",
-                self.object.si_done.date() if self.object.si_done else None,
-                "",
-            ),
+            ("SI Done", si_done.date() if si_done else None, ""),
             "is_federal",
         ]
         context["application_info"] = [

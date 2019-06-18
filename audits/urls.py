@@ -11,6 +11,7 @@ from django_import_data.views import (
     ModelImportAttemptListView,
     RowDataDetailView,
     RowDataListView,
+    changed_files_view,
 )
 
 from . import views
@@ -23,6 +24,11 @@ urlpatterns = [
         "file-imports/<int:pk>/",
         views.FileImporterDetailView.as_view(),
         name="fileimporter_detail",
+    ),
+    path(
+        "file-imports/<int:pk>/update/",
+        views.file_importer_change_path,
+        name="fileimporter_update",
     ),
     path(
         "file-imports/<int:pk>/reimport/",
@@ -53,6 +59,11 @@ urlpatterns = [
         "file-import-attempts/<int:pk>/explain",
         views.FileImportAttemptExplainView.as_view(),
         name="fileimportattempt_explain",
+    ),
+    path(
+        "changed-file-import-attempts/",
+        changed_files_view,
+        name="changed_file_import_attempts",
     ),
     path(
         "file-import-batches/",

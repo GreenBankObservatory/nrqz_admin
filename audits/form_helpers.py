@@ -21,7 +21,7 @@ class FileImporterFilterFormHelper(FormHelper):
     layout = CollapsibleFilterFormLayout(
         Div(
             Div("id", css_class="col"),
-            Div("last_imported_path", css_class="col"),
+            Div("file_path", css_class="col"),
             Div("modified_on", css_class="col"),
             Div("status", css_class="col"),
             Div("acknowledged", css_class="col"),
