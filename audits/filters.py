@@ -1,5 +1,7 @@
 import django_filters
 
+from django import forms
+
 from django_import_data.models import (
     FileImportAttempt,
     FileImporter,
@@ -21,6 +23,10 @@ from .form_helpers import (
 class FileImportBatchFilter(HelpedFilterSet):
     id = django_filters.NumberFilter(label="File Import Batch ID")
     is_active = django_filters.BooleanFilter(field_name="is_active", label="Active")
+    status = django_filters.ChoiceFilter(
+        label="Import Status", choices=ModelImportAttempt.STATUSES.as_filter_choices()
+    )
+    created_on = django_filters.DateFromToRangeFilter()
 
     class Meta:
         model = FileImportBatch
@@ -32,9 +38,14 @@ class FileImporterFilter(HelpedFilterSet):
     id = django_filters.NumberFilter(label="File Importer ID")
     file_path = django_filters.CharFilter(lookup_expr="icontains")
     acknowledged = django_filters.BooleanFilter(
-        field_name="file_import_attempts__acknowledged", initial=False
+        label="Acknowledged",
+        field_name="file_import_attempts__acknowledged",
+        initial=False,
     )
     is_active = django_filters.BooleanFilter(field_name="is_active", label="Active")
+    status = django_filters.ChoiceFilter(
+        label="Import Status", choices=ModelImportAttempt.STATUSES.as_filter_choices()
+    )
 
     class Meta:
         model = FileImporter
@@ -47,6 +58,9 @@ class FileImportAttemptFilter(HelpedFilterSet):
     imported_from = django_filters.CharFilter(lookup_expr="icontains")
     acknowledged = django_filters.BooleanFilter(initial=False)
     is_active = django_filters.BooleanFilter(field_name="is_active", label="Active")
+    status = django_filters.ChoiceFilter(
+        label="Import Status", choices=ModelImportAttempt.STATUSES.as_filter_choices()
+    )
 
     class Meta:
         model = FileImportAttempt

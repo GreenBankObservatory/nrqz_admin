@@ -15,18 +15,26 @@ class ImportStatusColumn(Column):
     """Column for colorizing Audit status values"""
 
     def render(self, value):
-        if value == STATUSES.rejected.value:
+        # Handle both DB value AND named value
+        try:
+            status = STATUSES[int(value)]
+        except ValueError:
+            status = STATUSES[value]
+
+        if status == STATUSES.rejected:
             css_class = "batch-rejected"
-        elif value == STATUSES.created_dirty.value:
+        elif status == STATUSES.created_dirty:
             css_class = "batch-created_dirty"
-        elif value == STATUSES.created_clean.value:
+        elif status == STATUSES.created_clean:
             css_class = "batch-created_clean"
-        elif value == STATUSES.pending.value:
+        elif status == STATUSES.pending:
             css_class = "batch-pending"
         else:
-            raise ValueError(f"Invalid value: {value}")
+            raise ValueError(f"ImportStatusColumn got unexpected value: {value!r}")
+
         value = escape(value)
-        return mark_safe(f"<span class='{css_class}'>{value}</span>")
+        display = status.value
+        return mark_safe(f"<span class='{css_class}'>{display}</span>")
 
 
 class BaseNameColumn(Column):

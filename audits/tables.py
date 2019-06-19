@@ -45,11 +45,11 @@ class FileImporterTable(tables.Table):
     id = tables.Column(linkify=True, verbose_name="FI")
     file_path = BaseNameColumn(linkify=True)
     status = ImportStatusColumn(
-        verbose_name="Status",
+        verbose_name="Import Status",
         attrs={
             "th": {
-                "title": "The most severe status out of all model import "
-                "attempts made from this file"
+                "title": "The most severe status out of all File Import "
+                "Attempts in the history of this Importer"
             }
         },
     )
@@ -67,7 +67,15 @@ class FileImporterTable(tables.Table):
 
 class FileImportAttemptTable(tables.Table):
     id = tables.Column(linkify=True, verbose_name="FIA")
-    status = ImportStatusColumn()
+    status = ImportStatusColumn(
+        verbose_name="Import Status",
+        # attrs={
+        #     "th": {
+        #         "title": "The most severe status out of all model import "
+        #         "attempts made from this file"
+        #     }
+        # },
+    )
     is_active = tables.BooleanColumn(verbose_name="Active")
     imported_from = BaseNameColumn()
 
@@ -96,15 +104,6 @@ class ModelImportAttemptTable(tables.Table):
     fia_imported_from = tables.Column(
         linkify=True, accessor="file_import_attempt.imported_from"
     )
-    fia_status = ImportStatusColumn(
-        accessor="file_import_attempt.status",
-        verbose_name="File Import Attempt Status",
-        attrs={
-            "th": {
-                "title": "The OVERALL status of the file import that this is a part of"
-            }
-        },
-    )
     status = ImportStatusColumn(
         verbose_name="Model Import Attempt Status",
         attrs={"th": {"title": "The status of the import attempted for THIS MODEL"}},
@@ -117,7 +116,6 @@ class ModelImportAttemptTable(tables.Table):
             "importee",
             *ModelImportAttemptFilter.Meta.fields[3:],
             "fia_imported_from",
-            "fia_status",
         ]
         order_by = ["-created_on"]
 
