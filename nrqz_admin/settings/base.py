@@ -166,8 +166,9 @@ SHELL_PLUS = "ipython"
 SHELL_PLUS_PRE_IMPORTS = [
     (
         "django.contrib.gis.db.models.functions",
-        ("Area", "Distance", "Length", "Perimeter"),
-    )
+        ("Area", "Distance", "Value", "Length", "Perimeter"),
+    ),
+    ("tqdm", ("tqdm",)),
 ]
 SHELL_PLUS_POST_IMPORTS = [("cases.models", ("Case",)), ("utils.constants", "*")]
 STRONGHOLD_PUBLIC_NAMED_URLS = (
