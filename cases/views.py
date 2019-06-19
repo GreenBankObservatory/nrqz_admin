@@ -3,12 +3,24 @@ import tempfile
 
 from docxtpl import DocxTemplate
 
-from django.db import transaction
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.search import SearchVector
-from django.db.models import Min, Max
-from django.db.models import Q, Count
+from django.db import transaction
+from django.db.models import (
+    Count,
+    Case as CASE,
+    Value,
+    F,
+    Q,
+    BooleanField,
+    When,
+    Min,
+    Max,
+    Q,
+    Count,
+)
+from django.db.utils import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.template import Template, Context
@@ -17,7 +29,6 @@ from django.views.generic import FormView
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
-from django.db.utils import IntegrityError
 
 from django_filters.views import FilterView
 from django_tables2.export.export import TableExport
@@ -25,6 +36,7 @@ from django_tables2.export.views import ExportMixin
 from django_tables2.views import SingleTableMixin, MultiTableMixin
 from watson import search as watson
 
+from utils.coord_utils import coords_to_string
 from utils.merge_people import find_similar_people, merge_people
 from .forms import LetterTemplateForm, DuplicateCaseForm
 from .models import (
@@ -167,9 +179,6 @@ class PreliminaryCaseListView(FilterTableView):
     filterset_class = PreliminaryCaseFilter
     export_table_class = PreliminaryCaseExportTable
     template_name = "cases/prelim_case_list.html"
-
-
-from django.db.models import Count, Case as CASE, Value, F, Q, BooleanField, When
 
 
 class CaseListView(FilterTableView):
@@ -715,6 +724,14 @@ class StructureListView(FilterTableView):
     filterset_class = StructureFilter
     template_name = "cases/structure_list.html"
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        queryset = queryset.annotate(
+            num_facilities=Count("facilities"),
+            num_cases=Count("facilities__case", distinct=True),
+        )
+        return queryset
+
 
 class StructureDetailView(DetailView):
     model = Structure
@@ -729,7 +746,15 @@ class StructureDetailView(DetailView):
         context["info"] = [
             "asr",
             "file_num",
-            "location",
+            (
+                "Location",
+                coords_to_string(
+                    latitude=self.object.location.y,
+                    longitude=self.object.location.x,
+                    concise=True,
+                ),
+                "",
+            ),
             "faa_circ_num",
             "faa_study_num",
             "issue_date",

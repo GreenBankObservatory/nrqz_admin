@@ -22,9 +22,16 @@ class FileImportBatchTable(tables.Table):
     id = tables.Column(linkify=True, verbose_name="FIB")
     command = tables.Column(verbose_name="Importer")
     created_on = tables.DateTimeColumn(verbose_name="Date Imported")
-    file_import_attempts = tables.Column(verbose_name="# of File Imports Attempted")
     status = ImportStatusColumn()
     is_active = tables.BooleanColumn(verbose_name="Active")
+    num_file_import_attempts = tables.Column(
+        verbose_name="# FIAs",
+        attrs={
+            "th": {
+                "title": "The number of MIAs that this FIA created (i.e. the number of models it tried to import)"
+            }
+        },
+    )
 
     class Meta:
         model = FileImportBatch
@@ -36,9 +43,6 @@ class FileImportBatchTable(tables.Table):
 
     def render_id(self, value):
         return f"FIB {value}"
-
-    def render_file_import_attempts(self, value):
-        return value.count()
 
 
 class FileImporterTable(tables.Table):
@@ -55,6 +59,10 @@ class FileImporterTable(tables.Table):
     )
     acknowledged = tables.BooleanColumn()
     is_active = tables.BooleanColumn(verbose_name="Active")
+    num_file_import_attempts = tables.Column(
+        verbose_name="# FIAs",
+        attrs={"th": {"title": "The number of FIAs that this FI has created"}},
+    )
 
     class Meta:
         model = FileImporter
@@ -78,6 +86,15 @@ class FileImportAttemptTable(tables.Table):
     )
     is_active = tables.BooleanColumn(verbose_name="Active")
     imported_from = BaseNameColumn()
+
+    num_model_import_attempts = tables.Column(
+        verbose_name="# MIAs",
+        attrs={
+            "th": {
+                "title": "The number of MIAs that this FIA created (i.e. the number of models it tried to import)"
+            }
+        },
+    )
 
     class Meta:
         model = FileImportAttempt

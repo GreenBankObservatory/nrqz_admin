@@ -3,6 +3,7 @@ import os
 from django.contrib import messages
 from django.core.management import call_command
 from django.db import transaction
+from django.db.models import Count, Q
 from django.db.utils import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotAllowed
 from django.shortcuts import render, get_object_or_404
@@ -84,11 +85,30 @@ class FileImporterListView(FilterTableView):
     filterset_class = FileImporterFilter
     template_name = "audits/fileimporter_index.html"
 
+    # def get_queryset(self):
+    #     queryset = super().get_queryset()
+    #     queryset = queryset.annotate(
+    #         num_model_import_attempts=Count(
+    #             "file_import_attempts__model_import_attempts", distinct=True
+    #         )
+    #     )
+    #     return queryset
+
 
 class FileImportAttemptListView(FilterTableView):
     table_class = FileImportAttemptTable
     filterset_class = FileImportAttemptFilter
     template_name = "audits/generic_table.html"
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        queryset = queryset.annotate(
+            num_model_import_attempts=Count("model_import_attempts"),
+            is_active=Count(
+                "id", distinct=True, filter=Q(model_import_attempts__is_active=True)
+            ),
+        )
+        return queryset
 
 
 class FileImporterDetailView(DetailView):
@@ -319,6 +339,17 @@ class FileImportBatchListView(FilterTableView):
     table_class = FileImportBatchTable
     filterset_class = FileImportBatchFilter
     template_name = "audits/generic_table.html"
+
+    # def get_queryset(self):
+    #     queryset = super().get_queryset()
+    #     queryset = fibs.annotate(
+    #         num_file_import_attempts=Count("file_import_attempts"),
+    #         is_active=Count(
+    #             "id",
+    #             filter=Q(file_import_attempts__model_import_attempts__is_active=True),
+    #         ),
+    #     )
+    #     return queryset
 
 
 class FileImportBatchDetailView(DetailView):

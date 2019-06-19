@@ -8,7 +8,6 @@ class FileImportBatchFilterFormHelper(FormHelper):
     layout = CollapsibleFilterFormLayout(
         Div(
             Div("id", css_class="col"),
-            Div("file_import_attempts", css_class="col"),
             Div("created_on", css_class="col"),
             Div("status", css_class="col"),
             Div("is_active", css_class="col"),

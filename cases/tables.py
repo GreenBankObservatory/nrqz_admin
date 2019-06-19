@@ -327,6 +327,8 @@ class AttachmentTable(tables.Table):
 
 class StructureTable(tables.Table):
     asr = tables.Column(linkify=True)
+    num_cases = tables.Column(verbose_name="# Cases")
+    num_facilities = tables.Column(verbose_name="# Facilities")
 
     class Meta:
         model = models.Structure

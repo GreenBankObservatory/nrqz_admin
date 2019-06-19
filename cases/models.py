@@ -155,9 +155,7 @@ class Location(IsActiveModel, Model):
 class Structure(IsActiveModel, TrackedModel, DataSourceModel, Model):
     """Represents a physical structure; modeled after FCC ASR DB"""
 
-    asr = PositiveIntegerField(
-        unique=True, verbose_name="Antenna Registration Number", db_index=True
-    )
+    asr = PositiveIntegerField(unique=True, verbose_name="ASR Num.", db_index=True)
     file_num = SensibleCharField(
         max_length=256, default=None, verbose_name="File Number"
     )
