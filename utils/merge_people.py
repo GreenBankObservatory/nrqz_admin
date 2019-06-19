@@ -77,7 +77,7 @@ def merge_people(person_to_keep, people_to_merge):
             alias_field_values_summary=alias_field_values_summary,
             alias_field_values=alias_field_values,
             # TODO: Do we really want to include the original?
-            num_instances_merged=people_to_merge.count() + 1,
+            num_instances_merged=len(people_to_merge) + 1,
         )
         person.save()
     return person_to_keep
