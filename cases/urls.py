@@ -7,6 +7,12 @@ urlpatterns = [
     path("cases/", views.CaseListView.as_view(), name="case_index"),
     path("cases/<int:slug>/", views.CaseDetailView.as_view(), name="case_detail"),
     path("cases/<int:pk>/as_kml/", views.case_as_kml_view, name="case_kml"),
+    path("case-groups/", views.CaseGroupListView.as_view(), name="case_group_index"),
+    path(
+        "case-groups/<int:pk>/",
+        views.CaseGroupDetailView.as_view(),
+        name="case_group_detail",
+    ),
     path(
         "pcase-groups/",
         views.PreliminaryCaseGroupListView.as_view(),

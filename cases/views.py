@@ -41,36 +41,39 @@ from utils.merge_people import find_similar_people, merge_people
 from .forms import LetterTemplateForm, DuplicateCaseForm
 from .models import (
     Attachment,
-    PreliminaryCase,
     Case,
-    PreliminaryFacility,
+    CaseGroup,
     Facility,
-    Person,
     LetterTemplate,
-    Structure,
+    Person,
+    PreliminaryCase,
     PreliminaryCaseGroup,
+    PreliminaryFacility,
+    Structure,
 )
 from .filters import (
     AttachmentFilter,
-    FacilityFilter,
-    PreliminaryFacilityFilter,
-    PersonFilter,
-    PreliminaryCaseGroupFilter,
-    PreliminaryCaseFilter,
     CaseFilter,
+    CaseGroupFilter,
+    FacilityFilter,
+    PersonFilter,
+    PreliminaryCaseFilter,
+    PreliminaryCaseGroupFilter,
+    PreliminaryFacilityFilter,
     StructureFilter,
 )
 from .tables import (
     AttachmentTable,
     CaseExportTable,
+    CaseGroupTable,
     CaseTable,
     FacilityExportTable,
     FacilityTable,
     FacilityTableWithConcur,
     LetterFacilityTable,
     PersonTable,
-    PreliminaryCaseGroupTable,
     PreliminaryCaseExportTable,
+    PreliminaryCaseGroupTable,
     PreliminaryCaseTable,
     PreliminaryFacilityExportTable,
     PreliminaryFacilityTable,
@@ -168,10 +171,40 @@ class FilterTableView(ExportMixin, SingleTableMixin, FilterView):
         return super().render_to_response(context, **response_kwargs)
 
 
+class CaseGroupDetailView(MultiTableMixin, DetailView):
+    model = CaseGroup
+    tables = [CaseTable]
+    table_pagination = {"per_page": 10}
+
+    def get_tables_data(self):
+        case_filter_qs = CaseFilter(
+            self.request.GET,
+            queryset=self.object.cases.all(),
+            form_helper_kwargs={"form_class": "collapse"},
+        ).qs
+        return [case_filter_qs]
+
+
+class CaseGroupListView(FilterTableView):
+    table_class = CaseGroupTable
+    filterset_class = CaseGroupFilter
+    template_name = "cases/case_group_list.html"
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        queryset = queryset.annotate(num_cases=Count("cases"))
+        return queryset
+
+
 class PreliminaryCaseGroupListView(FilterTableView):
     table_class = PreliminaryCaseGroupTable
     filterset_class = PreliminaryCaseGroupFilter
     template_name = "cases/prelim_case_group_list.html"
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        queryset = queryset.annotate(num_pcases=Count("prelim_cases"))
+        return queryset
 
 
 class PreliminaryCaseListView(FilterTableView):
@@ -346,31 +379,18 @@ class LetterView(FormView):
         return response
 
 
-class PreliminaryCaseGroupDetailView(DetailView):
+class PreliminaryCaseGroupDetailView(MultiTableMixin, DetailView):
     model = PreliminaryCaseGroup
+    tables = [PreliminaryCaseTable]
+    table_pagination = {"per_page": 10}
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.prelim_case_filter = None
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        # Prelim case table
-        if self.prelim_case_filter is None:
-            self.prelim_case_filter = PreliminaryCaseFilter(
-                self.request.GET,
-                queryset=PreliminaryCase.objects.filter(pcase_group=self.object),
-                form_helper_kwargs={"form_class": "collapse"},
-            )
-            context["prelim_case_filter"] = self.prelim_case_filter
-
-        if "prelim_case_table" not in context:
-            table = PreliminaryCaseTable(data=self.prelim_case_filter.qs)
-            table.paginate(page=self.request.GET.get("page", 1), per_page=10)
-            context["prelim_case_table"] = table
-
-        return context
+    def get_tables_data(self):
+        pcase_filter_qs = PreliminaryCaseFilter(
+            self.request.GET,
+            queryset=self.object.prelim_cases.all(),
+            form_helper_kwargs={"form_class": "collapse"},
+        ).qs
+        return [pcase_filter_qs]
 
 
 class PreliminaryCaseDetailView(MultiTableMixin, DetailView):
@@ -403,7 +423,7 @@ class PreliminaryCaseDetailView(MultiTableMixin, DetailView):
 
 class CaseDetailView(MultiTableMixin, DetailView):
     model = Case
-    tables = [FacilityTable, AttachmentTable]
+    tables = [FacilityTable, AttachmentTable, CaseTable, PreliminaryCaseTable]
     table_pagination = {"per_page": 10}
 
     def get_tables_data(self):
@@ -412,13 +432,31 @@ class CaseDetailView(MultiTableMixin, DetailView):
             queryset=self.object.facilities.all(),
             form_helper_kwargs={"form_class": "collapse"},
         ).qs
+
         attachment_filter_qs = AttachmentFilter(
             self.request.GET,
             queryset=self.object.attachments.all(),
             form_helper_kwargs={"form_class": "collapse"},
         ).qs
 
-        return [facility_filter_qs, attachment_filter_qs]
+        case_filter_qs = CaseFilter(
+            self.request.GET,
+            queryset=self.object.related_cases,
+            form_helper_kwargs={"form_class": "collapse"},
+        ).qs
+
+        pcase_filter_qs = PreliminaryCaseFilter(
+            self.request.GET,
+            queryset=self.object.prelim_cases.all(),
+            form_helper_kwargs={"form_class": "collapse"},
+        ).qs
+
+        return [
+            facility_filter_qs,
+            attachment_filter_qs,
+            case_filter_qs,
+            pcase_filter_qs,
+        ]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -656,6 +694,7 @@ class PersonListView(FilterTableView):
 class PersonDetailView(MultiTableMixin, DetailView):
     tables = [CaseTable, PreliminaryCaseTable, PersonTable]
     model = Person
+    table_pagination = {"per_page": 10}
 
     def get_tables_data(self):
         case_filter_qs = CaseFilter(

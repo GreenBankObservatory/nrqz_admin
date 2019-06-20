@@ -5,22 +5,22 @@
 
 {% block content %}
 
-<p><a href={% url "admin:cases_preliminarycasegroup_change" preliminarycasegroup.id %}>Edit</a></p>
+<p><a href={% url "admin:cases_casegroup_change" casegroup.id %}>Edit</a></p>
 
-<h1>Preliminary Case Group {{ preliminarycasegroup.id }}</h1>
+<h1>Case Group {{ casegroup.id }}</h1>
 {% include "cases/base_detail.html" %}
 
 
-<h2>Preliminary Cases</h2>
+<h2>Cases</h2>
 {% if tables.0.data %}
 {% render_table tables.0 %}
 {% else %}
-<p>No PCases</p>
+<p>No Cases</p>
 {% endif %}
 
 <h2>Comments</h2>
-{% if preliminarycasegroup.comments %}
-{{ preliminarycasegroup.comments | linebreaks}}
+{% if casegroup.comments %}
+{{ casegroup.comments | linebreaks}}
 {% else %}
 <p>No comments</p>
 {% endif %}

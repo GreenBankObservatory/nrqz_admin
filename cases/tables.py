@@ -14,6 +14,7 @@ from .filters import (
     CaseFilter,
     StructureFilter,
     PreliminaryCaseFilter,
+    CaseGroupFilter,
     PreliminaryCaseGroupFilter,
 )
 from .columns import SelectColumn, TrimmedTextColumn, UnboundFileColumn
@@ -225,7 +226,21 @@ class FacilityTableWithConcur(FacilityTable):
         fields = FacilityFilter.Meta.fields + ["selected"]
 
 
+class CaseGroupTable(tables.Table):
+    id = tables.Column(linkify=True)
+    comments = TrimmedTextColumn()
+
+    class Meta:
+        model = models.CaseGroup
+        fields = CaseGroupFilter.Meta.fields
+        # order_by = ["-case_num"]
+
+    # def render_case_num(self, value):
+    #     return f"P{value}"
+
+
 class PreliminaryCaseGroupTable(tables.Table):
+    id = tables.Column(linkify=True)
     comments = TrimmedTextColumn()
 
     class Meta:

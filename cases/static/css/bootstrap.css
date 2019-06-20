@@ -2,12 +2,21 @@
     display: block;
 }
 
-@media (min-width: 1300px) {
+/* Container fills full width by default... */
+.container{
+    max-width: none;
+}
+
+/* ...but, if the screen is at least 1500px, then it adds margins.
+This means that we don't lose valuable space on small screens, but we have good
+readability on large ones*/
+@media (min-width: 1500px) {
     .container{
-        max-width: 1300px;
+        max-width: 1500px;
     }
 }
 
+/* Remove margins when printing */
 @media print {
     .container{
         max-width: none;

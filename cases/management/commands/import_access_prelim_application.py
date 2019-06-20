@@ -1,5 +1,14 @@
 """Import Access Preliminary Application Data"""
 
+import re
+
+from tqdm import tqdm
+
+from django.db.models import Q
+
+from django_import_data import BaseImportCommand
+from django_import_data.models import RowData
+
 from importers.handlers import handle_case, handle_attachments
 from importers.access_prelim_application.formmaps import (
     APPLICANT_FORM_MAP,
@@ -9,8 +18,139 @@ from importers.access_prelim_application.formmaps import (
     IGNORED_HEADERS,
 )
 
-from django_import_data import BaseImportCommand
-from django_import_data.models import RowData
+
+from cases.models import Case, PreliminaryCase, PreliminaryCaseGroup
+from utils.constants import ACCESS_PRELIM_APPLICATION
+
+# https://regex101.com/r/g6NM6e/1
+CASE_REGEX = re.compile(
+    r"(?:(?:NRQZ ID )|(?:NRQZ#)|(?:Case\s*))(?P<case_num>\d+)", re.IGNORECASE
+)
+PCASE_REGEX = re.compile(r"NRQZ#P(\d+)", re.IGNORECASE)
+
+
+def derive_case_num(pcase):
+    """Given a pcase, attempt to derive a case number that it is related to"""
+
+    m = CASE_REGEX.search(pcase.comments)
+    if m:
+        case_num = int(m.groupdict()["case_num"])
+    else:
+        case_num = None
+
+    return case_num
+
+
+def derive_related_pcases(pcase):
+    """Given a pcase, attempt to derive all related pcase numbers"""
+
+    m = PCASE_REGEX.findall(pcase.comments)
+    if m:
+        pcase_nums = [int(pcase_num) for pcase_num in m]
+    else:
+        pcase_nums = []
+
+    return pcase_nums
+
+
+def handle_pcase_group(pcase):
+    # Determine whether there are any related PCases (i.e. other PCase numbers
+    # mentioned in the comments)
+    related_pcase_nums = derive_related_pcases(pcase)
+    if related_pcase_nums:
+        # If there are, grab all of them
+        related_pcases = PreliminaryCase.objects.filter(
+            Q(case_num__in=[pcase.id, *related_pcase_nums])
+            | Q(case__prelim_cases__case_num__in=[pcase.case_num, *related_pcase_nums])
+        ).distinct()
+        # For diagnostic purposes, let us know if any of them cannot be found
+        unique_requested_pcase_nums = set(related_pcase_nums)
+        unique_related_pcase_nums = set(
+            related_pcases.values_list("case_num", flat=True)
+        )
+        if unique_requested_pcase_nums != unique_related_pcase_nums:
+            diff = unique_requested_pcase_nums.difference(unique_related_pcase_nums)
+            tqdm.write(
+                f"One or more PreliminaryCases not found! Failed to find: {diff}"
+            )
+
+        # Now, grab the unique set of all existing, PCaseGroups that these related
+        # PCases are already associated with
+        existing_pcase_group_ids = (
+            related_pcases.filter(pcase_group__isnull=False)
+            .order_by("pcase_group")
+            .values("pcase_group")
+            .distinct()
+        )
+        existing_pcase_groups = PreliminaryCaseGroup.objects.filter(
+            id__in=existing_pcase_group_ids
+        )
+        # If there aren't any, then we'll need to create one
+        if existing_pcase_groups.count() == 0:
+            pcase_group = PreliminaryCaseGroup.objects.create(
+                data_source=ACCESS_PRELIM_APPLICATION
+            )
+            tqdm.write(f"Created {pcase_group}")
+        # If there is exactly one already in existence, we can just use it
+        elif existing_pcase_groups.count() == 1:
+            pcase_group = PreliminaryCaseGroup.objects.get(
+                id=existing_pcase_groups.first().id
+            )
+            tqdm.write(f"Found {pcase_group}")
+        # If there is more than one, then we need to merge them together
+        else:
+            # Pick the first one as the one to keep (doesn't actually matter which one)
+            pcase_group_to_keep = existing_pcase_groups.first()
+            # We need to generate a list in memory from the QuerySet so that
+            # this will be accurate after the deletions
+            existing_pcase_groups_ids = list(
+                existing_pcase_groups.values_list("id", flat=True)
+            )
+            # Update all of the related PCase's PCGs to the one we want to keep
+            # Delete the others, since they serve no purpose now
+            existing_pcase_groups.exclude(id=pcase_group_to_keep.id).delete()
+            tqdm.write(
+                f"Found multiple existing PCGs {existing_pcase_groups_ids}. "
+                f"Set all PCGs to {pcase_group_to_keep}, kept "
+                f"{pcase_group_to_keep.id}, and deleted the others"
+            )
+            pcase_group = pcase_group_to_keep
+
+        related_pcases.update(pcase_group=pcase_group)
+
+
+def post_import_actions():
+    tqdm.write("Deriving PCaseGroups")
+    progress = tqdm(PreliminaryCase.objects.all(), unit="PCase")
+    for pcase in progress:
+        progress.desc = f"Processing {pcase}"
+        derive_cases_from_comments(pcase)
+        handle_pcase_group(pcase)
+
+
+def derive_cases_from_comments(pcase):
+    case_num = derive_case_num(pcase)
+    if case_num:
+        tqdm.write(f"Found case ID {case_num} in PCase {pcase} comments")
+        if pcase.case and pcase.case.case_num != case_num:
+            raise ValueError(
+                f"PCase {pcase} already has a case number ({pcase.case}) "
+                f"and it's different than the derived case number: {case_num}"
+            )
+        try:
+            pcase.case = Case.objects.get(case_num=case_num)
+            pcase.save()
+        except Case.DoesNotExist:
+            tqdm.write(
+                f"Found case ID {case_num} in PCase {pcase} comments, but no matching Case found"
+            )
+            tqdm.write(pcase.comments)
+            tqdm.write("\n")
+            tqdm.write("-" * 80)
+        # else:
+        #     tqdm.write(
+        #         f"Successfully derived case {pcase.case} from {pcase} comments"
+        #     )
 
 
 class Command(BaseImportCommand):
@@ -25,6 +165,12 @@ class Command(BaseImportCommand):
         *ATTACHMENT_FORM_MAPS,
     ]
     IGNORED_HEADERS = IGNORED_HEADERS
+
+    def handle_pcase_group(self, pcase):
+        handle_pcase_group(pcase)
+
+    def post_import_actions(self):
+        post_import_actions()
 
     def handle_record(self, row_data, file_import_attempt, durable=True):
         applicant, applicant_audit = APPLICANT_FORM_MAP.save_with_audit(

@@ -9,14 +9,15 @@ from watson import search as watson
 from utils.layout import discover_fields
 from . import models
 from .form_helpers import (
-    PreliminaryFacilityFilterFormHelper,
-    FacilityFilterFormHelper,
-    PreliminaryCaseFilterFormHelper,
-    CaseFilterFormHelper,
-    PersonFilterFormHelper,
     AttachmentFilterFormHelper,
-    StructureFilterFormHelper,
+    CaseFilterFormHelper,
+    CaseGroupFilterFormHelper,
+    FacilityFilterFormHelper,
+    PersonFilterFormHelper,
+    PreliminaryCaseFilterFormHelper,
     PreliminaryCaseGroupFilterFormHelper,
+    PreliminaryFacilityFilterFormHelper,
+    StructureFilterFormHelper,
 )
 from .fields import PointSearchField
 from .widgets import PCaseWidget
@@ -134,8 +135,19 @@ class FacilityFilter(BaseFacilityFilter):
         fields = discover_fields(formhelper_class.layout)
 
 
+class CaseGroupFilter(HelpedFilterSet):
+    comments = django_filters.CharFilter(lookup_expr="search")
+    num_cases = django_filters.CharFilter(lookup_expr="search")
+
+    class Meta:
+        model = models.CaseGroup
+        formhelper_class = CaseGroupFilterFormHelper
+        fields = discover_fields(formhelper_class.layout)
+
+
 class PreliminaryCaseGroupFilter(HelpedFilterSet):
     comments = django_filters.CharFilter(lookup_expr="search")
+    num_pcases = django_filters.CharFilter(lookup_expr="search")
 
     class Meta:
         model = models.PreliminaryCaseGroup

@@ -124,11 +124,32 @@
 <p>No attachments</p>
 {% endif %}
 
+<div class="row float-left">
+    <div class="col">
+        <h2 title="Shows other members of this Case's Case Group">Related Cases</h2>
+    </div>
+    <div class="col-auto">
+        <a
+            href="{% url 'case_group_detail' case.case_group.id %}"
+            title="From here you can edit the case group to add more cases to it, etc."
+        >
+            View Case Group
+        </a>
+    </div>
+</div>
+{% if tables.2.data %}
+{% render_table tables.2 %}
+{% else %}
+<p>No related cases</p>
+{% endif %}
+
 {% if case.import_error_summary %}
 <h2>Import Errors</h2>
 <p>Map of column headers to list of unique invalid values (values that caused errors)</p>
 {{ case.import_error_summary|json|safe }}
 {% endif %}
+
+<hr>
 
 <div class="row">
     <div class="col-lg">

@@ -531,6 +531,19 @@ class Facility(AbstractBaseFacility):
         return kml_to_string(facility_as_kml(self))
 
 
+class CaseGroup(
+    AbstractBaseAuditedModel, IsActiveModel, TrackedModel, DataSourceModel, Model
+):
+    comments = SensibleTextField(blank=True)
+
+    class Meta:
+        verbose_name = "Case Group"
+        verbose_name_plural = "Case Groups"
+
+    def get_absolute_url(self):
+        return reverse("case_group_detail", args=[str(self.id)])
+
+
 class PreliminaryCaseGroup(
     AbstractBaseAuditedModel, IsActiveModel, TrackedModel, DataSourceModel, Model
 ):
@@ -539,6 +552,9 @@ class PreliminaryCaseGroup(
     class Meta:
         verbose_name = "Preliminary Case Group"
         verbose_name_plural = "Preliminary Case Groups"
+
+    def get_absolute_url(self):
+        return reverse("prelim_case_group_detail", args=[str(self.id)])
 
 
 class AbstractBaseCase(
@@ -615,6 +631,10 @@ class PreliminaryCase(AbstractBaseCase):
         self.slug = str(self.case_num)
         super().save(*args, **kwargs)
 
+    @property
+    def related_prelim_cases(self):
+        return self.pcase_group.prelim_cases.exclude(id=self.id)
+
     class Meta:
         verbose_name = "Preliminary Case"
         verbose_name_plural = "Preliminary Cases"
@@ -671,6 +691,9 @@ class Case(AbstractBaseCase):
         null=True, blank=True, help_text="SGRS Service Num."
     )
     agency_num = SensibleCharField(max_length=256, blank=True, help_text="Agency Num.")
+    case_group = ForeignKey(
+        "CaseGroup", on_delete=CASCADE, null=True, blank=True, related_name="cases"
+    )
 
     class Meta:
         verbose_name = "Case"
@@ -738,6 +761,10 @@ class Case(AbstractBaseCase):
             return False
 
         return True
+
+    @property
+    def related_cases(self):
+        return self.case_group.cases.exclude(id=self.id)
 
 
 class Person(
