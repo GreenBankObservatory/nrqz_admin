@@ -531,6 +531,14 @@ class Facility(AbstractBaseFacility):
         return kml_to_string(facility_as_kml(self))
 
 
+class FancyCaseGroup(TrackedModel, Model):
+    """Provides a way to group groups of PreliminaryCases and Cases"""
+
+    comments = SensibleTextField(blank=True)
+    cases = ManyToManyField("Case", related_name="case_groups", blank=True)
+    pcases = ManyToManyField("PreliminaryCase", related_name="case_groups", blank=True)
+
+
 class CaseGroup(
     AbstractBaseAuditedModel, IsActiveModel, TrackedModel, DataSourceModel, Model
 ):
@@ -633,7 +641,15 @@ class PreliminaryCase(AbstractBaseCase):
 
     @property
     def related_prelim_cases(self):
-        return self.pcase_group.prelim_cases.exclude(id=self.id)
+        related_pcases = PreliminaryCase.objects.none()
+        if self.pcase_group:
+            related_pcases |= self.pcase_group.prelim_cases.all()
+        if self.case:
+            related_pcases |= self.case.prelim_cases.all()
+
+        related_pcases = related_pcases.exclude(id=self.id)
+
+        return related_pcases
 
     class Meta:
         verbose_name = "Preliminary Case"
@@ -762,9 +778,38 @@ class Case(AbstractBaseCase):
 
         return True
 
+    def get_related_cases(self, include_self=False):
+        _related_cases = Case.objects.none()
+        if self.case_group:
+            _related_cases |= self.case_group.cases.all()
+        if self.prelim_cases:
+            _related_cases |= Case.objects.filter(
+                id__in=self.prelim_cases.values("case")
+            )
+
+        if not include_self:
+            _related_cases = _related_cases.exclude(id=self.id)
+
+        return _related_cases
+
     @property
     def related_cases(self):
-        return self.case_group.cases.exclude(id=self.id)
+        return self.get_related_cases()
+
+    @property
+    def related_prelim_cases(self):
+        _related_cases = self.get_related_cases(include_self=True)
+
+        related_pcases = PreliminaryCase.objects.none()
+        if _related_cases:
+            related_pcases |= PreliminaryCase.objects.filter(
+                id__in=_related_cases.values("prelim_cases")
+            )
+
+        if self.prelim_cases:
+            related_pcases |= self.prelim_cases.all()
+
+        return related_pcases
 
 
 class Person(

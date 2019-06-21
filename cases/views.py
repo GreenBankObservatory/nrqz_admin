@@ -395,7 +395,7 @@ class PreliminaryCaseGroupDetailView(MultiTableMixin, DetailView):
 
 class PreliminaryCaseDetailView(MultiTableMixin, DetailView):
     model = PreliminaryCase
-    tables = [PreliminaryFacilityTable, AttachmentTable]
+    tables = [PreliminaryFacilityTable, AttachmentTable, PreliminaryCaseTable]
     table_pagination = {"per_page": 10}
 
     def get_tables_data(self):
@@ -409,7 +409,12 @@ class PreliminaryCaseDetailView(MultiTableMixin, DetailView):
             queryset=self.object.attachments.all(),
             form_helper_kwargs={"form_class": "collapse"},
         ).qs
-        return [pfacility_filter_qs, attachment_filter_qs]
+        pcase_filter_qs = PreliminaryCaseFilter(
+            self.request.GET,
+            queryset=self.object.related_prelim_cases,
+            form_helper_kwargs={"form_class": "collapse"},
+        ).qs
+        return [pfacility_filter_qs, attachment_filter_qs, pcase_filter_qs]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -447,7 +452,7 @@ class CaseDetailView(MultiTableMixin, DetailView):
 
         pcase_filter_qs = PreliminaryCaseFilter(
             self.request.GET,
-            queryset=self.object.prelim_cases.all(),
+            queryset=self.object.related_prelim_cases,
             form_helper_kwargs={"form_class": "collapse"},
         ).qs
 

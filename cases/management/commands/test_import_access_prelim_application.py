@@ -8,51 +8,6 @@ from .import_access_prelim_application import (
 )
 
 
-# class PreliminaryCaseGroupTestCase(TestCase):
-#     def test_create(self):
-#         pc1 = PreliminaryCase.objects.create(case_num=1, comments="NRQZ#P2 NRQZ#P3")
-#         pc2 = PreliminaryCase.objects.create(case_num=2)
-#         pc3 = PreliminaryCase.objects.create(case_num=3)
-
-#         handle_pcase_group(pc1)
-#         self.assertEqual(
-#             list(pc1.pcase_group.prelim_cases.order_by("case_num")), [pc1, pc2, pc3]
-#         )
-
-#     def test_existing(self):
-#         pc2 = PreliminaryCase.objects.create(case_num=2)
-#         pcg = PreliminaryCaseGroup.objects.create()
-#         pcg.prelim_cases.add(pc2)
-#         self.assertEqual(list(pcg.prelim_cases.all()), [pc2])
-
-#         pc1 = PreliminaryCase.objects.create(case_num=1, comments="NRQZ#P2 NRQZ#P3")
-#         pc3 = PreliminaryCase.objects.create(case_num=3)
-
-#         handle_pcase_group(pc1)
-#         self.assertEqual(
-#             list(pc1.pcase_group.prelim_cases.order_by("case_num")), [pc1, pc2, pc3]
-#         )
-
-#     def test_merge(self):
-#         pc2 = PreliminaryCase.objects.create(case_num=2)
-#         pcg1 = PreliminaryCaseGroup.objects.create()
-#         pcg1.prelim_cases.add(pc2)
-#         self.assertEqual(list(pcg1.prelim_cases.all()), [pc2])
-
-#         pc3 = PreliminaryCase.objects.create(case_num=3)
-#         pcg2 = PreliminaryCaseGroup.objects.create()
-#         pcg2.prelim_cases.add(pc3)
-#         self.assertEqual(list(pcg2.prelim_cases.all()), [pc3])
-
-#         pc1 = PreliminaryCase.objects.create(case_num=1, comments="NRQZ#P2 NRQZ#P3")
-#         self.assertEqual(pc1.pcase_group, None)
-
-#         handle_pcase_group(pc1)
-#         self.assertEqual(
-#             list(pc1.pcase_group.prelim_cases.order_by("case_num")), [pc1, pc2, pc3]
-#         )
-
-
 class PreliminaryCaseGroupCaseTestCase(TestCase):
     def test_simple(self):
         c13 = Case.objects.create(case_num=13)
@@ -85,3 +40,34 @@ class PreliminaryCaseGroupCaseTestCase(TestCase):
         self.assertEqual(
             list(pc1.pcase_group.prelim_cases.order_by("case_num")), [pc1, pc2, pc3]
         )
+
+    def test_no_references(self):
+        PreliminaryCase.objects.create(case_num=1)
+        PreliminaryCase.objects.create(case_num=2)
+        PreliminaryCase.objects.create(case_num=3)
+
+        self.assertEqual(PreliminaryCaseGroup.objects.count(), 0)
+
+        post_import_actions()
+        self.assertEqual(PreliminaryCaseGroup.objects.count(), 0)
+
+    def test_case_stuff(self):
+        c7 = Case.objects.create(case_num=7, comments="NRQZ#P1")
+        # PC1 is related to C7 via its comments
+        pc1 = PreliminaryCase.objects.create(case_num=1)
+
+        # Now we loop through all of our PCs and perform "post import actions" on them
+        # Basically this is calling handle_pcase_group and derive_cases_from_comments
+        # on each PC.
+        post_import_actions()
+        c7.refresh_from_db()
+        pc1.refresh_from_db()
+        # # The result should be, in this case, that there is a single PCG with
+        # # all 3 PCs in it
+        # self.assertTrue(pc1.pcase_group == pc2.pcase_group == pc3.pcase_group)
+        # self.assertEqual(
+        #     list(pc1.pcase_group.prelim_cases.order_by("case_num")), [pc1, pc2, pc3]
+        # )
+        import ipdb
+
+        ipdb.set_trace()

@@ -256,7 +256,7 @@ class BaseCaseTable(tables.Table):
     case_num = tables.Column(linkify=True)
     applicant = tables.Column(linkify=True)
     contact = tables.Column(linkify=True)
-    # comments = TrimmedTextColumn()
+    comments = TrimmedTextColumn()
 
 
 class PreliminaryCaseTable(BaseCaseTable):

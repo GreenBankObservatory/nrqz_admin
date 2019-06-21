@@ -41,7 +41,7 @@ def derive_case_num(pcase):
     return case_num
 
 
-def derive_related_pcases(pcase):
+def derive_related_pcase_nums(pcase):
     """Given a pcase, attempt to derive all related pcase numbers"""
 
     m = PCASE_REGEX.findall(pcase.comments)
@@ -54,26 +54,16 @@ def derive_related_pcases(pcase):
 
 
 def handle_pcase_group(pcase):
+    """Add the given PCase, and related PCases, to a PCaseGroup"""
     # Determine whether there are any related PCases (i.e. other PCase numbers
     # mentioned in the comments)
-    related_pcase_nums = derive_related_pcases(pcase)
+    related_pcase_nums = derive_related_pcase_nums(pcase)
     if related_pcase_nums:
-        # If there are, grab all of them
         related_pcases = PreliminaryCase.objects.filter(
-            Q(case_num__in=[pcase.id, *related_pcase_nums])
+            Q(case_num__in=[pcase.case_num, *related_pcase_nums])
             | Q(case__prelim_cases__case_num__in=[pcase.case_num, *related_pcase_nums])
         ).distinct()
-        # For diagnostic purposes, let us know if any of them cannot be found
-        unique_requested_pcase_nums = set(related_pcase_nums)
-        unique_related_pcase_nums = set(
-            related_pcases.values_list("case_num", flat=True)
-        )
-        if unique_requested_pcase_nums != unique_related_pcase_nums:
-            diff = unique_requested_pcase_nums.difference(unique_related_pcase_nums)
-            tqdm.write(
-                f"One or more PreliminaryCases not found! Failed to find: {diff}"
-            )
-
+        tqdm.write(f"rpc: {related_pcases}")
         # Now, grab the unique set of all existing, PCaseGroups that these related
         # PCases are already associated with
         existing_pcase_group_ids = (
@@ -93,9 +83,7 @@ def handle_pcase_group(pcase):
             tqdm.write(f"Created {pcase_group}")
         # If there is exactly one already in existence, we can just use it
         elif existing_pcase_groups.count() == 1:
-            pcase_group = PreliminaryCaseGroup.objects.get(
-                id=existing_pcase_groups.first().id
-            )
+            pcase_group = existing_pcase_groups.first()
             tqdm.write(f"Found {pcase_group}")
         # If there is more than one, then we need to merge them together
         else:
@@ -118,6 +106,8 @@ def handle_pcase_group(pcase):
 
         related_pcases.update(pcase_group=pcase_group)
 
+        return related_pcases
+
 
 def post_import_actions():
     tqdm.write("Deriving PCaseGroups")
@@ -126,6 +116,12 @@ def post_import_actions():
         progress.desc = f"Processing {pcase}"
         derive_cases_from_comments(pcase)
         handle_pcase_group(pcase)
+
+    tqdm.write("Linking Cases to PreliminaryCases")
+    for case in tqdm(Case.objects.all(), unit="Case"):
+        progress.desc = f"Processing {case}"
+        related_pcases = handle_pcase_group(case)
+        related_pcases.update(case=case)
 
 
 def derive_cases_from_comments(pcase):
@@ -165,9 +161,6 @@ class Command(BaseImportCommand):
         *ATTACHMENT_FORM_MAPS,
     ]
     IGNORED_HEADERS = IGNORED_HEADERS
-
-    def handle_pcase_group(self, pcase):
-        handle_pcase_group(pcase)
 
     def post_import_actions(self):
         post_import_actions()

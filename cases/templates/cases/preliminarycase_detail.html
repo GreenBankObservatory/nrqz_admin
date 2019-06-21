@@ -64,21 +64,15 @@
 </div>
 
 <h2>Related Case</h2>
-{% if preliminarycase.pcase_group.case %}
-<a href="{% url "case_detail" preliminarycase.pcase_group.case.case_num %}">{{ preliminarycase.pcase_group.case }}</a>
+{% if preliminarycase.case %}
+<a href="{% url 'case_detail' preliminarycase.case.case_num %}">{{ preliminarycase.case }}</a>
 {% else %}
 <p>No related Case</p>
 {% endif %}
 
 <h2>Related PCases</h2>
-{% if preliminarycase.pcase_group.prelim_cases.exists %}
-<ul>
-    {% for pc in preliminarycase.pcase_group.prelim_cases.all %}
-    <li>
-        <a href="{% url "prelim_case_detail" pc.case_num %}">{{ pc }}</a>
-    </li>
-    {% endfor %}
-</ul>
+{% if tables.2.data %}
+{% render_table tables.2 %}
 {% else %}
 <p>No related PCases</p>
 {% endif %}

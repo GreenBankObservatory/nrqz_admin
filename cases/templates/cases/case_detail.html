@@ -128,6 +128,7 @@
     <div class="col">
         <h2 title="Shows other members of this Case's Case Group">Related Cases</h2>
     </div>
+    {% if case.case_group %}
     <div class="col-auto">
         <a
             href="{% url 'case_group_detail' case.case_group.id %}"
@@ -136,11 +137,19 @@
             View Case Group
         </a>
     </div>
+    {% endif %}
 </div>
 {% if tables.2.data %}
 {% render_table tables.2 %}
 {% else %}
 <p>No related cases</p>
+{% endif %}
+
+<h2 title="Shows preliminary cases that reference this Case">Related Preliminary Cases</h2>
+{% if tables.3.data %}
+{% render_table tables.3 %}
+{% else %}
+<p>No related preliminary cases</p>
 {% endif %}
 
 {% if case.import_error_summary %}

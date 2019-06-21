@@ -1,6 +1,5 @@
 """Import Access Application Data"""
 
-import re
 
 from tqdm import tqdm
 
@@ -18,44 +17,18 @@ from importers.access_application.formmaps import (
     IGNORED_HEADERS,
 )
 
-from cases.models import Case, CaseGroup
+from cases.models import Case, CaseGroup, PreliminaryCase, PreliminaryCaseGroup
 from utils.constants import ACCESS_APPLICATION
-
-
-CASE_REGEX = re.compile(
-    r"(?:(?:NRQZ ID )|(?:NRQZ#)|(?:Case\s*))(?P<case_num>\d+)", re.IGNORECASE
-)
-CASE_REGEX2 = re.compile(r"(?P<case_num>\d{3,})-\d{,4}")
-
-
-def derive_related_case_nums(case):
-    matches1 = CASE_REGEX.findall(case.comments)
-    matches2 = CASE_REGEX2.findall(case.comments)
-
-    case_nums = set()
-    if matches1:
-        case_nums.update(int(case_num) for case_num in matches1)
-
-    if matches2:
-        case_nums.update(int(case_num) for case_num in matches2)
-
-    return list(case_nums)
+from .access_utils import derive_related_case_nums, derive_related_pcases
 
 
 def handle_case_group(case):
+    """Add the given Case, and related Cases, to a CaseGroup"""
     related_case_nums = derive_related_case_nums(case)
-    if related_case_nums:
-        # If there are, grab all of them
-        related_cases = Case.objects.filter(
-            case_num__in=[case.case_num, *related_case_nums]
-        )
-        # For diagnostic purposes, let us know if any of them cannot be found
-        unique_requested_case_nums = set(related_case_nums)
-        unique_related_case_nums = set(related_cases.values_list("case_num", flat=True))
-        if unique_requested_case_nums != unique_related_case_nums:
-            diff = unique_related_case_nums.difference(unique_requested_case_nums)
-            tqdm.write(f"One or more Cases not found! Failed to find: {diff}")
-
+    related_cases = Case.objects.filter(
+        case_num__in=[case.case_num, *related_case_nums]
+    )
+    if related_cases:
         # Now, grab the unique set of all existing, CaseGroups that these related
         # Cases are already associated with
         existing_case_group_ids = (
@@ -72,8 +45,8 @@ def handle_case_group(case):
             tqdm.write(f"Created {case_group}")
         # If there is exactly one already in existence, we can just use it
         elif existing_case_groups.count() == 1:
-            case_group = CaseGroup.objects.get(id=existing_case_groups.first().id)
-            tqdm.write(f"Found {case.case_group}")
+            case_group = existing_case_groups.first()
+            tqdm.write(f"Found {case_group}")
         # If there is more than one, then we need to merge them together
         else:
             # Pick the first one as the one to keep (doesn't actually matter which one)
@@ -93,12 +66,24 @@ def handle_case_group(case):
         related_cases.update(case_group=case_group)
 
 
+def handle_pcase_stuff(case):
+    related_pcase_nums = derive_related_pcases(case)
+    related_pcases = PreliminaryCase.objects.filter(case_num__in=related_pcase_nums)
+    pcg = PreliminaryCaseGroup.objects.filter(
+        id__in=related_pcases.values("pcase_group")
+    )
+    import ipdb
+
+    ipdb.set_trace()
+
+
 def post_import_actions():
     tqdm.write("Deriving CaseGroups")
     progress = tqdm(Case.objects.all(), unit="case")
     for case in progress:
         progress.desc = f"Processing {case}"
         handle_case_group(case)
+        handle_pcase_stuff(case)
 
 
 class Command(BaseImportCommand):

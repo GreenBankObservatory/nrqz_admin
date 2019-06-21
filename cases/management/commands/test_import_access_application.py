@@ -69,3 +69,13 @@ class FooTest(TestCase):
             list(case_1.case_group.cases.order_by("case_num")), [case_1, case_2]
         )
         self.assertEqual(list(case_3.case_group.cases.order_by("case_num")), [case_3])
+
+    def test_no_references(self):
+        Case.objects.create(case_num=1)
+        Case.objects.create(case_num=2)
+        Case.objects.create(case_num=3)
+
+        self.assertEqual(CaseGroup.objects.count(), 0)
+
+        post_import_actions()
+        self.assertEqual(CaseGroup.objects.count(), 0)
