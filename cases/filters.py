@@ -15,7 +15,6 @@ from .form_helpers import (
     FacilityFilterFormHelper,
     PersonFilterFormHelper,
     PreliminaryCaseFilterFormHelper,
-    PreliminaryCaseGroupFilterFormHelper,
     PreliminaryFacilityFilterFormHelper,
     StructureFilterFormHelper,
 )
@@ -142,16 +141,6 @@ class CaseGroupFilter(HelpedFilterSet):
     class Meta:
         model = models.CaseGroup
         formhelper_class = CaseGroupFilterFormHelper
-        fields = discover_fields(formhelper_class.layout)
-
-
-class PreliminaryCaseGroupFilter(HelpedFilterSet):
-    comments = django_filters.CharFilter(lookup_expr="search")
-    num_pcases = django_filters.CharFilter(lookup_expr="search")
-
-    class Meta:
-        model = models.PreliminaryCaseGroup
-        formhelper_class = PreliminaryCaseGroupFilterFormHelper
         fields = discover_fields(formhelper_class.layout)
 
 

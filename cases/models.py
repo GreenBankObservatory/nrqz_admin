@@ -531,38 +531,12 @@ class Facility(AbstractBaseFacility):
         return kml_to_string(facility_as_kml(self))
 
 
-class FancyCaseGroup(TrackedModel, Model):
+class CaseGroup(TrackedModel, Model):
     """Provides a way to group groups of PreliminaryCases and Cases"""
 
     comments = SensibleTextField(blank=True)
     cases = ManyToManyField("Case", related_name="case_groups", blank=True)
     pcases = ManyToManyField("PreliminaryCase", related_name="case_groups", blank=True)
-
-
-class CaseGroup(
-    AbstractBaseAuditedModel, IsActiveModel, TrackedModel, DataSourceModel, Model
-):
-    comments = SensibleTextField(blank=True)
-
-    class Meta:
-        verbose_name = "Case Group"
-        verbose_name_plural = "Case Groups"
-
-    def get_absolute_url(self):
-        return reverse("case_group_detail", args=[str(self.id)])
-
-
-class PreliminaryCaseGroup(
-    AbstractBaseAuditedModel, IsActiveModel, TrackedModel, DataSourceModel, Model
-):
-    comments = SensibleTextField(blank=True)
-
-    class Meta:
-        verbose_name = "Preliminary Case Group"
-        verbose_name_plural = "Preliminary Case Groups"
-
-    def get_absolute_url(self):
-        return reverse("prelim_case_group_detail", args=[str(self.id)])
 
 
 class AbstractBaseCase(
@@ -609,13 +583,6 @@ class PreliminaryCase(AbstractBaseCase):
         null=True,
         blank=True,
     )
-    pcase_group = ForeignKey(
-        "PreliminaryCaseGroup",
-        on_delete=CASCADE,
-        null=True,
-        blank=True,
-        related_name="prelim_cases",
-    )
     case_num = PositiveIntegerField(
         unique=True,
         db_index=True,
@@ -641,11 +608,12 @@ class PreliminaryCase(AbstractBaseCase):
 
     @property
     def related_prelim_cases(self):
+        print("1112")
         related_pcases = PreliminaryCase.objects.none()
-        if self.pcase_group:
-            related_pcases |= self.pcase_group.prelim_cases.all()
-        if self.case:
-            related_pcases |= self.case.prelim_cases.all()
+        if self.case_groups:
+            related_pcases |= PreliminaryCase.objects.filter(
+                id__in=self.case_groups.values("pcases")
+            )
 
         related_pcases = related_pcases.exclude(id=self.id)
 
@@ -707,9 +675,6 @@ class Case(AbstractBaseCase):
         null=True, blank=True, help_text="SGRS Service Num."
     )
     agency_num = SensibleCharField(max_length=256, blank=True, help_text="Agency Num.")
-    case_group = ForeignKey(
-        "CaseGroup", on_delete=CASCADE, null=True, blank=True, related_name="cases"
-    )
 
     class Meta:
         verbose_name = "Case"
@@ -780,11 +745,10 @@ class Case(AbstractBaseCase):
 
     def get_related_cases(self, include_self=False):
         _related_cases = Case.objects.none()
-        if self.case_group:
-            _related_cases |= self.case_group.cases.all()
-        if self.prelim_cases:
+        print("111")
+        if self.case_groups:
             _related_cases |= Case.objects.filter(
-                id__in=self.prelim_cases.values("case")
+                id__in=self.case_groups.values("cases")
             )
 
         if not include_self:
@@ -801,13 +765,13 @@ class Case(AbstractBaseCase):
         _related_cases = self.get_related_cases(include_self=True)
 
         related_pcases = PreliminaryCase.objects.none()
-        if _related_cases:
-            related_pcases |= PreliminaryCase.objects.filter(
-                id__in=_related_cases.values("prelim_cases")
-            )
+        # if _related_cases:
+        #     related_pcases |= PreliminaryCase.objects.filter(
+        #         id__in=_related_cases.values("prelim_cases")
+        #     )
 
-        if self.prelim_cases:
-            related_pcases |= self.prelim_cases.all()
+        # if self.prelim_cases:
+        #     related_pcases |= self.prelim_cases.all()
 
         return related_pcases
 

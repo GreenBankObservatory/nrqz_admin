@@ -19,7 +19,7 @@ from importers.access_prelim_application.formmaps import (
 )
 
 
-from cases.models import Case, PreliminaryCase, PreliminaryCaseGroup
+from cases.models import Case, PreliminaryCase, CaseGroup
 from utils.constants import ACCESS_PRELIM_APPLICATION
 
 # https://regex101.com/r/g6NM6e/1
@@ -66,47 +66,42 @@ def handle_pcase_group(pcase):
         tqdm.write(f"rpc: {related_pcases}")
         # Now, grab the unique set of all existing, PCaseGroups that these related
         # PCases are already associated with
-        existing_pcase_group_ids = (
-            related_pcases.filter(pcase_group__isnull=False)
-            .order_by("pcase_group")
-            .values("pcase_group")
-            .distinct()
-        )
-        existing_pcase_groups = PreliminaryCaseGroup.objects.filter(
-            id__in=existing_pcase_group_ids
-        )
+        existing_case_group_ids = related_pcases.filter(
+            case_groups__isnull=False
+        ).values("case_groups")
+
+        existing_case_groups = CaseGroup.objects.filter(id__in=existing_case_group_ids)
         # If there aren't any, then we'll need to create one
-        if existing_pcase_groups.count() == 0:
-            pcase_group = PreliminaryCaseGroup.objects.create(
-                data_source=ACCESS_PRELIM_APPLICATION
-            )
-            tqdm.write(f"Created {pcase_group}")
+        if existing_case_groups.count() == 0:
+            case_group = CaseGroup.objects.create()
+            tqdm.write(f"Created {case_group}")
         # If there is exactly one already in existence, we can just use it
-        elif existing_pcase_groups.count() == 1:
-            pcase_group = existing_pcase_groups.first()
-            tqdm.write(f"Found {pcase_group}")
+        elif existing_case_groups.count() == 1:
+            case_group = existing_case_groups.first()
+            tqdm.write(f"Found {case_group}")
         # If there is more than one, then we need to merge them together
         else:
             # Pick the first one as the one to keep (doesn't actually matter which one)
-            pcase_group_to_keep = existing_pcase_groups.first()
+            pcase_group_to_keep = existing_case_groups.first()
             # We need to generate a list in memory from the QuerySet so that
             # this will be accurate after the deletions
-            existing_pcase_groups_ids = list(
-                existing_pcase_groups.values_list("id", flat=True)
+            existing_case_groups_ids = list(
+                existing_case_groups.values_list("id", flat=True)
             )
             # Update all of the related PCase's PCGs to the one we want to keep
             # Delete the others, since they serve no purpose now
-            existing_pcase_groups.exclude(id=pcase_group_to_keep.id).delete()
+            existing_case_groups.exclude(id=pcase_group_to_keep.id).delete()
             tqdm.write(
-                f"Found multiple existing PCGs {existing_pcase_groups_ids}. "
+                f"Found multiple existing PCGs {existing_case_groups_ids}. "
                 f"Set all PCGs to {pcase_group_to_keep}, kept "
                 f"{pcase_group_to_keep.id}, and deleted the others"
             )
-            pcase_group = pcase_group_to_keep
+            case_group = pcase_group_to_keep
 
-        related_pcases.update(pcase_group=pcase_group)
+        case_group.pcases.add(*related_pcases)
 
-        return related_pcases
+        return related_pcases, case_group
+    return None, None
 
 
 def post_import_actions():
@@ -120,8 +115,19 @@ def post_import_actions():
     tqdm.write("Linking Cases to PreliminaryCases")
     for case in tqdm(Case.objects.all(), unit="Case"):
         progress.desc = f"Processing {case}"
-        related_pcases = handle_pcase_group(case)
-        related_pcases.update(case=case)
+        related_pcases, case_group = handle_pcase_group(case)
+        if related_pcases:
+            related_pcases.update(case=case)
+        if case_group:
+            case_group.cases.add(case)
+
+
+# Future Thomas:
+# We are most of the way to transitioning to the new CaseGroup concept, which
+# bundles cases and pcases together with MtM fields
+# Still need to update all of the filters/tables/views, and expand the unit tests.
+# PC importer is testing clean, but C importer is almost certainly hosed
+# Still need to expand sanity checks, too, and expand regexes to capture _all_ case mentions, not just the first
 
 
 def derive_cases_from_comments(pcase):

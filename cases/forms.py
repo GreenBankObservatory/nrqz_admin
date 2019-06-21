@@ -19,7 +19,6 @@ from .models import (
     PreliminaryCase,
     PreliminaryFacility,
     Structure,
-    PreliminaryCaseGroup,
 )
 from .form_helpers import LetterFormHelper, CaseFormHelper
 from .fields import PointField, AttachmentField
@@ -127,12 +126,6 @@ class PersonImportForm(PersonForm):
         fields = sorted([*PersonForm.Meta.fields, "data_source"])
 
 
-class PreliminaryCaseGroupForm(forms.ModelForm):
-    class Meta:
-        model = PreliminaryCaseGroup
-        fields = ("comments",)
-
-
 _BASE_CASE_FIELDS = (
     "applicant",
     "attachments",
@@ -152,7 +145,7 @@ _BASE_CASE_FIELDS = (
 class PreliminaryCaseForm(forms.ModelForm):
     class Meta:
         model = PreliminaryCase
-        fields = sorted((*_BASE_CASE_FIELDS, "case", "pcase_group"))
+        fields = sorted((*_BASE_CASE_FIELDS, "case"))
 
         widgets = {
             "applicant": PersonWidget(),

@@ -17,7 +17,7 @@ from importers.access_application.formmaps import (
     IGNORED_HEADERS,
 )
 
-from cases.models import Case, CaseGroup, PreliminaryCase, PreliminaryCaseGroup
+from cases.models import Case, CaseGroup, PreliminaryCase
 from utils.constants import ACCESS_APPLICATION
 from .access_utils import derive_related_case_nums, derive_related_pcases
 
@@ -69,9 +69,6 @@ def handle_case_group(case):
 def handle_pcase_stuff(case):
     related_pcase_nums = derive_related_pcases(case)
     related_pcases = PreliminaryCase.objects.filter(case_num__in=related_pcase_nums)
-    pcg = PreliminaryCaseGroup.objects.filter(
-        id__in=related_pcases.values("pcase_group")
-    )
     import ipdb
 
     ipdb.set_trace()

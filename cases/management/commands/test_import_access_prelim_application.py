@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from cases.models import Case, PreliminaryCase, PreliminaryCaseGroup
+from cases.models import Case, PreliminaryCase, CaseGroup
 from .import_access_prelim_application import (
     derive_cases_from_comments,
     handle_pcase_group,
@@ -8,7 +8,7 @@ from .import_access_prelim_application import (
 )
 
 
-class PreliminaryCaseGroupCaseTestCase(TestCase):
+class TheTestCase(TestCase):
     def test_simple(self):
         c13 = Case.objects.create(case_num=13)
         c44 = Case.objects.create(case_num=44)
@@ -36,20 +36,24 @@ class PreliminaryCaseGroupCaseTestCase(TestCase):
         pc3.refresh_from_db()
         # The result should be, in this case, that there is a single PCG with
         # all 3 PCs in it
-        self.assertTrue(pc1.pcase_group == pc2.pcase_group == pc3.pcase_group)
-        self.assertEqual(
-            list(pc1.pcase_group.prelim_cases.order_by("case_num")), [pc1, pc2, pc3]
+        self.assertTrue(
+            list(pc1.case_groups.all())
+            == list(pc2.case_groups.all())
+            == list(pc3.case_groups.all())
         )
+        # self.assertEqual(
+        #     list(pc1.pcase_group.prelim_cases.order_by("case_num")), [pc1, pc2, pc3]
+        # )
 
     def test_no_references(self):
         PreliminaryCase.objects.create(case_num=1)
         PreliminaryCase.objects.create(case_num=2)
         PreliminaryCase.objects.create(case_num=3)
 
-        self.assertEqual(PreliminaryCaseGroup.objects.count(), 0)
+        self.assertEqual(CaseGroup.objects.count(), 0)
 
         post_import_actions()
-        self.assertEqual(PreliminaryCaseGroup.objects.count(), 0)
+        self.assertEqual(CaseGroup.objects.count(), 0)
 
     def test_case_stuff(self):
         c7 = Case.objects.create(case_num=7, comments="NRQZ#P1")
@@ -68,6 +72,4 @@ class PreliminaryCaseGroupCaseTestCase(TestCase):
         # self.assertEqual(
         #     list(pc1.pcase_group.prelim_cases.order_by("case_num")), [pc1, pc2, pc3]
         # )
-        import ipdb
-
-        ipdb.set_trace()
+        self.assertEqual(list(c7.case_groups.all()), list(pc1.case_groups.all()))

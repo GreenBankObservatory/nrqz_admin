@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from cases.models import Case, PreliminaryCaseGroup, CaseGroup
+from cases.models import Case, CaseGroup
 from .import_access_application import (
     # derive_cases_from_comments,
     handle_case_group,

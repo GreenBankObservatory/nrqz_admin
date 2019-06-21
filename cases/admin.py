@@ -8,9 +8,8 @@ from .forms import (
     FacilityForm,
     LocationForm,
     PersonForm,
-    PreliminaryCaseForm,
-    PreliminaryCaseGroupForm,
     PreliminaryFacilityForm,
+    PreliminaryCaseForm,
 )
 from .models import (
     Attachment,
@@ -22,7 +21,6 @@ from .models import (
     Location,
     Person,
     PreliminaryCase,
-    PreliminaryCaseGroup,
     PreliminaryFacility,
 )
 
@@ -45,15 +43,6 @@ class PreliminaryCaseInline(admin.TabularInline):
     extra = 0
     # autocomplete_fields = ["applicant", "contact"]
     readonly_fields = ["applicant", "contact"]
-
-
-@admin.register(PreliminaryCaseGroup)
-class PreliminaryCaseGroupAdmin(admin.ModelAdmin):
-    fields = ("comments",)
-    inlines = (PreliminaryCaseInline,)
-    # form = PreliminaryCaseGroupForm
-    # autocomplete_fields = ["prelim_cases"]
-    pass
 
 
 @admin.register(CaseGroup)

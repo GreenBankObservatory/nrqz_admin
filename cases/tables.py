@@ -15,7 +15,6 @@ from .filters import (
     StructureFilter,
     PreliminaryCaseFilter,
     CaseGroupFilter,
-    PreliminaryCaseGroupFilter,
 )
 from .columns import SelectColumn, TrimmedTextColumn, UnboundFileColumn
 
@@ -233,19 +232,6 @@ class CaseGroupTable(tables.Table):
     class Meta:
         model = models.CaseGroup
         fields = CaseGroupFilter.Meta.fields
-        # order_by = ["-case_num"]
-
-    # def render_case_num(self, value):
-    #     return f"P{value}"
-
-
-class PreliminaryCaseGroupTable(tables.Table):
-    id = tables.Column(linkify=True)
-    comments = TrimmedTextColumn()
-
-    class Meta:
-        model = models.PreliminaryCaseGroup
-        fields = PreliminaryCaseGroupFilter.Meta.fields
         # order_by = ["-case_num"]
 
     # def render_case_num(self, value):

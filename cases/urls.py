@@ -13,16 +13,6 @@ urlpatterns = [
         views.CaseGroupDetailView.as_view(),
         name="case_group_detail",
     ),
-    path(
-        "pcase-groups/",
-        views.PreliminaryCaseGroupListView.as_view(),
-        name="prelim_case_group_index",
-    ),
-    path(
-        "pcase-groups/<int:pk>/",
-        views.PreliminaryCaseGroupDetailView.as_view(),
-        name="prelim_case_group_detail",
-    ),
     path("pcases/", views.PreliminaryCaseListView.as_view(), name="prelim_case_index"),
     path(
         "pcases/<int:slug>/",

@@ -47,7 +47,6 @@ from .models import (
     LetterTemplate,
     Person,
     PreliminaryCase,
-    PreliminaryCaseGroup,
     PreliminaryFacility,
     Structure,
 )
@@ -58,7 +57,6 @@ from .filters import (
     FacilityFilter,
     PersonFilter,
     PreliminaryCaseFilter,
-    PreliminaryCaseGroupFilter,
     PreliminaryFacilityFilter,
     StructureFilter,
 )
@@ -73,7 +71,6 @@ from .tables import (
     LetterFacilityTable,
     PersonTable,
     PreliminaryCaseExportTable,
-    PreliminaryCaseGroupTable,
     PreliminaryCaseTable,
     PreliminaryFacilityExportTable,
     PreliminaryFacilityTable,
@@ -193,17 +190,6 @@ class CaseGroupListView(FilterTableView):
     def get_queryset(self):
         queryset = super().get_queryset()
         queryset = queryset.annotate(num_cases=Count("cases"))
-        return queryset
-
-
-class PreliminaryCaseGroupListView(FilterTableView):
-    table_class = PreliminaryCaseGroupTable
-    filterset_class = PreliminaryCaseGroupFilter
-    template_name = "cases/prelim_case_group_list.html"
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        queryset = queryset.annotate(num_pcases=Count("prelim_cases"))
         return queryset
 
 
@@ -377,20 +363,6 @@ class LetterView(FormView):
         )
         response["Content-Disposition"] = f'application; filename="{filename}"'
         return response
-
-
-class PreliminaryCaseGroupDetailView(MultiTableMixin, DetailView):
-    model = PreliminaryCaseGroup
-    tables = [PreliminaryCaseTable]
-    table_pagination = {"per_page": 10}
-
-    def get_tables_data(self):
-        pcase_filter_qs = PreliminaryCaseFilter(
-            self.request.GET,
-            queryset=self.object.prelim_cases.all(),
-            form_helper_kwargs={"form_class": "collapse"},
-        ).qs
-        return [pcase_filter_qs]
 
 
 class PreliminaryCaseDetailView(MultiTableMixin, DetailView):
