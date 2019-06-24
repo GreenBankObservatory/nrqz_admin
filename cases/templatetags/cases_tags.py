@@ -170,3 +170,14 @@ def location_table(instance, title, fields):
 @register.filter
 def basename(value):
     return os.path.basename(value)
+
+
+@register.filter
+def table_model_name(table):
+    try:
+        try:
+            return table._meta.model._meta.verbose_name
+        except AttributeError:
+            return table._meta.model.__name__
+    except AttributeError:
+        return None

@@ -30,11 +30,18 @@
       </li>
 
       <li class="nav-item">
-        <a class="nav-link" href={% url "attachment_index" %} title="All attachments that have ever been attached to anything">Attachments</a>
+        <a class="nav-link" href={% url "letters" %} title="Generate (non-)concurrence letters">Letters</a>
       </li>
 
-      <li class="nav-item">
-        <a class="nav-link" href={% url "letters" %} title="Generate (non-)concurrence letters">Letters</a>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Misc.
+        </a>
+
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+         <a class="nav-link" href={% url "attachment_index" %} title="All attachments that have ever been attached to anything">Attachments</a>
+          <a class="nav-link" href={% url "case_group_index" %} title="Case Group Index">Case Groups</a>
+        </div>
       </li>
 
       <li class="nav-item dropdown">

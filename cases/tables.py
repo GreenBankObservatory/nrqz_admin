@@ -14,7 +14,7 @@ from .filters import (
     CaseFilter,
     StructureFilter,
     PreliminaryCaseFilter,
-    PreliminaryCaseGroupFilter,
+    CaseGroupFilter,
 )
 from .columns import SelectColumn, TrimmedTextColumn, UnboundFileColumn
 
@@ -225,16 +225,18 @@ class FacilityTableWithConcur(FacilityTable):
         fields = FacilityFilter.Meta.fields + ["selected"]
 
 
-class PreliminaryCaseGroupTable(tables.Table):
+class CaseGroupTable(tables.Table):
+    id = tables.Column(verbose_name="CG ID", linkify=True)
     comments = TrimmedTextColumn()
+    num_cases = tables.Column(verbose_name="# Cases")
+    num_pcases = tables.Column(verbose_name="# Prelim. Cases")
 
     class Meta:
-        model = models.PreliminaryCaseGroup
-        fields = PreliminaryCaseGroupFilter.Meta.fields
-        # order_by = ["-case_num"]
+        model = models.CaseGroup
+        fields = CaseGroupFilter.Meta.fields
 
-    # def render_case_num(self, value):
-    #     return f"P{value}"
+    def render_id(self, value):
+        return f"CG {value}"
 
 
 class BaseCaseTable(tables.Table):
@@ -280,6 +282,7 @@ class CaseTable(BaseCaseTable):
         verbose_name="SI Done",
         attrs={"th": {"title": "The date of the most recent site inspection (if any)"}},
     )
+    date_recorded = tables.DateColumn()
 
     class Meta:
         model = models.Case

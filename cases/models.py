@@ -39,13 +39,14 @@ from django_import_data.models import AbstractBaseAuditedModel
 from django_super_deduper.models import MergeInfo
 
 from .kml import facility_as_kml, case_as_kml, kml_to_string
-from .managers import LocationManager
+from .managers import CaseManager, LocationManager
 from .mixins import (
     AllFieldsModel,
     DataSourceModel,
     IsActiveModel,
     TrackedModel,
     TrackedOriginalModel,
+    CaseGroupModel,
 )
 from utils.constants import WGS84_SRID
 
@@ -531,17 +532,19 @@ class Facility(AbstractBaseFacility):
         return kml_to_string(facility_as_kml(self))
 
 
-class PreliminaryCaseGroup(
-    AbstractBaseAuditedModel, IsActiveModel, TrackedModel, DataSourceModel, Model
-):
-    comments = SensibleTextField(blank=True)
+class CaseGroup(TrackedModel, Model):
+    """Provides a way to group groups of PreliminaryCases and Cases"""
 
-    class Meta:
-        verbose_name = "Preliminary Case Group"
-        verbose_name_plural = "Preliminary Case Groups"
+    comments = SensibleTextField(blank=True)
+    cases = ManyToManyField("Case", related_name="case_groups", blank=True)
+    pcases = ManyToManyField("PreliminaryCase", related_name="case_groups", blank=True)
+
+    def get_absolute_url(self):
+        return reverse("case_group_detail", args=[str(self.id)])
 
 
 class AbstractBaseCase(
+    CaseGroupModel,
     AllFieldsModel,
     AbstractBaseAuditedModel,
     TrackedOriginalModel,
@@ -585,13 +588,6 @@ class PreliminaryCase(AbstractBaseCase):
         null=True,
         blank=True,
     )
-    pcase_group = ForeignKey(
-        "PreliminaryCaseGroup",
-        on_delete=CASCADE,
-        null=True,
-        blank=True,
-        related_name="prelim_cases",
-    )
     case_num = PositiveIntegerField(
         unique=True,
         db_index=True,
@@ -599,11 +595,13 @@ class PreliminaryCase(AbstractBaseCase):
         default=get_pcase_num,
     )
 
-    case = ForeignKey(
-        "Case", related_name="prelim_cases", on_delete=CASCADE, null=True, blank=True
-    )
+    # case = ForeignKey(
+    #     "Case", related_name="prelim_cases", on_delete=CASCADE, null=True, blank=True
+    # )
 
     attachments = ManyToManyField("Attachment", related_name="prelim_cases", blank=True)
+
+    objects = CaseManager()
 
     def __str__(self):
         return f"P{self.case_num}"
@@ -671,6 +669,8 @@ class Case(AbstractBaseCase):
         null=True, blank=True, help_text="SGRS Service Num."
     )
     agency_num = SensibleCharField(max_length=256, blank=True, help_text="Agency Num.")
+
+    objects = CaseManager()
 
     class Meta:
         verbose_name = "Case"

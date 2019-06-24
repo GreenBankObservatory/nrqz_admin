@@ -1,0 +1,34 @@
+{% extends "cases/base.html" %}
+{% load cases_tags %}
+{% load render_table from django_tables2 %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<p><a href={% url "admin:cases_casegroup_change" casegroup.id %}>Edit</a></p>
+
+<h1>Case Group {{ casegroup.id }}</h1>
+
+
+<h2>Cases</h2>
+{% if tables.0.data %}
+{% render_table tables.0 %}
+{% else %}
+<p>No Cases</p>
+{% endif %}
+
+<h2>Preliminary Cases</h2>
+{% if tables.1.data %}
+{% render_table tables.1 %}
+{% else %}
+<p>No Preliminary Cases</p>
+{% endif %}
+
+<h2>Comments</h2>
+{% if casegroup.comments %}
+{{ casegroup.comments | linebreaks}}
+{% else %}
+<p>No comments</p>
+{% endif %}
+
+{% endblock %}

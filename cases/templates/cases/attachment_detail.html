@@ -21,8 +21,8 @@
 
 <p><a href={% url "admin:cases_attachment_change" attachment.id %}>Edit</a></p>
 
-{% for model, table in tables_with_model_names %}
-    <h2>{{ model }} Results ({{ table.data|length }})</h2>
+{% for table in tables %}
+    <h2>Attachment for {{ table | table_model_name }} ({{ table.data|length }})</h2>
     {% if table.data %}
     {% render_table table %}
     {% else %}

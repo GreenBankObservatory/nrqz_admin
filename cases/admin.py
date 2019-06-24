@@ -4,26 +4,54 @@ from .forms import (
     AttachmentForm,
     BoundariesForm,
     CaseForm,
+    # CaseGroupForm,
     FacilityForm,
     LocationForm,
     PersonForm,
-    PreliminaryCaseForm,
     PreliminaryFacilityForm,
+    PreliminaryCaseForm,
 )
 from .models import (
     Attachment,
     Boundaries,
     Case,
+    CaseGroup,
     Facility,
+    LetterTemplate,
     Location,
     Person,
     PreliminaryCase,
     PreliminaryFacility,
-    LetterTemplate,
 )
 
 
 admin.site.site_header = "NRQZ Admin"
+
+
+class PreliminaryCaseInline(admin.TabularInline):
+    model = PreliminaryCase
+    fields = (
+        "id",
+        "case_num",
+        "applicant",
+        "contact",
+        "date_recorded",
+        "completed",
+        "is_federal",
+        "comments",
+    )
+    extra = 0
+    # autocomplete_fields = ["applicant", "contact"]
+    readonly_fields = ["applicant", "contact"]
+
+
+@admin.register(CaseGroup)
+class CaseGroupAdmin(admin.ModelAdmin):
+    # fields = ("cases", "comments")
+    exclude = ("model_import_attempt",)
+    # form = CaseForm
+    # autocomplete_fields = ["cases"]
+    pass
 
 
 @admin.register(PreliminaryFacility)

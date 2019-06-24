@@ -1,5 +1,13 @@
 """Import Access Application Data"""
 
+
+from tqdm import tqdm
+
+from django.db import transaction
+
+from django_import_data import BaseImportCommand
+from django_import_data.models import RowData
+
 from importers.handlers import handle_case, handle_attachments
 from importers.access_application.formmaps import (
     APPLICANT_FORM_MAP,
@@ -8,8 +16,6 @@ from importers.access_application.formmaps import (
     ATTACHMENT_FORM_MAPS,
     IGNORED_HEADERS,
 )
-from django_import_data import BaseImportCommand
-from django_import_data.models import RowData
 
 
 class Command(BaseImportCommand):

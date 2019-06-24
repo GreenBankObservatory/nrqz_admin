@@ -12,14 +12,8 @@
 
 
 <h2>Preliminary Cases</h2>
-{% if preliminarycasegroup.prelim_cases.exists %}
-<ul>
-    {% for pc in preliminarycasegroup.prelim_cases.all %}
-    <li>
-        <a href="{% url "prelim_case_detail" pc.case_num %}">{{ pc }}</a>
-    </li>
-    {% endfor %}
-</ul>
+{% if tables.0.data %}
+{% render_table tables.0 %}
 {% else %}
 <p>No PCases</p>
 {% endif %}
@@ -29,17 +23,6 @@
 {{ preliminarycasegroup.comments | linebreaks}}
 {% else %}
 <p>No comments</p>
-{% endif %}
-
-
-
-<h2>Attachments</h2>
-{% if attachment_table.data %}
-<div class="container-fluid">
-    {% filter_table attachment_table attachment_filter %}
-</div>
-{% else %}
-<p>No attachments</p>
 {% endif %}
 
 {% endblock %}

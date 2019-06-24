@@ -1,5 +1,7 @@
 from django.db import models
 
+from . import models as case_models
+
 from utils.constants import (
     ACCESS_APPLICATION,
     ACCESS_PRELIM_APPLICATION,
@@ -84,6 +86,37 @@ class AllFieldsModel(models.Model):
     def all_fields(self):
         for field in self._meta.fields:
             yield (field.name, field.verbose_name, field.value_to_string(self))
+
+    class Meta:
+        abstract = True
+
+
+class CaseGroupModel(models.Model):
+    @property
+    def related_cases(self):
+        _related_cases = case_models.Case.objects.none()
+        if self.case_groups:
+            _related_cases = case_models.Case.objects.filter(
+                case_groups__in=self.case_groups.all()
+            )
+
+        if self.__class__ == case_models.Case:
+            _related_cases = _related_cases.exclude(id=self.id)
+
+        return _related_cases
+
+    @property
+    def related_prelim_cases(self):
+        _related_prelim_cases = case_models.PreliminaryCase.objects.none()
+        if self.case_groups:
+            _related_prelim_cases = case_models.PreliminaryCase.objects.filter(
+                case_groups__in=self.case_groups.all()
+            )
+
+        if self.__class__ == case_models.PreliminaryCase:
+            _related_prelim_cases = _related_prelim_cases.exclude(id=self.id)
+
+        return _related_prelim_cases
 
     class Meta:
         abstract = True

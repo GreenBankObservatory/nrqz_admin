@@ -145,8 +145,7 @@ _BASE_CASE_FIELDS = (
 class PreliminaryCaseForm(forms.ModelForm):
     class Meta:
         model = PreliminaryCase
-        fields = sorted((*_BASE_CASE_FIELDS, "case", "pcase_group"))
-
+        fields = _BASE_CASE_FIELDS
         widgets = {
             "applicant": PersonWidget(),
             "contact": PersonWidget(),

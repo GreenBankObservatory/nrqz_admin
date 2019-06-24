@@ -9,7 +9,6 @@ from .models import (
     Person,
     LetterTemplate,
     Structure,
-    PreliminaryCaseGroup,
 )
 
 
