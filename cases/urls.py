@@ -31,6 +31,11 @@ urlpatterns = [
         name="case_autocomplete",
     ),
     path(
+        "casegroup-autocomplete/",
+        autocomplete_views.CaseGroupAutocompleteView.as_view(),
+        name="casegroup_autocomplete",
+    ),
+    path(
         "pcase-autocomplete/",
         autocomplete_views.PreliminaryCaseAutocompleteView.as_view(),
         name="pcase_autocomplete",

@@ -19,6 +19,9 @@ from django.db.models import (
     Max,
     Q,
     Count,
+    Exists,
+    OuterRef,
+    Subquery,
 )
 from django.db.utils import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
@@ -186,6 +189,13 @@ class CaseGroupDetailView(MultiTableMixin, DetailView):
         ).qs
         return [case_filter_qs, pcase_filter_qs]
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context["case_num_ranges"] = self.object.get_case_nums_as_ranges()
+        context["pcase_num_ranges"] = self.object.get_pcase_nums_as_ranges()
+        return context
+
 
 class CaseGroupListView(FilterTableView):
     table_class = CaseGroupTable
@@ -194,9 +204,13 @@ class CaseGroupListView(FilterTableView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        # All Cases for "current" CaseGroup that are not completed
+        uncompleted = Case.objects.filter(case_groups=OuterRef("id"), completed=False)
         queryset = queryset.annotate(
             num_cases=Count("cases", distinct=True),
             num_pcases=Count("pcases", distinct=True),
+            # The inverse of uncompleted will be the completed Cases
+            completed=~Exists(uncompleted),
         )
         return queryset
 
@@ -216,34 +230,7 @@ class CaseListView(FilterTableView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        queryset = queryset.annotate(
-            num_facilities=Count("facilities"),
-            sgrs_pending=Count("id", filter=Q(facilities__sgrs_approval=None)),
-            sgrs_approvals=Count("id", filter=Q(facilities__sgrs_approval=True)),
-        )
-        queryset = queryset.annotate(
-            sgrs_approval=CASE(
-                When(sgrs_pending__gt=0, then=Value(None)),
-                When(sgrs_approvals=F("num_facilities"), then=Value(True)),
-                default=Value(False),
-                output_field=BooleanField(),
-            )
-        )
-        queryset = queryset.annotate(
-            num_facilities=Count("facilities"),
-            erpd_limit_pending=Count("id", filter=Q(facilities__meets_erpd_limit=None)),
-            erpd_limit_pass=Count("id", filter=Q(facilities__meets_erpd_limit=True)),
-        )
-        queryset = queryset.annotate(
-            meets_erpd_limit=CASE(
-                When(erpd_limit_pending__gt=0, then=Value(None)),
-                When(erpd_limit_pass=F("num_facilities"), then=Value(True)),
-                default=Value(False),
-                output_field=BooleanField(),
-            )
-        )
-        queryset = queryset.annotate(num_facilities=Count("facilities"))
-        queryset = queryset.annotate(si_done=Max("facilities__si_done"))
+        queryset = Case.objects.annotate_stuff(queryset)
         return queryset
 
     def get(self, request, *args, **kwargs):

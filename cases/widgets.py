@@ -80,3 +80,7 @@ PFacilitiesWidget = lambda: autocomplete.ModelSelect2Multiple(
 FacilitiesWidget = lambda: autocomplete.ModelSelect2Multiple(
     url="facility_autocomplete", attrs={"data-placeholder": ""}
 )
+
+CaseGroupWidget = lambda: autocomplete.ModelSelect2Multiple(
+    url="casegroup_autocomplete", attrs={"data-placeholder": ""}
+)

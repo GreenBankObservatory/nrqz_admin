@@ -19,7 +19,7 @@ from .form_helpers import (
     StructureFilterFormHelper,
 )
 from .fields import PointSearchField
-from .widgets import PCaseWidget
+from .widgets import PCaseWidget, CaseGroupWidget
 
 
 class WatsonFilter(django_filters.CharFilter):
@@ -139,6 +139,7 @@ class CaseGroupFilter(HelpedFilterSet):
     comments = django_filters.CharFilter(lookup_expr="search")
     num_cases = django_filters.RangeFilter(label="# Cases")
     num_pcases = django_filters.RangeFilter(label="# Prelim. Cases")
+    completed = django_filters.BooleanFilter(label="Completed")
 
     class Meta:
         model = models.CaseGroup
@@ -179,6 +180,10 @@ class CaseFilter(BaseCaseFilter):
     si_done = django_filters.DateFromToRangeFilter(
         field_name="si_done", label="SI Done"
     )
+    # TODO: Broken...
+    # case_groups = django_filters.ModelChoiceFilter(
+    #     queryset=models.CaseGroup.objects.all(), widget=CaseGroupWidget()
+    # )
 
     class Meta:
         model = models.Case

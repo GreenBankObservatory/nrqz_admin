@@ -154,9 +154,3 @@ ul.messages li.error {
 .jumbotron-warning {
     background: #ffefef;
 }
-
-td {
-  text-overflow: ellipsis;
-  /*white-space: nowrap;*/
-  table-layout: fixed;
-}

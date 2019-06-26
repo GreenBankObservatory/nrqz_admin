@@ -145,6 +145,7 @@ class CaseGroupFilterFormHelper(FormHelper):
             Div("comments", css_class="col"),
             Div("num_cases", css_class="col"),
             Div("num_pcases", css_class="col"),
+            Div("completed", css_class="col"),
             css_class="row",
         )
     )
@@ -156,8 +157,7 @@ class PreliminaryCaseFilterFormHelper(FormHelper):
     layout = CollapsibleFilterFormLayout(
         Div(
             Div("case_num", "applicant", "contact", css_class="col"),
-            Div("radio_service", "completed", css_class="col"),
-            Div("is_federal", css_class="col"),
+            Div("radio_service", "completed", "is_federal", css_class="col"),
             css_class="row",
         ),
         extra_buttons=[

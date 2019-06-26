@@ -50,7 +50,7 @@ class CaseGroupAdmin(admin.ModelAdmin):
     # fields = ("cases", "comments")
     exclude = ("model_import_attempt",)
     # form = CaseForm
-    # autocomplete_fields = ["cases"]
+    autocomplete_fields = ["cases", "pcases"]
     pass
 
 

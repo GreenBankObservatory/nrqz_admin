@@ -5,10 +5,34 @@
 
 {% block content %}
 
-<p><a href={% url "admin:cases_casegroup_change" casegroup.id %}>Edit</a></p>
+<div class="row">
+    <div class="col-sm-4">
+        <h1>Case Group {{ casegroup.id }} ({% if casegroup.get_completed %}<span style="color:green">Completed</span>{% else %}<span style="color:red">Not Completed</span>{% endif %})</h1>
 
-<h1>Case Group {{ casegroup.id }}</h1>
+    </div>
 
+    <div class="col-auto">
+        <p><a href={% url "admin:cases_casegroup_change" casegroup.id %}>Edit</a></p>
+    </div>
+</div>
+<h2>Summary</h2>
+{% if casegroup.name %}
+    {{ casegroup.name }}
+{% endif %}
+
+{% if case_num_ranges %}
+<p><b>Cases:</b> {{ case_num_ranges }}</p>
+{% endif %}
+{% if pcase_num_ranges %}
+<p><b>Prelim. Cases:</b> {{ pcase_num_ranges }}</p>
+{% endif %}
+
+<h2>Comments</h2>
+{% if casegroup.comments %}
+{{ casegroup.comments | linebreaks }}
+{% else %}
+<p>No comments</p>
+{% endif %}
 
 <h2>Cases</h2>
 {% if tables.0.data %}
@@ -24,11 +48,5 @@
 <p>No Preliminary Cases</p>
 {% endif %}
 
-<h2>Comments</h2>
-{% if casegroup.comments %}
-{{ casegroup.comments | linebreaks}}
-{% else %}
-<p>No comments</p>
-{% endif %}
 
 {% endblock %}

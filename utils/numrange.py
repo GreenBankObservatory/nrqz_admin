@@ -16,7 +16,7 @@ def itemAndNext(iterable):
     yield (item, None)
 
 
-def make_list_of_ranges_from_nums(nums):
+def make_list_of_ranges_from_nums(nums, prefix=None):
     """Parse a list of numbers into a list of ranges.
 
     This is a helper function for get_str_from_nums(), and does all of the
@@ -31,6 +31,8 @@ def make_list_of_ranges_from_nums(nums):
     """
 
     # Make sure they are sorted
+    if not nums:
+        return []
     nums = sorted(nums)
     ranges = []
     # The first range_start will be the first element of nums
@@ -40,7 +42,10 @@ def make_list_of_ranges_from_nums(nums):
             range_start = num
 
         if next_num is None or num + 1 != next_num:
-            ranges.append((range_start, num))
+            if prefix is not None:
+                ranges.append((f"{prefix}{range_start}", f"{prefix}{num}"))
+            else:
+                ranges.append((range_start, num))
             range_start = None
 
     return ranges
@@ -53,7 +58,7 @@ def make_list_of_ranges_from_nums(nums):
 #   such as '5-7,1-6', which yields
 #   [1,2,3,4,5,6,7] and should be represented
 #   as '1-7'
-def get_str_from_nums(nums, join_str=","):
+def get_str_from_nums(nums, join_str=",", range_str="–", prefix=None):
     """Create a string representation of a series of number ranges given a
     list of numbers.
 
@@ -70,7 +75,7 @@ def get_str_from_nums(nums, join_str=","):
         str: String representation of a series of number ranges
     """
 
-    ranges_list = make_list_of_ranges_from_nums(nums)
+    ranges_list = make_list_of_ranges_from_nums(nums, prefix=prefix)
     item_list = []
 
     for r in ranges_list:
@@ -78,6 +83,6 @@ def get_str_from_nums(nums, join_str=","):
         if r[0] == r[1]:
             item_list.append(str(r[0]))
         else:
-            item_list.append(str(r[0]) + "-" + str(r[1]))
+            item_list.append(str(r[0]) + range_str + str(r[1]))
 
     return join_str.join(item_list)

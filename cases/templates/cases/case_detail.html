@@ -124,22 +124,6 @@
 <p>No attachments</p>
 {% endif %}
 
-<div class="row float-left">
-    <div class="col">
-        <h2 title="Shows other members of this Case's Case Group">Related Cases</h2>
-    </div>
-    {% if case.case_group %}
-    <div class="col-auto">
-        <a
-            href="{% url 'case_group_detail' case.case_group.id %}"
-            title="From here you can edit the case group to add more cases to it, etc."
-        >
-            View Case Group
-        </a>
-    </div>
-    {% endif %}
-</div>
-
 {% include "cases/related_cases_info.html" with case=case case_table=tables.2 pcase_table=tables.3 %}
 
 {% if case.import_error_summary %}

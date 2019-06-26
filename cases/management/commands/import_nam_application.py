@@ -4,6 +4,7 @@ import re
 
 from django_import_data import BaseImportCommand
 
+from cases.models import CaseGroup
 from importers.handlers import handle_case
 from importers.nrqz_analyzer.formmaps import (
     CASE_FORM_MAP,
@@ -179,8 +180,5 @@ class Command(BaseImportCommand):
     def file_level_checks(self, rows):
         return {}, {}
 
-    # def post_import_checks(self, file_import_attempts):
-    #     if len(file_import_attempts) != 1:
-    #         raise ValueError("There should only be one FIA!")
-
-    #     file_import_attempt = file_import_attempts[0]
+    def post_import_actions(self):
+        CaseGroup.objects.build_all_case_groups()

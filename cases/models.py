@@ -39,7 +39,7 @@ from django_import_data.models import AbstractBaseAuditedModel
 from django_super_deduper.models import MergeInfo
 
 from .kml import facility_as_kml, case_as_kml, kml_to_string
-from .managers import CaseManager, LocationManager
+from .managers import CaseManager, LocationManager, CaseGroupManager
 from .mixins import (
     AllFieldsModel,
     DataSourceModel,
@@ -49,6 +49,7 @@ from .mixins import (
     CaseGroupModel,
 )
 from utils.constants import WGS84_SRID
+from utils.numrange import get_str_from_nums
 
 
 class SensibleTextyField:
@@ -535,12 +536,41 @@ class Facility(AbstractBaseFacility):
 class CaseGroup(TrackedModel, Model):
     """Provides a way to group groups of PreliminaryCases and Cases"""
 
+    name = SensibleCharField(max_length=256, blank=True)
     comments = SensibleTextField(blank=True)
     cases = ManyToManyField("Case", related_name="case_groups", blank=True)
     pcases = ManyToManyField("PreliminaryCase", related_name="case_groups", blank=True)
 
+    objects = CaseGroupManager()
+
     def get_absolute_url(self):
         return reverse("case_group_detail", args=[str(self.id)])
+
+    def get_pcase_nums_as_ranges(self):
+        return get_str_from_nums(
+            self.pcases.values_list("case_num", flat=True), join_str=", ", prefix="P"
+        )
+
+    def get_case_nums_as_ranges(self):
+        return get_str_from_nums(
+            self.cases.values_list("case_num", flat=True), join_str=", "
+        )
+
+    def get_all_case_nums_as_ranges(self):
+        case_nums_as_ranges = self.get_case_nums_as_ranges()
+        pcase_nums_as_ranges = self.get_pcase_nums_as_ranges()
+
+        return f"Cases: {case_nums_as_ranges}\nPrelim. Cases: {pcase_nums_as_ranges}"
+
+    def __str__(self):
+
+        if self.name:
+            return self.name
+
+        return super().__str__()
+
+    def get_completed(self):
+        return not self.cases.filter(completed=False).exists()
 
 
 class AbstractBaseCase(

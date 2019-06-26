@@ -9,6 +9,7 @@ from .models import (
     Person,
     LetterTemplate,
     Structure,
+    CaseGroup,
 )
 
 
@@ -70,3 +71,11 @@ class AttachmentAutocompleteView(autocomplete.Select2QuerySetView):
         if self.q:
             attachment = attachment.filter(path__icontains=self.q).order_by("path")
         return attachment
+
+
+class CaseGroupAutocompleteView(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        case_groups = CaseGroup.objects.order_by("id")
+        if self.q:
+            case_groups = case_groups.filter(id__contains=self.q)
+        return case_groups

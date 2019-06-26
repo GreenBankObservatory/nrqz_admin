@@ -103,9 +103,12 @@ class CaseManagerTest(TestCase):
         # Basically this is calling handle_pcase_group and derive_cases_from_comments
         # on each PC.
         Case.objects.build_case_groups()
+        PreliminaryCase.objects.build_case_groups()
         pc1.refresh_from_db()
         pc2.refresh_from_db()
         pc3.refresh_from_db()
+
+        self.assertEqual(pc1.case_groups.first(), CaseGroup.objects.first())
         # The result should be, in this case, that there is a single PCG with
         # all 3 PCs in it
         self.assertTrue(
@@ -113,17 +116,11 @@ class CaseManagerTest(TestCase):
             == list(pc2.case_groups.all())
             == list(pc3.case_groups.all())
         )
-        # self.assertEqual(
-        #     list(pc1.pcase_group.prelim_cases.order_by("case_num")), [pc1, pc2, pc3]
-        # )
-
-    # def test_simple(self):
-    #     c13 = Case.objects.create(case_num=13)
-    #     c44 = Case.objects.create(case_num=44)
-    #     pc1 = PreliminaryCase.objects.create(case_num=1, comments="NRQZ#13 NRQZ#44")
-    #     Case.objects.build_case_groups()
-
-    #     self.assertEqual(pc1.case, c13)
+        self.assertEqual(CaseGroup.objects.count(), 1)
+        self.assertEqual(list(pc1.case_groups.first().cases.order_by("case_num")), [c7])
+        self.assertEqual(
+            list(pc1.case_groups.first().pcases.order_by("case_num")), [pc1, pc2, pc3]
+        )
 
     def test_case_stuff(self):
         c7 = Case.objects.create(case_num=7, comments="NRQZ#P1")
@@ -136,10 +133,9 @@ class CaseManagerTest(TestCase):
         Case.objects.build_case_groups()
         c7.refresh_from_db()
         pc1.refresh_from_db()
-        # # The result should be, in this case, that there is a single PCG with
-        # # all 3 PCs in it
-        # self.assertTrue(pc1.pcase_group == pc2.pcase_group == pc3.pcase_group)
-        # self.assertEqual(
-        #     list(pc1.pcase_group.prelim_cases.order_by("case_num")), [pc1, pc2, pc3]
-        # )
+        self.assertEqual(CaseGroup.objects.count(), 1)
+        self.assertEqual(list(pc1.case_groups.first().cases.order_by("case_num")), [c7])
+        self.assertEqual(
+            list(pc1.case_groups.first().pcases.order_by("case_num")), [pc1]
+        )
         self.assertEqual(list(c7.case_groups.all()), list(pc1.case_groups.all()))

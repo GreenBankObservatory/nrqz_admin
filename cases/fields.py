@@ -100,7 +100,7 @@ class PointSearchField(forms.MultiValueField):
                 ) from error
 
             try:
-                point = Point(f"Point({longitude} {latitude})")
+                point = Point(x=longitude, y=latitude)
             except (ValueError, GEOSException):
                 raise forms.ValidationError(
                     f"Failed to create Point from ({coords_orig})!"

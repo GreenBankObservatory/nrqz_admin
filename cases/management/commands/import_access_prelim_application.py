@@ -35,10 +35,6 @@ class Command(BaseImportCommand):
     ]
     IGNORED_HEADERS = IGNORED_HEADERS
 
-    def post_import_actions(self):
-        Case.objects.build_case_groups()
-        PreliminaryCase.objects.build_case_groups()
-
     def handle_record(self, row_data, file_import_attempt, durable=True):
         applicant, applicant_audit = APPLICANT_FORM_MAP.save_with_audit(
             row_data,

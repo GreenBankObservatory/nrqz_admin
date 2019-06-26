@@ -231,12 +231,24 @@ class CaseGroupTable(tables.Table):
     num_cases = tables.Column(verbose_name="# Cases")
     num_pcases = tables.Column(verbose_name="# Prelim. Cases")
 
+    completed = tables.BooleanColumn(
+        attrs={
+            "th": {
+                "title": "A Case Group is completed once all of its Cases are "
+                "completed. Prelim. Cases ARE NOT considered."
+            }
+        }
+    )
+
     class Meta:
         model = models.CaseGroup
         fields = CaseGroupFilter.Meta.fields
 
-    def render_id(self, value):
-        return f"CG {value}"
+    def render_id(self, record):
+        if record.name:
+            return f"{record.name} (CG {record.id})"
+
+        return f"CG {record.id}"
 
 
 class BaseCaseTable(tables.Table):
