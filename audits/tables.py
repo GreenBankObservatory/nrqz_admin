@@ -61,6 +61,10 @@ class FileImporterTable(tables.Table):
         verbose_name="# FIAs",
         attrs={"th": {"title": "The number of FIAs that this FI has created"}},
     )
+    num_model_import_attempts = tables.Column(
+        verbose_name="# MIAs",
+        attrs={"th": {"title": "The number of MIAs in this FI's most recent FIA"}},
+    )
 
     class Meta:
         model = FileImporter

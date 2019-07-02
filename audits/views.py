@@ -123,7 +123,7 @@ class FileImporterDetailView(DetailView):
         if not self.fia_filter:
             self.fia_filter = FileImportAttemptFilter(
                 self.request.GET,
-                queryset=self.object.file_import_attempts.all(),
+                queryset=self.object.file_import_attempts.all().annotate_num_model_import_attempts(),
                 # form_helper_kwargs={"form_class": "collapse"},
             )
             context["fia_filter"] = self.fia_filter
@@ -412,3 +412,24 @@ def file_importer_change_path(request, pk):
                 ).refresh_from_filesystem()
 
     return HttpResponseRedirect(file_importer.get_absolute_url())
+
+
+class Dashboard(FilterTableView):
+    table_class = FileImporterTable
+    filterset_class = FileImporterFilter
+    template_name = "audits/dashboard.html"
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        queryset = queryset.annotate_acknowledged()
+        queryset = queryset.annotate_num_model_import_attempts()
+        queryset = queryset.annotate_num_file_import_attempts()
+
+        return queryset.filter(
+            acknowledged=False,
+            status__in=[
+                FileImporter.STATUSES.rejected.db_value,
+                FileImporter.STATUSES.created_dirty.db_value,
+                FileImporter.STATUSES.empty.db_value,
+            ],
+        )

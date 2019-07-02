@@ -11,6 +11,7 @@ from django_import_data.views import (
 from . import views
 
 urlpatterns = [
+    path("dashboard/", views.Dashboard.as_view(), name="dashboard"),
     path(
         "file-imports/", views.FileImporterListView.as_view(), name="fileimporter_index"
     ),

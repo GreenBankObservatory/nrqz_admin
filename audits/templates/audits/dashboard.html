@@ -1,0 +1,10 @@
+{% extends "cases/base.html" %}
+{% load crispy_forms_tags %}
+{% load cases_tags %}
+{% load audits_tags %}
+{% load django_import_data_tags %}
+
+{% block content %}
+<h1>Audit Dashboard</h1>
+{% filter_table %}
+{% endblock content %}
