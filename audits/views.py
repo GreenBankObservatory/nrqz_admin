@@ -85,14 +85,10 @@ class FileImporterListView(FilterTableView):
     filterset_class = FileImporterFilter
     template_name = "audits/fileimporter_index.html"
 
-    # def get_queryset(self):
-    #     queryset = super().get_queryset()
-    #     queryset = queryset.annotate(
-    #         num_model_import_attempts=Count(
-    #             "file_import_attempts__model_import_attempts", distinct=True
-    #         )
-    #     )
-    #     return queryset
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        queryset = queryset.annotate_num_model_import_attempts()
+        return queryset
 
 
 class FileImportAttemptListView(FilterTableView):
@@ -103,10 +99,7 @@ class FileImportAttemptListView(FilterTableView):
     def get_queryset(self):
         queryset = super().get_queryset()
         queryset = queryset.annotate(
-            num_model_import_attempts=Count("model_import_attempts"),
-            is_active=Count(
-                "id", distinct=True, filter=Q(model_import_attempts__is_active=True)
-            ),
+            num_model_import_attempts=Count("model_import_attempts")
         )
         return queryset
 
@@ -340,16 +333,12 @@ class FileImportBatchListView(FilterTableView):
     filterset_class = FileImportBatchFilter
     template_name = "audits/generic_table.html"
 
-    # def get_queryset(self):
-    #     queryset = super().get_queryset()
-    #     queryset = fibs.annotate(
-    #         num_file_import_attempts=Count("file_import_attempts"),
-    #         is_active=Count(
-    #             "id",
-    #             filter=Q(file_import_attempts__model_import_attempts__is_active=True),
-    #         ),
-    #     )
-    #     return queryset
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        queryset = queryset.annotate(
+            num_file_import_attempts=Count("file_import_attempts", distinct=True)
+        )
+        return queryset
 
 
 class FileImportBatchDetailView(DetailView):
