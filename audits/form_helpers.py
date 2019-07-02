@@ -10,7 +10,6 @@ class FileImportBatchFilterFormHelper(FormHelper):
             Div("id", css_class="col"),
             Div("created_on", css_class="col"),
             Div("status", css_class="col"),
-            Div("is_active", css_class="col"),
             css_class="row",
         )
     )
@@ -24,7 +23,6 @@ class FileImporterFilterFormHelper(FormHelper):
             Div("modified_on", css_class="col"),
             Div("status", css_class="col"),
             Div("acknowledged", css_class="col"),
-            Div("is_active", css_class="col"),
             css_class="row",
         )
     )
@@ -38,7 +36,6 @@ class FileImportAttemptFilterFormHelper(FormHelper):
             Div("created_on", css_class="col"),
             Div("status", css_class="col"),
             Div("acknowledged", css_class="col"),
-            Div("is_active", css_class="col"),
             css_class="row",
         )
     )

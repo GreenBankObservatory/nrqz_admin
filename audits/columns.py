@@ -22,19 +22,29 @@ class ImportStatusColumn(Column):
             status = STATUSES[value]
 
         if status == STATUSES.rejected:
+            title = "One or more model import attempts were rejected"
             css_class = "batch-rejected"
         elif status == STATUSES.created_dirty:
+            title = "One or more model import attempts were imported with some errors"
             css_class = "batch-created_dirty"
         elif status == STATUSES.created_clean:
+            title = "All model import attempts were imported cleanly"
             css_class = "batch-created_clean"
         elif status == STATUSES.pending:
+            title = "Import is in progress"
             css_class = "batch-pending"
+        elif status == STATUSES.deleted:
+            title = "All associated models have been deleted"
+            css_class = "batch-pending"
+        elif status == STATUSES.empty:
+            title = "No model imports were attempted"
+            css_class = "batch-rejected"
         else:
             raise ValueError(f"ImportStatusColumn got unexpected value: {value!r}")
 
         value = escape(value)
         display = status.value
-        return mark_safe(f"<span class='{css_class}'>{display}</span>")
+        return mark_safe(f"<span title='{title}'' class='{css_class}'>{display}</span>")
 
 
 class BaseNameColumn(Column):

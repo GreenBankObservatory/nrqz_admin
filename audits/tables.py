@@ -23,7 +23,6 @@ class FileImportBatchTable(tables.Table):
     command = tables.Column(verbose_name="Importer")
     created_on = tables.DateTimeColumn(verbose_name="Date Imported")
     status = ImportStatusColumn()
-    is_active = tables.BooleanColumn(verbose_name="Active")
     num_file_import_attempts = tables.Column(
         verbose_name="# FIAs",
         attrs={
@@ -58,7 +57,6 @@ class FileImporterTable(tables.Table):
         },
     )
     acknowledged = tables.BooleanColumn()
-    is_active = tables.BooleanColumn(verbose_name="Active")
     num_file_import_attempts = tables.Column(
         verbose_name="# FIAs",
         attrs={"th": {"title": "The number of FIAs that this FI has created"}},
@@ -84,7 +82,6 @@ class FileImportAttemptTable(tables.Table):
         #     }
         # },
     )
-    is_active = tables.BooleanColumn(verbose_name="Active")
     imported_from = BaseNameColumn()
 
     num_model_import_attempts = tables.Column(
