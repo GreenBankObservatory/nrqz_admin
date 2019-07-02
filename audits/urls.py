@@ -3,15 +3,9 @@
 from django.urls import path
 
 from django_import_data.views import (
-    FileImportAttemptDetailView,
-    FileImportAttemptListView,
-    FileImporterDetailView,
-    FileImporterListView,
-    ModelImportAttemptDetailView,
-    ModelImportAttemptListView,
     RowDataDetailView,
-    RowDataListView,
     changed_files_view,
+    acknowledge_file_import_attempt,
 )
 
 from . import views
@@ -61,6 +55,11 @@ urlpatterns = [
         name="fileimportattempt_explain",
     ),
     path(
+        "file-import-attempts/<int:pk>/acknowledge",
+        acknowledge_file_import_attempt,
+        name="acknowledge_fileimportattempt",
+    ),
+    path(
         "changed-file-import-attempts/",
         changed_files_view,
         name="changed_file_import_attempts",
@@ -92,7 +91,7 @@ urlpatterns = [
     ),
     path(
         "model-imports/<int:pk>/",
-        ModelImportAttemptDetailView.as_view(),
+        views.ModelImportAttemptDetailView.as_view(),
         name="modelimportattempt_detail",
     ),
     # path("row-data/", views.RowDataListView.as_view(), name="rowdata_list"),

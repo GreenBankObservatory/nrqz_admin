@@ -35,24 +35,32 @@
 
 
 <div class="row">
-    <div class="col-lg-2">
+    <div class="col-md-auto">
         <form action="{% url 'fileimporter_reimport' fileimporter.id %}">
             <input required type="checkbox" name="sanity" value="I am super sure">
             <input required type="submit" name="submit" value="Re-import" title="Re-import all models that this File Importer has attempted to create previously">
         </form>
     </div>
 
-    <div class="col-lg-7">
+    <div class="col-md-auto">
         <form action="{% url 'fileimporter_update' fileimporter.id %}" method="POST">{% csrf_token %}
             <input required name="file_path" value="{{ fileimporter.file_path }}" size="50">
             <input required type="submit" name="submit" value="Update file path" title="Update the file path for this File Importer">
         </form>
     </div>
 
-    <div class="col-lg-3">
+    <div class="col-md-auto">
         <form action="{% url 'fileimporter_delete_models' fileimporter.id %}">
             <input required type="checkbox" name="sanity" value="I am super sure">
             <input required type="submit" name="submit" value="Delete Created Models" title="Delete all models that have been created by this File Importer. This *does not* delete this File Importer!">
+        </form>
+    </div>
+
+    <div class="col-md-auto">
+        <form method="POST" action="{% url 'acknowledge_fileimportattempt' fileimporter.latest_file_import_attempt.id %}">
+            {% csrf_token %}
+            <input required type="checkbox" name="sanity" value="I am super sure">
+            <input required type="submit" name="acknowledge" value={% if fileimporter.latest_file_import_attempt.acknowledged %}"Unacknowledge"{% else %}"Acknowledge"{% endif %}>
         </form>
     </div>
 </div>

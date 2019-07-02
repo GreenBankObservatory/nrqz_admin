@@ -31,10 +31,18 @@
             </form>
         </div>
 
-        <div class="col-lg-10">
+        <div class="col-lg-2">
             <form action="{% url 'fileimporter_delete_models' fileimportattempt.file_importer.id %}">
                 <input required type="checkbox" name="sanity" value="I am super sure">
                 <input required type="submit" name="submit" value="Delete">
+            </form>
+        </div>
+
+        <div class="col-auto">
+            <form method="POST" action="{% url 'acknowledge_fileimportattempt' fileimportattempt.id %}">
+                {% csrf_token %}
+                <input required type="checkbox" name="sanity" value="I am super sure">
+                <input required type="submit" name="acknowledge" value={% if fileimportattempt.acknowledged %}"Unacknowledge"{% else %}"Acknowledge"{% endif %}>
             </form>
         </div>
     </div>

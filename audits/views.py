@@ -14,7 +14,12 @@ from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
 
 from django_import_data.views import CreateFromImportAttemptView
-from django_import_data.models import FileImportBatch, FileImporter, FileImportAttempt
+from django_import_data.models import (
+    FileImportBatch,
+    FileImporter,
+    FileImportAttempt,
+    ModelImportAttempt,
+)
 
 
 from cases.views import FilterTableView
@@ -129,6 +134,11 @@ class FileImporterDetailView(DetailView):
             context["fia_table"] = table
 
         return context
+
+
+class ModelImportAttemptDetailView(DetailView):
+    model = ModelImportAttempt
+    template_name = "audits/modelimportattempt_detail.html"
 
 
 class ModelImportAttemptListView(FilterTableView):
