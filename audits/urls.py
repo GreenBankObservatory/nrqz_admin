@@ -5,7 +5,7 @@ from django.urls import path
 from django_import_data.views import (
     RowDataDetailView,
     changed_files_view,
-    acknowledge_file_import_attempt,
+    acknowledge_file_importer,
 )
 
 from . import views
@@ -56,9 +56,9 @@ urlpatterns = [
         name="fileimportattempt_explain",
     ),
     path(
-        "file-import-attempts/<int:pk>/acknowledge",
-        acknowledge_file_import_attempt,
-        name="acknowledge_fileimportattempt",
+        "file-importer/<int:pk>/acknowledge",
+        acknowledge_file_importer,
+        name="acknowledge_fileimporter",
     ),
     path(
         "changed-file-import-attempts/",

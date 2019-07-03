@@ -24,7 +24,6 @@ class TrimmedTextColumn(Column):
             else:
                 abs_trimmed = value
             return mark_safe(f"<span title='{abs_trimmed}'>{trimmed} ...</span>")
-        print("wtf")
         return value
 
     def value(self, value):
@@ -40,6 +39,7 @@ class SelectColumn(CheckBoxColumn):
 
     @property
     def header(self):
+        prev = super().header
         return mark_safe(f"<span>{SelectColumn.verbose_name}</span>")
 
     def render(self, value, bound_column, record):

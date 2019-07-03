@@ -12,6 +12,7 @@ from django.views.generic import CreateView, UpdateView
 from django.views.generic.base import RedirectView
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
+from django.views.generic.edit import ProcessFormView
 
 from django_import_data.views import CreateFromImportAttemptView
 from django_import_data.models import (
@@ -20,6 +21,7 @@ from django_import_data.models import (
     FileImportAttempt,
     ModelImportAttempt,
 )
+from django_tables2.views import SingleTableMixin
 
 
 from cases.views import FilterTableView
@@ -32,6 +34,7 @@ from .filters import (
 from .tables import (
     FileImportAttemptTable,
     FileImportBatchTable,
+    FileImporterDashboardTable,
     FileImporterTable,
     ModelImportAttemptTable,
 )
@@ -414,13 +417,14 @@ def file_importer_change_path(request, pk):
     return HttpResponseRedirect(file_importer.get_absolute_url())
 
 
-class Dashboard(FilterTableView):
-    table_class = FileImporterTable
-    filterset_class = FileImporterFilter
+class Dashboard(SingleTableMixin, TemplateView, ProcessFormView):
+    table_class = FileImporterDashboardTable
+    # filterset_class = FileImporterFilter
     template_name = "audits/dashboard.html"
+    table_pagination = {"per_page": 10}
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        queryset = FileImporter.objects.all()
         queryset = queryset.annotate_acknowledged()
         queryset = queryset.annotate_num_model_import_attempts()
         queryset = queryset.annotate_num_file_import_attempts()
@@ -433,3 +437,34 @@ class Dashboard(FilterTableView):
                 FileImporter.STATUSES.empty.db_value,
             ],
         )
+
+    @transaction.atomic
+    def dispatch(self, request, *args, **kwargs):
+        if request.method == "POST":
+            acknowledge_all = request.POST.get("all", None)
+            if acknowledge_all:
+                file_importers = self.get_queryset().all()
+            else:
+                file_importer_ids = request.POST.getlist("check", None)
+                file_importers = FileImporter.objects.filter(id__in=file_importer_ids)
+
+            # Get count here, since QS will be empty soon
+            num_file_importers = file_importers.count()
+            # Convert to string here, since this QS will be empty soon. We rely
+            # on Django to concatenate the values list string to a reasonable length,
+            # so we don't have to worry about doing it ourselves
+            fi_str = str(file_importers.values_list("id", flat=True))
+            for file_importer in file_importers.all():
+                file_importer.acknowledge()
+            if num_file_importers:
+                messages.success(
+                    request,
+                    f"Successfully acknowledged {num_file_importers} File Importers: {fi_str}",
+                )
+            else:
+                messages.warning(
+                    request, "No File Importers selected for acknowledgement"
+                )
+            return HttpResponseRedirect(reverse("dashboard"))
+
+        return super().dispatch(request, *args, **kwargs)

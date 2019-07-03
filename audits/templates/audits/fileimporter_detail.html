@@ -57,7 +57,7 @@
     </div>
 
     <div class="col-md-auto">
-        <form method="POST" action="{% url 'acknowledge_fileimportattempt' fileimporter.latest_file_import_attempt.id %}">
+        <form method="POST" action="{% url 'acknowledge_fileimporter' fileimporter.latest_file_import_attempt.id %}">
             {% csrf_token %}
             <input required type="checkbox" name="sanity" value="I am super sure">
             <input required type="submit" name="acknowledge" value={% if fileimporter.latest_file_import_attempt.acknowledged %}"Unacknowledge"{% else %}"Acknowledge"{% endif %}>

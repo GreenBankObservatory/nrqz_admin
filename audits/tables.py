@@ -15,7 +15,7 @@ from .filters import (
     FileImportAttemptFilter,
     FileImportBatchFilter,
 )
-from .columns import BaseNameColumn, ImportStatusColumn
+from .columns import BaseNameColumn, ImportStatusColumn, TitledCheckBoxColumn
 
 
 class FileImportBatchTable(tables.Table):
@@ -46,7 +46,7 @@ class FileImportBatchTable(tables.Table):
 
 class FileImporterTable(tables.Table):
     id = tables.Column(linkify=True, verbose_name="FI")
-    file_path = BaseNameColumn(linkify=True)
+    file_path = BaseNameColumn()
     status = ImportStatusColumn(
         verbose_name="Import Status",
         attrs={
@@ -73,6 +73,24 @@ class FileImporterTable(tables.Table):
 
     def render_id(self, value):
         return f"FI {value}"
+
+
+class FileImporterDashboardTable(FileImporterTable):
+    check = TitledCheckBoxColumn(
+        accessor="id",
+        attrs={
+            "th": {
+                "title": "Select the FIs you want to acknowledged (or the checkbox here to acknowledge all of them)"
+            },
+            "th__input": {"title": "Acknowledge all", "name": "all"},
+        },
+        verbose_name="Acknowledge",
+    )
+
+    class Meta:
+        model = FileImporter
+        fields = FileImporterFilter.Meta.fields
+        order_by = ["-modified_on"]
 
 
 class FileImportAttemptTable(tables.Table):

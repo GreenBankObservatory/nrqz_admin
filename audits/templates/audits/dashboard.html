@@ -1,10 +1,29 @@
 {% extends "cases/base.html" %}
 {% load crispy_forms_tags %}
-{% load cases_tags %}
-{% load audits_tags %}
-{% load django_import_data_tags %}
+{% load render_table from django_tables2 %}
+{% load static %}
 
 {% block content %}
 <h1>Audit Dashboard</h1>
-{% filter_table %}
+{% if table.data %}
+<form method="POST" >{% csrf_token %}
+    {% render_table table %}
+    <button class="btn btn-primary" type="submit" value="submit" name="Submit">Acknowledge</button>
+</form>
+{% else %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/congratulations.css' %}">
+<script src='https://code.jquery.com/jquery-3.3.1.min.js' crossorigin='anonymous'></script>
+<script src="{% static 'js/congratulations.js' %}"></script>
+<div id="content">
+    <p class="easter">🎉 🎉 🎉</p>
+    <p class="easter">All done!</p>
+    <p class="easter easter-small">There are no unacknowledged File Importers that need action!</p>
+    <p class="easter">😊 😊 😊</p>
+    <div class="buttonContainer">
+    <button id="stopButton" class="btn btn-info">Stop Confetti</button>
+    </div>
+</div>
+<canvas id="canvas"></canvas>
+
+{% endif %}
 {% endblock content %}
