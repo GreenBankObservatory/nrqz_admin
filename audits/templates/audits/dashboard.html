@@ -6,6 +6,7 @@
 {% block content %}
 <h1>Audit Dashboard</h1>
 {% if table.data %}
+<p>Importers on this page have had an issue during their most recent import attempt. You will need to manually resolve the offending source files, then reimport them in order to resolve these.</p>
 <form method="POST" >{% csrf_token %}
     {% render_table table %}
     <button class="btn btn-primary" type="submit" value="submit" name="Submit">Acknowledge</button>
