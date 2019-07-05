@@ -63,7 +63,8 @@ def merge_people(person_to_keep, people_to_merge):
 
     # Avoid breaking serialization by replacing MIA instances with their ID
     for item in alias_field_values:
-        item["model_import_attempt"] = item["model_import_attempt"].id
+        if "model_import_attempt" in item:
+            item["model_import_attempt"] = item["model_import_attempt"].id
 
     # Filter out fields that we have not whitelisted
     alias_field_values_summary = {
