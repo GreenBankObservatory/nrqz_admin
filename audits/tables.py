@@ -86,10 +86,15 @@ class FileImporterDashboardTable(FileImporterTable):
         },
         verbose_name="Acknowledge",
     )
+    acknowledged = None
 
     class Meta:
         model = FileImporter
-        fields = FileImporterFilter.Meta.fields
+        fields = [
+            field
+            for field in FileImporterFilter.Meta.fields
+            if field not in "acknowledged"
+        ]
         order_by = ["-modified_on"]
 
 
