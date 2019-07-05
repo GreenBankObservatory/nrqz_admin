@@ -3,41 +3,39 @@ import os
 
 import django_tables2 as tables
 from django_import_data.models import (
+    ModelImporter,
     ModelImportAttempt,
     FileImporter,
     FileImportAttempt,
-    FileImportBatch,
+    FileImporterBatch,
 )
 
 from .filters import (
+    ModelImporterFilter,
     ModelImportAttemptFilter,
     FileImporterFilter,
     FileImportAttemptFilter,
-    FileImportBatchFilter,
+    FileImporterBatchFilter,
 )
 from .columns import BaseNameColumn, ImportStatusColumn, TitledCheckBoxColumn
 
 
-class FileImportBatchTable(tables.Table):
+class FileImporterBatchTable(tables.Table):
     id = tables.Column(linkify=True, verbose_name="FIB")
     command = tables.Column(verbose_name="Importer")
     created_on = tables.DateTimeColumn(verbose_name="Date Imported")
     status = ImportStatusColumn()
-    num_file_import_attempts = tables.Column(
-        verbose_name="# FIAs",
-        attrs={
-            "th": {
-                "title": "The number of MIAs that this FIA created (i.e. the number of models it tried to import)"
-            }
-        },
+    num_file_importers = tables.Column(
+        verbose_name="# FIs",
+        attrs={"th": {"title": "The number of File Importers in this batch"}},
     )
 
     class Meta:
-        model = FileImportBatch
+        model = FileImporterBatch
         fields = (
-            FileImportBatchFilter.Meta.fields[0],
+            FileImporterBatchFilter.Meta.fields[0],
             "command",
-            *FileImportBatchFilter.Meta.fields[1:],
+            *FileImporterBatchFilter.Meta.fields[1:],
         )
 
     def render_id(self, value):
@@ -61,9 +59,9 @@ class FileImporterTable(tables.Table):
         verbose_name="# FIAs",
         attrs={"th": {"title": "The number of FIAs that this FI has created"}},
     )
-    num_model_import_attempts = tables.Column(
-        verbose_name="# MIAs",
-        attrs={"th": {"title": "The number of MIAs in this FI's most recent FIA"}},
+    num_model_importers = tables.Column(
+        verbose_name="# MIs",
+        attrs={"th": {"title": "The number of MIs in this FI's most recent FIA"}},
     )
 
     class Meta:
@@ -111,11 +109,11 @@ class FileImportAttemptTable(tables.Table):
     )
     imported_from = BaseNameColumn()
 
-    num_model_import_attempts = tables.Column(
-        verbose_name="# MIAs",
+    num_model_importers = tables.Column(
+        verbose_name="# MIs",
         attrs={
             "th": {
-                "title": "The number of MIAs that this FIA created (i.e. the number of models it tried to import)"
+                "title": "The number of MIs that this FIA created (i.e. the number of models it tried to import)"
             }
         },
     )
@@ -126,6 +124,31 @@ class FileImportAttemptTable(tables.Table):
 
     def render_id(self, value):
         return f"FIA {value}"
+
+
+class ModelImporterTable(tables.Table):
+    id = tables.Column(linkify=True, verbose_name="MI")
+    status = ImportStatusColumn(
+        verbose_name="Import Status",
+        attrs={
+            "th": {
+                "title": "The most severe status out of all Model Import "
+                "Attempts in the history of this Importer"
+            }
+        },
+    )
+    num_model_import_attempts = tables.Column(
+        verbose_name="# MIAs",
+        attrs={"th": {"title": "The number of MIAs in this MI's most recent MIA"}},
+    )
+
+    class Meta:
+        model = ModelImporter
+        fields = ModelImporterFilter.Meta.fields
+        order_by = ["-modified_on"]
+
+    def render_id(self, value):
+        return f"MI {value}"
 
 
 class ModelImportAttemptTable(tables.Table):

@@ -14,29 +14,32 @@ from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import ProcessFormView
 
+from django_tables2.views import SingleTableMixin, MultiTableMixin
 from django_import_data.views import CreateFromImportAttemptView
 from django_import_data.models import (
-    FileImportBatch,
+    FileImporterBatch,
     FileImporter,
     FileImportAttempt,
     ModelImportAttempt,
+    ModelImporter,
 )
-from django_tables2.views import SingleTableMixin
 
 
 from cases.views import FilterTableView
 from .filters import (
     FileImportAttemptFilter,
-    FileImportBatchFilter,
+    FileImporterBatchFilter,
     FileImporterFilter,
     ModelImportAttemptFilter,
+    ModelImporterFilter,
 )
 from .tables import (
     FileImportAttemptTable,
-    FileImportBatchTable,
+    FileImporterBatchTable,
     FileImporterDashboardTable,
     FileImporterTable,
     ModelImportAttemptTable,
+    ModelImporterTable,
 )
 from .forms import FileImporterForm
 from cases.models import Case, Facility, Person, PreliminaryCase, PreliminaryFacility
@@ -95,7 +98,8 @@ class FileImporterListView(FilterTableView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        queryset = queryset.annotate_num_model_import_attempts()
+        queryset = queryset.annotate_num_file_import_attempts()
+        queryset = queryset.annotate_num_model_importers()
         return queryset
 
 
@@ -112,31 +116,43 @@ class FileImportAttemptListView(FilterTableView):
         return queryset
 
 
-class FileImporterDetailView(DetailView):
+class FileImporterDetailView(MultiTableMixin, DetailView):
     model = FileImporter
+    tables = [FileImportAttemptTable]
     template_name = "audits/fileimporter_detail.html"
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fia_filter = None
+    def get_tables_data(self):
+        fia_filter_qs = FileImportAttemptFilter(
+            self.request.GET,
+            queryset=self.object.file_import_attempts.all().annotate_num_model_importers(),
+            form_helper_kwargs={"form_class": "collapse"},
+        ).qs
+        return [fia_filter_qs]
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
 
-        if not self.fia_filter:
-            self.fia_filter = FileImportAttemptFilter(
-                self.request.GET,
-                queryset=self.object.file_import_attempts.all().annotate_num_model_import_attempts(),
-                # form_helper_kwargs={"form_class": "collapse"},
-            )
-            context["fia_filter"] = self.fia_filter
+class ModelImporterDetailView(MultiTableMixin, DetailView):
+    model = ModelImporter
+    tables = [ModelImportAttemptTable]
+    template_name = "audits/modelimporter_detail.html"
 
-        if "fia_table" not in context:
-            table = FileImportAttemptTable(data=self.fia_filter.qs)
-            table.paginate(page=self.request.GET.get("page", 1), per_page=10)
-            context["fia_table"] = table
+    def get_tables_data(self):
+        mia_filter_qs = ModelImportAttemptFilter(
+            self.request.GET,
+            queryset=self.object.model_import_attempts.all(),
+            form_helper_kwargs={"form_class": "collapse"},
+        ).qs
+        return [mia_filter_qs]
 
-        return context
+
+class ModelImporterListView(FilterTableView):
+    table_class = ModelImporterTable
+    filterset_class = ModelImporterFilter
+    template_name = "audits/modelimporter_index.html"
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        queryset = queryset.annotate_num_model_import_attempts()
+        return queryset
 
 
 class ModelImportAttemptDetailView(DetailView):
@@ -150,43 +166,32 @@ class ModelImportAttemptListView(FilterTableView):
     template_name = "audits/generic_table.html"
 
 
-class FileImportAttemptDetailView(DetailView):
+class FileImportAttemptDetailView(MultiTableMixin, DetailView):
     model = FileImportAttempt
+    tables = [ModelImporterTable]
     template_name = "audits/fileimportattempt_detail.html"
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.mia_filter = None
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        if not self.mia_filter:
-            self.mia_filter = ModelImportAttemptFilter(
-                self.request.GET,
-                queryset=self.object.model_import_attempts.all(),
-                # form_helper_kwargs={"form_class": "collapse"},
-            )
-            context["mia_filter"] = self.mia_filter
-
-        if "mia_table" not in context:
-            table = ModelImportAttemptTable(data=self.mia_filter.qs)
-            table.paginate(page=self.request.GET.get("page", 1), per_page=10)
-            context["mia_table"] = table
-
-        return context
+    def get_tables_data(self):
+        mi_filter_qs = ModelImporterFilter(
+            self.request.GET,
+            queryset=self.object.model_importers.all().annotate_num_model_import_attempts(),
+            form_helper_kwargs={"form_class": "collapse"},
+        ).qs
+        return [mi_filter_qs]
 
 
 @transaction.atomic
-def _import_file(request, file_importer):
-    importer_name = file_importer.importer_name
-    path = file_importer.file_path
+def _import_file(request, importer_name, path, on_error=None):
+    if on_error is None:
+        on_error = reverse("fileimporter_create")
     try:
         call_command(importer_name, path, overwrite=True, durable=True)
     except Exception as error:
         messages.error(request, f"FATAL ERROR: {error.__class__.__name__}: {error}")
-        return HttpResponseRedirect(file_importer.get_absolute_url())
+        transaction.set_rollback(True)
+        return HttpResponseRedirect(on_error)
 
+    file_importer = get_object_or_404(importer_name=importer_name, file_path=path)
     file_import_attempt = file_importer.latest_file_import_attempt
     messages.success(
         request,
@@ -222,25 +227,25 @@ def _import_file(request, file_importer):
 
 
 @transaction.atomic
-def _import_file_batch(request, prev_file_import_batch):
+def _import_file_batch(request, prev_file_importer_batch):
     try:
-        file_import_batch = prev_file_import_batch.reimport()
+        file_importer_batch = prev_file_importer_batch.reimport()
     except Exception as error:
         messages.error(request, f"FATAL ERROR: {error.__class__.__name__}: {error}")
-        return HttpResponseRedirect(file_import_batch.get_absolute_url())
+        return HttpResponseRedirect(file_importer_batch.get_absolute_url())
 
     messages.success(
         request,
-        f"Successfully deleted existing File Import Batch for paths {prev_file_import_batch.args}",
+        f"Successfully deleted existing File Importer Batch for paths {prev_file_importer_batch.args}",
     )
 
     messages.success(
         request,
-        f"Successfully created {file_import_batch._meta.verbose_name} "
-        f"for path(s) {file_import_batch.args}!",
+        f"Successfully created {file_importer_batch._meta.verbose_name} "
+        f"for path(s) {file_importer_batch.args}!",
     )
-    STATUSES = file_import_batch.STATUSES
-    status = STATUSES[file_import_batch.status]
+    STATUSES = file_importer_batch.STATUSES
+    status = STATUSES[file_importer_batch.status]
     if status == STATUSES.rejected:
         messager = messages.error
         message_stub = "However, one or more File Import Attempts failed (one or more models failed to be created)!"
@@ -258,15 +263,22 @@ def _import_file_batch(request, prev_file_import_batch):
 
     messager(
         request,
-        f"{message_stub} See {file_import_batch._meta.verbose_name} (below) for more details.",
+        f"{message_stub} See {file_importer_batch._meta.verbose_name} (below) for more details.",
     )
 
-    return HttpResponseRedirect(file_import_batch.get_absolute_url())
+    return HttpResponseRedirect(file_importer_batch.get_absolute_url())
 
 
 def reimport_file(request, pk):
     file_importer = get_object_or_404(FileImporter, id=pk)
-    return _import_file(request, file_importer)
+    importer_name = file_importer.importer_name
+    path = file_importer.file_path
+    return _import_file(
+        request,
+        importer_name=importer_name,
+        path=path,
+        on_error=file_importer.get_absolute_url(),
+    )
 
 
 class FileImporterCreateView(CreateView):
@@ -276,8 +288,11 @@ class FileImporterCreateView(CreateView):
 
     def form_valid(self, form):
         with transaction.atomic():
-            file_importer = form.save()
-            return _import_file(self.request, file_importer)
+            return _import_file(
+                self.request,
+                importer_name=form.data["importer_name"],
+                path=form.data["file_path"],
+            )
 
 
 def delete_file_import_models(request, pk):
@@ -301,14 +316,14 @@ def delete_file_import_models(request, pk):
 
 
 def reimport_file_batch(request, pk):
-    file_import_batch = get_object_or_404(FileImportBatch, id=pk)
-    return _import_file_batch(request, file_import_batch)
+    file_importer_batch = get_object_or_404(FileImporterBatch, id=pk)
+    return _import_file_batch(request, file_importer_batch)
 
 
-def delete_file_import_batch_imported_models(request, pk):
-    file_import_batch = get_object_or_404(FileImportBatch, id=pk)
+def delete_file_importer_batch_imported_models(request, pk):
+    file_importer_batch = get_object_or_404(FileImporterBatch, id=pk)
     num_fias_deleted, num_models_deleted, deletions = (
-        file_import_batch.delete_imported_models()
+        file_importer_batch.delete_imported_models()
     )
     if num_models_deleted:
         deleted_mias_str = ", ".join(
@@ -325,7 +340,7 @@ def delete_file_import_batch_imported_models(request, pk):
     else:
         messages.warning(request, f"Deleted 0 model objects (no objects to delete)")
 
-    return HttpResponseRedirect(file_import_batch.get_absolute_url())
+    return HttpResponseRedirect(file_importer_batch.get_absolute_url())
 
 
 class FileImportAttemptExplainView(DetailView):
@@ -341,44 +356,31 @@ class FileImportAttemptExplainView(DetailView):
         return context
 
 
-class FileImportBatchListView(FilterTableView):
-    table_class = FileImportBatchTable
-    filterset_class = FileImportBatchFilter
+class FileImporterBatchListView(FilterTableView):
+    table_class = FileImporterBatchTable
+    filterset_class = FileImporterBatchFilter
     template_name = "audits/generic_table.html"
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        queryset = queryset.annotate(
-            num_file_import_attempts=Count("file_import_attempts", distinct=True)
-        )
+        queryset = queryset.annotate_num_file_importers()
         return queryset
 
 
-class FileImportBatchDetailView(DetailView):
-    model = FileImportBatch
-    template_name = "audits/fileimportbatch_detail.html"
+class FileImporterBatchDetailView(SingleTableMixin, DetailView):
+    model = FileImporterBatch
+    template_name = "audits/fileimporterbatch_detail.html"
+    table_class = FileImporterTable
+    table_pagination = {"per_page": 10}
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fia_filter = None
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        if not self.fia_filter:
-            self.fia_filter = FileImportAttemptFilter(
-                self.request.GET,
-                queryset=self.object.file_import_attempts.all(),
-                # form_helper_kwargs={"form_class": "collapse"},
-            )
-            context["fia_filter"] = self.fia_filter
-
-        if "fia_table" not in context:
-            table = FileImportAttemptTable(data=self.fia_filter.qs)
-            table.paginate(page=self.request.GET.get("page", 1), per_page=10)
-            context["fia_table"] = table
-
-        return context
+    def get_table_data(self):
+        fi_filter_qs = FileImporterFilter(
+            self.request.GET,
+            queryset=self.object.file_importers.all()
+            .annotate_num_file_import_attempts()
+            .annotate_num_model_importers(),
+        ).qs
+        return fi_filter_qs
 
 
 def file_importer_change_path(request, pk):
@@ -419,14 +421,13 @@ def file_importer_change_path(request, pk):
 
 class Dashboard(SingleTableMixin, TemplateView, ProcessFormView):
     table_class = FileImporterDashboardTable
-    # filterset_class = FileImporterFilter
     template_name = "audits/dashboard.html"
     table_pagination = {"per_page": 10}
 
     def get_queryset(self):
         queryset = FileImporter.objects.all()
         queryset = queryset.annotate_acknowledged()
-        queryset = queryset.annotate_num_model_import_attempts()
+        queryset = queryset.annotate_num_model_importers()
         queryset = queryset.annotate_num_file_import_attempts()
 
         return queryset.filter(

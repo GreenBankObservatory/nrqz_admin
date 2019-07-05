@@ -4,7 +4,7 @@ from crispy_forms.layout import Div
 from cases.form_helpers import CollapsibleFilterFormLayout
 
 
-class FileImportBatchFilterFormHelper(FormHelper):
+class FileImporterBatchFilterFormHelper(FormHelper):
     layout = CollapsibleFilterFormLayout(
         Div(
             Div("id", css_class="col"),
@@ -36,6 +36,17 @@ class FileImportAttemptFilterFormHelper(FormHelper):
             Div("created_on", css_class="col"),
             Div("status", css_class="col"),
             Div("acknowledged", css_class="col"),
+            css_class="row",
+        )
+    )
+
+
+class ModelImporterFilterFormHelper(FormHelper):
+    layout = CollapsibleFilterFormLayout(
+        Div(
+            Div("id", css_class="col"),
+            Div("modified_on", css_class="col"),
+            Div("status", css_class="col"),
             css_class="row",
         )
     )

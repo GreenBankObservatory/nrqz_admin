@@ -1,12 +1,11 @@
 import django_filters
 
-from django import forms
-
 from django_import_data.models import (
     FileImportAttempt,
+    FileImporterBatch,
     FileImporter,
     ModelImportAttempt,
-    FileImportBatch,
+    ModelImporter,
 )
 
 from cases.filters import HelpedFilterSet
@@ -14,22 +13,23 @@ from utils.layout import discover_fields
 
 from .form_helpers import (
     FileImportAttemptFilterFormHelper,
+    FileImporterBatchFilterFormHelper,
     FileImporterFilterFormHelper,
     ModelImportAttemptFilterFormHelper,
-    FileImportBatchFilterFormHelper,
+    ModelImporterFilterFormHelper,
 )
 
 
-class FileImportBatchFilter(HelpedFilterSet):
-    id = django_filters.NumberFilter(label="File Import Batch ID")
+class FileImporterBatchFilter(HelpedFilterSet):
+    id = django_filters.NumberFilter(label="File Importer Batch ID")
     status = django_filters.ChoiceFilter(
         label="Import Status", choices=ModelImportAttempt.STATUSES.as_filter_choices()
     )
     created_on = django_filters.DateFromToRangeFilter()
 
     class Meta:
-        model = FileImportBatch
-        formhelper_class = FileImportBatchFilterFormHelper
+        model = FileImporterBatch
+        formhelper_class = FileImporterBatchFilterFormHelper
         fields = discover_fields(formhelper_class.layout)
 
 
@@ -62,6 +62,18 @@ class FileImportAttemptFilter(HelpedFilterSet):
     class Meta:
         model = FileImportAttempt
         formhelper_class = FileImportAttemptFilterFormHelper
+        fields = discover_fields(formhelper_class.layout)
+
+
+class ModelImporterFilter(HelpedFilterSet):
+    id = django_filters.NumberFilter(label="Model Importer ID")
+    status = django_filters.ChoiceFilter(
+        label="Import Status", choices=ModelImportAttempt.STATUSES.as_filter_choices()
+    )
+
+    class Meta:
+        model = ModelImporter
+        formhelper_class = ModelImporterFilterFormHelper
         fields = discover_fields(formhelper_class.layout)
 
 

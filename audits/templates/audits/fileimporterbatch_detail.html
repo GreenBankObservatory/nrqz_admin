@@ -5,25 +5,25 @@
 
 {% block content %}
 
-{% make_breadcrumb fileimportbatch %}
+{% make_breadcrumb fileimporterbatch %}
 
-<h1>{{ fileimportbatch }}</h1>
+<h1>{{ fileimporterbatch }}</h1>
 
 <p>
-    <a href="{% url 'fileimportattempt_explain' fileimportbatch.file_import_attempts.first.id %}">Explanation of field mappings</a>
+    <a href="{% url 'fileimportattempt_explain' fileimporterbatch.file_importers.last.latest_file_import_attempt.id %}">Explanation of field mappings</a>
 </p>
 
 <div class="container-fluid">
     <div class="row">
         <div class="col-lg-2">
-            <form action="{% url 'fileimportbatch_reimport' fileimportbatch.id %}">
+            <form action="{% url 'fileimporterbatch_reimport' fileimporterbatch.id %}">
                 <input required type="checkbox" name="sanity" value="I am super sure">
                 <input required type="submit" name="submit" value="Re-import">
             </form>
         </div>
 
         <div class="col-lg-10">
-            <form action="{% url 'fileimportbatch_delete_models' fileimportbatch.id %}">
+            <form action="{% url 'fileimporterbatch_delete_models' fileimporterbatch.id %}">
                 <input required type="checkbox" name="sanity" value="I am super sure">
                 <input required type="submit" name="submit" value="Delete">
             </form>
@@ -34,9 +34,9 @@
 
 <h2 title="File imports attempted during this file import attempt">File Import Attempts</h2>
 
-{% filter_table fia_table fia_filter %}
+{% render_table table %}
 
 <h2>Error Summary</h2>
-{{ fileimportbatch.errors|json|safe }}
+{{ fileimporterbatch.errors|json|safe }}
 
 {% endblock %}
