@@ -123,7 +123,7 @@ class Command(BaseImportCommand):
 
         return sorted(keys)
 
-    def handle_record(self, row_data, file_import_attempt, durable=True):
+    def handle_record(self, row_data, durable=True):
         version = row_data.data[0].strip()
         if version == "nrqzApp v1":
             main_dict, facility_dicts, errors = self.handle_v1_format(row_data.data)
@@ -133,8 +133,8 @@ class Command(BaseImportCommand):
             raise ValueError(f"Unknown version: {version}")
 
         if errors:
-            file_import_attempt.errors.update(errors)
-            file_import_attempt.save()
+            row_data.file_import_attempt.errors.update(errors)
+            row_data.file_import_attempt.save()
 
         original_headers = self.derive_keys(row_data.data)
         row_data.headers = original_headers
@@ -142,11 +142,7 @@ class Command(BaseImportCommand):
         row_data.data = fixed_row_data
         row_data.save()
         case, case_created = handle_case(
-            row_data,
-            CASE_FORM_MAP,
-            data=main_dict,
-            file_import_attempt=file_import_attempt,
-            imported_by=self.__module__,
+            row_data, CASE_FORM_MAP, data=main_dict, imported_by=self.__module__
         )
 
         if case_created:
@@ -163,7 +159,6 @@ class Command(BaseImportCommand):
                 row_data,
                 data=facility_dict,
                 extra={"case": case.id if case else None},
-                file_import_attempt=file_import_attempt,
                 imported_by=self.__module__,
             )
 
@@ -172,9 +167,9 @@ class Command(BaseImportCommand):
             headers.update(facility_keys)
 
         info, errors = self.header_checks(headers)
-        file_import_attempt.info = info
-        file_import_attempt.errors = errors
-        file_import_attempt.save()
+        row_data.file_import_attempt.info = info
+        row_data.file_import_attempt.errors = errors
+        row_data.file_import_attempt.save()
 
     def file_level_checks(self, rows):
         return {}, {}

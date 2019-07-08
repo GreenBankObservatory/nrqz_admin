@@ -21,6 +21,7 @@ from django_import_data.models import (
     FileImportAttempt,
     ModelImportAttempt,
     ModelImporter,
+    RowData,
 )
 
 
@@ -31,6 +32,7 @@ from .filters import (
     FileImporterFilter,
     ModelImportAttemptFilter,
     ModelImporterFilter,
+    RowDataFilter,
 )
 from .tables import (
     FileImportAttemptTable,
@@ -39,6 +41,7 @@ from .tables import (
     FileImporterTable,
     ModelImportAttemptTable,
     ModelImporterTable,
+    RowDataTable,
 )
 from .forms import FileImporterForm
 from cases.models import Case, Facility, Person, PreliminaryCase, PreliminaryFacility
@@ -152,6 +155,16 @@ class ModelImporterListView(FilterTableView):
         return queryset
 
 
+class RowDataDetailView(SingleTableMixin, DetailView):
+    model = RowData
+    table_class = ModelImporterTable
+    template_name = "audits/rowdata_detail.html"
+    table_pagination = {"per_page": 10}
+
+    def get_table_data(self):
+        return self.object.model_importers.all().annotate_num_model_import_attempts()
+
+
 class ModelImportAttemptDetailView(DetailView):
     model = ModelImportAttempt
     template_name = "audits/modelimportattempt_detail.html"
@@ -165,17 +178,19 @@ class ModelImportAttemptListView(FilterTableView):
 
 class FileImportAttemptDetailView(MultiTableMixin, DetailView):
     model = FileImportAttempt
-    tables = [ModelImporterTable]
+    tables = [RowDataTable]
     template_name = "audits/fileimportattempt_detail.html"
     table_pagination = {"per_page": 10}
 
     def get_tables_data(self):
-        mi_filter_qs = ModelImporterFilter(
+        rd_filter_qs = RowDataFilter(
             self.request.GET,
-            queryset=self.object.model_importers.all().annotate_num_model_import_attempts(),
+            queryset=RowData.objects.filter(
+                file_import_attempt=self.object.id
+            ).annotate_num_model_importers(),
             form_helper_kwargs={"form_class": "collapse"},
         ).qs
-        return [mi_filter_qs]
+        return [rd_filter_qs]
 
 
 @transaction.atomic

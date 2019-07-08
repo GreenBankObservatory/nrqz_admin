@@ -149,7 +149,7 @@ class Command(BaseImportCommand):
 
         return sheet
 
-    def _handle_case(self, row_data, file_import_attempt):
+    def _handle_case(self, row_data):
         # tqdm.write("-" * 80)
         case_form, conversion_errors = CASE_FORM_MAP.render(
             row_data.data, extra={"data_source": EXCEL}, allow_unknown=True
@@ -172,7 +172,6 @@ class Command(BaseImportCommand):
                 form=case_form,
                 extra={"data_source": EXCEL},
                 allow_unknown=True,
-                file_import_attempt=file_import_attempt,
                 imported_by=self.__module__,
             )
             case_created = True
@@ -188,13 +187,12 @@ class Command(BaseImportCommand):
             tqdm.write(str(case_audit.errors))
         return case, case_created
 
-    def _handle_facility(self, row_data, case, file_import_attempt):
+    def _handle_facility(self, row_data, case):
         # TODO: Alter FacilityForm so that it uses case num instead of ID somehow
         facility, facility_audit = FACILITY_FORM_MAP.save_with_audit(
             extra={"case": case.id if case else None},
             allow_unknown=True,
             row_data=row_data,
-            file_import_attempt=file_import_attempt,
             imported_by=self.__module__,
         )
         if facility:
@@ -219,10 +217,8 @@ class Command(BaseImportCommand):
                     unmapped_headers.append(header)
         return unmapped_headers
 
-    def handle_record(self, row_data, file_import_attempt, durable=True):
-        case, case_created = self._handle_case(
-            row_data, file_import_attempt=file_import_attempt
-        )
+    def handle_record(self, row_data, durable=True):
+        case, case_created = self._handle_case(row_data)
         if case_created:
             error_str = "Case should never be created from technical data; only found!"
             if durable:
@@ -231,22 +227,18 @@ class Command(BaseImportCommand):
                 row_data.save()
             else:
                 raise ValueError(error_str)
-        facility, facility_created = self._handle_facility(
-            row_data, case, file_import_attempt=file_import_attempt
-        )
+        facility, facility_created = self._handle_facility(row_data, case)
 
         if facility:
             attachments = handle_attachments(
                 row_data=row_data,
                 model=facility,
                 form_maps=ATTACHMENT_FORM_MAPS,
-                file_import_attempt=file_import_attempt,
                 imported_by=self.__module__,
             )
             propagation_study, attachment_created = get_or_create_attachment(
                 row_data=row_data,
                 form_map=TAP_FILE_FORM_MAP,
-                file_import_attempt=file_import_attempt,
                 imported_by=self.__module__,
             )
             facility.propagation_study = propagation_study

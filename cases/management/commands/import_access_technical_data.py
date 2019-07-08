@@ -25,18 +25,12 @@ class Command(BaseImportCommand):
     ]
     IGNORED_HEADERS = IGNORED_HEADERS
 
-    def handle_record(self, row_data, file_import_attempt, durable=True):
+    def handle_record(self, row_data, durable=True):
         applicant, applicant_audit = APPLICANT_FORM_MAP.save_with_audit(
-            row_data,
-            file_import_attempt=file_import_attempt,
-            imported_by=self.__module__,
+            row_data, imported_by=self.__module__
         )
         case, case_created = handle_case(
-            row_data,
-            CASE_FORM_MAP,
-            applicant=applicant,
-            file_import_attempt=file_import_attempt,
-            imported_by=self.__module__,
+            row_data, CASE_FORM_MAP, applicant=applicant, imported_by=self.__module__
         )
         if case_created:
             error_str = "PCase should never be created from technical data; only found!"
@@ -49,15 +43,11 @@ class Command(BaseImportCommand):
         facility, facility_audit = FACILITY_FORM_MAP.save_with_audit(
             row_data,
             extra={"case": case.id if case else None},
-            file_import_attempt=file_import_attempt,
             imported_by=self.__module__,
         )
         if facility:
             propagation_study, created = get_or_create_attachment(
-                row_data,
-                PROPAGATION_STUDY_FORM_MAP,
-                file_import_attempt=file_import_attempt,
-                imported_by=self.__module__,
+                row_data, PROPAGATION_STUDY_FORM_MAP, imported_by=self.__module__
             )
             facility.propagation_study = propagation_study
             facility.save()

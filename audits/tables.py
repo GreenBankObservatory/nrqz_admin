@@ -8,7 +8,9 @@ from django_import_data.models import (
     FileImporter,
     FileImportAttempt,
     FileImporterBatch,
+    RowData,
 )
+from django_import_data.utils import to_fancy_str
 
 from .filters import (
     ModelImporterFilter,
@@ -16,6 +18,7 @@ from .filters import (
     FileImporterFilter,
     FileImportAttemptFilter,
     FileImporterBatchFilter,
+    RowDataFilter,
 )
 from .columns import BaseNameColumn, ImportStatusColumn, TitledCheckBoxColumn
 
@@ -126,6 +129,31 @@ class FileImportAttemptTable(tables.Table):
         return f"FIA {value}"
 
 
+class RowDataTable(tables.Table):
+    id = tables.Column(linkify=True, verbose_name="RD ID")
+    status = ImportStatusColumn(
+        verbose_name="Import Status",
+        attrs={
+            "th": {
+                "title": "The most severe status out of all Model Import "
+                "Attempts in the history of this Importer"
+            }
+        },
+    )
+    num_model_importers = tables.Column(
+        verbose_name="# MIs",
+        attrs={"th": {"title": "The number of MIs created from this row"}},
+    )
+
+    class Meta:
+        model = RowData
+        fields = RowDataFilter.Meta.fields
+        order_by = ["-modified_on"]
+
+    def render_id(self, value):
+        return f"RD {value}"
+
+
 class ModelImporterTable(tables.Table):
     id = tables.Column(linkify=True, verbose_name="MI")
     status = ImportStatusColumn(
@@ -141,7 +169,16 @@ class ModelImporterTable(tables.Table):
         verbose_name="# MIAs",
         attrs={"th": {"title": "The number of MIAs in this MI's most recent MIA"}},
     )
-    file_import_attempt = tables.Column(linkify=True, verbose_name="FIA")
+    row_data = tables.Column(linkify=True, verbose_name="Row Data")
+    importee = tables.Column(
+        linkify=True,
+        # Can't order this because it isn't a real field
+        orderable=False,
+        verbose_name="Imported Model",
+        accessor="latest_model_import_attempt.importee",
+        attrs={"th": {"title": "The model, if any, that was ACTUALLY created"}},
+    )
+    errors = tables.Column(empty_values=(), verbose_name="Fields with Errors")
 
     class Meta:
         model = ModelImporter
@@ -150,6 +187,14 @@ class ModelImporterTable(tables.Table):
 
     def render_id(self, value):
         return f"MI {value}"
+
+    def render_errors(self, record):
+        if record.latest_model_import_attempt.errors:
+            return to_fancy_str(
+                record.latest_model_import_attempt.gen_error_summary(), quote=True
+            )
+
+        return "—"
 
 
 class ModelImportAttemptTable(tables.Table):
@@ -166,11 +211,12 @@ class ModelImportAttemptTable(tables.Table):
         verbose_name="Model",
         attrs={"th": {"title": "The model that the importer ATTEMPTED to create"}},
     )
-    file_import_attempt = tables.Column(linkify=True, verbose_name="FIA")
     status = ImportStatusColumn(
         verbose_name="Model Import Attempt Status",
         attrs={"th": {"title": "The status of the import attempted for THIS MODEL"}},
     )
+    row_data = tables.Column(linkify=True, verbose_name="Row Data")
+    errors = tables.Column(empty_values=(), verbose_name="Fields with Errors")
 
     class Meta:
         model = ModelImportAttempt
@@ -178,15 +224,16 @@ class ModelImportAttemptTable(tables.Table):
             *ModelImportAttemptFilter.Meta.fields[:3],
             "importee",
             *ModelImportAttemptFilter.Meta.fields[3:],
-            "file_import_attempt",
         ]
         order_by = ["-created_on"]
 
     def render_id(self, value):
         return f"MIA {value}"
 
-    def render_fia_imported_from(self, value):
-        return os.path.basename(value)
-
     def render_importee(self, record):
         return str(record.importee)
+
+    def render_errors(self, record):
+        if record.errors:
+            return to_fancy_str(record.gen_error_summary(), quote=True)
+        return "—"

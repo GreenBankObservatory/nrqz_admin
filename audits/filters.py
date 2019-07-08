@@ -6,6 +6,7 @@ from django_import_data.models import (
     FileImporter,
     ModelImportAttempt,
     ModelImporter,
+    RowData,
 )
 
 from cases.filters import HelpedFilterSet
@@ -17,6 +18,7 @@ from .form_helpers import (
     FileImporterFilterFormHelper,
     ModelImportAttemptFilterFormHelper,
     ModelImporterFilterFormHelper,
+    RowDataFilterFormHelper,
 )
 
 
@@ -36,11 +38,7 @@ class FileImporterBatchFilter(HelpedFilterSet):
 class FileImporterFilter(HelpedFilterSet):
     id = django_filters.NumberFilter(label="File Importer ID")
     file_path = django_filters.CharFilter(lookup_expr="icontains")
-    acknowledged = django_filters.BooleanFilter(
-        label="Acknowledged",
-        # field_name="file_import_attempts__acknowledged",
-        initial=False,
-    )
+    acknowledged = django_filters.BooleanFilter(label="Acknowledged", initial=False)
     status = django_filters.ChoiceFilter(
         label="Import Status", choices=ModelImportAttempt.STATUSES.as_filter_choices()
     )
@@ -65,16 +63,33 @@ class FileImportAttemptFilter(HelpedFilterSet):
         fields = discover_fields(formhelper_class.layout)
 
 
-class ModelImporterFilter(HelpedFilterSet):
+class RowDataFilter(HelpedFilterSet):
     id = django_filters.NumberFilter(label="Model Importer ID")
     status = django_filters.ChoiceFilter(
         label="Import Status", choices=ModelImportAttempt.STATUSES.as_filter_choices()
     )
 
     class Meta:
+        model = RowData
+        formhelper_class = RowDataFilterFormHelper
+        fields = discover_fields(formhelper_class.layout)
+
+
+class ModelImporterFilter(HelpedFilterSet):
+    id = django_filters.NumberFilter(label="Model Importer ID")
+    status = django_filters.ChoiceFilter(
+        label="Import Status", choices=ModelImportAttempt.STATUSES.as_filter_choices()
+    )
+    row_data = None
+
+    class Meta:
         model = ModelImporter
         formhelper_class = ModelImporterFilterFormHelper
-        fields = discover_fields(formhelper_class.layout)
+        fields = [
+            field
+            for field in discover_fields(formhelper_class.layout)
+            if field not in ["row_data"]
+        ]
 
 
 class ModelImportAttemptFilter(HelpedFilterSet):

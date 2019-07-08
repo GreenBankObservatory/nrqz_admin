@@ -2,11 +2,7 @@
 
 from django.urls import path
 
-from django_import_data.views import (
-    RowDataDetailView,
-    changed_files_view,
-    acknowledge_file_importer,
-)
+from django_import_data.views import changed_files_view, acknowledge_file_importer
 
 from . import views
 
@@ -108,7 +104,9 @@ urlpatterns = [
         name="modelimportattempt_detail",
     ),
     # path("row-data/", views.RowDataListView.as_view(), name="rowdata_list"),
-    path("row-data/<int:pk>/", RowDataDetailView.as_view(), name="rowdata_detail"),
+    path(
+        "row-data/<int:pk>/", views.RowDataDetailView.as_view(), name="rowdata_detail"
+    ),
     path(
         "person/create-from-audit/<int:attempt_pk>/",
         views.PersonCreateFromAuditView.as_view(),

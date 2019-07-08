@@ -74,21 +74,9 @@
     </div>
 </div>
 
-<h2 title="Model imports attempted during this file import attempt">Model Importers</h2>
+<h2 title="Rows imported during this file import attempt">Row Importers</h2>
 
 
 {% render_table tables.0 %}
-
-{% comment %}
-<h2 title="All keys/headers that were ignored during file import attempt">Ignored Headers</h2>
-<p>
-{% for header in fileimportattempt.ignored_headers %}
-    <code>{{ header }}</code>{% if header != fileimportattempt.ignored_headers|last %},{% endif %}
-{% endfor %}
-</p>
-{% endcomment %}
-
-
-
 
 {% endblock %}
