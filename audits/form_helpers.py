@@ -47,6 +47,7 @@ class ModelImporterFilterFormHelper(FormHelper):
             Div("id", css_class="col"),
             Div("modified_on", css_class="col"),
             Div("status", css_class="col"),
+            Div("file_import_attempt", css_class="col"),
             css_class="row",
         )
     )

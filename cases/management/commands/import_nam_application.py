@@ -4,7 +4,6 @@ import re
 
 from django_import_data import BaseImportCommand
 
-from cases.models import CaseGroup
 from importers.handlers import handle_case
 from importers.nrqz_analyzer.formmaps import (
     CASE_FORM_MAP,
@@ -179,6 +178,3 @@ class Command(BaseImportCommand):
 
     def file_level_checks(self, rows):
         return {}, {}
-
-    def post_import_actions(self):
-        CaseGroup.objects.build_all_case_groups()

@@ -3,7 +3,6 @@ import os
 from django.contrib import messages
 from django.core.management import call_command
 from django.db import transaction
-from django.db.models import Count, Q
 from django.db.utils import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotAllowed
 from django.shortcuts import render, get_object_or_404
@@ -110,9 +109,7 @@ class FileImportAttemptListView(FilterTableView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        queryset = queryset.annotate(
-            num_model_import_attempts=Count("model_import_attempts")
-        )
+        queryset = queryset.annotate_num_model_importers()
         return queryset
 
 
@@ -170,6 +167,7 @@ class FileImportAttemptDetailView(MultiTableMixin, DetailView):
     model = FileImportAttempt
     tables = [ModelImporterTable]
     template_name = "audits/fileimportattempt_detail.html"
+    table_pagination = {"per_page": 10}
 
     def get_tables_data(self):
         mi_filter_qs = ModelImporterFilter(
@@ -188,6 +186,7 @@ def _import_file(request, importer_name, path, on_error=None):
         call_command(importer_name, path, overwrite=True, durable=True)
     except Exception as error:
         messages.error(request, f"FATAL ERROR: {error.__class__.__name__}: {error}")
+        # Manually set rollback since we aren't raising an Exception here
         transaction.set_rollback(True)
         return HttpResponseRedirect(on_error)
 
@@ -227,12 +226,16 @@ def _import_file(request, importer_name, path, on_error=None):
 
 
 @transaction.atomic
-def _import_file_batch(request, prev_file_importer_batch):
+def _import_file_batch(request, prev_file_importer_batch, on_error=None):
+    if on_error is None:
+        on_error = "/"
     try:
         file_importer_batch = prev_file_importer_batch.reimport()
-    except Exception as error:
+    except ValueError as error:
         messages.error(request, f"FATAL ERROR: {error.__class__.__name__}: {error}")
-        return HttpResponseRedirect(file_importer_batch.get_absolute_url())
+        # Manually set rollback since we aren't raising an Exception here
+        transaction.set_rollback(True)
+        return HttpResponseRedirect(on_error)
 
     messages.success(
         request,
@@ -249,6 +252,11 @@ def _import_file_batch(request, prev_file_importer_batch):
     if status == STATUSES.rejected:
         messager = messages.error
         message_stub = "However, one or more File Import Attempts failed (one or more models failed to be created)!"
+    elif status == STATUSES.empty:
+        messager = messages.error
+        message_stub = (
+            "However, one or more File Import Attempts failed (no models were created)!"
+        )
     elif status == STATUSES.created_dirty:
         messager = messages.warning
         message_stub = (
@@ -259,7 +267,8 @@ def _import_file_batch(request, prev_file_importer_batch):
         messager = messages.success
         message_stub = "All File Import Attempts were successful!"
     else:
-        raise ValueError("This should never happen")
+
+        raise ValueError(f"This should never happen: got status {status}")
 
     messager(
         request,
@@ -317,7 +326,9 @@ def delete_file_import_models(request, pk):
 
 def reimport_file_batch(request, pk):
     file_importer_batch = get_object_or_404(FileImporterBatch, id=pk)
-    return _import_file_batch(request, file_importer_batch)
+    return _import_file_batch(
+        request, file_importer_batch, on_error=file_importer_batch.get_absolute_url()
+    )
 
 
 def delete_file_importer_batch_imported_models(request, pk):

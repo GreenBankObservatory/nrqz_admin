@@ -1,12 +1,15 @@
-import json
-import os
-from pathlib import Path
+"""Run all importers in the given .spec file"""
+
+from tqdm import tqdm
+
 
 from django.core.management import call_command
 from django.db import transaction
 
-from tqdm import tqdm
 
+from django_import_data.models import ModelImporter
+
+from cases.models import CaseGroup
 from ._base_meta_import import BaseMetaImportCommand
 
 
@@ -82,4 +85,13 @@ class Command(BaseMetaImportCommand):
                     transaction.set_rollback(True)
                     tqdm.write("DRY RUN; rolling back changes")
 
+        self.post_import_actions()
         tqdm.write(f"--- DONE ---")
+
+    def post_import_actions(self):
+        # Build case groups
+        CaseGroup.objects.build_all_case_groups()
+        # Derive appropriate statuses for all MIs. This will also
+        # propagate to all FIAs, FIs, and FIBs
+        tqdm.write("Deriving status values for Model Importers")
+        ModelImporter.objects.all().derive_values()

@@ -7,9 +7,19 @@
 
 <h1>{{ modelimportattempt }}</h1>
 
+<a href="{{ modelimportattempt.importee.get_absolute_url }}">View created {{ modelimportattempt.importee | model_name }}</a>
+
+{% if modelimportattempt != modelimportattempt.model_importer.latest_model_import_attempt  %}
+<p style="color:red;font-weight: bold">This is not the latest import attempt in its Model Importer!
+{% if not modelimportattempt.importee %}
+While this import attempt failed, a subsequent attempt was successful: <a href={{modelimportattempt.model_importer.latest_model_import_attempt.get_absolute_url }}> {{modelimportattempt.model_importer.latest_model_import_attempt }}</a>
+{% endif %}
+</p>
+{% endif %}
+
 <p>Imported from row {{ modelimportattempt.row_data.row_num }} of file: {{ modelimportattempt.file_import_attempt.imported_from }} by importer {{ modelimportattempt.file_import_attempt.imported_by }}</p>
 
-{% if not modelimportattempt.importee %}
+{% if not modelimportattempt.model_importer.latest_model_import_attempt.importee %}
 <p><a href={{ modelimportattempt.get_create_from_import_attempt_url }}>Create {{ modelimportattempt.importee_class | model_name }} from Model Import Attempt {{ modelimportattempt.id }}</a></p>
 {% endif %}
 

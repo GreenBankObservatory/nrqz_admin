@@ -141,6 +141,7 @@ class ModelImporterTable(tables.Table):
         verbose_name="# MIAs",
         attrs={"th": {"title": "The number of MIAs in this MI's most recent MIA"}},
     )
+    file_import_attempt = tables.Column(linkify=True, verbose_name="FIA")
 
     class Meta:
         model = ModelImporter
@@ -165,9 +166,7 @@ class ModelImportAttemptTable(tables.Table):
         verbose_name="Model",
         attrs={"th": {"title": "The model that the importer ATTEMPTED to create"}},
     )
-    fia_imported_from = tables.Column(
-        linkify=True, accessor="file_import_attempt.imported_from"
-    )
+    file_import_attempt = tables.Column(linkify=True, verbose_name="FIA")
     status = ImportStatusColumn(
         verbose_name="Model Import Attempt Status",
         attrs={"th": {"title": "The status of the import attempted for THIS MODEL"}},
@@ -179,7 +178,7 @@ class ModelImportAttemptTable(tables.Table):
             *ModelImportAttemptFilter.Meta.fields[:3],
             "importee",
             *ModelImportAttemptFilter.Meta.fields[3:],
-            "fia_imported_from",
+            "file_import_attempt",
         ]
         order_by = ["-created_on"]
 
