@@ -4,7 +4,7 @@ import os
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
-from django_tables2 import Column, CheckBoxColumn, FileColumn
+from django_tables2 import CheckBoxColumn, Column
 from django_tables2.utils import AttributeDict
 
 
@@ -39,7 +39,6 @@ class SelectColumn(CheckBoxColumn):
 
     @property
     def header(self):
-        prev = super().header
         return mark_safe(f"<span>{SelectColumn.verbose_name}</span>")
 
     def render(self, value, bound_column, record):

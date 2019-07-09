@@ -9,7 +9,6 @@ from pygments.formatters import HtmlFormatter
 
 from django import template
 from django.urls import reverse
-from django.utils.safestring import mark_safe
 
 from django_import_data.utils import DjangoErrorJSONEncoder
 

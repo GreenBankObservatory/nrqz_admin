@@ -1,3 +1,6 @@
+"""Production Django settings"""
+
+# pylint: disable=unused-wildcard-import,wildcard-import
 from .base import *
 
 ALLOWED_HOSTS = ["galileo", "galileo.gb.nrao.edu"]
@@ -14,7 +17,7 @@ DATABASES = {
         "PASSWORD": "potato",
         "HOST": "galileo.gb.nrao.edu",
         "PORT": "5432",
-    },
+    }
 }
 
 SECRET_KEY = "nw20&ip%@lhstow7-u6!dx_+f@a#&93z3784$0_@_m-#@@dher"

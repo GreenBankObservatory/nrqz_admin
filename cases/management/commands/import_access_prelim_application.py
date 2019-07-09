@@ -1,13 +1,9 @@
 """Import Access Preliminary Application Data"""
 
-import re
 
-from tqdm import tqdm
 
-from django.db.models import Q
 
 from django_import_data import BaseImportCommand
-from django_import_data.models import RowData
 
 from importers.handlers import handle_case, handle_attachments
 from importers.access_prelim_application.formmaps import (
@@ -19,7 +15,6 @@ from importers.access_prelim_application.formmaps import (
 )
 
 
-from cases.models import Case, PreliminaryCase, CaseGroup
 
 
 class Command(BaseImportCommand):

@@ -51,7 +51,6 @@ class CaseGroupAdmin(admin.ModelAdmin):
     exclude = ("model_import_attempt",)
     # form = CaseForm
     autocomplete_fields = ["cases", "pcases"]
-    pass
 
 
 @admin.register(PreliminaryFacility)

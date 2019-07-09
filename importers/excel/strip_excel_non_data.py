@@ -18,7 +18,6 @@ import re
 
 import pyexcel
 from tqdm import tqdm
-from xlrd.xldate import XLDateAmbiguous
 
 DEFAULT_PATTERN = r".*\.(xls.?|csv)$"
 DEFAULT_THRESHOLD = 0.7

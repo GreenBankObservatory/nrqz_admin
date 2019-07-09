@@ -5,7 +5,6 @@ from docxtpl import DocxTemplate
 
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.postgres.search import SearchVector
 from django.db import transaction
 from django.db.models import (
     Count,
@@ -26,15 +25,12 @@ from django.db.models import (
 from django.db.utils import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
-from django.template import Template, Context
 from django.urls import reverse
 from django.views.generic import FormView
-from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 
 from django_filters.views import FilterView
-from django_tables2.export.export import TableExport
 from django_tables2.export.views import ExportMixin
 from django_tables2.views import SingleTableMixin, MultiTableMixin
 from watson import search as watson

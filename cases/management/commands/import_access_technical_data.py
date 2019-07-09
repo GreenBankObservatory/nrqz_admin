@@ -9,7 +9,6 @@ from importers.access_technical.formmaps import (
     IGNORED_HEADERS,
 )
 from django_import_data import BaseImportCommand
-from django_import_data.models import RowData
 
 
 class Command(BaseImportCommand):

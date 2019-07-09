@@ -1,6 +1,5 @@
 """Field mappings for Access Application Data"""
 
-import pytz
 
 from django_import_data import FormMap, OneToOneFieldMap, OneToManyFieldMap
 

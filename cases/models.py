@@ -58,7 +58,7 @@ class SensibleTextyField:
         null = kwargs.get("null", False)
         blank = kwargs.get("blank", False)
         unique = kwargs.get("unique", False)
-        default = (kwargs.get("default", NOT_PROVIDED),)
+        (kwargs.get("default", NOT_PROVIDED),)
 
         if not (unique is True and blank is True) and null is True:
             raise ValueError(

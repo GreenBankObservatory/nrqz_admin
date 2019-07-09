@@ -1,12 +1,10 @@
 """Forms for cases app"""
 
 from django import forms
-from django.contrib.gis.geos import GEOSGeometry
-from django.contrib.postgres.forms import SimpleArrayField
 
 from dal.forms import FutureModelForm
 from dal import autocomplete
-from tempus_dominus.widgets import DatePicker, TimePicker, DateTimePicker
+from tempus_dominus.widgets import DatePicker, DateTimePicker
 
 from .models import (
     Attachment,
@@ -21,7 +19,7 @@ from .models import (
     Structure,
 )
 from .form_helpers import LetterFormHelper, CaseFormHelper
-from .fields import PointField, AttachmentField
+from .fields import PointField
 from .widgets import PCaseWidget, CaseWidget, PersonWidget, AttachmentsWidget
 
 

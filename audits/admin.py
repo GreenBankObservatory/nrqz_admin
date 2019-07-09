@@ -1,5 +1,4 @@
 from django.contrib import admin
-from django.apps import apps
 
 from django_import_data.models import (
     ModelImportAttempt,

@@ -1,6 +1,10 @@
+"""Development Django settings"""
+
 import getpass
-from .base import *
 import sys
+
+# pylint: disable=unused-wildcard-import,wildcard-import
+from .base import *
 
 user = getpass.getuser()
 
@@ -23,7 +27,7 @@ DATABASES = {
         "ENGINE": "django.contrib.gis.db.backends.postgis",
         "NAME": f"nrqz_{user}_dev",
         # Hack to change to admin user for unit tests, since the DB needs to be created (sometimes)
-        "USER": "tchamber" if "test" not in sys.argv else "postgres",
+        "USER": user if "test" not in sys.argv else "postgres",
         "PASSWORD": "potato",
         "HOST": "galileo.gb.nrao.edu",
         "PORT": "5432",

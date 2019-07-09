@@ -1,4 +1,4 @@
-"""Django settings for nrqz_admin project."""
+"""Base Django settings for nrqz_admin project."""
 
 import os
 from pathlib import Path

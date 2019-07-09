@@ -62,6 +62,6 @@ def main():
 
 if __name__ == "__main__":
     django.setup()
-    from cases.models import Case, Facility
+    from cases.models import Case
 
     main()

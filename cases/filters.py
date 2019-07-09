@@ -1,7 +1,6 @@
 """Custom django_filters.FilterSet sub-classes for cases app"""
 
 from django.contrib.gis.measure import Distance
-from django.db.models import Count, Case as CASE, Value, F, Q, BooleanField, When
 import django_filters
 
 from watson import search as watson
@@ -19,7 +18,7 @@ from .form_helpers import (
     StructureFilterFormHelper,
 )
 from .fields import PointSearchField
-from .widgets import PCaseWidget, CaseGroupWidget
+from .widgets import PCaseWidget
 
 
 class WatsonFilter(django_filters.CharFilter):

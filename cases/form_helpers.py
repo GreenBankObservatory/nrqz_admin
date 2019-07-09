@@ -2,7 +2,7 @@
 
 from crispy_forms.bootstrap import FormActions
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Fieldset, Field, Submit, Layout, Div, Reset
+from crispy_forms.layout import Div, Field, Layout, Reset, Submit
 
 
 class CollapsibleFilterFormLayout(Layout):

@@ -1,4 +1,3 @@
-from tqdm import tqdm
 
 from django.db.models import Q
 from django.contrib.postgres.search import TrigramSimilarity

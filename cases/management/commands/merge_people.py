@@ -6,15 +6,11 @@ import json
 from tqdm import tqdm
 
 from django.db import transaction
-from django.db.models import Q
-from django.contrib.postgres.search import TrigramSimilarity
 
 from django_import_data import BaseImportCommand
-from django_super_deduper.merge import MergedModelInstance
-from django_super_deduper.models import MergeInfo
 
 from cases.models import Person
-from utils.merge_people import find_similar_people, CONCRETE_PERSON_FIELDS, merge_people
+from utils.merge_people import find_similar_people, merge_people
 
 THRESHOLD_DEFAULT = 0.9
 

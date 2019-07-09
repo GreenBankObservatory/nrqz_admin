@@ -3,7 +3,7 @@ import regex as re
 from tqdm import tqdm
 
 from django.apps import apps
-from django.contrib.gis.db.models.functions import Area, Azimuth, AsKML, Distance
+from django.contrib.gis.db.models.functions import AsKML, Azimuth, Distance
 from django.db.models import (
     BooleanField,
     Case as CASE,

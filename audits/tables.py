@@ -1,5 +1,4 @@
 """Audits Table definitions"""
-import os
 
 import django_tables2 as tables
 from django_import_data.models import (
