@@ -70,7 +70,7 @@ description = "A high-level Python Web framework that encourages rapid developme
 name = "django"
 optional = false
 python-versions = ">=3.5"
-version = "2.2.2"
+version = "2.2.3"
 
 [package.dependencies]
 pytz = "*"
@@ -97,8 +97,8 @@ category = "main"
 description = "A configurable set of panels that display various debug information about the current request/response."
 name = "django-debug-toolbar"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-version = "1.11"
+python-versions = ">=3.5"
+version = "2.0"
 
 [package.dependencies]
 Django = ">=1.11"
@@ -125,22 +125,6 @@ version = "2.1.0"
 
 [package.dependencies]
 Django = ">=1.11"
-
-[[package]]
-category = "main"
-description = ""
-name = "django-import-data"
-optional = false
-python-versions = "^3.7"
-version = "0.1.0"
-
-[package.dependencies]
-tqdm = "^4.32"
-
-[package.source]
-reference = "cc98093785d6c6782e9ddbf646123854aa42ab2e"
-type = "git"
-url = "https://github.com/GreenBankObservatory/django-import-data.git"
 
 [[package]]
 category = "main"
@@ -187,10 +171,9 @@ version = "0.1.3.dev1+gb69d7bd"
 django = ">=1.11"
 
 [package.source]
-reference = ""
-type = "directory"
-url = "/home/sandboxes/tchamber/repos/django-super-deduper"
-
+reference = "b69d7bd61368c4ac2e24b4e7efdd621cd4aea217"
+type = "git"
+url = "https://github.com/GreenBankObservatory/django-super-deduper"
 [[package]]
 category = "main"
 description = "Table/data-grid framework for Django"
@@ -227,7 +210,7 @@ description = "Python docx template engine"
 name = "docxtpl"
 optional = false
 python-versions = "*"
-version = "0.6.2"
+version = "0.6.3"
 
 [package.dependencies]
 jinja2 = "*"
@@ -272,7 +255,7 @@ description = "IPython: Productive Interactive Computing"
 name = "ipython"
 optional = false
 python-versions = ">=3.5"
-version = "7.5.0"
+version = "7.6.1"
 
 [package.dependencies]
 appnope = "*"
@@ -309,7 +292,7 @@ description = "An autocompletion tool for Python that can be used for text edito
 name = "jedi"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-version = "0.13.3"
+version = "0.14.0"
 
 [package.dependencies]
 parso = ">=0.3.0"
@@ -378,7 +361,7 @@ description = "A Python Parser"
 name = "parso"
 optional = false
 python-versions = "*"
-version = "0.4.0"
+version = "0.5.0"
 
 [[package]]
 category = "main"
@@ -512,7 +495,6 @@ lxml = ">=2.2.6"
 reference = "d6fc4f6107678fcac88731083b693f761facef00"
 type = "git"
 url = "https://github.com/GreenBankObservatory/pykml.git"
-
 [[package]]
 category = "dev"
 description = "Python parsing module"
@@ -608,7 +590,7 @@ description = "module for creating simple ASCII tables"
 name = "texttable"
 optional = false
 python-versions = "*"
-version = "1.6.1"
+version = "1.6.2"
 
 [[package]]
 category = "main"
@@ -672,7 +654,7 @@ python-versions = "*"
 version = "1.3.0"
 
 [metadata]
-content-hash = "c6449d07fadec6940bbd8c4b4e414a2a45f2b144074a50752264b5c9ad5a9776"
+content-hash = "e3fc2aee4e4a3ad7035a0c0e0cdb17167b7cca9091f17e93abee64d6b4eab734"
 python-versions = "^3.7"
 
 [metadata.hashes]
@@ -684,13 +666,12 @@ chardet = ["84ab92ed1c4d4f16916e05906b6b75a6c0fb5db821cc65e70cbd64a3e2a5eaae", "
 colorama = ["05eed71e2e327246ad6b38c540c4a3117230b19679b875190486ddd2d721422d", "f8ac84de7840f5b9c4e3347b3c1eaa50f7e49c2b07596221daec5edaabbd7c48"]
 decorator = ["86156361c50488b84a3f148056ea716ca587df2f0de1d34750d35c21312725de", "f069f3a01830ca754ba5258fde2278454a0b5b79e0d7f5c13b3b97e57d4acff6"]
 defusedxml = ["6687150770438374ab581bb7a1b327a847dd9c5749e396102de3fad4e8a3ef93", "f684034d135af4c6cbb949b8a4d2ed61634515257a67299e5f940fbaa34377f5"]
-django = ["753d30d3eb078064d2ddadfea65083c9848074a7f93d7b4dc7fa6b1380d278f5", "7cb67e8b934fab23b6daed7144da52e8a25a47eba7f360ca43d2b448506b01ad"]
+django = ["4d23f61b26892bac785f07401bc38cbf8fa4cec993f400e9cd9ddf28fd51c0ea", "6e974d4b57e3b29e4882b244d40171d6a75202ab8d2402b8e8adbd182e25cf0c"]
 django-autocomplete-light = ["69a34f97a5b8ab3aac6baaea36f627ef09eaa5791c60f881b2000b1b813268d0"]
 django-crispy-forms = ["5952bab971110d0b86c278132dae0aa095beee8f723e625c3d3fa28888f1675f", "705ededc554ad8736157c666681165fe22ead2dec0d5446d65fc9dd976a5a876"]
-django-debug-toolbar = ["89d75b60c65db363fb24688d977e5fbf0e73386c67acf562d278402a10fc3736", "c2b0134119a624f4ac9398b44f8e28a01c7686ac350a12a74793f3dd57a9eea0"]
+django-debug-toolbar = ["17c53cd6bf4e7d69902aedf9a1d26c5d3b7369b54c5718744704f27b5a72f35d", "9a23ada2e43cd989195db3c18710b5d7451134a0d48127ab64c1d2ad81700342"]
 django-extensions = ["097450a56fcfdef36bb4dd731b113d1b3e9a9de715fc8775e5e84ab3be50dd96", "a1799a7eb4cf0f7aa0d111bac79047227b55a74d11741f387708023a012662f9"]
 django-filter = ["3dafb7d2810790498895c22a1f31b2375795910680ac9c1432821cbedb1e176d", "a3014de317bef0cd43075a0f08dfa1d319a7ccc5733c3901fb860da70b0dda68"]
-django-import-data = []
 django-mass-edit = ["4646b2d76a9e0cd289ab260c7b8efb7bc58fd0a7223e4871c4e1aa3ceee4a290", "a72b525f12071ac20b29541d6038ef68f4e4b21ca590909cd0033f1b0b3c5420"]
 django-sql-explorer = ["65e7b972a51037f4e2de27412dc052f87a4ca58d4c4e8eab4c91d40119f9eace"]
 django-stronghold = ["9ffb2d5d61945b67061c60a39ec740a9670dda89d96b3c7ef890c1a1a08fd18a"]
@@ -698,21 +679,21 @@ django-super-deduper = []
 django-tables2 = ["11d914910745d6826ba2226f45ee7fc38dbc471dd62992b4204c6ee68ec10689", "98038606603a157b79bb7564e589d1f21050c463d12c59d5b3848eba9e10a0ae"]
 django-tempus-dominus = ["8038ecf7b8ed28568e26d3882066de4715712f057050452bffec952c970b20f7", "c657b1b868c09523f71aa41a5d5c278bad5523f9313ab452f7325b0f0d882cc7"]
 django-watson = ["2697c8acf77fd8f0f957d4b71bd9f07f359bb3954a3516a339cac87b3c9f1c9f"]
-docxtpl = ["eb307fc0f38ee78bc4a2b08d0aa2ae69cc10add7be23fe204a5a9851946c960f", "ed273fbf355d4db6c330b943b9eaf9056792ee17504e003585477cfba5adac40"]
+docxtpl = ["a502d1137bc44527f801ccb87026dd85493b4984d75c9fccc8802a4239926900", "c65f5142a03d52cd669e2cdcf34de6eed71c8440887bcaa1b7acf0352936198c"]
 et-xmlfile = ["614d9722d572f6246302c4491846d2c393c199cfa4edc9af593437691683335b"]
 idna = ["c357b3f628cf53ae2c4c05627ecc484553142ca23264e593d327bcde5e9c3407", "ea8b7f6188e6fa117537c3df7da9fc686d485087abf6ac197f9c46432f7e4a3c"]
 ipdb = ["dce2112557edfe759742ca2d0fee35c59c97b0cc7a05398b791079d78f1519ce"]
-ipython = ["54c5a8aa1eadd269ac210b96923688ccf01ebb2d0f21c18c3c717909583579a8", "e840810029224b56cd0d9e7719dc3b39cf84d577f8ac686547c8ba7a06eeab26"]
+ipython = ["11067ab11d98b1e6c7f0993506f7a5f8a91af420f7e82be6575fcb7a6ca372a0", "60bc55c2c1d287161191cc2469e73c116d9b634cff25fe214a43cba7cec94c79"]
 ipython-genutils = ["72dd37233799e619666c9f639a9da83c34013a73e8bbc79a7a6348d93c61fab8", "eb2e116e75ecef9d4d228fdc66af54269afa26ab4463042e33785b887c628ba8"]
 jdcal = ["1abf1305fce18b4e8aa248cf8fe0c56ce2032392bc64bbd61b5dff2a19ec8bba", "472872e096eb8df219c23f2689fc336668bdb43d194094b5cc1707e1640acfc8"]
-jedi = ["2bb0603e3506f708e792c7f4ad8fc2a7a9d9c2d292a358fbbd58da531695595b", "2c6bcd9545c7d6440951b12b44d373479bf18123a401a52025cf98563fbd826c"]
+jedi = ["49ccb782651bb6f7009810d17a3316f8867dde31654c750506970742e18b553d", "79d0f6595f3846dffcbe667cc6dc821b96e5baa8add125176c31a3917eb19d58"]
 jinja2 = ["065c4f02ebe7f7cf559e49ee5a95fb800a9e4528727aec6f24402a5374c65013", "14dd6caf1527abb21f08f86c784eac40853ba93edb79552aa1e4b8aef1b61c7b"]
 lml = ["b1bef669dc077a1075fa64b99229b6341085b3b3a98d29c66df1853cc14e6c1a", "ea5ba817b4adc9e9f5c21725cd2475f912933b7e2dfdf0792aed80077154f63f"]
 lxml = ["06c7616601430aa140a69f97e3116308fffe0848f543b639a5ec2e8920ae72fd", "177202792f9842374a8077735c69c41a4282183f7851443d2beb8ee310720819", "19317ad721ceb9e39847d11131903931e2794e447d4751ebb0d9236f1b349ff2", "36d206e62f3e5dbaafd4ec692b67157e271f5da7fd925fda8515da675eace50d", "387115b066c797c85f9861a9613abf50046a15aac16759bc92d04f94acfad082", "3ce1c49d4b4a7bc75fb12acb3a6247bb7a91fe420542e6d671ba9187d12a12c2", "4d2a5a7d6b0dbb8c37dab66a8ce09a8761409c044017721c21718659fa3365a1", "58d0a1b33364d1253a88d18df6c0b2676a1746d27c969dc9e32d143a3701dda5", "62a651c618b846b88fdcae0533ec23f185bb322d6c1845733f3123e8980c1d1b", "69ff21064e7debc9b1b1e2eee8c2d686d042d4257186d70b338206a80c5bc5ea", "7060453eba9ba59d821625c6af6a266bd68277dce6577f754d1eb9116c094266", "7d26b36a9c4bce53b9cfe42e67849ae3c5c23558bc08363e53ffd6d94f4ff4d2", "83b427ad2bfa0b9705e02a83d8d607d2c2f01889eb138168e462a3a052c42368", "923d03c84534078386cf50193057aae98fa94cace8ea7580b74754493fda73ad", "b773715609649a1a180025213f67ffdeb5a4878c784293ada300ee95a1f3257b", "baff149c174e9108d4a2fee192c496711be85534eab63adb122f93e70aa35431", "bca9d118b1014b4c2d19319b10a3ebed508ff649396ce1855e1c96528d9b2fa9", "ce580c28845581535dc6000fc7c35fdadf8bea7ccb57d6321b044508e9ba0685", "d34923a569e70224d88e6682490e24c842907ba2c948c5fd26185413cbe0cd96", "dd9f0e531a049d8b35ec5e6c68a37f1ba6ec3a591415e6804cbdf652793d15d7", "ecb805cbfe9102f3fd3d2ef16dfe5ae9e2d7a7dfbba92f4ff1e16ac9784dbfb0", "ede9aad2197a0202caff35d417b671f5f91a3631477441076082a17c94edd846", "ef2d1fc370400e0aa755aab0b20cf4f1d0e934e7fd5244f3dd4869078e4942b9", "f2fec194a49bfaef42a548ee657362af5c7a640da757f6f452a35da7dd9f923c"]
 markupsafe = ["00bc623926325b26bb9605ae9eae8a215691f33cae5df11ca5424f06f2d1f473", "09027a7803a62ca78792ad89403b1b7a73a01c8cb65909cd876f7fcebd79b161", "09c4b7f37d6c648cb13f9230d847adf22f8171b1ccc4d5682398e77f40309235", "1027c282dad077d0bae18be6794e6b6b8c91d58ed8a8d89a89d59693b9131db5", "24982cc2533820871eba85ba648cd53d8623687ff11cbb805be4ff7b4c971aff", "29872e92839765e546828bb7754a68c418d927cd064fd4708fab9fe9c8bb116b", "43a55c2930bbc139570ac2452adf3d70cdbb3cfe5912c71cdce1c2c6bbd9c5d1", "46c99d2de99945ec5cb54f23c8cd5689f6d7177305ebff350a58ce5f8de1669e", "500d4957e52ddc3351cabf489e79c91c17f6e0899158447047588650b5e69183", "535f6fc4d397c1563d08b88e485c3496cf5784e927af890fb3c3aac7f933ec66", "62fe6c95e3ec8a7fad637b7f3d372c15ec1caa01ab47926cfdf7a75b40e0eac1", "6dd73240d2af64df90aa7c4e7481e23825ea70af4b4922f8ede5b9e35f78a3b1", "717ba8fe3ae9cc0006d7c451f0bb265ee07739daf76355d06366154ee68d221e", "79855e1c5b8da654cf486b830bd42c06e8780cea587384cf6545b7d9ac013a0b", "7c1699dfe0cf8ff607dbdcc1e9b9af1755371f92a68f706051cc8c37d447c905", "88e5fcfb52ee7b911e8bb6d6aa2fd21fbecc674eadd44118a9cc3863f938e735", "8defac2f2ccd6805ebf65f5eeb132adcf2ab57aa11fdf4c0dd5169a004710e7d", "98c7086708b163d425c67c7a91bad6e466bb99d797aa64f965e9d25c12111a5e", "9add70b36c5666a2ed02b43b335fe19002ee5235efd4b8a89bfcf9005bebac0d", "9bf40443012702a1d2070043cb6291650a0841ece432556f784f004937f0f32c", "ade5e387d2ad0d7ebf59146cc00c8044acbd863725f887353a10df825fc8ae21", "b00c1de48212e4cc9603895652c5c410df699856a2853135b3967591e4beebc2", "b1282f8c00509d99fef04d8ba936b156d419be841854fe901d8ae224c59f0be5", "b2051432115498d3562c084a49bba65d97cf251f5a331c64a12ee7e04dacc51b", "ba59edeaa2fc6114428f1637ffff42da1e311e29382d81b339c1817d37ec93c6", "c8716a48d94b06bb3b2524c2b77e055fb313aeb4ea620c8dd03a105574ba704f", "cd5df75523866410809ca100dc9681e301e3c27567cf498077e8551b6d20e42f", "e249096428b3ae81b08327a63a485ad0878de3fb939049038579ac0ef61e17e7"]
 odfpy = ["596021f0519623ca8717331951c95e3b8d7b21e86edc7efe8cb650a0d0f59a2b", "863746b87121d9e4017c32b6c318f7229a588f189c122a9613116c55a47e276d"]
 openpyxl = ["a5285901fff7b99a011462f18506a4fbfe4055191149ff42f59345828f8cf7b2"]
-parso = ["17cc2d7a945eb42c3569d4564cdf49bde221bc2b552af3eca9c1aad517dcdd33", "2e9574cb12e7112a87253e14e2c380ce312060269d04bd018478a3c92ea9a376"]
+parso = ["5052bb33be034cba784193e74b1cde6ebf29ae8b8c1e4ad94df0c4209bfc4826", "db5881df1643bf3e66c097bfd8935cf03eae73f4cb61ae4433c9ea4fb6613446"]
 pexpect = ["2094eefdfcf37a1fdbfb9aa090862c1a4878e5c7e0e7e7088bdb511c558e5cd1", "9e2c1fd0e6ee3a49b28f95d4b33bc389c89b20af6a1255906e90ff1262ce62eb"]
 pickleshare = ["87683d47965c1da65cdacaf31c8441d12b8044cdec9aca500cd78fc2c683afca", "9649af414d74d4df115d5d718f82acb59c9d418196b7b4290ed47a12ce62df56"]
 prompt-toolkit = ["11adf3389a996a6d45cc277580d0d53e8a5afd281d0c9ec71b28e6f121463780", "2519ad1d8038fd5fc8e770362237ad0364d16a7650fb5724af6997ed5515e3c1", "977c6583ae813a37dc1c2e1b715892461fcbdaa57f6fc62f33a528c4886c8f55"]
@@ -734,7 +715,7 @@ six = ["3350809f0555b11f552448330d0b52d5f24c91a322ea4a15ef22629740f3761c", "d16a
 sqlparse = ["40afe6b8d4b1117e7dff5504d7a8ce07d9a1b15aeeade8a2d10f130a834f8177", "7c3dca29c022744e95b547e867cee89f4fce4373f3549ccd8797d8eb52cdb873"]
 tablib = ["0f88a9cebdaa1a2cc29ae57387082ee81015d1149ecd34e48a8c8d3b4dd21670", "5f33c079b07eb10cf9c4b4696add2ecf32c89db7729240546ecdcd5c92f67e13"]
 tabulate = ["8af07a39377cee1103a5c8b3330a421c2d99b9141e9cc5ddd2e3263fea416943"]
-texttable = ["2b60a5304ccfbeac80ffae7350d7c2f5d7a24e9aab5036d0f82489746419d9b2"]
+texttable = ["eff3703781fbc7750125f50e10f001195174f13825a92a45e9403037d539b4f4"]
 tqdm = ["14a285392c32b6f8222ecfbcd217838f88e11630affe9006cd0e94c7eff3cb61", "25d4c0ea02a305a688e7e9c2cdc8f862f989ef2a4701ab28ee963295f5b109ab"]
 traitlets = ["9c4bd2d267b7153df9152698efb1050a5d84982d3384a37b2c1f7723ba3e7835", "c6cb5e6f57c5a9bdaa40fa71ce7b4af30298fbab9ece9815b5d995ab6217c7d9"]
 unicodecsv = ["018c08037d48649a0412063ff4eda26eaa81eff1546dbffa51fa5293276ff7fc"]
