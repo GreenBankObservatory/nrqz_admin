@@ -137,14 +137,16 @@ def location_table(instance, title, fields):
 
                 url = reverse("facility_kml", args=[str(instance.id)])
                 for point in (wgs84, nad83, nad27):
-                    point_str = coords_to_string(
+                    point_dms_str = coords_to_string(
                         latitude=point.y, longitude=point.x, concise=True
                     )
+                    point_decimal_str = f"{point.y:.8f}, {point.x:.8f}"
+                    point_str = f"{point_dms_str} ({point_decimal_str})"
                     if point.srid == instance.original_srs.srid:
                         point_label = f"<b title='SRID: {point.srid}'>{point.srs.name} (original)</b>"
                     elif point.srid == instance.location.srid:
                         point_label = f"<span title='SRID: {point.srid}'>{point.srs.name} (internal)</span>"
-                        point_str = f"<a href={url}>{point_str}</a>"
+                        point_dms_str = f"<a href={url}>{point_dms_str}</a>"
                     else:
                         point_label = (
                             f"<span title='SRID: {point.srid}'> {point.srs.name}</span>"

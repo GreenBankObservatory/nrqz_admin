@@ -7,7 +7,9 @@
 
 <h1>{{ modelimportattempt }}</h1>
 
+{% if modelimportattempt.importee %}
 <a href="{{ modelimportattempt.importee.get_absolute_url }}">View created {{ modelimportattempt.importee | model_name }}</a>
+{% endif %}
 
 {% if modelimportattempt != modelimportattempt.model_importer.latest_model_import_attempt  %}
 <p style="color:red;font-weight: bold">This is not the latest import attempt in its Model Importer!

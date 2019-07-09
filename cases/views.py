@@ -7,20 +7,10 @@ from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.db.models import (
-    Count,
-    Case as CASE,
-    Value,
-    F,
-    Q,
-    BooleanField,
-    When,
-    Min,
-    Max,
     Q,
     Count,
     Exists,
     OuterRef,
-    Subquery,
 )
 from django.db.utils import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
@@ -66,7 +56,6 @@ from .tables import (
     CaseTable,
     FacilityExportTable,
     FacilityTable,
-    FacilityTableWithConcur,
     LetterFacilityTable,
     PersonTable,
     PreliminaryCaseExportTable,
@@ -105,6 +94,11 @@ class FilterTableView(ExportMixin, SingleTableMixin, FilterView):
     def get(self, request, *args, **kwargs):
         if "show-all" in request.GET:
             self.table_pagination = False
+
+        if "clear" in request.GET:
+            return HttpResponseRedirect(
+                reverse(f"{self.table_class.Meta.model.__name__.lower()}_index")
+            )
 
         if "csv" in request.GET.get("_export", ""):
             self.export_requested = True
@@ -254,8 +248,8 @@ class PreliminaryFacilityListView(FilterTableView):
     def get_queryset(self):
         return (
             PreliminaryFacility.objects.annotate_in_nrqz()
-            .annotate_azimuth_to_gbt()
-            .annotate_distance_to_gbt()
+                .annotate_azimuth_to_gbt()
+                .annotate_distance_to_gbt()
         )
 
 
@@ -268,8 +262,8 @@ class FacilityListView(FilterTableView):
     def get_queryset(self):
         return (
             Facility.objects.annotate_in_nrqz()
-            .annotate_azimuth_to_gbt()
-            .annotate_distance_to_gbt()
+                .annotate_azimuth_to_gbt()
+                .annotate_distance_to_gbt()
         )
 
     def get(self, request, *args, **kwargs):
@@ -287,6 +281,7 @@ class FacilityListView(FilterTableView):
             ] = 'application; filename="nrqz_facilities.kml"'
             return response
         else:
+            import ipdb; ipdb.set_trace()
             return super(FacilityListView, self).get(request, *args, **kwargs)
 
 
@@ -849,7 +844,6 @@ class SearchView(MultiTableMixin, ListView):
         return data
 
     def get_context_data(self, **kwargs):
-
         context = super().get_context_data(**kwargs)
         context["query"] = self.query
         context["tables_with_model_names"] = zip(
@@ -859,6 +853,7 @@ class SearchView(MultiTableMixin, ListView):
 
     def get(self, request, *args, **kwargs):
         self.query = request.GET.get("q", None)
+        print("Searching for ", self.query)
         self.object_list = watson.search(self.query)
         context = self.get_context_data()
         return self.render_to_response(context)

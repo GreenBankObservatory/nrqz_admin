@@ -43,7 +43,7 @@ class PointSearchWidget(widgets.SuffixedMultiWidget):
                 ("mi", "Miles"),
             ]
         _widgets = (
-            forms.TextInput(attrs={"placeholder": "coordinates", **attrs}),
+            forms.TextInput(attrs={"placeholder": "latitude, longitude", **attrs}),
             forms.NumberInput(attrs={"placeholder": "radius", **attrs}),
             forms.Select(attrs=attrs, choices=unit_choices),
         )

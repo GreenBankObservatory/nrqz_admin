@@ -28,8 +28,16 @@ class FileImporterBatchTable(tables.Table):
     created_on = tables.DateTimeColumn(verbose_name="Date Imported")
     status = ImportStatusColumn()
     num_file_importers = tables.Column(
-        verbose_name="# FIs",
+        verbose_name="# Files",
         attrs={"th": {"title": "The number of File Importers in this batch"}},
+    )
+    num_successful_file_importers = tables.Column(
+        verbose_name="# Successful Files",
+        attrs={"th": {"title": "The number of File Importers in this batch that were successfully imported"}},
+    )
+    num_failed_file_importers = tables.Column(
+        verbose_name="# Failed Files",
+        attrs={"th": {"title": "The number of File Importers in this batch that were not successfully imported"}},
     )
 
     class Meta:
@@ -147,7 +155,7 @@ class RowDataTable(tables.Table):
     class Meta:
         model = RowData
         fields = RowDataFilter.Meta.fields
-        order_by = ["-modified_on"]
+        order_by = ["-status", "-modified_on"]
 
     def render_id(self, value):
         return f"RD {value}"
@@ -182,7 +190,8 @@ class ModelImporterTable(tables.Table):
     class Meta:
         model = ModelImporter
         fields = ModelImporterFilter.Meta.fields
-        order_by = ["-modified_on"]
+        order_by = ["-status", "-modified_on"]
+
 
     def render_id(self, value):
         return f"MI {value}"
@@ -215,7 +224,7 @@ class ModelImportAttemptTable(tables.Table):
         attrs={"th": {"title": "The status of the import attempted for THIS MODEL"}},
     )
     row_data = tables.Column(linkify=True, verbose_name="Row Data")
-    errors = tables.Column(empty_values=(), verbose_name="Fields with Errors")
+    errors = tables.Column(verbose_name="Fields with Errors")
 
     class Meta:
         model = ModelImportAttempt
@@ -233,6 +242,4 @@ class ModelImportAttemptTable(tables.Table):
         return str(record.importee)
 
     def render_errors(self, record):
-        if record.errors:
-            return to_fancy_str(record.gen_error_summary(), quote=True)
-        return "—"
+        return to_fancy_str(record.gen_error_summary(), quote=True)

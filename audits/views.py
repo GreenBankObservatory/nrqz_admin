@@ -154,6 +154,16 @@ class ModelImporterListView(FilterTableView):
         queryset = queryset.annotate_num_model_import_attempts()
         return queryset
 
+class RowDataListView(FilterTableView):
+    table_class = RowDataTable
+    filterset_class = RowDataFilter
+    template_name = "audits/rowdata_index.html"
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        queryset = queryset.annotate_num_model_importers()
+        return queryset
+
 
 class RowDataDetailView(SingleTableMixin, DetailView):
     model = RowData
@@ -321,22 +331,22 @@ class FileImporterCreateView(CreateView):
 
 def delete_file_import_models(request, pk):
     file_importer = get_object_or_404(FileImporter, id=pk)
-    file_import_attempt = file_importer.latest_file_import_attempt
-    num_deleted, deleted_models = file_import_attempt.delete_imported_models()
+    # file_import_attempt = file_importer.latest_file_import_attempt
+    total_num_fia_deletions, total_num_mia_deletions, all_mia_deletions= file_importer.delete_imported_models()
 
-    if num_deleted:
+    if total_num_mia_deletions:
         deleted_models_str = ", ".join(
             [
                 f"{count} {model.split('.')[-1]} objects"
-                for model, count in deleted_models.items()
+                for model, count in all_mia_deletions.items()
             ]
         )
-        deleted_str = f"{num_deleted} objects: {deleted_models_str}"
+        deleted_str = f"{total_num_mia_deletions} objects: {deleted_models_str}"
         messages.success(request, f"Successfully deleted {deleted_str} ")
     else:
         messages.warning(request, f"Deleted 0 model objects (no objects to delete)")
 
-    return HttpResponseRedirect(file_import_attempt.get_absolute_url())
+    return HttpResponseRedirect(file_importer.get_absolute_url())
 
 
 def reimport_file_batch(request, pk):
@@ -390,6 +400,8 @@ class FileImporterBatchListView(FilterTableView):
     def get_queryset(self):
         queryset = super().get_queryset()
         queryset = queryset.annotate_num_file_importers()
+        queryset = queryset.annotate_num_successful_file_importers()
+        queryset = queryset.annotate_num_failed_file_importers()
         return queryset
 
 

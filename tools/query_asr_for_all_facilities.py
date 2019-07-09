@@ -83,7 +83,7 @@ def query_asr_for_facilities(facilities):
             report["skipped"].append(facility)
             continue
         result = query_asr_by_location(
-            coords=facility.location.coords, units="meter", radius=10
+            coords=facility.location.coords, units="meter", radius=100
         )
         features = result["features"]
         num_features = len(features)

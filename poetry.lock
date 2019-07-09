@@ -128,6 +128,21 @@ Django = ">=1.11"
 
 [[package]]
 category = "main"
+description = ""
+name = "django-import-data"
+optional = false
+python-versions = "^3.7"
+version = "0.1.0"
+
+[package.dependencies]
+tqdm = "^4.32"
+
+[package.source]
+reference = "63b3ca4cef8249634a45e91f7eb984ba50c8532c"
+type = "git"
+url = "https://github.com/GreenBankObservatory/django-import-data"
+[[package]]
+category = "main"
 description = "Make bulk changes in the Django admin interface"
 name = "django-mass-edit"
 optional = false
@@ -654,7 +669,7 @@ python-versions = "*"
 version = "1.3.0"
 
 [metadata]
-content-hash = "e3fc2aee4e4a3ad7035a0c0e0cdb17167b7cca9091f17e93abee64d6b4eab734"
+content-hash = "ff5caeb2c7f63730d1783e5f5c09a407939b8871196af39b9e96583d7833379f"
 python-versions = "^3.7"
 
 [metadata.hashes]
@@ -672,6 +687,7 @@ django-crispy-forms = ["5952bab971110d0b86c278132dae0aa095beee8f723e625c3d3fa288
 django-debug-toolbar = ["17c53cd6bf4e7d69902aedf9a1d26c5d3b7369b54c5718744704f27b5a72f35d", "9a23ada2e43cd989195db3c18710b5d7451134a0d48127ab64c1d2ad81700342"]
 django-extensions = ["097450a56fcfdef36bb4dd731b113d1b3e9a9de715fc8775e5e84ab3be50dd96", "a1799a7eb4cf0f7aa0d111bac79047227b55a74d11741f387708023a012662f9"]
 django-filter = ["3dafb7d2810790498895c22a1f31b2375795910680ac9c1432821cbedb1e176d", "a3014de317bef0cd43075a0f08dfa1d319a7ccc5733c3901fb860da70b0dda68"]
+django-import-data = []
 django-mass-edit = ["4646b2d76a9e0cd289ab260c7b8efb7bc58fd0a7223e4871c4e1aa3ceee4a290", "a72b525f12071ac20b29541d6038ef68f4e4b21ca590909cd0033f1b0b3c5420"]
 django-sql-explorer = ["65e7b972a51037f4e2de27412dc052f87a4ca58d4c4e8eab4c91d40119f9eace"]
 django-stronghold = ["9ffb2d5d61945b67061c60a39ec740a9670dda89d96b3c7ef890c1a1a08fd18a"]

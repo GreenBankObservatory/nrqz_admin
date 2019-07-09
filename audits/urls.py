@@ -103,7 +103,7 @@ urlpatterns = [
         views.ModelImportAttemptDetailView.as_view(),
         name="modelimportattempt_detail",
     ),
-    # path("row-data/", views.RowDataListView.as_view(), name="rowdata_list"),
+    path("row-data/", views.RowDataListView.as_view(), name="rowdata_index"),
     path(
         "row-data/<int:pk>/", views.RowDataDetailView.as_view(), name="rowdata_detail"
     ),

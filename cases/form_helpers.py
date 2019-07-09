@@ -14,7 +14,7 @@ class CollapsibleFilterFormLayout(Layout):
                 *args,
                 FormActions(
                     Submit("submit", "Filter"),
-                    Reset("reset", "Reset"),
+                    Submit("clear", "Clear"),
                     Submit("show-all", "Show All"),
                     Submit("mass-edit", "Mass Edit"),
                     *extra_buttons,
