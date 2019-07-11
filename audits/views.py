@@ -42,6 +42,7 @@ from .tables import (
     ModelImportAttemptTable,
     ModelImporterTable,
     RowDataTable,
+    FileImporterErrorSummaryTable,
 )
 from .forms import FileImporterForm
 from cases.models import Case, Facility, Person, PreliminaryCase, PreliminaryFacility
@@ -118,8 +119,36 @@ class FileImportAttemptListView(FilterTableView):
 
 class FileImporterDetailView(MultiTableMixin, DetailView):
     model = FileImporter
-    tables = [FileImportAttemptTable]
+    tables = [FileImportAttemptTable, FileImporterErrorSummaryTable, RowDataTable]
     template_name = "audits/fileimporter_detail.html"
+    table_pagination = {"per_page": 10}
+
+    # def get_context_data(self, **kwargs):
+    #     context = super().get_context_data(**kwargs)
+    #     model_import_attempts = ModelImportAttempt.objects.filter(
+    #         model_importer__row_data__file_import_attempt=self.object.latest_file_import_attempt.id
+    #     )
+    #     mia_errors = model_import_attempts.values_list(
+    #         "model_importer__row_data__row_num", "errors__conversion_errors"
+    #     )
+    #     from collections import defaultdict
+    #     from utils.numrange import get_str_from_nums
+
+    #     d = defaultdict(list)
+    #     for row_num, errors in mia_errors:
+    #         if errors:
+    #             for error in errors:
+    #                 # error_str = (
+    #                 #     f"attempted to convert fields {error['from_fields'].values()} "
+    #                 #     f"to {error['to_fields']} via converter {error['converter']} "
+    #                 #     f"but got error: {error['error']}"
+    #                 # )
+    #                 d[(error["from_fields"], error["error"])].append(row_num)
+    #     d = [(get_str_from_nums(bar), *foo) for foo, bar in d.items()]
+    #     context["model_import_attempts"] = model_import_attempts
+    #     context["mia_errors"] = mia_errors
+    #     context["d"] = d
+    #     return context
 
     def get_tables_data(self):
         fia_filter_qs = FileImportAttemptFilter(
@@ -127,7 +156,22 @@ class FileImporterDetailView(MultiTableMixin, DetailView):
             queryset=self.object.file_import_attempts.all().annotate_num_model_importers(),
             form_helper_kwargs={"form_class": "collapse"},
         ).qs
-        return [fia_filter_qs]
+        error_table_data = self.object.condensed_errors_by_row_as_dicts()
+        rd_filter_qs = RowDataFilter(
+            self.request.GET,
+            queryset=RowData.objects.get_rejected()
+            .filter(file_import_attempt=self.object.latest_file_import_attempt.id)
+            .annotate_num_model_importers(),
+            form_helper_kwargs={"form_class": "collapse"},
+        ).qs
+        return [fia_filter_qs, error_table_data, rd_filter_qs]
+
+    def get_object(self, *args, **kwargs):
+        instance = super().get_object(*args, **kwargs)
+        # Refresh the latest file hash from disk. Or, if not found
+        FileImporter.objects.filter(id=instance.id).refresh_from_filesystem()
+        instance.refresh_from_db()
+        return instance
 
 
 class ModelImporterDetailView(MultiTableMixin, DetailView):
@@ -153,6 +197,7 @@ class ModelImporterListView(FilterTableView):
         queryset = super().get_queryset()
         queryset = queryset.annotate_num_model_import_attempts()
         return queryset
+
 
 class RowDataListView(FilterTableView):
     table_class = RowDataTable
@@ -202,21 +247,38 @@ class FileImportAttemptDetailView(MultiTableMixin, DetailView):
         ).qs
         return [rd_filter_qs]
 
+    def get_object(self, *args, **kwargs):
+        instance = super().get_object(*args, **kwargs)
+        # Refresh the latest file hash from disk. Or, if not found
+        FileImporter.objects.filter(
+            id=instance.file_importer.id
+        ).refresh_from_filesystem()
+        instance.refresh_from_db()
+        return instance
+
 
 @transaction.atomic
 def _import_file(request, importer_name, path, on_error=None):
     if on_error is None:
         on_error = reverse("fileimporter_create")
     try:
-        call_command(importer_name, path, overwrite=True, durable=True)
+        call_command(importer_name, path, overwrite=True, durable=True, propagate=True)
     except Exception as error:
         messages.error(request, f"FATAL ERROR: {error.__class__.__name__}: {error}")
         # Manually set rollback since we aren't raising an Exception here
         transaction.set_rollback(True)
         return HttpResponseRedirect(on_error)
 
-    file_importer = get_object_or_404(importer_name=importer_name, file_path=path)
+    file_importer = get_object_or_404(
+        FileImporter, importer_name=importer_name, file_path=path
+    )
     file_import_attempt = file_importer.latest_file_import_attempt
+    # file_import_attempt.save()
+    mias = ModelImportAttempt.objects.filter(
+        model_importer__row_data__file_import_attempt=file_import_attempt.id
+    )
+    mias.derive_values()
+    file_import_attempt.refresh_from_db()
     messages.success(
         request,
         f"Successfully created {file_import_attempt._meta.verbose_name} "
@@ -230,6 +292,9 @@ def _import_file(request, importer_name, path, on_error=None):
         message_stub = (
             "However, one or more Model Import Attempts failed (no model was created)!"
         )
+    elif status == STATUSES.empty:
+        messager = messages.error
+        message_stub = "However, no Model Import Attempts were created (empty file)!"
     elif status == STATUSES.created_dirty:
         messager = messages.warning
         message_stub = (
@@ -332,7 +397,9 @@ class FileImporterCreateView(CreateView):
 def delete_file_import_models(request, pk):
     file_importer = get_object_or_404(FileImporter, id=pk)
     # file_import_attempt = file_importer.latest_file_import_attempt
-    total_num_fia_deletions, total_num_mia_deletions, all_mia_deletions= file_importer.delete_imported_models()
+    total_num_fia_deletions, total_num_mia_deletions, all_mia_deletions = (
+        file_importer.delete_imported_models()
+    )
 
     if total_num_mia_deletions:
         deleted_models_str = ", ".join(

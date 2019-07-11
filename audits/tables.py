@@ -33,11 +33,19 @@ class FileImporterBatchTable(tables.Table):
     )
     num_successful_file_importers = tables.Column(
         verbose_name="# Successful Files",
-        attrs={"th": {"title": "The number of File Importers in this batch that were successfully imported"}},
+        attrs={
+            "th": {
+                "title": "The number of File Importers in this batch that were successfully imported"
+            }
+        },
     )
     num_failed_file_importers = tables.Column(
         verbose_name="# Failed Files",
-        attrs={"th": {"title": "The number of File Importers in this batch that were not successfully imported"}},
+        attrs={
+            "th": {
+                "title": "The number of File Importers in this batch that were not successfully imported"
+            }
+        },
     )
 
     class Meta:
@@ -192,7 +200,6 @@ class ModelImporterTable(tables.Table):
         fields = ModelImporterFilter.Meta.fields
         order_by = ["-status", "-modified_on"]
 
-
     def render_id(self, value):
         return f"MI {value}"
 
@@ -243,3 +250,9 @@ class ModelImportAttemptTable(tables.Table):
 
     def render_errors(self, record):
         return to_fancy_str(record.gen_error_summary(), quote=True)
+
+
+class FileImporterErrorSummaryTable(tables.Table):
+    row_nums = tables.Column(verbose_name="Row #s")
+    aliases = tables.Column(verbose_name="From Fields")
+    error = tables.Column(verbose_name="Errors")

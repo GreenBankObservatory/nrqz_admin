@@ -9,22 +9,8 @@
 
 <h1 title="{{fileimporter.file_path}}">{{ fileimporter }}</h1>
 
-{% if fileimporter.file_changed %}
-<div class="jumbotron jumbotron-warning">
-{% if fileimporter.file_missing %}
-    <h2 style="color: red" class="display-4">File missing!</h2>
-    <p class="lead"><b style="color: red">File '{{ fileimporter.file_path }}' has been moved or deleted!</b></p>
-{% else %}
-    <h2 style="color: red" class="display-4">File changed!</h2>
-    <p class="lead"><b style="color: red">File '{{ fileimporter.file_path }}' has changed on disk since it was imported</b></p>
-{% endif %}
-    <p>You should do one of the following:</p>
-    <ul>
-        <li>If the file has been deleted or moved by accident, put it back in its original location and then re-import</li>
-        <li>If the file has changed location permanently, update the 'file path' for this importer</li>
-        <li>If this file was imported in error, or no longer needs to be in the system, then you should delete the created models</li>
-    </ul>
-{# Don't close the jumbotron here; close it down below so that we can pull the forms inside of it for clarity #}
+{% if fileimporter.file_changed or fileimporter.file_missing %}
+{% include "audits/file_change_jumbotron.html" %}
 {% else %}
     <p>
         <a href="file://{{ fileimporter.latest_file_import_attempt.imported_from }}">
@@ -33,6 +19,13 @@
     </p>
 {% endif %}
 
+{% if tables.1.data %}
+<h2>Summary of Errors by Row</h2>
+{% render_table tables.1 %}
+{% endif %}
+
+<h2 title="Rows imported during this file import attempt">Row Importers</h2>
+{% render_table tables.2 %}
 
 <div class="row">
     <div class="col-md-auto">
@@ -64,11 +57,6 @@
         </form>
     </div>
 </div>
-
-{# This closes the jumbotron above, but only if it has been opened! #}
-{% if fileimporter.file_changed %}
-</div>
-{% endif %}
 
 
 <h2>File Import Attempts</h2>

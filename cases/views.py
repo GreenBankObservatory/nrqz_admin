@@ -6,12 +6,7 @@ from docxtpl import DocxTemplate
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
-from django.db.models import (
-    Q,
-    Count,
-    Exists,
-    OuterRef,
-)
+from django.db.models import Q, Count, Exists, OuterRef
 from django.db.utils import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
@@ -248,8 +243,8 @@ class PreliminaryFacilityListView(FilterTableView):
     def get_queryset(self):
         return (
             PreliminaryFacility.objects.annotate_in_nrqz()
-                .annotate_azimuth_to_gbt()
-                .annotate_distance_to_gbt()
+            .annotate_azimuth_to_gbt()
+            .annotate_distance_to_gbt()
         )
 
 
@@ -262,8 +257,8 @@ class FacilityListView(FilterTableView):
     def get_queryset(self):
         return (
             Facility.objects.annotate_in_nrqz()
-                .annotate_azimuth_to_gbt()
-                .annotate_distance_to_gbt()
+            .annotate_azimuth_to_gbt()
+            .annotate_distance_to_gbt()
         )
 
     def get(self, request, *args, **kwargs):
@@ -281,7 +276,6 @@ class FacilityListView(FilterTableView):
             ] = 'application; filename="nrqz_facilities.kml"'
             return response
         else:
-            import ipdb; ipdb.set_trace()
             return super(FacilityListView, self).get(request, *args, **kwargs)
 
 

@@ -10,6 +10,31 @@
 
 <h1>{{ fileimportattempt }}</h1>
 
+{% if fileimportattempt == fileimportattempt.file_importer.latest_file_import_attempt  %}
+{% if fileimportattempt.file_importer.file_changed or fileimportattempt.file_importer.file_missing %}
+{% include "audits/file_change_jumbotron.html" with fileimporter=fileimportattempt.file_importer %}
+{% endif %}
+{% else %}
+
+<ul>
+<li style="color:red;font-weight: bold">This is not the latest import attempt in its File Importer! Jump to latest File Import Attempt: <a href="{{fileimportattempt.file_importer.latest_file_import_attempt.get_absolute_url }}"> {{fileimportattempt.file_importer.latest_file_import_attempt }}</a></li>
+{% if not fileimportattempt.importee %}
+<li style="color:red;font-weight: bold">
+While this import attempt failed, a subsequent attempt was successful (see above)
+</li>
+{% endif %}
+
+{% if fileimportattempt.hash_when_imported != fileimportattempt.file_importer.hash_on_disk %}
+    <li style="color:red;font-weight: bold">File on disk has changed since this import attempt!</li>
+{% endif %}
+
+{% if fileimportattempt.imported_from != fileimportattempt.file_importer.file_path %}
+    <li style="color:red;font-weight: bold">File on disk has moved since this import attempt!</li>
+{% endif %}
+</ul>
+{% endif %}
+
+
 <p>
     <a href="{{ fileimportattempt.file_importer.get_absolute_url }}">
         Open File Importer
@@ -39,7 +64,7 @@
         </div>
 
         <div class="col-auto">
-            <form method="POST" action="{% url 'acknowledge_fileimporter' fileimportattempt.id %}">
+            <form method="POST" action="{% url 'acknowledge_fileimporter' fileimportattempt.file_importer.id %}">
                 {% csrf_token %}
                 <input required type="checkbox" name="sanity" value="I am super sure">
                 <input required type="submit" name="acknowledge" value={% if fileimportattempt.acknowledged %}"Unacknowledge"{% else %}"Acknowledge"{% endif %}>

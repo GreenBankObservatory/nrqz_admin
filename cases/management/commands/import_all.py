@@ -51,6 +51,7 @@ class Command(BaseMetaImportCommand):
                     ]
                     if option in options
                 },
+                "no_post_import_actions": True,
             }
             if preview:
                 tqdm.write(f"call_command({command!r}, *{paths!r}, **{sub_options!r})")
@@ -85,7 +86,12 @@ class Command(BaseMetaImportCommand):
                     transaction.set_rollback(True)
                     tqdm.write("DRY RUN; rolling back changes")
 
-        self.post_import_actions()
+        if not options["no_post_import_actions"]:
+            self.post_import_actions()
+        else:
+            tqdm.write(
+                "import_all: Skipping post import actions due to presence of no_post_import_actions=True"
+            )
         tqdm.write(f"--- DONE ---")
 
     def post_import_actions(self):
