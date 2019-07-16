@@ -30,16 +30,21 @@ from django.db.models import (
     TextField,
     Value,
 )
-from django.db.models.fields import NOT_PROVIDED
 from django.urls import reverse
 from django.utils.functional import cached_property
 from django.utils.safestring import mark_safe
 
 from django_import_data.models import AbstractBaseAuditedModel
+from django_import_data.mixins import (
+    SensibleCharField,
+    SensibleEmailField,
+    SensibleTextField,
+    TrackedFileMixin,
+)
 from django_super_deduper.models import MergeInfo
 
 from .kml import facility_as_kml, case_as_kml, kml_to_string
-from .managers import CaseManager, LocationManager, CaseGroupManager
+from .managers import AttachmentManager, CaseManager, LocationManager, CaseGroupManager
 from .mixins import (
     AllFieldsModel,
     DataSourceModel,
@@ -50,46 +55,6 @@ from .mixins import (
 )
 from utils.constants import WGS84_SRID
 from utils.numrange import get_str_from_nums
-
-
-class SensibleTextyField:
-    def __init__(self, *args, **kwargs):
-        null_given = "null" in kwargs
-        null = kwargs.get("null", False)
-        blank = kwargs.get("blank", False)
-        unique = kwargs.get("unique", False)
-        (kwargs.get("default", NOT_PROVIDED),)
-
-        if not (unique is True and blank is True) and null is True:
-            raise ValueError(
-                f"{self.__class__.__name__} doesn't allow null=True unless unique=True AND blank=True! "
-                "See https://docs.djangoproject.com/en/2.1/ref/models/fields/#null for more details"
-            )
-
-        if unique is True and blank is True:
-            if null_given and null is False:
-                raise ValueError(
-                    f"{self.__class__.__name__} doesn't allow null=False if unique=True AND blank=True! "
-                    "See https://docs.djangoproject.com/en/2.1/ref/models/fields/#null for more details"
-                )
-            kwargs["null"] = True
-
-        if blank is False and null is False:
-            kwargs["default"] = None
-
-        super().__init__(*args, **kwargs)
-
-
-class SensibleCharField(SensibleTextyField, CharField):
-    pass
-
-
-class SensibleTextField(SensibleTextyField, TextField):
-    pass
-
-
-class SensibleEmailField(SensibleTextyField, EmailField):
-    pass
 
 
 # TODO: Make proper field
@@ -799,39 +764,48 @@ class Person(
 
 
 class Attachment(
-    AbstractBaseAuditedModel, IsActiveModel, TrackedModel, DataSourceModel, Model
+    TrackedFileMixin,
+    AbstractBaseAuditedModel,
+    IsActiveModel,
+    TrackedModel,
+    DataSourceModel,
+    Model,
 ):
     """Holds the path to a file along with some metadata"""
 
-    # TODO: This will need to be a proper FilePathField eventually...
-    path = SensibleCharField(max_length=256, unique=True)
-    # path = FilePathField(path=settings.NRQZ_ATTACHMENT_DIR, max_length=256, unique=True)
     comments = SensibleTextField(blank=True)
     original_index = PositiveIntegerField(null=True, blank=True)
+
+    objects = AttachmentManager()
 
     class Meta:
         verbose_name = "Attachment"
         verbose_name_plural = "Attachments"
 
     def __str__(self):
-        return f"{self.path}"
+        return f"{self.file_path}"
 
     def get_absolute_url(self):
         return reverse("attachment_detail", args=[str(self.id)])
 
     @cached_property
     def hyperlink(self):
-        if self.path.startswith("http"):
-            href = self.path
-            path = self.path
+        if self.file_path.startswith("http"):
+            href = self.file_path
+            path = self.file_path
         else:
-            href = f"file://{self.path}"
-            nt_path = ntpath.basename(self.path)
-            unix_path = os.path.basename(self.path)
+            href = f"file://{self.file_path}"
+            nt_path = ntpath.basename(self.file_path)
+            unix_path = os.path.basename(self.file_path)
             path = unix_path if len(unix_path) < len(nt_path) else nt_path
 
-        link = f"<a href='{href}' " f"title={self.path}>" f"{path}</a>"
+        link = f"<a href='{href}' " f"title={self.file_path}>" f"{path}</a>"
         return mark_safe(link)
+
+    def get_is_active(self):
+        self.is_active = os.path.isfile(self.file_path)
+        self.save()
+        return self.is_active
 
 
 class LetterTemplate(IsActiveModel, TrackedModel, Model):

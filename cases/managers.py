@@ -1,4 +1,5 @@
-import regex as re
+import os
+import re
 
 from tqdm import tqdm
 
@@ -18,6 +19,8 @@ from django.db.models import (
     Max,
 )
 from django.utils.functional import cached_property
+
+from django_import_data.querysets import TrackedFileQueryset
 
 from importers.converters import coerce_none
 
@@ -335,3 +338,15 @@ class CaseGroupManager(Manager):
             num_case_groups = self.count()
 
         print(f"Number of CaseGroups stabilized at {num_case_groups}")
+
+
+class AttachmentManager(Manager):
+    # def derive_is_active(self):
+    #     attachments = self.all()
+    #     for attachment in tqdm(attachments):
+    #         attachment.is_active = os.path.isfile(attachment.path)
+
+    #     return self.bulk_update(attachments, ["is_active"])
+
+    def get_queryset(self):
+        return TrackedFileQueryset(self.model, using=self._db)

@@ -1,0 +1,17 @@
+{% extends "cases/base.html" %}
+{% load crispy_forms_tags %}
+{% load render_table from django_tables2 %}
+
+{% block content %}
+<h1>Attachment Dashboard</h1>
+{% if table.data %}
+<p>Attachments here are both missing from the file system, and "active". You can either "deactivate" them (this is like deleting them from the database), or "refresh" them (if you have replaced them on the filesystem, or updated their path to point to their new location)</p>
+<form method="POST" >{% csrf_token %}
+    {% render_table table %}
+    <button class="btn btn-primary" type="submit" value="submit_deactivate" name="submit_deactivate">Deactivate</button>
+    <button class="btn btn-primary" type="submit" value="submit_refresh" name="submit_refresh">Refresh from Filesystem</button>
+</form>
+{% else %}
+{% include "audits/congratulations.html" with name="Attachments"%}
+{% endif %}
+{% endblock content %}

@@ -9,10 +9,12 @@
 
 
 <h1>{{ fileimportattempt }}</h1>
+Current Status: <b>{{ fileimportattempt.get_current_status_display }}</b>
+Imported Status: <b>{{ fileimportattempt.get_status_display }}</b>
 
 {% if fileimportattempt == fileimportattempt.file_importer.latest_file_import_attempt  %}
 {% if fileimportattempt.file_importer.file_changed or fileimportattempt.file_importer.file_missing %}
-{% include "audits/file_change_jumbotron.html" with fileimporter=fileimportattempt.file_importer %}
+{% include "audits/file_change_jumbotron.html" with object=fileimportattempt.file_importer %}
 {% endif %}
 {% else %}
 
@@ -63,13 +65,16 @@ While this import attempt failed, a subsequent attempt was successful (see above
             </form>
         </div>
 
+
+        {% if not fileimportattempt.is_deleted %}
         <div class="col-auto">
             <form method="POST" action="{% url 'acknowledge_fileimporter' fileimportattempt.file_importer.id %}">
                 {% csrf_token %}
                 <input required type="checkbox" name="sanity" value="I am super sure">
-                <input required type="submit" name="acknowledge" value={% if fileimportattempt.acknowledged %}"Unacknowledge"{% else %}"Acknowledge"{% endif %}>
+                <input required type="submit" name="acknowledge" value={% if fileimportattempt.is_acknowledged %}"Unacknowledge"{% else %}"Acknowledge"{% endif %}>
             </form>
         </div>
+        {% endif %}
     </div>
 </div>
 <div class="container-fluid">

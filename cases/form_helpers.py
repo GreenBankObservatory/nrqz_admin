@@ -244,10 +244,12 @@ class AttachmentFilterFormHelper(FormHelper):
 
     layout = CollapsibleFilterFormLayout(
         Div(
-            Div("path", css_class="col"),
+            Div("file_path", css_class="col"),
             Div("comments", css_class="col"),
             Div("original_index", css_class="col"),
             Div("data_source", css_class="col"),
+            Div("hash_on_disk", css_class="col"),
+            Div("is_active", css_class="col"),
             css_class="row",
         )
     )
@@ -330,5 +332,6 @@ class CaseFormHelper(FormHelper):
             Div(Div("comments", css_class="col"), css_class="row"),
             Div(Div("attachments", css_class="col"), css_class="row"),
             css_class="",
-        )
+        ),
+        Submit("submit", "Submit"),
     )

@@ -4,7 +4,13 @@ from . import views
 from . import autocomplete_views
 
 urlpatterns = [
+    path(
+        "attachment-dashboard/",
+        views.AttachmentDashboard.as_view(),
+        name="attachment_dashboard",
+    ),
     path("cases/", views.CaseListView.as_view(), name="case_index"),
+    path("cases/create", views.CaseCreateView.as_view(), name="case_create"),
     path("cases/<int:slug>/", views.CaseDetailView.as_view(), name="case_detail"),
     path("cases/<int:pk>/as_kml/", views.case_as_kml_view, name="case_kml"),
     path("case-groups/", views.CaseGroupListView.as_view(), name="case_group_index"),

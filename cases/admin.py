@@ -109,7 +109,7 @@ class PersonAdmin(admin.ModelAdmin):
 @admin.register(Attachment)
 class AttachmentAdmin(admin.ModelAdmin):
     form = AttachmentForm
-    search_fields = ["path"]
+    search_fields = ["file_path"]
 
 
 @admin.register(Location)

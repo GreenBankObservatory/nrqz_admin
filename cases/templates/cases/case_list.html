@@ -3,11 +3,11 @@
 
 {% block content %}
 <div class="row">
-    <div class="col">
+    <div class="col-auto">
         <h1 title="An index of all known case files"><a href="{% url 'case_index' %}">Case Index</a></h1>
     </div>
-    <div class="col-auto">
-        <a href="{% url 'admin:cases_case_add' %}">
+    <div class="col">
+        <a href="{% url 'case_create' %}">
             Create New Case
         </a>
     </div>

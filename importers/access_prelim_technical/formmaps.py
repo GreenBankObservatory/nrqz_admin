@@ -178,7 +178,7 @@ class PFacilityImportFormMap(FormMap):
 class PropagationStudyFormMap(FormMap):
     field_maps = [
         OneToOneFieldMap(
-            to_field="path",
+            to_field="file_path",
             converter=convert_access_path,
             from_field=f"PROP_STUDY_Link",
         )

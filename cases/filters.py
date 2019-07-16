@@ -233,13 +233,20 @@ class PersonFilter(HelpedFilterSet):
 
 
 class AttachmentFilter(HelpedFilterSet):
-    path = django_filters.CharFilter(lookup_expr="icontains")
+    file_path = django_filters.CharFilter(lookup_expr="icontains")
     comments = django_filters.CharFilter(lookup_expr="search")
+    hash_on_disk = django_filters.BooleanFilter(
+        label="File Exists", method="filter_exists"
+    )
+    is_active = django_filters.BooleanFilter()
 
     class Meta:
         model = models.Attachment
         formhelper_class = AttachmentFilterFormHelper
         fields = discover_fields(formhelper_class.layout)
+
+    def filter_exists(self, queryset, name, value):
+        return queryset.filter(hash_on_disk__isnull=not value)
 
 
 class StructureFilter(HelpedFilterSet):

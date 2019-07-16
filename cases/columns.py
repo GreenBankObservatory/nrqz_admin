@@ -51,8 +51,10 @@ class SelectColumn(CheckBoxColumn):
 class UnboundFileColumn(Column):
     def render(self, value, bound_column, record):
         path = value
-        # if not os.path.isfile(path):
-        #     return "Broken Link"
+        record.refresh_from_filesystem()
+
+        if record.file_missing:
+            return "File does not exist"
         foo = f"""<a
 href='file://{path}'
 title={os.path.basename(path)}

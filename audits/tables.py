@@ -19,7 +19,12 @@ from .filters import (
     FileImporterBatchFilter,
     RowDataFilter,
 )
-from .columns import BaseNameColumn, ImportStatusColumn, TitledCheckBoxColumn
+from .columns import (
+    BaseNameColumn,
+    ImportStatusColumn,
+    CurrentStatusColumn,
+    TitledCheckBoxColumn,
+)
 
 
 class FileImporterBatchTable(tables.Table):
@@ -27,6 +32,7 @@ class FileImporterBatchTable(tables.Table):
     command = tables.Column(verbose_name="Importer")
     created_on = tables.DateTimeColumn(verbose_name="Date Imported")
     status = ImportStatusColumn()
+    current_status = CurrentStatusColumn()
     num_file_importers = tables.Column(
         verbose_name="# Files",
         attrs={"th": {"title": "The number of File Importers in this batch"}},
@@ -72,7 +78,7 @@ class FileImporterTable(tables.Table):
             }
         },
     )
-    acknowledged = tables.BooleanColumn()
+    current_status = CurrentStatusColumn()
     num_file_import_attempts = tables.Column(
         verbose_name="# FIAs",
         attrs={"th": {"title": "The number of FIAs that this FI has created"}},
@@ -102,7 +108,6 @@ class FileImporterDashboardTable(FileImporterTable):
         },
         verbose_name="Acknowledge",
     )
-    acknowledged = None
 
     class Meta:
         model = FileImporter
@@ -125,6 +130,7 @@ class FileImportAttemptTable(tables.Table):
         #     }
         # },
     )
+    current_status = CurrentStatusColumn(accessor="file_importer.current_status")
     imported_from = BaseNameColumn()
 
     num_model_importers = tables.Column(
@@ -155,6 +161,7 @@ class RowDataTable(tables.Table):
             }
         },
     )
+    current_status = CurrentStatusColumn()
     num_model_importers = tables.Column(
         verbose_name="# MIs",
         attrs={"th": {"title": "The number of MIs created from this row"}},
@@ -180,6 +187,7 @@ class ModelImporterTable(tables.Table):
             }
         },
     )
+    current_status = CurrentStatusColumn()
     num_model_import_attempts = tables.Column(
         verbose_name="# MIAs",
         attrs={"th": {"title": "The number of MIAs in this MI's most recent MIA"}},
@@ -230,6 +238,7 @@ class ModelImportAttemptTable(tables.Table):
         verbose_name="Model Import Attempt Status",
         attrs={"th": {"title": "The status of the import attempted for THIS MODEL"}},
     )
+    current_status = CurrentStatusColumn()
     row_data = tables.Column(linkify=True, verbose_name="Row Data")
     errors = tables.Column(verbose_name="Fields with Errors")
 

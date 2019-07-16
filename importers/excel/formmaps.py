@@ -573,7 +573,7 @@ FACILITY_FORM_MAP = FacilityImportFormMap()
 class SgrsApprovalAttachmentImportFormMap(FormMap):
     field_maps = [
         OneToOneFieldMap(
-            to_field="path",
+            to_field="file_path",
             converter=convert_excel_path,
             from_field={"path": ["SGRS Approval", "SG Approval", "SGRS approval"]},
         )
@@ -588,7 +588,7 @@ SGRS_APPROVAL_ATTACHMENT_FORM_MAP = SgrsApprovalAttachmentImportFormMap()
 class SiEngineeringAttachmentImportFormMap(FormMap):
     field_maps = [
         OneToOneFieldMap(
-            to_field="path",
+            to_field="file_path",
             converter=convert_excel_path,
             from_field={
                 "path": [
@@ -614,7 +614,7 @@ SI_ENGINEERING_ATTACHMENT_FORM_MAP = SiEngineeringAttachmentImportFormMap()
 class LocAttachmentImportFormMap(FormMap):
     field_maps = [
         OneToOneFieldMap(
-            to_field="path",
+            to_field="file_path",
             converter=convert_excel_path,
             from_field={"path": ["LOC", "NRAO LOC"]},
         )
@@ -630,7 +630,7 @@ LOC_ATTACHMENT_FORM_MAP = LocAttachmentImportFormMap()
 class TapFileAttachmentImportFormMap(FormMap):
     field_maps = [
         OneToOneFieldMap(
-            to_field="path",
+            to_field="file_path",
             converter=convert_excel_path,
             from_field={"path": ["TAP file", "TAP File", "Propagation Study"]},
         )

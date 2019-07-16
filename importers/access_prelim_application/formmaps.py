@@ -89,7 +89,7 @@ ATTACHMENT_FORM_MAPS = [
         {
             "field_maps": [
                 OneToManyFieldMap(
-                    to_fields=("path", "original_index"),
+                    to_fields=("file_path", "original_index"),
                     converter=convert_access_attachment,
                     from_field=f"LETTER{n}_Link",
                     explanation="This field provides both the letter number and "

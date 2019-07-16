@@ -8,21 +8,32 @@
 {% block content %}
 {% make_breadcrumb attachment %}
 
-<h1>
-    <a
-        href="file://{{ attachment.path }}"
-        title={{ attachment.path | basename }}
-    >
-        {{ attachment.hyperlink }}
-    </a>
-</h1>
+{% if attachment.file_missing and attachment.is_active %}
+{% include "audits/attachment_file_change_jumbotron.html" %}
+{% endif %}
+
+<div class="row">
+    <div class="col-auto">
+
+        <h1>
+            <a
+                href="file://{{ attachment.file_path }}"
+                title={{ attachment.file_path | basename }}
+            >
+                {{ attachment.hyperlink }} ({% if attachment.is_active %}Active{%else%}Inactive{% endif %})
+            </a>
+        </h1>
+    </div>
+
+    <div class="col">
+        <a href={% url "admin:cases_attachment_change" attachment.id %}>Edit</a>
+    </div>
+</div>
 <h2>Comments</h2>
 <p>{{ attachment.comments }}</p>
 
-<p><a href={% url "admin:cases_attachment_change" attachment.id %}>Edit</a></p>
-
 {% for table in tables %}
-    <h2>Attachment for {{ table | table_model_name }} ({{ table.data|length }})</h2>
+    <h2>Attachment for {{ table | table_model_name_plural }} ({{ table.data|length }})</h2>
     {% if table.data %}
     {% render_table table %}
     {% else %}

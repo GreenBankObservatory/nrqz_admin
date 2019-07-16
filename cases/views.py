@@ -3,6 +3,7 @@ import tempfile
 
 from docxtpl import DocxTemplate
 
+from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
@@ -11,7 +12,7 @@ from django.db.utils import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
-from django.views.generic import FormView
+from django.views.generic import FormView, CreateView, TemplateView
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 
@@ -22,7 +23,7 @@ from watson import search as watson
 
 from utils.coord_utils import coords_to_string
 from utils.merge_people import find_similar_people, merge_people
-from .forms import LetterTemplateForm, DuplicateCaseForm
+from .forms import LetterTemplateForm, DuplicateCaseForm, CaseForm
 from .models import (
     Attachment,
     Case,
@@ -46,6 +47,7 @@ from .filters import (
 )
 from .tables import (
     AttachmentTable,
+    AttachmentDashboardTable,
     CaseExportTable,
     CaseGroupTable,
     CaseTable,
@@ -363,7 +365,7 @@ class PreliminaryCaseDetailView(MultiTableMixin, DetailView):
         ).qs
         attachment_filter_qs = AttachmentFilter(
             self.request.GET,
-            queryset=self.object.attachments.all(),
+            queryset=self.object.attachments.exclude(is_active=False),
             form_helper_kwargs={"form_class": "collapse"},
         ).qs
         pcase_filter_qs = PreliminaryCaseFilter(
@@ -407,7 +409,7 @@ class CaseDetailView(MultiTableMixin, DetailView):
 
         attachment_filter_qs = AttachmentFilter(
             self.request.GET,
-            queryset=self.object.attachments.all(),
+            queryset=self.object.attachments.exclude(is_active=False),
             form_helper_kwargs={"form_class": "collapse"},
         ).qs
 
@@ -581,7 +583,7 @@ class FacilityDetailView(MultiTableMixin, BaseFacilityDetailView):
     def get_tables_data(self):
         attachment_filter_qs = AttachmentFilter(
             self.request.GET,
-            queryset=self.object.attachments.all(),
+            queryset=self.object.attachments.exclude(is_active=False),
             form_helper_kwargs={"form_class": "collapse"},
         ).qs
         return [attachment_filter_qs]
@@ -625,6 +627,16 @@ class AttachmentListView(FilterTableView):
     filterset_class = AttachmentFilter
     template_name = "cases/attachment_list.html"
 
+    def post(self, request, *args, **kwargs):
+        if request.POST.get("refresh_from_filesystem", None):
+            report = self.table_class.Meta.model.objects.all().refresh_from_filesystem()
+            report_counts = {key: len(values) for key, values in report.items()}
+            messages.success(
+                request,
+                f"Successfully refreshed all attachments from filesystem: {report_counts}",
+            )
+            return HttpResponseRedirect(reverse("attachment_index"))
+
 
 class AttachmentDetailView(MultiTableMixin, DetailView):
     model = Attachment
@@ -659,40 +671,23 @@ class AttachmentDetailView(MultiTableMixin, DetailView):
             pfacility_filter_qs,
         ]
 
-    # def get_tables_data(self):
-    #     attachment = self.object
-    #     import ipdb; ipdb.set_trace()
-    #     return [
-    #         table._meta.model.objects.filter(id__in=attachment.cases.values("id"))
-    #         for table in self.tables
-    #     ]
-
-    # def get_context_data(self, **kwargs):
-
-    #     context = super().get_context_data(**kwargs)
-    #     context["tables_with_model_names"] = zip(
-    #         [table._meta.model._meta.verbose_name for table in self.get_tables()],
-    #         context["tables"],
-    #     )
-    #     import ipdb
-
-    #     ipdb.set_trace()
-    #     return context
+    def get_object(self, *args, **kwargs):
+        instance = super().get_object(*args, **kwargs)
+        # Refresh the file info from disk
+        status = instance.refresh_from_filesystem()
+        if status == "changed":
+            messages.warning(
+                self.request,
+                "Attachment contents have changed since last checked! Stored "
+                "hash has been updated",
+            )
+        return instance
 
 
 class PersonListView(FilterTableView):
     table_class = PersonTable
     filterset_class = PersonFilter
     template_name = "cases/person_list.html"
-
-    # def get_context_data(self, **kwargs):
-    #     context = super().get_context_data(**kwargs)
-    #     context["status_info"] = ["completed_on"]
-    #     context["application_info"] = ["radio_service", "num_freqs", "num_sites"]
-    #     context["unsorted_info"] = get_fields_missing_from_info_tables(
-    #         context, self.object.all_fields()
-    #     )
-    #     return context
 
 
 class PersonDetailView(MultiTableMixin, DetailView):
@@ -919,3 +914,52 @@ def duplicate_case(request, case_num):
 
     messages.success(request, message_text)
     return HttpResponseRedirect(reverse("case_detail", args=[case.case_num]))
+
+
+class CaseCreateView(CreateView):
+    form_class = CaseForm
+    template_name = "cases/case_create.html"
+
+
+class AttachmentDashboard(SingleTableMixin, TemplateView):
+    table_class = AttachmentDashboardTable
+    template_name = "audits/attachment_dashboard.html"
+    table_pagination = {"per_page": 10}
+
+    def get_queryset(self):
+        return Attachment.objects.filter(hash_on_disk__isnull=True, is_active=True)
+
+    def post(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        affect_all = request.POST.get("all", None)
+        attachments_to_affect = queryset.filter(is_active=True)
+        if not affect_all:
+            attachment_ids = request.POST.getlist("check", None)
+            attachments_to_affect = attachments_to_affect.filter(id__in=attachment_ids)
+
+        num_attachments_to_affect = attachments_to_affect.count()
+        if num_attachments_to_affect:
+            if request.POST.get("submit_refresh", None):
+                report = attachments_to_affect.refresh_from_filesystem()
+                report_counts = {key: len(values) for key, values in report.items()}
+                messages.success(
+                    request,
+                    f"Successfully refreshed {num_attachments_to_affect} attachments from filesystem: {report_counts}",
+                )
+            elif request.POST.get("submit_deactivate", None):
+                # Get count here, since QS will be empty soon
+                # Convert to string here, since this QS will be empty soon. We rely
+                # on Django to concatenate the values list string to a reasonable length,
+                # so we don't have to worry about doing it ourselves
+                summary_str = str(attachments_to_affect.values_list("id", flat=True))
+                # Perform the actual deactivation
+                attachments_to_affect.update(is_active=False)
+                if num_attachments_to_affect:
+                    messages.success(
+                        request,
+                        f"Successfully deactivated {num_attachments_to_affect} Attachments: {summary_str}",
+                    )
+        else:
+            messages.warning(request, "No Attachments selected")
+
+        return HttpResponseRedirect(reverse("attachment_dashboard"))

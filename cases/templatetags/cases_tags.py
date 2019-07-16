@@ -182,3 +182,14 @@ def table_model_name(table):
             return table._meta.model.__name__
     except AttributeError:
         return None
+
+
+@register.filter
+def table_model_name_plural(table):
+    try:
+        try:
+            return table._meta.model._meta.verbose_name_plural
+        except AttributeError:
+            return f"{table._meta.model.__name__}s"
+    except AttributeError:
+        return None

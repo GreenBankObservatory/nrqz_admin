@@ -22,7 +22,7 @@ class FileImporterFilterFormHelper(FormHelper):
             Div("file_path", css_class="col"),
             Div("modified_on", css_class="col"),
             Div("status", css_class="col"),
-            Div("acknowledged", css_class="col"),
+            # Div("current_status", css_class="col"),
             css_class="row",
         )
     )
@@ -35,7 +35,6 @@ class FileImportAttemptFilterFormHelper(FormHelper):
             Div("imported_from", css_class="col"),
             Div("created_on", css_class="col"),
             Div("status", css_class="col"),
-            Div("acknowledged", css_class="col"),
             css_class="row",
         )
     )

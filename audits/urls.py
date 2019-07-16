@@ -7,7 +7,9 @@ from django_import_data.views import changed_files_view, acknowledge_file_import
 from . import views
 
 urlpatterns = [
-    path("dashboard/", views.Dashboard.as_view(), name="dashboard"),
+    path(
+        "file-dashboard/", views.FileImporterDashboard.as_view(), name="file_dashboard"
+    ),
     path(
         "file-importers/",
         views.FileImporterListView.as_view(),

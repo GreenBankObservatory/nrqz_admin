@@ -123,33 +123,6 @@ class FileImporterDetailView(MultiTableMixin, DetailView):
     template_name = "audits/fileimporter_detail.html"
     table_pagination = {"per_page": 10}
 
-    # def get_context_data(self, **kwargs):
-    #     context = super().get_context_data(**kwargs)
-    #     model_import_attempts = ModelImportAttempt.objects.filter(
-    #         model_importer__row_data__file_import_attempt=self.object.latest_file_import_attempt.id
-    #     )
-    #     mia_errors = model_import_attempts.values_list(
-    #         "model_importer__row_data__row_num", "errors__conversion_errors"
-    #     )
-    #     from collections import defaultdict
-    #     from utils.numrange import get_str_from_nums
-
-    #     d = defaultdict(list)
-    #     for row_num, errors in mia_errors:
-    #         if errors:
-    #             for error in errors:
-    #                 # error_str = (
-    #                 #     f"attempted to convert fields {error['from_fields'].values()} "
-    #                 #     f"to {error['to_fields']} via converter {error['converter']} "
-    #                 #     f"but got error: {error['error']}"
-    #                 # )
-    #                 d[(error["from_fields"], error["error"])].append(row_num)
-    #     d = [(get_str_from_nums(bar), *foo) for foo, bar in d.items()]
-    #     context["model_import_attempts"] = model_import_attempts
-    #     context["mia_errors"] = mia_errors
-    #     context["d"] = d
-    #     return context
-
     def get_tables_data(self):
         fia_filter_qs = FileImportAttemptFilter(
             self.request.GET,
@@ -161,16 +134,16 @@ class FileImporterDetailView(MultiTableMixin, DetailView):
             self.request.GET,
             queryset=RowData.objects.get_rejected()
             .filter(file_import_attempt=self.object.latest_file_import_attempt.id)
-            .annotate_num_model_importers(),
+            .annotate_num_model_importers()
+            .annotate_current_status(),
             form_helper_kwargs={"form_class": "collapse"},
         ).qs
         return [fia_filter_qs, error_table_data, rd_filter_qs]
 
     def get_object(self, *args, **kwargs):
         instance = super().get_object(*args, **kwargs)
-        # Refresh the latest file hash from disk. Or, if not found
-        FileImporter.objects.filter(id=instance.id).refresh_from_filesystem()
-        instance.refresh_from_db()
+        # Refresh the file info from disk
+        instance.refresh_from_filesystem()
         return instance
 
 
@@ -250,9 +223,7 @@ class FileImportAttemptDetailView(MultiTableMixin, DetailView):
     def get_object(self, *args, **kwargs):
         instance = super().get_object(*args, **kwargs)
         # Refresh the latest file hash from disk. Or, if not found
-        FileImporter.objects.filter(
-            id=instance.file_importer.id
-        ).refresh_from_filesystem()
+        instance.file_importer.refresh_from_filesystem()
         instance.refresh_from_db()
         return instance
 
@@ -517,31 +488,30 @@ def file_importer_change_path(request, pk):
                     messages.success(request, f"Path has been updated to {path}.")
                 # We only need to refresh this one importer -- no need to waste
                 # time hashing everything
-                FileImporter.objects.filter(
-                    id=file_importer.id
-                ).refresh_from_filesystem()
+                file_importer.refresh_from_filesystem()
 
     return HttpResponseRedirect(file_importer.get_absolute_url())
 
 
-class Dashboard(SingleTableMixin, TemplateView, ProcessFormView):
+class FileImporterDashboard(SingleTableMixin, TemplateView, ProcessFormView):
     table_class = FileImporterDashboardTable
-    template_name = "audits/dashboard.html"
+    template_name = "audits/file_importer_dashboard.html"
     table_pagination = {"per_page": 10}
 
     def get_queryset(self):
         queryset = FileImporter.objects.all()
-        queryset = queryset.annotate_acknowledged()
+        queryset = queryset.annotate_current_status()
         queryset = queryset.annotate_num_model_importers()
         queryset = queryset.annotate_num_file_import_attempts()
 
-        return queryset.filter(
-            acknowledged=False,
+        return queryset.exclude(
+            current_status=FileImportAttempt.CURRENT_STATUSES.acknowledged.db_value
+        ).filter(
             status__in=[
                 FileImporter.STATUSES.rejected.db_value,
                 FileImporter.STATUSES.created_dirty.db_value,
                 FileImporter.STATUSES.empty.db_value,
-            ],
+            ]
         )
 
     @transaction.atomic

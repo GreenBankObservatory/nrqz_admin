@@ -4,6 +4,7 @@ from django.utils.safestring import mark_safe
 import django_tables2 as tables
 from watson.models import SearchEntry
 
+from audits.columns import TitledCheckBoxColumn
 from utils.coord_utils import lat_to_string, long_to_string, coords_to_string
 from . import models
 from .filters import (
@@ -182,13 +183,7 @@ class FacilityTable(BaseFacilityTable):
         return f"{value:.2f}"
 
     def render_path(self, record):
-        fia = record.model_import_attempt.file_import_attempt
-        # TODO: HACK, remove at some point!
-        if "stripped_data_only_" in fia.name:
-            path = fia.name[len("stripped_data_only_") :].replace("_", " ")
-        else:
-            path = fia.name
-        return path
+        return record.model_import_attempt.file_import_attempt.name
 
     def render_nrao_aerpd(self, value):
         return f"{value:.2E}"
@@ -330,14 +325,34 @@ class PersonTable(tables.Table):
 
 
 class AttachmentTable(tables.Table):
-    path = tables.Column(linkify=True, verbose_name="Attachment")
-    file = UnboundFileColumn(accessor="path", verbose_name="Link")
+    file_path = tables.Column(linkify=True, verbose_name="Attachment")
+    file = UnboundFileColumn(accessor="file_path", verbose_name="Link")
     original_index = tables.Column(verbose_name="Letter #")
 
     class Meta:
         model = models.Attachment
         fields = AttachmentFilter.Meta.fields
-        order_by = ["original_index"]
+        exclude = ("is_active", "hash_on_disk")
+        order_by = ["-modified_on", "original_index"]
+
+
+class AttachmentDashboardTable(AttachmentTable):
+    check = TitledCheckBoxColumn(
+        accessor="id",
+        attrs={
+            "th": {
+                "title": "Select the Attachments you want to affect (or the checkbox here to affect all of them)"
+            },
+            "th__input": {"title": "Select all", "name": "all"},
+        },
+        verbose_name="Select",
+    )
+
+    class Meta:
+        model = models.Attachment
+        fields = AttachmentFilter.Meta.fields
+        exclude = ("is_active", "hash_on_disk", "file")
+        order_by = ["-modified_on", "original_index"]
 
 
 class StructureTable(tables.Table):

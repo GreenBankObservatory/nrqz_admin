@@ -37,10 +37,10 @@ def get_or_create_attachment(row_data, form_map, imported_by):
     attachment_created = False
     attachment_form, conversion_errors = form_map.render(row_data.data)
     if attachment_form:
-        path = attachment_form["path"].value()
+        path = attachment_form["file_path"].value()
         if path:
-            if Attachment.objects.filter(path=path).exists():
-                attachment = Attachment.objects.get(path=path)
+            if Attachment.objects.filter(file_path=path).exists():
+                attachment = Attachment.objects.get(file_path=path)
             else:
                 attachment, __ = form_map.save_with_audit(
                     form=attachment_form, row_data=row_data, imported_by=imported_by

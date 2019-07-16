@@ -1,30 +1,15 @@
-{% extends "cases/base.html" %}
-{% load crispy_forms_tags %}
-{% load render_table from django_tables2 %}
 {% load static %}
 
-{% block content %}
-<h1>Audit Dashboard</h1>
-{% if table.data %}
-<p>Importers on this page have had an issue during their most recent import attempt. You will need to manually resolve the offending source files, then reimport them in order to resolve these.</p>
-<form method="POST" >{% csrf_token %}
-    {% render_table table %}
-    <button class="btn btn-primary" type="submit" value="submit" name="Submit">Acknowledge</button>
-</form>
-{% else %}
 <link rel="stylesheet" type="text/css" href="{% static 'css/congratulations.css' %}">
 <script src='https://code.jquery.com/jquery-3.3.1.min.js' crossorigin='anonymous'></script>
 <script src="{% static 'js/congratulations.js' %}"></script>
 <div id="content">
     <p><span class="easter easter-rotate easter-rotate-left">🎉</span> <span class="easter easter-rotate easter-rotate-left">🎉</span> <span class="easter easter-rotate easter-rotate-left">🎉</span></p>
     <p class="easter">All done!</p>
-    <p class="easter easter-small">There are no unacknowledged File Importers that need action!</p>
+    <p class="easter easter-small">There are no {{ name }} that need action!</p>
     <p><span class="easter easter-rotate">😊</span> <span class="easter easter-rotate">😊</span> <span class="easter easter-rotate">😊</span></p>
     <div class="buttonContainer">
         <button id="stopButton" class="btn btn-info">Stop Confetti</button>
     </div>
 </div>
 <canvas id="canvas"></canvas>
-
-{% endif %}
-{% endblock content %}

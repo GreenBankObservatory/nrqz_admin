@@ -7,10 +7,12 @@
 
 {% make_breadcrumb fileimporter %}
 
-<h1 title="{{fileimporter.file_path}}">{{ fileimporter }}</h1>
+<h1 title="{{fileimporter.file_path}}">{{ fileimporter }} ({{ fileimporter.get_status_display }})</h1>
+Current Status: <b>{{ fileimporter.latest_file_import_attempt.get_current_status_display }}</b>
+Imported Status: <b>{{ fileimporter.get_status_display }}</b>
 
 {% if fileimporter.file_changed or fileimporter.file_missing %}
-{% include "audits/file_change_jumbotron.html" %}
+{% include "audits/file_change_jumbotron.html" with object=fileimporter %}
 {% else %}
     <p>
         <a href="file://{{ fileimporter.latest_file_import_attempt.imported_from }}">
@@ -18,14 +20,6 @@
         </a>
     </p>
 {% endif %}
-
-{% if tables.1.data %}
-<h2>Summary of Errors by Row</h2>
-{% render_table tables.1 %}
-{% endif %}
-
-<h2 title="Rows imported during this file import attempt">Row Importers</h2>
-{% render_table tables.2 %}
 
 <div class="row">
     <div class="col-md-auto">
@@ -53,13 +47,21 @@
         <form method="POST" action="{% url 'acknowledge_fileimporter' fileimporter.latest_file_import_attempt.id %}">
             {% csrf_token %}
             <input required type="checkbox" name="sanity" value="I am super sure">
-            <input required type="submit" name="acknowledge" value={% if fileimporter.latest_file_import_attempt.acknowledged %}"Unacknowledge"{% else %}"Acknowledge"{% endif %}>
+            <input required type="submit" name="acknowledge" value={% if fileimporter.latest_file_import_attempt.is_acknowledged %}"Unacknowledge"{% else %}"Acknowledge"{% endif %}>
         </form>
     </div>
 </div>
+{% if tables.1.data %}
+<h2>Summary of Errors by Row</h2>
+{% render_table tables.1 %}
+{% endif %}
+
+<h2 title="Rows imported during this file import attempt">Row Importers</h2>
+{% render_table tables.2 %}
 
 
-<h2>File Import Attempts</h2>
+
+<h2>File Import History</h2>
 
 {% render_table tables.0 %}
 

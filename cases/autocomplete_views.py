@@ -67,9 +67,11 @@ class PersonAutocompleteView(autocomplete.Select2QuerySetView):
 
 class AttachmentAutocompleteView(autocomplete.Select2QuerySetView):
     def get_queryset(self):
-        attachment = Attachment.objects.order_by("path")
+        attachment = Attachment.objects.order_by("file_path")
         if self.q:
-            attachment = attachment.filter(path__icontains=self.q).order_by("path")
+            attachment = attachment.filter(file_path__icontains=self.q).order_by(
+                "file_path"
+            )
         return attachment
 
 

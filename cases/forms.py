@@ -19,7 +19,7 @@ from .models import (
     Structure,
 )
 from .form_helpers import LetterFormHelper, CaseFormHelper
-from .fields import PointField
+from .fields import PointField, AttachmentField
 from .widgets import PCaseWidget, CaseWidget, PersonWidget, AttachmentsWidget
 
 
@@ -164,9 +164,7 @@ class PreliminaryCaseImportForm(PreliminaryCaseForm):
         )
 
 
-class CaseForm(FutureModelForm):
-    # attachments = AttachmentField(queryset=Attachment.objects.all())
-
+class BaseCaseForm(FutureModelForm):
     class Meta:
         model = Case
         fields = sorted(
@@ -191,7 +189,7 @@ class CaseForm(FutureModelForm):
         widgets = {
             "applicant": PersonWidget(),
             "contact": PersonWidget(),
-            "attachments": AttachmentsWidget(),
+            # "attachments": AttachmentsWidget(),
             "date_recorded": DateTimePicker(options={"format": "MM/DD/YY h:mm:ss a"}),
             "completed_on": DateTimePicker(options={"format": "MM/DD/YY h:mm:ss a"}),
             "sgrs_responded_on": DateTimePicker(
@@ -199,6 +197,10 @@ class CaseForm(FutureModelForm):
             ),
             "si_done": DatePicker(options={"format": "MM/DD/YY"}),
         }
+
+
+class CaseForm(BaseCaseForm):
+    attachments = AttachmentField(queryset=Attachment.objects.all())
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -209,11 +211,11 @@ class CaseForm(FutureModelForm):
         self.helper.form_method = "post"
 
 
-class CaseImportForm(CaseForm):
-    class Meta(CaseForm.Meta):
+class CaseImportForm(BaseCaseForm):
+    class Meta(BaseCaseForm.Meta):
         fields = sorted(
             [
-                *CaseForm.Meta.fields,
+                *BaseCaseForm.Meta.fields,
                 "data_source",
                 "original_created_on",
                 "original_modified_on",
@@ -224,7 +226,7 @@ class CaseImportForm(CaseForm):
 class AttachmentForm(forms.ModelForm):
     class Meta:
         model = Attachment
-        fields = sorted(("path", "comments"))
+        fields = ("is_active", "file_path", "comments")
 
 
 class AttachmentImportForm(AttachmentForm):
