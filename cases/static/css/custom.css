@@ -25,7 +25,7 @@ readability on large ones*/
 
 
 .form-group{
-    margin-bottom: 0;
+    margin-bottom: 1px;
 }
 
 .filter-form{
@@ -129,7 +129,12 @@ ul.messages li.error {
 
 /* Make form fields a little shorter */
 .form-control {
-    height: calc(1.75rem + 2px)
+    height: calc(1.75rem + 2px);
+}
+
+.input-group {
+    margin-bottom: 1px;
+
 }
 
 /* Make form field labels a little shorter */
@@ -153,4 +158,8 @@ ul.messages li.error {
 
 .jumbotron-warning {
     background: #ffefef;
+}
+
+.dal-create {
+    font-weight: bold;
 }

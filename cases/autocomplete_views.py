@@ -58,6 +58,9 @@ class FacilityAutocompleteView(autocomplete.Select2QuerySetView):
 
 
 class PersonAutocompleteView(autocomplete.Select2QuerySetView):
+    # People can be created if given only the name
+    create_field = "name"
+
     def get_queryset(self):
         person = Person.objects.order_by("name")
         if self.q:
@@ -66,6 +69,9 @@ class PersonAutocompleteView(autocomplete.Select2QuerySetView):
 
 
 class AttachmentAutocompleteView(autocomplete.Select2QuerySetView):
+    # Attachments can be created if given only the file path
+    create_field = "file_path"
+
     def get_queryset(self):
         attachment = Attachment.objects.order_by("file_path")
         if self.q:

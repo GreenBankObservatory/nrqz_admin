@@ -1,6 +1,6 @@
 """Custom crispy_forms.helper.FormHelper sub-classes for cases app"""
 
-from crispy_forms.bootstrap import FormActions
+from crispy_forms.bootstrap import FormActions, InlineField
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Div, Field, Layout, Reset, Submit
 
@@ -286,51 +286,53 @@ class StructureFilterFormHelper(FormHelper):
 
 
 class CaseFormHelper(FormHelper):
+    form_class = "readable-form mx-auto"
+
     layout = Layout(
         Div(
             Div(
-                Div("case_num", css_class="col"),
-                Div("radio_service", css_class="col"),
-                Div("call_sign", css_class="col"),
+                Div(InlineField("case_num"), css_class="col"),
+                Div(InlineField("radio_service"), css_class="col"),
+                Div(InlineField("call_sign"), css_class="col"),
                 css_class="row",
             ),
             Div(
-                Div("date_recorded", css_class="col"),
-                Div("completed_on", css_class="col"),
+                Div(InlineField("date_recorded"), css_class="col"),
+                Div(InlineField("completed_on"), css_class="col"),
                 css_class="row",
             ),
             Div(
-                Div("agency_num", css_class="col"),
-                Div("applicant", css_class="col"),
-                Div("contact", css_class="col"),
+                Div(InlineField("agency_num"), css_class="col"),
+                Div(InlineField("applicant"), css_class="col"),
+                Div(InlineField("contact"), css_class="col"),
                 css_class="row",
             ),
             Div(
-                Div("freq_coord", css_class="col"),
-                Div("fcc_file_num", css_class="col"),
+                Div(InlineField("freq_coord"), css_class="col"),
+                Div(InlineField("fcc_file_num"), css_class="col"),
                 css_class="row",
             ),
             Div(
-                Div("sgrs_notify", css_class="col"),
-                Div("sgrs_responded_on", css_class="col"),
-                Div("sgrs_service_num", css_class="col"),
+                Div(InlineField("sgrs_notify"), css_class="col"),
+                Div(InlineField("sgrs_responded_on"), css_class="col"),
+                Div(InlineField("sgrs_service_num"), css_class="col"),
                 css_class="row",
             ),
             Div(
-                Div("shutdown", css_class="col"),
-                Div("si", css_class="col"),
-                Div("si_done", css_class="col"),
-                Div("si_waived", css_class="col"),
+                Div(InlineField("shutdown"), css_class="col"),
+                Div(InlineField("si"), css_class="col"),
+                Div(InlineField("si_done"), css_class="col"),
+                Div(InlineField("si_waived"), css_class="col"),
                 css_class="row",
             ),
             Div(
-                Div("num_freqs", css_class="col"),
-                Div("num_sites", css_class="col"),
-                Div("num_outside", css_class="col"),
+                Div(InlineField("num_freqs"), css_class="col"),
+                Div(InlineField("num_sites"), css_class="col"),
+                Div(InlineField("num_outside"), css_class="col"),
                 css_class="row",
             ),
-            Div(Div("comments", css_class="col"), css_class="row"),
-            Div(Div("attachments", css_class="col"), css_class="row"),
+            Div(Div(InlineField("comments"), css_class="col"), css_class="row"),
+            Div(Div(InlineField("attachments"), css_class="col"), css_class="row"),
             css_class="",
         ),
         Submit("submit", "Submit"),

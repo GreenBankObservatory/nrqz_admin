@@ -14,30 +14,6 @@ from utils.coord_utils import parse_coords
 from .widgets import PointWidget, PointSearchWidget, AttachmentsWidget
 
 
-class AttachmentField(forms.ModelMultipleChoiceField):
-    widget = AttachmentsWidget()
-
-    def clean(self, value):
-        prepared = self.prepare_value(value)
-        if prepared:
-            for path in prepared:
-                # if os.path.isfile(path):
-                attachment, created = self.queryset.model.objects.get_or_create(
-                    file_path=path
-                )
-                # else:
-                # raise forms.ValidationError("oops")
-                if created:
-                    print(f"Created {attachment} ({attachment.id})")
-                else:
-                    print(f"Found {attachment} ({attachment.id})")
-
-            qs = self.queryset.filter(file_path__in=prepared)
-            return qs
-        else:
-            return self.queryset.none()
-
-
 class PointField(forms.CharField):
     widget = PointWidget
 

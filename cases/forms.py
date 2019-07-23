@@ -19,7 +19,7 @@ from .models import (
     Structure,
 )
 from .form_helpers import LetterFormHelper, CaseFormHelper
-from .fields import PointField, AttachmentField
+from .fields import PointField
 from .widgets import PCaseWidget, CaseWidget, PersonWidget, AttachmentsWidget
 
 
@@ -187,27 +187,24 @@ class BaseCaseForm(FutureModelForm):
         )
 
         widgets = {
-            "applicant": PersonWidget(),
-            "contact": PersonWidget(),
-            # "attachments": AttachmentsWidget(),
-            "date_recorded": DateTimePicker(options={"format": "MM/DD/YY h:mm:ss a"}),
-            "completed_on": DateTimePicker(options={"format": "MM/DD/YY h:mm:ss a"}),
-            "sgrs_responded_on": DateTimePicker(
-                options={"format": "MM/DD/YY h:mm:ss a"}
-            ),
-            "si_done": DatePicker(options={"format": "MM/DD/YY"}),
+            "applicant": PersonWidget({"data-placeholder": "Applicant Name"}),
+            "contact": PersonWidget({"data-placeholder": "Contact Name"}),
+            "attachments": AttachmentsWidget(),
+            # Currently cannot use; not sure why
+            # "date_recorded": DateTimePicker(options={"format": "MM/DD/YY h:mm:ss a"}),
+            # "completed_on": DateTimePicker(options={"format": "MM/DD/YY h:mm:ss a"}),
+            # "sgrs_responded_on": DateTimePicker(
+            #     options={"format": "MM/DD/YY h:mm:ss a"}
+            # ),
+            # "si_done": DatePicker(options={"format": "MM/DD/YY"}),
         }
 
 
 class CaseForm(BaseCaseForm):
-    attachments = AttachmentField(queryset=Attachment.objects.all())
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.helper = CaseFormHelper()
-        # self.helper.form_id = 'id-case-form'
-        # self.helper.form_class = 'my-form'
         self.helper.form_method = "post"
 
 

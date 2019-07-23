@@ -9,14 +9,6 @@ from dal import autocomplete
 from utils.coord_utils import point_to_string, coords_to_string
 
 
-class BetterModelSelect2Multiple(autocomplete.ModelSelect2Multiple):
-    def filter_choices_to_render(self, selected_choices):
-        """Filter out un-selected choices if choices is a QuerySet."""
-        self.choices.queryset = self.choices.queryset.filter(
-            file_path__in=[c for c in selected_choices if c]
-        )
-
-
 class PointWidget(forms.widgets.TextInput):
     """
     A Widget that splits Point input into latitude/longitude text inputs.
@@ -69,11 +61,11 @@ PCaseWidget = lambda: autocomplete.ModelSelect2(
 CaseWidget = lambda: autocomplete.ModelSelect2(
     url="case_autocomplete", attrs={"data-placeholder": ""}
 )
-PersonWidget = lambda: autocomplete.ModelSelect2(
-    url="person_autocomplete", attrs={"data-placeholder": ""}
+PersonWidget = lambda attrs={}: autocomplete.ModelSelect2(
+    url="person_autocomplete", attrs={"data-placeholder": "Name", **attrs}
 )
-AttachmentsWidget = lambda: BetterModelSelect2Multiple(
-    url="attachment_autocomplete", attrs={"data-placeholder": "Path", "data-tags": 1}
+AttachmentsWidget = lambda: autocomplete.ModelSelect2Multiple(
+    url="attachment_autocomplete", attrs={"data-placeholder": "Path"}
 )
 
 PCasesWidget = lambda: autocomplete.ModelSelect2Multiple(

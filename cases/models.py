@@ -661,7 +661,10 @@ class Case(AbstractBaseCase):
     original_si_done = DateField(null=True, blank=True, verbose_name="SI Done")
 
     sgrs_service_num = PositiveIntegerField(
-        null=True, blank=True, help_text="SGRS Service Num."
+        null=True,
+        blank=True,
+        help_text="SGRS Service Num.",
+        verbose_name="SGRS Service #",
     )
     agency_num = SensibleCharField(max_length=256, blank=True, help_text="Agency Num.")
 
