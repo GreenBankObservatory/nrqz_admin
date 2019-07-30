@@ -37,7 +37,7 @@ pykml = { git = "https://github.com/GreenBankObservatory/pykml.git", branch = "p
 [tool.poetry.dev-dependencies]
 ipdb = "^0.12.0"
 pydotplus = "^2.0"
-
+black = {version = "^18.3-alpha.0", allows-prereleases = true}
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"

@@ -842,7 +842,6 @@ class SearchView(MultiTableMixin, ListView):
 
     def get(self, request, *args, **kwargs):
         self.query = request.GET.get("q", None)
-        print("Searching for ", self.query)
         self.object_list = watson.search(self.query)
         context = self.get_context_data()
         return self.render_to_response(context)

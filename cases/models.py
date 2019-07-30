@@ -216,6 +216,8 @@ class AbstractBaseFacility(
         on_delete=PROTECT,
         help_text="The spatial reference system of the original imported coordinates",
         verbose_name="Original Spatial Reference System",
+        blank=True,
+        null=True,
     )
     amsl = FloatField(
         verbose_name="AMSL (meters)",
@@ -814,7 +816,10 @@ class Attachment(
 class LetterTemplate(IsActiveModel, TrackedModel, Model):
     name = SensibleCharField(max_length=256, unique=True)
     path = FilePathField(
-        path=settings.NRQZ_LETTER_TEMPLATE_DIR, max_length=512, unique=True
+        path=settings.NRQZ_LETTER_TEMPLATE_DIR,
+        max_length=512,
+        unique=True,
+        help_text=f"Save new files into '{settings.NRQZ_LETTER_TEMPLATE_DIR}' in order to select them here",
     )
     description = SensibleTextField(blank=True)
 

@@ -1,11 +1,12 @@
 
+from django.db import transaction
 from django.db.models import Q
 from django.contrib.postgres.search import TrigramSimilarity
 
 from django_super_deduper.merge import MergedModelInstance
 from django_super_deduper.models import MergeInfo
 
-from cases.models import Person
+from cases.models import Person, Case, PreliminaryCase
 
 THRESHOLD_DEFAULT = 0.9
 
@@ -23,17 +24,19 @@ CONCRETE_PERSON_FIELDS = (
     "data_source",
 )
 
+CONTACT_VALUES = ["contact"]
+APPLICANT_VALUES = ["applicant"]
 
-def find_similar_people(person, threshold=THRESHOLD_DEFAULT, people=None):
+
+def _find_similar_people(name, email="", people=None, threshold=THRESHOLD_DEFAULT):
     if people is None:
         people = Person.objects.all()
-
-    similar_people = (
+    return (
         people
         # Annotate each item with its similarity ranking with the current name
         .annotate(
-            name_similarity=TrigramSimilarity("name", person.name),
-            email_similarity=TrigramSimilarity("email", person.email),
+            name_similarity=TrigramSimilarity("name", name),
+            email_similarity=TrigramSimilarity("email", email),
         )
         # And filter out anything below the given threshold
         .filter(
@@ -43,9 +46,67 @@ def find_similar_people(person, threshold=THRESHOLD_DEFAULT, people=None):
             # OR null. We don't want to exclude matches simply because they're
             # missing an email -- these are actually _easier_ to merge!
             & (Q(email_similarity__gt=threshold) | Q(email=""))
-        ).exclude(id=person.id)
+        )
     )
+
+
+def find_similar_people(person, threshold=THRESHOLD_DEFAULT, people=None):
+    similar_people = _find_similar_people(
+        person.name, person.email, threshold=threshold, people=people
+    ).exclude(id=person.id)
     return similar_people
+
+
+@transaction.atomic
+def _handle_cross_references(
+    model_class, from_field, to_field, threshold=THRESHOLD_DEFAULT
+):
+    """"Expand" all references of from_field to to_field with proper FKs
+
+    For example, if we have some PreliminaryCases where the `contact` field is set to a 
+    Person named "applicant", this will:
+    * Set each of these cases' contact to the value of its applicant
+    * Delete the old person... maybe????
+    """
+    cases = (
+        model_class.objects.annotate(
+            name_similarity=TrigramSimilarity(f"{from_field}__name", to_field)
+        )
+        # And filter out anything below the given threshold
+        .filter(
+            # Names must be above similarity threshold
+            Q(name_similarity__gt=threshold)
+        )
+    )
+
+    for case in cases.all():
+        from_field_value = getattr(case, from_field)
+        to_field_value = getattr(case, to_field)
+        setattr(case, from_field, to_field_value)
+        print(f"Set {case} '{from_field}' to '{to_field}': '{to_field_value!r}'")
+        case.save()
+        deletions = from_field_value.delete()
+        if deletions[0] != 1:
+            raise ValueError(
+                f"Unexpected number of deletions encountered when attempting to delete {from_field_value!r}: {deletions}\n"
+                "There should only be one deletion! Check logic in _handle_cross_references"
+            )
+
+
+@transaction.atomic
+def handle_cross_references(threshold=THRESHOLD_DEFAULT):
+    # Handle PreliminaryCases where the contact references the applicant
+    _handle_cross_references(
+        PreliminaryCase, "contact", "applicant", threshold=threshold
+    )
+    # Handle PreliminaryCases where the applicant references the contact
+    _handle_cross_references(
+        PreliminaryCase, "applicant", "contact", threshold=threshold
+    )
+    # Handle Cases where the contact references the applicant
+    _handle_cross_references(Case, "applicant", "contact", threshold=threshold)
+    # Handle Cases where the applicant references the contact
+    _handle_cross_references(Case, "contact", "applicant", threshold=threshold)
 
 
 def merge_people(person_to_keep, people_to_merge):

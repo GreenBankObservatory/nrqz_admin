@@ -11,7 +11,7 @@ from django_import_data.models import ModelImporter
 
 from cases.models import CaseGroup
 from ._base_meta_import import BaseMetaImportCommand
-
+from utils.merge_people import handle_cross_references
 
 class Command(BaseMetaImportCommand):
     help = "Import all NRQZ data"
@@ -101,3 +101,6 @@ class Command(BaseMetaImportCommand):
         # propagate to all FIAs, FIs, and FIBs
         tqdm.write("Deriving status values for Model Importers")
         ModelImporter.objects.all().derive_values()
+
+        tqdm.write("Handling applicant/contact cross references (e.g. Cases where contact references applicant by string instead of key)")
+        handle_cross_references()

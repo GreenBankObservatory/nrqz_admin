@@ -163,3 +163,7 @@ ul.messages li.error {
 .dal-create {
     font-weight: bold;
 }
+
+.select2-container--default .select2-selection--single {
+    padding-top: 0px;
+}

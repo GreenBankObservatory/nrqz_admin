@@ -294,6 +294,14 @@ class PreliminaryFacilityForm(BasePreliminaryFacilityForm):
 
 
 class BaseFacilityForm(forms.ModelForm):
+    case = forms.ModelChoiceField(
+        queryset=Case.objects.all(),
+        to_field_name="case_num",
+        widget=autocomplete.ModelSelect2(
+            url="case_autocomplete", attrs={"data-placeholder": "Case Num"}
+        ),
+        required=True,
+    )
     class Meta:
         model = Facility
         fields = sorted(
@@ -332,7 +340,7 @@ class BaseFacilityForm(forms.ModelForm):
             )
         )
 
-        widgets = {"case": CaseWidget(), "attachments": AttachmentsWidget()}
+        widgets = {"attachments": AttachmentsWidget()}
 
 
 class FacilityImportForm(BaseFacilityForm):

@@ -72,10 +72,10 @@ def create_boundaries():
     nrqz_area_str = f"{nrqz_boundaries.area.sq_mi:.2f} square miles"
     expected_nrqz_area = 13107.604_462_396_526
     if not math.isclose(
-        nrqz_boundaries.area.sq_mi, expected_nrqz_area, rel_tol=0.000_000_000_001
+        nrqz_boundaries.area.sq_mi, expected_nrqz_area, rel_tol=0.001
     ):
         raise AssertionError(
-            f"Expected NRQZ area ({nrqz_area_str}) to be close to {expected_nrqz_area} square miles"
+            f"Expected NRQZ area ({nrqz_boundaries.area.sq_mi}) to be close to {expected_nrqz_area} square miles"
         )
     print(f"The NRQZ is {nrqz_area_str}")
 
