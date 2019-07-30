@@ -1,8 +1,8 @@
 """Custom crispy_forms.helper.FormHelper sub-classes for cases app"""
 
-from crispy_forms.bootstrap import FormActions
+from crispy_forms.bootstrap import FormActions, InlineField
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Field, Submit, Layout, Div, Reset
+from crispy_forms.layout import Div, Field, Layout, Reset, Submit
 
 
 class CollapsibleFilterFormLayout(Layout):
@@ -14,8 +14,9 @@ class CollapsibleFilterFormLayout(Layout):
                 *args,
                 FormActions(
                     Submit("submit", "Filter"),
-                    Reset("reset", "Reset"),
+                    Submit("clear", "Clear"),
                     Submit("show-all", "Show All"),
+                    Submit("mass-edit", "Mass Edit"),
                     *extra_buttons,
                     css_class="filter-form-buttons",
                 ),
@@ -25,7 +26,7 @@ class CollapsibleFilterFormLayout(Layout):
 
 
 class LetterFormHelper(FormHelper):
-    form_method = "get"
+    form_method = "post"
 
     layout = Layout(
         Div(
@@ -35,33 +36,43 @@ class LetterFormHelper(FormHelper):
             css_class="row",
         ),
         FormActions(
-            Submit(
-                "submit",
-                "Render",
-                title="Re-render the template with the above choices",
-            ),
-            Submit("download", "Download", title="Download as .docx"),
+            Submit("submit", "Download", title="Download as .docx"),
             css_class="float-right filter-form-buttons",
         ),
     )
 
 
-class BatchFilterFormHelper(FormHelper):
-    """Provides layout information for FacilityFilter.form"""
+class PreliminaryFacilityFilterFormHelper(FormHelper):
+    """Provides layout information for PreliminaryFacilityFilter.form"""
 
     layout = CollapsibleFilterFormLayout(
         Div(
-            Div("name", css_class="col"),
-            Div("comments", css_class="col"),
+            Div(
+                "nrqz_id",
+                "pcase",
+                "site_num",
+                "location_description",
+                "freq_low",
+                "power_density_limit",
+                css_class="col",
+            ),
+            Div(
+                "location",
+                "comments",
+                "distance_to_gbt",
+                "azimuth_to_gbt",
+                "in_nrqz",
+                css_class="col",
+            ),
             css_class="row",
         ),
         extra_buttons=[
             Submit(
-                "kml",
-                "As .kml",
+                "_export",
+                "Export as .csv",
                 title=(
                     "Download the locations of all currently-filtered "
-                    "Facilities as a .kml file"
+                    "PFacilities as a .csv file"
                 ),
             )
         ],
@@ -73,20 +84,89 @@ class FacilityFilterFormHelper(FormHelper):
 
     layout = CollapsibleFilterFormLayout(
         Div(
-            Div("nrqz_id", "site_name", css_class="col-sm-2"),
-            Div("freq_low", "freq_high", css_class="col-sm-5"),
-            Div("structure", "comments", css_class="col-sm-2"),
-            Div("main_beam_orientation", "antenna_model_number", css_class="col-sm-2"),
-            Div("location", css_class="col-sm-12"),
+            Div(
+                "nrqz_id",
+                "case",
+                "site_name",
+                "applicant",
+                "contact",
+                css_class="col-sm-2",
+            ),
+            Div(
+                "main_beam_orientation",
+                "freq_low",
+                "freq_high",
+                "distance_to_gbt",
+                "azimuth_to_gbt",
+                css_class="col-sm-5",
+            ),
+            Div(
+                "nrao_aerpd",
+                "requested_max_erp_per_tx",
+                "data_source",
+                # "comments",
+                "search",
+                css_class="col-sm-5",
+            ),
+            css_class="row",
+        ),
+        Div(
+            Div("si_done", css_class="col-sm-5"),
+            Div("location", css_class="col-sm-7"),
             css_class="row",
         ),
         extra_buttons=[
             Submit(
                 "kml",
-                "As .kml",
+                "Export as .kml",
                 title=(
                     "Download the locations of all currently-filtered "
                     "Facilities as a .kml file"
+                ),
+            ),
+            Submit(
+                "_export",
+                "Export as .csv",
+                title=(
+                    "Download the locations of all currently-filtered "
+                    "Facilities as a .csv file"
+                ),
+            ),
+        ],
+    )
+
+
+class CaseGroupFilterFormHelper(FormHelper):
+    """Provides layout information for CaseGroupFilter.form"""
+
+    layout = CollapsibleFilterFormLayout(
+        Div(
+            Div("id", css_class="col"),
+            Div("comments", css_class="col"),
+            Div("num_cases", css_class="col"),
+            Div("num_pcases", css_class="col"),
+            Div("completed", css_class="col"),
+            css_class="row",
+        )
+    )
+
+
+class PreliminaryCaseFilterFormHelper(FormHelper):
+    """Provides layout information for PreliminaryCaseFilter.form"""
+
+    layout = CollapsibleFilterFormLayout(
+        Div(
+            Div("case_num", "applicant", "contact", css_class="col"),
+            Div("radio_service", "completed", "is_federal", css_class="col"),
+            css_class="row",
+        ),
+        extra_buttons=[
+            Submit(
+                "_export",
+                "Export as .csv",
+                title=(
+                    "Download the locations of all currently-filtered "
+                    "PCases as a .csv file"
                 ),
             )
         ],
@@ -98,20 +178,39 @@ class CaseFilterFormHelper(FormHelper):
 
     layout = CollapsibleFilterFormLayout(
         Div(
-            Div("case_num", "applicant", "contact", css_class="col"),
-            Div("call_sign", "freq_coord", "fcc_file_num", css_class="col"),
-            Div("completed", "shutdown", "comments", css_class="col"),
+            Div("case_num", "applicant", "contact", "call_sign", css_class="col"),
+            Div(
+                "freq_coord",
+                "fcc_file_num",
+                "meets_erpd_limit",
+                "sgrs_approval",
+                css_class="col",
+            ),
+            Div("date_recorded", "completed", "is_federal", "search", css_class="col"),
+            css_class="row",
+        ),
+        Div(
+            Div("num_facilities", css_class="col"),
+            Div("si_done", css_class="col"),
             css_class="row",
         ),
         extra_buttons=[
             Submit(
                 "kml",
-                "As .kml",
+                "Export as .kml",
                 title=(
                     "Download the locations of all currently-filtered "
                     "Facilities as a .kml file"
                 ),
-            )
+            ),
+            Submit(
+                "_export",
+                "Export as .csv",
+                title=(
+                    "Download the locations of all currently-filtered "
+                    "Facilities as a .csv file"
+                ),
+            ),
         ],
     )
 
@@ -126,7 +225,17 @@ class PersonFilterFormHelper(FormHelper):
             Div("state", "phone", css_class="col"),
             Div("comments", "zipcode", css_class="col"),
             css_class="row",
-        )
+        ),
+        extra_buttons=[
+            Submit(
+                "_export",
+                "Export as .csv",
+                title=(
+                    "Download the locations of all currently-filtered "
+                    "Facilities as a .csv file"
+                ),
+            )
+        ],
     )
 
 
@@ -135,8 +244,12 @@ class AttachmentFilterFormHelper(FormHelper):
 
     layout = CollapsibleFilterFormLayout(
         Div(
-            Div("path", css_class="col"),
+            Div("file_path", css_class="col"),
             Div("comments", css_class="col"),
+            Div("original_index", css_class="col"),
+            Div("data_source", css_class="col"),
+            Div("hash_on_disk", css_class="col"),
+            Div("is_active", css_class="col"),
             css_class="row",
         )
     )
@@ -152,5 +265,75 @@ class StructureFilterFormHelper(FormHelper):
             Div("faa_study_num", "issue_date", css_class="col"),
             Div("location", css_class="col-sm-12"),
             css_class="row",
-        )
+        ),
+        extra_buttons=[
+            Submit(
+                "_export",
+                "Export as .csv",
+                title=(
+                    "Download the locations of all currently-filtered "
+                    "Facilities as a .csv file"
+                ),
+            )
+        ],
+    )
+
+
+# class DuplicateCaseFormHelper(FormHelper):
+#     form_method = "post"
+#     form_action = reverse("duplicate_case", args=)
+#     layout = Div("num_duplicates", Submit("submit", "Filter"),
+
+
+class CaseFormHelper(FormHelper):
+    form_class = "readable-form mx-auto"
+
+    layout = Layout(
+        Div(
+            Div(
+                Div(InlineField("case_num"), css_class="col"),
+                Div(InlineField("radio_service"), css_class="col"),
+                Div(InlineField("call_sign"), css_class="col"),
+                css_class="row",
+            ),
+            Div(
+                Div(InlineField("date_recorded"), css_class="col"),
+                Div(InlineField("completed_on"), css_class="col"),
+                css_class="row",
+            ),
+            Div(
+                Div(InlineField("agency_num"), css_class="col"),
+                Div(InlineField("applicant"), css_class="col"),
+                Div(InlineField("contact"), css_class="col"),
+                css_class="row",
+            ),
+            Div(
+                Div(InlineField("freq_coord"), css_class="col"),
+                Div(InlineField("fcc_file_num"), css_class="col"),
+                css_class="row",
+            ),
+            Div(
+                Div(InlineField("sgrs_notify"), css_class="col"),
+                Div(InlineField("sgrs_responded_on"), css_class="col"),
+                Div(InlineField("sgrs_service_num"), css_class="col"),
+                css_class="row",
+            ),
+            Div(
+                Div(InlineField("shutdown"), css_class="col"),
+                Div(InlineField("si"), css_class="col"),
+                Div(InlineField("si_done"), css_class="col"),
+                Div(InlineField("si_waived"), css_class="col"),
+                css_class="row",
+            ),
+            Div(
+                Div(InlineField("num_freqs"), css_class="col"),
+                Div(InlineField("num_sites"), css_class="col"),
+                Div(InlineField("num_outside"), css_class="col"),
+                css_class="row",
+            ),
+            Div(Div(InlineField("comments"), css_class="col"), css_class="row"),
+            Div(Div(InlineField("attachments"), css_class="col"), css_class="row"),
+            css_class="",
+        ),
+        Submit("submit", "Submit"),
     )

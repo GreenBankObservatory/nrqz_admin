@@ -1,0 +1,11 @@
+{% load cases_tags %}
+{% load django_import_data_tags %}
+
+<p>
+    <a
+        href="file://{{ object.imported_from }}" title={{ object.imported_from | basename }}
+        title="The file on disk that this {{ object | model_name }} was imported from"
+    >
+        Original File
+    </a>
+</p>

@@ -3,17 +3,27 @@
 from django.contrib.gis.measure import Distance
 import django_filters
 
+from watson import search as watson
+
 from utils.layout import discover_fields
 from . import models
 from .form_helpers import (
-    BatchFilterFormHelper,
-    FacilityFilterFormHelper,
-    CaseFilterFormHelper,
-    PersonFilterFormHelper,
     AttachmentFilterFormHelper,
+    CaseFilterFormHelper,
+    CaseGroupFilterFormHelper,
+    FacilityFilterFormHelper,
+    PersonFilterFormHelper,
+    PreliminaryCaseFilterFormHelper,
+    PreliminaryFacilityFilterFormHelper,
     StructureFilterFormHelper,
 )
-from .fields import PointField
+from .fields import PointSearchField
+from .widgets import PCaseWidget
+
+
+class WatsonFilter(django_filters.CharFilter):
+    def filter(self, qs, value):
+        return watson.filter(qs, value)
 
 
 class HelpedFilterSet(django_filters.FilterSet):
@@ -39,41 +49,83 @@ class HelpedFilterSet(django_filters.FilterSet):
         formhelper_class = lambda: NotImplemented
 
 
-class BatchFilter(HelpedFilterSet):
-    name = django_filters.CharFilter(lookup_expr="icontains")
-    comments = django_filters.CharFilter(lookup_expr="icontains")
-
-    class Meta:
-        model = models.Batch
-        formhelper_class = BatchFilterFormHelper
-        fields = discover_fields(formhelper_class.layout)
-
-
 class PointFilter(django_filters.Filter):
-    field_class = PointField
+    field_class = PointSearchField
 
     def filter(self, qs, value):
         if value:
-            print("value: ", value)
             point, radius, unit = value
             return qs.filter(location__distance_lte=(point, Distance(**{unit: radius})))
         else:
             return super().filter(qs, value)
 
 
-class FacilityFilter(HelpedFilterSet):
+class BaseFacilityFilter(HelpedFilterSet):
     site_name = django_filters.CharFilter(lookup_expr="icontains")
-    nrqz_id = django_filters.CharFilter(lookup_expr="icontains")
-    call_sign = django_filters.CharFilter(lookup_expr="icontains")
-    freq_low = django_filters.NumericRangeFilter()
-    freq_high = django_filters.NumericRangeFilter()
-    amsl = django_filters.NumericRangeFilter()
-    agl = django_filters.NumericRangeFilter()
+    nrqz_id = django_filters.CharFilter(
+        lookup_expr="icontains", label="Facility ID contains"
+    )
     location = PointFilter()
+    in_nrqz = django_filters.BooleanFilter(field_name="in_nrqz", label="In NRQZ")
+    distance_to_gbt = django_filters.RangeFilter(
+        field_name="distance_to_gbt", label="Distance to GBT (meters)"
+    )
+    azimuth_to_gbt = django_filters.RangeFilter(
+        field_name="azimuth_to_gbt", label="Azimuth Bearing to GBT"
+    )
+
+
+class PreliminaryFacilityFilter(BaseFacilityFilter):
+    call_sign = django_filters.CharFilter(lookup_expr="icontains")
+    freq_low = django_filters.RangeFilter()
+    freq_high = django_filters.RangeFilter()
+    amsl = django_filters.RangeFilter()
+    agl = django_filters.RangeFilter()
     structure = django_filters.CharFilter(lookup_expr="asr__exact")
     main_beam_orientation = django_filters.CharFilter(lookup_expr="icontains")
     antenna_model_number = django_filters.CharFilter(lookup_expr="icontains")
-    comments = django_filters.CharFilter(lookup_expr="icontains")
+    comments = django_filters.CharFilter(lookup_expr="search")
+    pcase = django_filters.ModelChoiceFilter(
+        queryset=models.PreliminaryCase.objects.all(), widget=PCaseWidget()
+    )
+
+    class Meta:
+        model = models.PreliminaryFacility
+        formhelper_class = PreliminaryFacilityFilterFormHelper
+        fields = discover_fields(formhelper_class.layout)
+
+
+class FacilityFilter(BaseFacilityFilter):
+    call_sign = django_filters.CharFilter(lookup_expr="icontains")
+    freq_low = django_filters.RangeFilter()
+    freq_high = django_filters.RangeFilter()
+    amsl = django_filters.RangeFilter()
+    agl = django_filters.RangeFilter()
+
+    structure = django_filters.CharFilter(lookup_expr="asr__exact")
+    main_beam_orientation = django_filters.CharFilter(lookup_expr="icontains")
+    antenna_model_number = django_filters.CharFilter(lookup_expr="icontains")
+    # comments = django_filters.CharFilter(lookup_expr="search")
+    case = django_filters.NumberFilter(label="Case Num", field_name="case__case_num")
+    applicant = django_filters.CharFilter(
+        field_name="case__applicant__name",
+        lookup_expr="unaccent__icontains",
+        label="Applicant Name",
+    )
+    contact = django_filters.CharFilter(
+        field_name="case__contact__name",
+        lookup_expr="unaccent__icontains",
+        label="Contact Name",
+    )
+    path = django_filters.CharFilter(
+        field_name="model_import_attempt__file_import_attempt__imported_from",
+        lookup_expr="icontains",
+        label="Imported-from Path contains",
+    )
+    nrao_aerpd = django_filters.RangeFilter()
+    requested_max_erp_per_tx = django_filters.RangeFilter()
+    search = WatsonFilter(label="Search all text fields")
+    si_done = django_filters.DateFromToRangeFilter()
 
     class Meta:
         model = models.Facility
@@ -81,20 +133,87 @@ class FacilityFilter(HelpedFilterSet):
         fields = discover_fields(formhelper_class.layout)
 
 
-class CaseFilter(HelpedFilterSet):
+class CaseGroupFilter(HelpedFilterSet):
+    id = django_filters.NumberFilter(label="CG ID")
+    comments = django_filters.CharFilter(lookup_expr="search")
+    num_cases = django_filters.RangeFilter(label="# Cases")
+    num_pcases = django_filters.RangeFilter(label="# Prelim. Cases")
+    completed = django_filters.BooleanFilter(label="Completed")
+
+    class Meta:
+        model = models.CaseGroup
+        formhelper_class = CaseGroupFilterFormHelper
+        fields = discover_fields(formhelper_class.layout)
+
+
+class BaseCaseFilter(HelpedFilterSet):
     created_on = django_filters.DateFromToRangeFilter(lookup_expr="range")
-    name = django_filters.CharFilter(lookup_expr="icontains")
     applicant = django_filters.CharFilter(lookup_expr="name__icontains")
     contact = django_filters.CharFilter(lookup_expr="name__icontains")
-    comments = django_filters.CharFilter(lookup_expr="icontains")
+    comments = django_filters.CharFilter(lookup_expr="search")
+
+
+class PreliminaryCaseFilter(BaseCaseFilter):
+    class Meta:
+        model = models.PreliminaryCase
+        formhelper_class = PreliminaryCaseFilterFormHelper
+        fields = discover_fields(formhelper_class.layout)
+
+
+class CaseFilter(BaseCaseFilter):
     freq_coord = django_filters.CharFilter(lookup_expr="icontains")
     fcc_file_num = django_filters.CharFilter(lookup_expr="icontains")
-    call_sign  = django_filters.CharFilter(lookup_expr="icontains")
+    call_sign = django_filters.CharFilter(lookup_expr="icontains")
+    meets_erpd_limit = django_filters.ChoiceFilter(
+        label="Meets ERPd Limit",
+        method="filter_meets_erpd_limit",
+        choices=(("false", "False"), ("true", "True"), ("none", "None")),
+    )
+    sgrs_approval = django_filters.ChoiceFilter(
+        label="SGRS Approval",
+        method="filter_sgrs_approval",
+        choices=(("false", "False"), ("true", "True"), ("none", "None")),
+    )
+    search = WatsonFilter(label="Search all text fields")
+    num_facilities = django_filters.RangeFilter(label="# Facilities")
+    si_done = django_filters.DateFromToRangeFilter(
+        field_name="si_done", label="SI Done"
+    )
+    # TODO: Broken...
+    # case_groups = django_filters.ModelChoiceFilter(
+    #     queryset=models.CaseGroup.objects.all(), widget=CaseGroupWidget()
+    # )
 
     class Meta:
         model = models.Case
         formhelper_class = CaseFilterFormHelper
         fields = discover_fields(formhelper_class.layout)
+
+    def filter_sgrs_approval(self, queryset, name, value):
+        if value == "true":
+            status = True
+            return queryset.filter(sgrs_approval=status)
+        elif value == "false":
+            status = False
+            return queryset.filter(sgrs_approval=status)
+        elif value == "none":
+            status = None
+            return queryset.filter(sgrs_approval=status)
+        else:
+            return queryset
+
+    def filter_meets_erpd_limit(self, queryset, name, value):
+        if value == "true":
+            status = True
+            return queryset.filter(meets_erpd_limit=status)
+        elif value == "false":
+            status = False
+            return queryset.filter(meets_erpd_limit=status)
+        elif value == "none":
+            status = None
+            return queryset.filter(meets_erpd_limit=status)
+        else:
+            return queryset
 
 
 class PersonFilter(HelpedFilterSet):
@@ -105,7 +224,7 @@ class PersonFilter(HelpedFilterSet):
     city = django_filters.CharFilter(lookup_expr="icontains")
     state = django_filters.CharFilter(lookup_expr="icontains")
     zipcode = django_filters.CharFilter(lookup_expr="icontains")
-    comments = django_filters.CharFilter(lookup_expr="icontains")
+    comments = django_filters.CharFilter(lookup_expr="search")
 
     class Meta:
         model = models.Person
@@ -114,13 +233,20 @@ class PersonFilter(HelpedFilterSet):
 
 
 class AttachmentFilter(HelpedFilterSet):
-    path = django_filters.CharFilter(lookup_expr="icontains")
-    comments = django_filters.CharFilter(lookup_expr="icontains")
+    file_path = django_filters.CharFilter(lookup_expr="icontains")
+    comments = django_filters.CharFilter(lookup_expr="search")
+    hash_on_disk = django_filters.BooleanFilter(
+        label="File Exists", method="filter_exists"
+    )
+    is_active = django_filters.BooleanFilter()
 
     class Meta:
         model = models.Attachment
         formhelper_class = AttachmentFilterFormHelper
         fields = discover_fields(formhelper_class.layout)
+
+    def filter_exists(self, queryset, name, value):
+        return queryset.filter(hash_on_disk__isnull=not value)
 
 
 class StructureFilter(HelpedFilterSet):

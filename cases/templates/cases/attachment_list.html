@@ -1,13 +1,22 @@
 {% extends "cases/base.html" %}
 {% load cases_tags %}
 
-{% block head %}
+{% block extrahead %}
 <title>Attachment Index</title>
 {% endblock %}
 
 {% block content %}
-
-<h1>Attachment Index</h1>
+<div class="row">
+    <div class="col">
+        <h1><a href="{% url 'attachment_index' %}">Attachment Index</a></h1>
+    </div>
+    <div class="col">
+        <form method="POST">{% csrf_token %}
+            <input type="checkbox" name="refresh_from_filesystem">
+            <input type="submit" name="submit" value="Refresh from Filesystem">
+        </form>
+    </div>
+</div>
 {% filter_table %}
 
 {% endblock %}

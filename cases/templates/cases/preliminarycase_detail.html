@@ -1,0 +1,91 @@
+{% extends "cases/base.html" %}
+{% load cases_tags %}
+{% load render_table from django_tables2 %}
+{% load crispy_forms_tags %}
+{% load django_import_data_tags %}
+
+{% block content %}
+{% make_breadcrumb preliminarycase %}
+
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-3">
+            <h1>Preliminary Case {{ preliminarycase.case_num }}</h1>
+        </div>
+
+
+        <div class="col-lg d-print-none">
+            <a href="{% url 'admin:cases_preliminarycase_change' preliminarycase.id %}">Edit</a>
+        </div>
+
+    </div>
+    <div class="row">
+        <div class="col-lg-3 d-print-none">
+            <p>Date Received: {{ preliminarycase.date_recorded|default:"None" }}</p>
+        </div>
+        <div class="col-auto d-print-none">
+            {% include "cases/base_detail.html" %}
+        </div>
+    </div>
+</div>
+
+
+<h2>Applicant Info</h2>
+<table class="table">
+    <tr>
+        <th>Applicant</th>
+        <td>
+            {% if preliminarycase.applicant %}
+            <a href="{% url 'person_detail' preliminarycase.applicant.id %}">{{ preliminarycase.applicant.name }}</a>
+            {% else %}
+            <p>None</p>
+            {% endif %}
+        </td>
+    </tr>
+    <tr>
+        <th>Contact</th>
+        <td>
+            {% if preliminarycase.contact %}
+            <a href={% url "person_detail" preliminarycase.contact.id %}>{{ preliminarycase.contact.name }}</a>
+            {% else %}
+            <p>None</p>
+            {% endif %}
+        </td>
+    </tr>
+</table>
+
+
+<div class="row">
+    <div class="col-sm">
+        {% info_table preliminarycase "Application" application_info %}
+    </div>
+    <div class="col-sm">
+        {% info_table preliminarycase "Status Info" status_info %}
+    </div>
+</div>
+
+
+<h2>Preliminary Facilities</h2>
+<p><a href="{% url 'prelim_facility_index'%}?pcase={{preliminarycase.id}}">View in Preliminary Facility Index</a></p>
+{% if tables.0.data %}
+{% render_table tables.0 %}
+{% else %}
+<p>No Preliminary Facilities</p>
+{% endif %}
+
+{% include "cases/related_cases_info.html" with case=preliminarycase case_table=tables.3 pcase_table=tables.2 %}
+
+
+<h2>Attachments</h2>
+{% if tables.1.data %}
+{% render_table tables.1 %}
+<p>No Attachments</p>
+{% endif %}
+
+<div class="row">
+    <div class="col-lg">
+        {% info_table preliminarycase "TODO: Unsorted" unsorted_info %}
+    </div>
+</div>
+{% endblock %}

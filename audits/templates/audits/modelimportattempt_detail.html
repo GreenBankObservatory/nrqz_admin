@@ -1,0 +1,34 @@
+{% extends "cases/base.html" %}
+{% load django_import_data_tags %}
+
+{% block content %}
+
+{% make_breadcrumb modelimportattempt %}
+
+<h1>{{ modelimportattempt }}</h1>
+
+{% if modelimportattempt.importee %}
+<a href="{{ modelimportattempt.importee.get_absolute_url }}">View created {{ modelimportattempt.importee | model_name }}</a>
+{% endif %}
+
+{% if modelimportattempt != modelimportattempt.model_importer.latest_model_import_attempt  %}
+<p style="color:red;font-weight: bold">This is not the latest import attempt in its Model Importer!
+{% if not modelimportattempt.importee %}
+While this import attempt failed, a subsequent attempt was successful: <a href={{modelimportattempt.model_importer.latest_model_import_attempt.get_absolute_url }}> {{modelimportattempt.model_importer.latest_model_import_attempt }}</a>
+{% endif %}
+</p>
+{% endif %}
+
+<p>Imported from row {{ modelimportattempt.row_data.row_num }} of file: {{ modelimportattempt.file_import_attempt.imported_from }} by importer {{ modelimportattempt.file_import_attempt.imported_by }}</p>
+
+{% if not modelimportattempt.model_importer.latest_model_import_attempt.importee %}
+<p><a href={{ modelimportattempt.get_create_from_import_attempt_url }}>Create {{ modelimportattempt.importee_class | model_name }} from Model Import Attempt {{ modelimportattempt.id }}</a></p>
+{% endif %}
+
+<h2>Original Field Values</h2>
+<p>The values passed to the ModelForm</p>
+{{ modelimportattempt.importee_field_data | json | safe }}
+
+<h2>Errors</h2>
+{{ modelimportattempt.errors | json | safe }}
+{% endblock %}

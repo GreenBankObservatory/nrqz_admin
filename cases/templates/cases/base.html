@@ -4,52 +4,37 @@
 <!doctype html>
 <html lang="en">
   <head>
+{% block head %}
     <meta charset="utf-8">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
     <title>NRQZ Admin</title>
+
+    <script src="{% static 'js/jquery-3.4.1.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'js/fontawesome-5.9.0.min.js' %}"></script>
+    <script src="{% static 'js/renderjson-1.4.0.js' %}"></script>
+
+
+    <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/fontawesome-5.9.0.min.css' %}">
+
     <link rel="stylesheet" type="text/css" href="{% static 'css/pygments.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.css' %}">
-    {% block head %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/custom.css' %}">
+
+    {% block extrahead %}
     {% endblock %}
+{% endblock head %}
   </head>
 
   <body>
     <div class="container">
-      <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="/">NRQZ Admin</a>
-        <ul class="navbar-nav mr-auto">
-          <li class="nav-item">
-            <a class="nav-link" href={% url "case_index" %}>Cases</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href={% url "facility_index" %}>Facilities</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href={% url "structure_index" %}>Structures</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href={% url "batch_index" %}>Batches</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href={% url "person_index" %}>People</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href={% url "attachment_index" %}>Attachments</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href={% url "letters" %}>Letters</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link text-info" href={% url "explorer_index" %}>SQL Explorer</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link text-info" href={% url "admin:index" %}>Admin</a>
-          </li>
-        </ul>
-      </nav>
+      {% include "cases/header.html" %}
+      {% if messages %}
+      <ul class="messages">
+          {% for message in messages %}
+          <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+          {% endfor %}
+      </ul>
+      {% endif %}
       {% block content %}
       {% endblock %}
     </div>

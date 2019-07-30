@@ -1,0 +1,30 @@
+{% extends "cases/base.html" %}
+{% load django_import_data_tags %}
+{% load render_table from django_tables2 %}
+
+{% block content %}
+
+{% make_breadcrumb rowdata %}
+
+<h1 title="This is a representation of the EXACT ORIGINAL DATA from a given row">Row Data</h1>
+<p>
+    Row {{ rowdata.row_num }} from <a href="file://{{ rowdata.file_import_attempt.imported_from }}">{{ rowdata.file_import_attempt.imported_from }}</a>
+</p>
+
+
+{{ rowdata.data | json | safe }}
+
+<h2 title="An ATTEMPT to import the following models was made, using the data in the above row">Model Importers</h2>
+
+{% render_table table %}
+
+
+<h2>Row-Level Errors</h2>
+{% if rowdata.errors %}
+{{ rowdata.errors | json | safe }}
+{% else %}
+<p>No Errors</p>
+{% endif %}
+
+
+{% endblock %}

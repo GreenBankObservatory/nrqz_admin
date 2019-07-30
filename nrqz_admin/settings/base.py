@@ -1,4 +1,4 @@
-"""Django settings for nrqz_admin project."""
+"""Base Django settings for nrqz_admin project."""
 
 import os
 from pathlib import Path
@@ -17,6 +17,7 @@ INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
+    "django.contrib.postgres",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
@@ -26,7 +27,13 @@ INSTALLED_APPS = [
     "django_filters",
     "crispy_forms",
     "explorer",
+    "watson",
+    "django_import_data",
+    "django_super_deduper",
+    "tempus_dominus",
+    "massadmin",
     "cases",
+    "audits",
 ]
 
 MIDDLEWARE = [
@@ -56,7 +63,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
             ],
             # TODO: Not a permanent solution!
-            "string_if_invalid": r"{{ %s }}",
+            # "string_if_invalid": r"{{ %s }}",
         },
     }
 ]
@@ -78,7 +85,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "America/New_York"
 
 USE_I18N = True
 
@@ -91,7 +98,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
 STATIC_URL = "/static/"
-
 
 # Logging
 
@@ -119,20 +125,23 @@ LOGGING = {
         "console": {
             "level": "DEBUG",
             "class": "logging.StreamHandler",
-            "filters": ["require_debug_true"],
+            # "filters": ["require_debug_true"],
             "formatter": "simple",
         }
     },
     "loggers": {
         "cases": {"handlers": ["console"], "level": "DEBUG", "propagate": True},
         "tools": {"handlers": ["console"], "level": "DEBUG", "propagate": True},
+        # "django_super_deduper": {"handlers": ["console"], "level": "DEBUG"},
     },
 }
 
 
 # django-explorer
-EXPLORER_CONNECTIONS = {"Default": "readonly"}
-EXPLORER_DEFAULT_CONNECTION = "readonly"
+# EXPLORER_CONNECTIONS = {"Default": "readonly"}
+# EXPLORER_DEFAULT_CONNECTION = "readonly"
+EXPLORER_CONNECTIONS = {"Default": "default"}
+EXPLORER_DEFAULT_CONNECTION = "default"
 
 
 # django-tables2
@@ -143,3 +152,34 @@ DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap4.html"
 # django-crispy-forms
 # Use Bootstrap4 form classes
 CRISPY_TEMPLATE_PACK = "bootstrap4"
+
+
+def FILTERS_VERBOSE_LOOKUPS():
+    from django_filters.conf import DEFAULTS
+
+    verbose_lookups = DEFAULTS["VERBOSE_LOOKUPS"].copy()
+    verbose_lookups.update({"trigram_similar": "is similar to"})
+    return verbose_lookups
+
+
+SHELL_PLUS = "ipython"
+SHELL_PLUS_PRE_IMPORTS = [
+    (
+        "django.contrib.gis.db.models.functions",
+        ("Area", "Distance", "Value", "Length", "Perimeter"),
+    ),
+    ("tqdm", ("tqdm",)),
+]
+SHELL_PLUS_POST_IMPORTS = [("cases.models", ("Case",)), ("utils.constants", "*")]
+STRONGHOLD_PUBLIC_NAMED_URLS = (
+    "password_reset",
+    "password_reset_done",
+    "password_reset_confirm",
+    "password_reset_complete",
+)
+STRONGHOLD_PUBLIC_URLS = ("^/accounts/reset/.*",)
+SERVER_EMAIL = "noreply@nrao.edu"
+DEFAULT_FROM_EMAIL = "noreply@nrao.edu"
+EMAIL_HOST = "smtp.gb.nrao.edu"
+
+ADMINS = (("Thomas Chamberlin", "tchamber@nrao.edu"),)

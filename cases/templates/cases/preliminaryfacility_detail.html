@@ -1,0 +1,64 @@
+{% extends "cases/base.html" %}
+{% load cases_tags %}
+{% load django_import_data_tags %}
+
+{% block content %}
+{% make_breadcrumb preliminaryfacility %}
+
+<div class="row">
+    <div class="col-lg-2">
+        <h1>Preliminary Facility {{ preliminaryfacility }}</h1>
+    </div>
+    <div class="col-lg-2">
+        <p>Date Received: {{ preliminaryfacility.pcase.date_recorded|default:"None" }}</p>
+    </div>
+    <div class="col-lg-2">
+    <a href={% url "prelim_case_detail" preliminaryfacility.pcase.case_num %}>View Preliminary Case</a>
+    </div>
+
+    <div class="col-lg-2">
+        <p><a href={% url "admin:cases_preliminaryfacility_change" preliminaryfacility.id %}>Edit</a></p>
+    </div>
+
+    <div class="col-lg-2">
+        {% include "cases/base_detail_header.html" %}
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg">
+            {% location_table preliminaryfacility "Topography Data" topography_info %}
+            {% info_table preliminaryfacility "Antenna Data" antenna_info %}
+        </div>
+        <div class="col-lg">
+            {% info_table preliminaryfacility "Transmitter Data" transmitter_info %}
+            {% info_table preliminaryfacility "Analysis Results" analysis_results_info %}
+        </div>
+        <div class="col-lg">
+            {% info_table preliminaryfacility "Path Data Interpolation" path_data_interpolation_info %}
+            {% info_table preliminaryfacility "USGS Dataset" usgs_dataset_info %}
+            <h2>Comments</h2>
+            <table class="table">
+                <tr title="{{ help_text }}">
+                    <td>{{ preliminaryfacility.comments | linebreaks }}
+                </tr>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+{% if preliminaryfacility.comments %}
+<div class="row">
+
+</div>
+{% endif %}
+
+<div class="row">
+    <div class="col-lg">
+        {% info_table preliminaryfacility "TODO: Unsorted" unsorted_info %}
+    </div>
+</div>
+
+{% endblock %}

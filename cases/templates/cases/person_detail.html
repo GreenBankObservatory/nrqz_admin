@@ -1,10 +1,15 @@
 {% extends "cases/base.html" %}
 {% load cases_tags %}
 {% load render_table from django_tables2 %}
+{% load django_import_data_tags %}
 {% load crispy_forms_tags %}
 
 {% block content %}
+{% make_breadcrumb person %}
+
 <h1>{{ person.name }}</h1>
+{% include "cases/base_detail.html" %}
+
 <div class="row">
     <div class="col-sm">
         {% info_table person "Entity Info" applicant_info %}
@@ -13,8 +18,49 @@
 
 <h2>Cases</h2>
 <p>Cases where <b>{{ person.name }}</b> is either an applicant or a contact</p>
-<div class="container-fluid" style="border:1px solid #D3D3D3; border-radius: 10px">
-    {% filter_table case_table case_filter %}
-</div>
+{% if tables.0.data %}
+{% render_table tables.0 %}
+{% else %}
+<p>None</p>
+{% endif %}
+
+
+<h2>Preliminary Cases</h2>
+<p>Preliminary Cases where <b>{{ person.name }}</b> is either an applicant or a contact</p>
+{% if tables.1.data %}
+{% render_table tables.1 %}
+{% else %}
+<p>None</p>
+{% endif %}
+
+<h2>Similar People</h2>
+<p>There are <b>{{ tables.2.data|length }}</b> other people with names/emails substantially similar to <b>'{{ person.name }}'</b> / <b>'{{ person.email }}'</b></p>
+{% if tables.2.data %}
+<form action="{% url 'merge_similar_people' person.id %}">
+    <input type="submit" value="Merge People" name="merge_people">
+</form>
+{% render_table tables.2 %}
+{% endif %}
+
+
+{% if person.merge_info %}
+<h2>Import/Merge Details</h2>
+<p><b>{{ person.name }}</b> is a combination of <b>{{ person.merge_info.num_instances_merged }}</b> Person instances. These instances were merged based on their similarity in name. The merger made guesses at the correct values for other fields such as email, address, etc., and has preserved any other values below for posterity.</p>
+
+<h3>Summary of other Field Values</h3>
+{% if person.merge_info.alias_field_values_summary %}
+{{ person.merge_info.alias_field_values_summary|json|safe }}
+{% else %}
+<p>None</p>
+{% endif %}
+
+<h3>Field Values from Merged People</h3>
+{% if person.merge_info.alias_field_values %}
+{{ person.merge_info.alias_field_values|json|safe }}
+{% else %}
+<p>None</p>
+{% endif %}
+{% endif %}
 
 {% endblock %}
+

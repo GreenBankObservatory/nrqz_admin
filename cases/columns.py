@@ -1,9 +1,10 @@
 """Custom djang_tables2.Column sub-classes for cases app"""
+import os
 
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
-from django_tables2 import Column, CheckBoxColumn
+from django_tables2 import CheckBoxColumn, Column
 from django_tables2.utils import AttributeDict
 
 
@@ -14,15 +15,23 @@ class TrimmedTextColumn(Column):
 
     def render(self, value):
         value = escape(value)
-        first_line = value.split("\n")[0]
-        if len(first_line) > self.trim_length:
-            trimmed = " ".join(first_line[: self.trim_length].split(" ")[:-1])
-            return mark_safe(f"<span title='{value[:512]}'>{trimmed} ...</span>")
-        return first_line
+        # first_line = value.split("\n")[0]
+        if len(value) > self.trim_length:
+            # trimmed = " ".join(first_line[: self.trim_length].split(" ")[:-1])
+            trimmed = " ".join(value[: self.trim_length].split(" ")[:-1])
+            if len(value) > 512:
+                abs_trimmed = " ".join(value[:512].split(" ")[:-1]) + " ..."
+            else:
+                abs_trimmed = value
+            return mark_safe(f"<span title='{abs_trimmed}'>{trimmed} ...</span>")
+        return value
+
+    def value(self, value):
+        return value
 
 
 class SelectColumn(CheckBoxColumn):
-    verbose_name = "Concur"
+    verbose_name = "Select/Print"
     empty_values = ()
 
     def __init__(self, *args, **kwargs):
@@ -37,3 +46,19 @@ class SelectColumn(CheckBoxColumn):
             {"type": "checkbox", "name": "facilities", "value": record.id}
         )
         return mark_safe("<input %s/>" % attrs.as_html())
+
+
+class UnboundFileColumn(Column):
+    def render(self, value, bound_column, record):
+        path = value
+        record.refresh_from_filesystem()
+
+        if record.file_missing:
+            return "File does not exist"
+        foo = f"""<a
+href='file://{path}'
+title={os.path.basename(path)}
+>
+    Open Attachment
+</a>"""
+        return mark_safe(foo)

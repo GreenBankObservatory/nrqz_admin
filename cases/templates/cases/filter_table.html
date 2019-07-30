@@ -1,4 +1,5 @@
 {% load render_table from django_tables2 %}
+{% load export_url from django_tables2 %}
 {% load crispy_forms_tags %}
 
 {% if title %}
@@ -7,10 +8,9 @@
 
 {% if filter %}
 {% crispy filter.form %}
-
 <div class="row">
     <button class="btn btn-info btn-sm filter-button" type="button" data-toggle="collapse" data-target="#{{ form_id }}" aria-expanded="true" aria-controls="{{ form_id }}">
-        Show Filters
+        Show/Hide Filters
     </button>
     <p>Showing {{ current_objects }} of {{ total_objects }} total {{ model_name_plural }} ({{ percent_shown }})</p>
 </div>

@@ -1,0 +1,8 @@
+{% extends "cases/base.html" %}
+{% load cases_tags %}
+{% load django_import_data_tags %}
+
+{% block content %}
+<h1><a href="{% url 'modelimporter_index' %}">Model Importer Index</a></h1>
+{% filter_table %}
+{% endblock %}

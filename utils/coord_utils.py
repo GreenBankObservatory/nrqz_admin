@@ -21,34 +21,72 @@ def dd_to_dms(decimal):
     return (d, m, s)
 
 
-def coords_to_string(latitude, longitude):
+CONCISE_COORD_FORMAT = "{:d} {:02d} {:2.3f}"
+VERBOSE_COORD_FORMAT = "{:3d}° {:02d}′ {:2.3f}″ {}"
+
+
+def lat_to_string(latitude, concise=False):
     if isinstance(latitude, float):
         latitude = dd_to_dms(latitude)
-    if isinstance(longitude, float):
-        longitude = dd_to_dms(longitude)
+    if len(latitude) != 3:
+        raise ValueError("latitude must be a 3-tuple")
 
     if latitude[0] < 0:
         latitude = (abs(i) for i in latitude)
         lat_hemi = "S"
+        sign = "-"
     else:
         lat_hemi = "N"
+        sign = ""
+
+    if concise:
+        return f"{sign}{CONCISE_COORD_FORMAT.format(*latitude)}"
+    return f"{VERBOSE_COORD_FORMAT.format(*latitude, lat_hemi)}"
+
+
+def long_to_string(longitude, concise=False):
+    if isinstance(longitude, float):
+        longitude = dd_to_dms(longitude)
+    if len(longitude) != 3:
+        raise ValueError("longitude must be a 3-tuple")
 
     if longitude[0] < 0:
         longitude = (abs(i) for i in longitude)
         long_hemi = "W"
+        sign = "-"
     else:
         long_hemi = "E"
+        sign = ""
 
-    coord_format = "{:3d}° {:02d}′ {:2.3f}″"
-    return f"{coord_format.format(*latitude)} {lat_hemi}, {coord_format.format(*longitude)} {long_hemi}"
+    if concise:
+        return f"{sign}{CONCISE_COORD_FORMAT.format(*longitude)}"
+    return f"{VERBOSE_COORD_FORMAT.format(*longitude, long_hemi)}"
 
 
-# https://regex101.com/r/vMa4Ov/5
+def coords_to_string(latitude, longitude, concise=False):
+    latitude_str = lat_to_string(latitude, concise=concise)
+    longitude_str = long_to_string(longitude, concise=concise)
+    return f"{latitude_str}, {longitude_str}"
+
+
+# https://regex101.com/r/vMa4Ov/7
 coord_regex_str = (
-    r"(?P<degrees>\-?\d{1,3}(?:\.\d+)?)\D*(?:(?P<minutes>\d{1,2})\D+"
-    r"(?P<seconds>\d{1,2}(?:\.\d+)?)[^NnEeWwSs]+)?(?P<hemisphere>[NnEeWwSs])?"
+    r"(?P<degrees>\-?\d{1,3}(?:\.\d+)?)[d°]?"
+    r"\s?"
+    r"(?:"
+    r"(?P<minutes>\d{1,2})[m′]?"
+    r"\s?"
+    r"(?P<seconds>\d{1,2}(?:\.\d+)?)[s\"″]?"
+    r")?"
+    r"\s?"
+    r"(?P<hemisphere>[nsew])?"
 )
-coord_regex = re.compile(coord_regex_str)
+coord_regex = re.compile(coord_regex_str, re.IGNORECASE + re.MULTILINE)
+
+
+def point_to_string(point, concise=False):
+    longitude, latitude = point.coords
+    return coords_to_string(latitude, longitude, concise=concise)
 
 
 def parse_coord(coord):
@@ -64,7 +102,6 @@ def parse_coord(coord):
         seconds = float(match["seconds"])
     else:
         seconds = None
-
     if match["hemisphere"]:
         if degrees < 0:
             raise ValueError(
@@ -84,3 +121,29 @@ def parse_coord(coord):
         return degrees
     else:
         return dms_to_dd(degrees=degrees, minutes=minutes, seconds=seconds)
+
+
+def split_coords(coords_str):
+    try:
+        latitude, longitude = coords_str.split()
+    except ValueError:
+        # if "," not in coords_str and "\t" not in coords_str:
+        #     raise ValueError("Must be comma- or tab-separated!")
+        if "\t" in coords_str:
+            latitude, longitude = coords_str.split("\t")
+        elif "," in coords_str:
+            latitude, longitude = coords_str.split(",")
+        else:
+            latitude, longitude = coords_str.split("-")
+            longitude = f"-{longitude}"
+
+    return latitude, longitude
+
+
+def parse_coords(coords):
+    if isinstance(coords, str):
+        latitude, longitude = split_coords(coords)
+        latitude = latitude.strip()
+        longitude = longitude.strip()
+        return (parse_coord(latitude), parse_coord(longitude))
+    return coords

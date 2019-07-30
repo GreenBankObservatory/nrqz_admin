@@ -1,0 +1,112 @@
+{% extends "cases/base.html" %}
+{% load cases_tags %}
+{% load django_import_data_tags %}
+{% load render_table from django_tables2 %}
+
+{% block content %}
+
+{% make_breadcrumb fileimportattempt %}
+
+
+<h1>{{ fileimportattempt }}</h1>
+Current Status: <b>{{ fileimportattempt.get_current_status_display }}</b>
+Imported Status: <b>{{ fileimportattempt.get_status_display }}</b>
+
+{% if fileimportattempt == fileimportattempt.file_importer.latest_file_import_attempt  %}
+{% if fileimportattempt.file_importer.file_changed or fileimportattempt.file_importer.file_missing %}
+{% include "audits/file_change_jumbotron.html" with object=fileimportattempt.file_importer %}
+{% endif %}
+{% else %}
+
+<ul>
+<li style="color:red;font-weight: bold">This is not the latest import attempt in its File Importer! Jump to latest File Import Attempt: <a href="{{fileimportattempt.file_importer.latest_file_import_attempt.get_absolute_url }}"> {{fileimportattempt.file_importer.latest_file_import_attempt }}</a></li>
+{% if not fileimportattempt.importee %}
+<li style="color:red;font-weight: bold">
+While this import attempt failed, a subsequent attempt was successful (see above)
+</li>
+{% endif %}
+
+{% if fileimportattempt.hash_when_imported != fileimportattempt.file_importer.hash_on_disk %}
+    <li style="color:red;font-weight: bold">File on disk has changed since this import attempt!</li>
+{% endif %}
+
+{% if fileimportattempt.imported_from != fileimportattempt.file_importer.file_path %}
+    <li style="color:red;font-weight: bold">File on disk has moved since this import attempt!</li>
+{% endif %}
+</ul>
+{% endif %}
+
+
+<p>
+    <a href="{{ fileimportattempt.file_importer.get_absolute_url }}">
+        Open File Importer
+    </a>
+    |
+    <a href="file://{{ fileimportattempt.imported_from }}">
+        Open original file: {{ fileimportattempt.name }}
+    </a>
+    |
+    <a href="{% url 'fileimportattempt_explain' fileimportattempt.id %}">Explanation of field mappings</a>
+</p>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-2">
+            <form action="{% url 'fileimporter_reimport' fileimportattempt.file_importer.id %}">
+                <input required type="checkbox" name="sanity" value="I am super sure">
+                <input required type="submit" name="submit" value="Re-import">
+            </form>
+        </div>
+
+        <div class="col-lg-2">
+            <form action="{% url 'fileimporter_delete_models' fileimportattempt.file_importer.id %}">
+                <input required type="checkbox" name="sanity" value="I am super sure">
+                <input required type="submit" name="submit" value="Delete">
+            </form>
+        </div>
+
+
+        {% if not fileimportattempt.is_deleted %}
+        <div class="col-auto">
+            <form method="POST" action="{% url 'acknowledge_fileimporter' fileimportattempt.file_importer.id %}">
+                {% csrf_token %}
+                <input required type="checkbox" name="sanity" value="I am super sure">
+                <input required type="submit" name="acknowledge" value={% if fileimportattempt.is_acknowledged %}"Unacknowledge"{% else %}"Acknowledge"{% endif %}>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+</div>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-4">
+            <h2 title="Summary of all models that were successfully created during this file import attempt">Models Created from File</h2>
+            {{ fileimportattempt.creations | json | safe }}
+        </div>
+
+        <div class="col-lg-4">
+            <h2 title="General information regarding the file import attempt">File-Level Import Info</h2>
+            {% if fileimportattempt.info %}
+            {{ fileimportattempt.info | json | safe }}
+            {% else %}
+            <p>None</p>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-4">
+            <h2 title="Any errors associated with the file import attempt">File-Level Import Errors</h2>
+            {% if fileimportattempt.errors %}
+            {{ fileimportattempt.errors | json | safe }}
+            {% else %}
+            <p>None</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<h2 title="Rows imported during this file import attempt">Row Importers</h2>
+
+
+{% render_table tables.0 %}
+
+{% endblock %}

@@ -1,0 +1,165 @@
+.invalid-feedback {
+    display: block;
+}
+
+/* Container fills full width by default... */
+.container{
+    max-width: none;
+}
+
+/* ...but, if the screen is at least 1500px, then it adds margins.
+This means that we don't lose valuable space on small screens, but we have good
+readability on large ones*/
+@media (min-width: 1500px) {
+    .container{
+        max-width: 1500px;
+    }
+}
+
+/* Remove margins when printing */
+@media print {
+    .container{
+        max-width: none;
+    }
+}
+
+
+.form-group{
+    margin-bottom: 1px;
+}
+
+.filter-form{
+    margin-bottom: 10px;
+}
+
+.filter-form-buttons {
+    margin-top: 10px;
+}
+
+p.fine-print {
+    font-size: 10px;
+}
+
+/* We need to be able to disable form-control styling sometimes. Specifically,
+Select2 widgets appear to have conflicts with Bootstrap. So,
+we simply disable the offending attributes here.*/
+.no-form-control {
+    padding: unset;
+    height: unset;
+}
+
+.filter-button {
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+.batch-created-clean-msg, .batch-created_clean {
+    color: green;
+}
+
+.batch-created-dirty-msg, .batch-created_dirty {
+    color: orange;
+}
+
+.batch-rejected-msg, .batch-rejected{
+    color: red;
+}
+
+.first-batch {
+    font-weight: bold;
+}
+
+/* MESSAGES & ERRORS */
+
+ul.messages {
+    padding: 0;
+    margin: 0;
+}
+
+ul.messages li {
+    display: block;
+    font-weight: 400;
+    font-size: 13px;
+    padding: 10px 10px 10px 65px;
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+ul.messages li.success {
+    background: #dfd url(/static/admin/img/icon-yes.svg) 40px 12px no-repeat;
+    background-size: 16px auto;
+}
+
+ul.messages li.warning {
+    background: #ffc url(/static/admin/img/icon-alert.svg) 40px 14px no-repeat;
+    background-size: 14px auto;
+}
+
+ul.messages li.error {
+    background: #ffefef url(/static/admin/img/icon-no.svg) 40px 12px no-repeat;
+    background-size: 16px auto;
+}
+/* END MESSAGES & ERRORS */
+
+/* Make sure that JSON display isn't insanely tall */
+.highlight pre {
+    max-height: 300px;
+}
+
+.breadcrumb {
+    padding: 2px 15px;
+}
+
+
+/* Decrease padding between table rows */
+.table td, th {
+    padding-top: .2rem;
+    padding-bottom: .2rem;
+}
+
+/* Make headings a little smaller */
+.h1, h1 {
+    font-size: 2rem;
+}
+
+/* Make headings a little smaller */
+.h2, h2 {
+    font-size: 1.5rem;
+}
+
+/* Make form fields a little shorter */
+.form-control {
+    height: calc(1.75rem + 2px);
+}
+
+.input-group {
+    margin-bottom: 1px;
+
+}
+
+/* Make form field labels a little shorter */
+.col-form-label {
+    padding-bottom: calc(.1rem + 1px)
+}
+
+.colM {
+    width: 60%;
+    /*margin: auto*/
+}
+
+.select2-selection {
+    height: auto;
+}
+
+
+.submit-row a.deletelink {
+    height: unset;
+}
+
+.jumbotron-warning {
+    background: #ffefef;
+}
+
+.dal-create {
+    font-weight: bold;
+}

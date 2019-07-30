@@ -1,0 +1,15 @@
+<div class="jumbotron jumbotron-warning">
+    {% if object.file_missing %}
+    <h2 style="color: red" class="display-4">Attachment missing!</h2>
+    <p class="lead"><b style="color: red">Attachment '{{ object.file_path }}' has been moved or deleted!</b></p>
+    {% else %}
+    <h2 style="color: red" class="display-4">Attachment changed!</h2>
+    <p class="lead"><b style="color: red">Attachment '{{ object.file_path }}' has changed on disk since it was imported</b></p>
+    {% endif %}
+    <p>You should do one of the following using the buttons below:</p>
+    <ul>
+        <li>If the attachment has been deleted or moved by accident, put it back in its original location and <b>refresh this page</b></li>
+        <li>If the file has changed location permanently, <b>update the file path</b> for this attachment</li>
+        <li>If this file was imported in error, or no longer needs to be in the system, then you should <b>deactivate it</b></li>
+    </ul>
+</div>

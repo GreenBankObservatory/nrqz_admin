@@ -1,0 +1,27 @@
+{% load cases_tags %}
+{% load render_table from django_tables2 %}
+{% load crispy_forms_tags %}
+{% load django_import_data_tags %}
+
+
+
+<h2 title="All case groups this {{ case | model_name }} is a member of">Case Groups</h2>
+<ul>
+    {% for case_group in case.case_groups.all %}
+    <li><a href="{% url 'case_group_detail' case_group.id %}">Case Group {{ case_group.id }}</a></li>
+    {% endfor %}
+</ul>
+<h2>Related Cases ({{ case_table.data|length }})</h2>
+{% if case_table.data %}
+{% render_table case_table %}
+{% else %}
+<p>No Related Cases</p>
+{% endif %}
+
+<h2>Related Preliminary Cases ({{ pcase_table.data|length }})</h2>
+{% if pcase_table.data %}
+{% render_table pcase_table %}
+{% else %}
+<p>No Related Preliminary Cases</p>
+{% endif %}
+

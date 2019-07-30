@@ -2,9 +2,9 @@
 <h2>{{ title }}</h2>
 {% endif %}
 <table class="table">
-    {% for label, value in rows %}
-    <tr>
-        <td>{{ label }}</td>
+    {% for label, value, help_text in rows %}
+    <tr title="{{ help_text }}">
+        <td>{{ label|safe }}</td>
         <td>{{ value|safe }}</td>
     </tr>
     {% endfor %}

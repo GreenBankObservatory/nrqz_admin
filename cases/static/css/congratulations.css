@@ -1,0 +1,85 @@
+body {
+    /*You can use any kind of background here.*/
+    background: transparent;
+}
+
+canvas {
+    display: block;
+    pointer-events: none;
+    position: relative;
+    width: 100%;
+    zindex: 1;
+}
+
+#content {
+    font-size: 45px;
+    font-weight: bold;
+    height: 12em;
+    left: 50%;
+    margin-left: -15em;
+    margin-top: -5em;
+    position: absolute;
+    text-align: center;
+    top: 50%;
+    width: 30em;
+}
+
+.buttonContainer {
+    display: inline-block;
+}
+
+button {
+    font-size: 20px;
+    padding: 5px 10px;
+}
+
+@keyframes rainbow {
+    /* green */
+    0%  {color: #33dd00;}
+    /* blue */
+    14% {color: #1133cc;}
+    /* indigo */
+    28% {color: #220066;}
+    /* violet */
+    42% {color: #330044;}
+    /* red */
+    56% {color: #d10000;}
+    /* orange */
+    70% {color: #ff6622;}
+    /* yellow */
+    84% {color: #ffda21;}
+    /* green */
+    98%  {color: #33dd00;}
+}
+
+.easter {
+    animation-delay: 1s;
+    animation-duration: 8s;
+    animation-iteration-count: infinite;
+    animation-name: rainbow;
+    animation-timing-function: linear;
+    color: #33dd00;
+    /* Better emojis */
+    font-family: Veranda;
+}
+.easter-small {
+    font-size: 24px;
+}
+
+@keyframes spin {
+    from {transform: rotate(0deg)}
+    to {transform: rotate(360deg)}
+}
+
+.easter-rotate {
+    animation-delay: 1s;
+    animation-duration: 2s;
+    animation-iteration-count: infinite;
+    animation-name: spin;
+    animation-timing-function: linear;
+    display:inline-block;
+}
+
+.easter-rotate-left {
+    animation-direction: reverse;
+}

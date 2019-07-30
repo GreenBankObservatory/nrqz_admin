@@ -1,0 +1,79 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-light d-print-none">
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <a class="navbar-brand" href="/">NRQZ Admin</a>
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item">
+        <a class="nav-link" href={% url "case_index" %} title="Case Index">Cases</a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href={% url "prelim_case_index" %} title="Preliminary Case Index">PCases</a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href={% url "facility_index" %} title="Facility Index">Facilities</a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href={% url "prelim_facility_index" %} title="Preliminary Facility Index">PFacilities</a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href={% url "structure_index" %} title="Structure Index" >Structures</a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href={% url "person_index" %} title="All People that the Tool knows about">People</a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href={% url "letters" %} title="Generate (non-)concurrence letters">Letters</a>
+      </li>
+
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Misc.
+        </a>
+
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+         <a class="nav-link" href={% url "attachment_index" %} title="All attachments that have ever been attached to anything">Attachments</a>
+          <a class="nav-link" href={% url "case_group_index" %} title="Case Group Index">Case Groups</a>
+        </div>
+      </li>
+
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Audits
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <a class="nav-link" href={% url "file_dashboard" %}>File Importer Dashboard</a>
+          <a class="nav-link" href={% url "attachment_dashboard" %}>Attachment Dashboard</a>
+          <a class="nav-link" href={% url "changed_file_import_attempts" %}>Files Changed Since Import</a>
+          <a class="nav-link" href={% url "fileimporterbatch_index" %}>File Importer Batches</a>
+          <a class="nav-link" href={% url "fileimporter_index" %}>File Importers</a>
+          <a class="nav-link" href={% url "fileimportattempt_index" %}>File Import Attempts</a>
+          <a class="nav-link" href={% url "rowdata_index" %}>Row Import Attempts</a>
+          <a class="nav-link" href={% url "modelimporter_index" %}>Model Importers</a>
+          <a class="nav-link" href={% url "modelimportattempt_index" %}>Model Import Attempts</a>
+        </div>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link text-primary" href={% url "fileimporter_create" %} title="Import a new file">Import File</a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link text-info" href={% url "admin:app_list" "cases" %}>Admin</a>
+      </li>
+
+    </ul>
+
+    <form class="form-inline my-2 my-lg-0" action="{% url 'search' %}" method="get">
+      <input class="form-control mr-sm-2" name="q" type="search" placeholder="Search" aria-label="Search" title="Search cases, facilities, and people">
+    </form>
+
+  </div>
+</nav>

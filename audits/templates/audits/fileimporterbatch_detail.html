@@ -1,0 +1,39 @@
+{% extends "cases/base.html" %}
+{% load cases_tags %}
+{% load django_import_data_tags %}
+{% load render_table from django_tables2 %}
+
+{% block content %}
+
+{% make_breadcrumb fileimporterbatch %}
+
+<h1>{{ fileimporterbatch }}</h1>
+
+{# <p> <a href="{% url 'fileimportattempt_explain' fileimporterbatch.file_importers.last.latest_file_import_attempt.id %}">Explanation of field mappings</a> </p> #}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-2">
+            <form action="{% url 'fileimporterbatch_reimport' fileimporterbatch.id %}">
+                <input required type="checkbox" name="sanity" value="I am super sure">
+                <input required type="submit" name="submit" value="Re-import">
+            </form>
+        </div>
+
+        <div class="col-lg-10">
+            <form action="{% url 'fileimporterbatch_delete_models' fileimporterbatch.id %}">
+                <input required type="checkbox" name="sanity" value="I am super sure">
+                <input required type="submit" name="submit" value="Delete">
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<h2 title="File imports attempted during this file import attempt">File Importers</h2>
+
+{% render_table table %}
+
+<h2>Error Summary</h2>
+{{ fileimporterbatch.errors|json|safe }}
+
+{% endblock %}

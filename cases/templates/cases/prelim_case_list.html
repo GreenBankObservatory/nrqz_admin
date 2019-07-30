@@ -1,0 +1,17 @@
+{% extends "cases/base.html" %}
+{% load cases_tags %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col">
+        <h1><a href="{% url 'prelim_case_index' %}">Preliminary Case Index</a></h1>
+    </div>
+    <div class="col">
+        <a href="{% url 'admin:cases_preliminarycase_add' %}">
+            Create New Preliminary Case
+        </a>
+    </div>
+</div>
+{% filter_table %}
+{% endblock %}

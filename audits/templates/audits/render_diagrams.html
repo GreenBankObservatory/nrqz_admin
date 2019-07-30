@@ -1,0 +1,8 @@
+{% extends "cases/base.html" %}
+
+{% block content %}
+<h1>Form Maps for File Importer &quot;{{ fileimportattempt.file_importer.importer_name}}&quot;</h1>
+<p>Imported from {{ fileimportattempt.imported_from }}</p>
+
+{% include "mermaid_explanation.html" with diagram_dict=diagram_dict %}
+{% endblock %}
