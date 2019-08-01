@@ -518,24 +518,14 @@ class BaseFacilityDetailView(DetailView):
             ("Propagation Study", self.object.get_prop_study_as_link(), ""),
         ]
 
-        context["analysis_results_info"] = [
-            "nrao_aerpd",
-            "nrao_aerpd_analog",
-            "nrao_aerpd_gsm",
-            "nrao_aerpd_cdma",
-            "nrao_aerpd_cdma2000",
-        ]
-        context["federal_info"] = [
-            ("Is Federal?", self.object.case.is_federal, ""),
-            "s367",
-        ]
+
+        
 
         context["sgrs_info"] = [
             "sgrs_approval"
             # TODO
             # date
         ]
-        context["analysis_results_info"]
 
         return context
 
@@ -572,6 +562,10 @@ class PreliminaryFacilityDetailView(BaseFacilityDetailView):
         context["unsorted_info"] = get_fields_missing_from_info_tables(
             context, self.object.all_fields()
         )
+        context["federal_info"] = [
+            ("Is Federal?", self.object.pcase.is_federal, ""),
+            "s367",
+        ]
         return context
 
 
@@ -614,7 +608,15 @@ class FacilityDetailView(MultiTableMixin, BaseFacilityDetailView):
 
         context["analysis_results_info"] = [
             "meets_erpd_limit",
-            *context["analysis_results_info"],
+            "nrao_aerpd",
+            "nrao_aerpd_analog",
+            "nrao_aerpd_gsm",
+            "nrao_aerpd_cdma",
+            "nrao_aerpd_cdma2000",
+        ]
+        context["federal_info"] = [
+            ("Is Federal?", self.object.case.is_federal, ""),
+            "s367",
         ]
         return context
 
