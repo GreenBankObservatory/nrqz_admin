@@ -32,7 +32,7 @@ class FileImporterBatchTable(tables.Table):
     command = tables.Column(verbose_name="Importer")
     created_on = tables.DateTimeColumn(verbose_name="Date Imported")
     status = ImportStatusColumn()
-    current_status = CurrentStatusColumn()
+    # current_status = CurrentStatusColumn()
     num_file_importers = tables.Column(
         verbose_name="# Files",
         attrs={"th": {"title": "The number of File Importers in this batch"}},

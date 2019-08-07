@@ -541,6 +541,6 @@ class FileImporterDashboard(SingleTableMixin, TemplateView, ProcessFormView):
                 messages.warning(
                     request, "No File Importers selected for acknowledgement"
                 )
-            return HttpResponseRedirect(reverse("dashboard"))
+            return HttpResponseRedirect(reverse("file_dashboard"))
 
         return super().dispatch(request, *args, **kwargs)

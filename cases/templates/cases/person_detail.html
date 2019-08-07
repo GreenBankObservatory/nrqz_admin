@@ -34,7 +34,9 @@
 {% endif %}
 
 <h2>Similar People</h2>
-<p>There are <b>{{ tables.2.data|length }}</b> other people with names/emails substantially similar to <b>'{{ person.name }}'</b> / <b>'{{ person.email }}'</b></p>
+<p>
+    There are <b>{{ tables.2.data|length }}</b> other people with names{% if person.email %}/emails{% endif %} substantially similar to <b>'{{ person.name }}'</b>{% if person.email %} / <b>'{{ person.email }}'</b>{% endif %}
+</p>
 {% if tables.2.data %}
 <form action="{% url 'merge_similar_people' person.id %}">
     <input type="submit" value="Merge People" name="merge_people">

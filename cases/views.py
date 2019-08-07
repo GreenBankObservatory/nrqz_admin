@@ -518,9 +518,6 @@ class BaseFacilityDetailView(DetailView):
             ("Propagation Study", self.object.get_prop_study_as_link(), ""),
         ]
 
-
-        
-
         context["sgrs_info"] = [
             "sgrs_approval"
             # TODO
@@ -727,7 +724,11 @@ class PersonDetailView(MultiTableMixin, DetailView):
             "name",
             "phone",
             "fax",
-            "email",
+            (
+                "email",
+                f'<a href="mailto:{self.object.email}">{self.object.email}</a>',
+                "",
+            ),
             "street",
             "city",
             "county",

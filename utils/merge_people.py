@@ -1,4 +1,3 @@
-
 from django.db import transaction
 from django.db.models import Q
 from django.contrib.postgres.search import TrigramSimilarity
@@ -63,7 +62,7 @@ def _handle_cross_references(
 ):
     """"Expand" all references of from_field to to_field with proper FKs
 
-    For example, if we have some PreliminaryCases where the `contact` field is set to a 
+    For example, if we have some PreliminaryCases where the `contact` field is set to a
     Person named "applicant", this will:
     * Set each of these cases' contact to the value of its applicant
     * Delete the old person... maybe????
@@ -121,10 +120,15 @@ def merge_people(person_to_keep, people_to_merge):
         keep_old=False,
     )
 
+    existing_merge_infos = []
     # Avoid breaking serialization by replacing MIA instances with their ID
     for item in alias_field_values:
         if "model_import_attempt" in item:
             item["model_import_attempt"] = item["model_import_attempt"].id
+
+        if "merge_info" in item:
+            # Add to list, and remove from item itself (will be merged later)
+            existing_merge_infos.append(item.pop("merge_info"))
 
     # Filter out fields that we have not whitelisted
     alias_field_values_summary = {
@@ -134,11 +138,16 @@ def merge_people(person_to_keep, people_to_merge):
     }
 
     if alias_field_values_summary or alias_field_values:
-        person.merge_info = MergeInfo.objects.create(
+        merge_info = MergeInfo.objects.create(
             alias_field_values_summary=alias_field_values_summary,
             alias_field_values=alias_field_values,
-            # TODO: Do we really want to include the original?
             num_instances_merged=len(people_to_merge) + 1,
         )
+        # Merge together
+        if existing_merge_infos:
+            merge_info = MergedModelInstance.create(merge_info, existing_merge_infos)
+            print("!!!", merge_info)
+
+        person.merge_info = merge_info
         person.save()
     return person_to_keep
