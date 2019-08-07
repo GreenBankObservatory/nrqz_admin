@@ -529,7 +529,7 @@ class FileImporterDashboard(SingleTableMixin, TemplateView, ProcessFormView):
             # Convert to string here, since this QS will be empty soon. We rely
             # on Django to concatenate the values list string to a reasonable length,
             # so we don't have to worry about doing it ourselves
-            fi_str = str(file_importers.values_list("id", flat=True))
+            fi_str = str(file_importers.values_list("file_path", flat=True))
             for file_importer in file_importers.all():
                 file_importer.acknowledge()
             if num_file_importers:
