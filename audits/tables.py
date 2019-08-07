@@ -102,11 +102,11 @@ class FileImporterDashboardTable(FileImporterTable):
         accessor="id",
         attrs={
             "th": {
-                "title": "Select the FIs you want to acknowledged (or the checkbox here to acknowledge all of them)"
+                "title": "Select the FIs you want to affect (or the checkbox here to affect all of them)"
             },
-            "th__input": {"title": "Acknowledge all", "name": "all"},
+            "th__input": {"title": "Select all", "name": "all"},
         },
-        verbose_name="Acknowledge",
+        verbose_name="Select",
     )
 
     class Meta:
@@ -130,7 +130,7 @@ class FileImportAttemptTable(tables.Table):
         #     }
         # },
     )
-    current_status = CurrentStatusColumn(accessor="file_importer.current_status")
+    current_status = CurrentStatusColumn()
     imported_from = BaseNameColumn()
 
     num_model_importers = tables.Column(
