@@ -320,10 +320,11 @@ class CaseGroupManager(Manager):
             )
             self._build_case_group(related_case_nums, related_pcase_nums)
 
-    def build_all_case_groups(self):
+    def build_all_case_groups(self, max_attempts=5):
         num_case_groups = self.count()
         prev_num_case_groups = None
-        while num_case_groups != prev_num_case_groups:
+        num_attempts = 0
+        while num_case_groups != prev_num_case_groups and num_attempts < max_attempts:
             for grouper in tqdm(
                 [
                     self._build_case_groups_from_cases,
@@ -336,6 +337,7 @@ class CaseGroupManager(Manager):
 
             prev_num_case_groups = num_case_groups
             num_case_groups = self.count()
+            num_attempts += 1
 
         print(f"Number of CaseGroups stabilized at {num_case_groups}")
 
