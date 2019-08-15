@@ -355,7 +355,10 @@ def convert_access_path(path):
     if not path:
         return None
 
-    return path.split("#")[1].strip()
+    try:
+        return path.split("#")[1].strip()
+    except IndexError as error:
+        raise ValueError(f"Invalid path: '{path}'") from error
 
 
 def convert_access_attachment(**kwargs):
