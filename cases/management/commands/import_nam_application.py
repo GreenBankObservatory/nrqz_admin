@@ -158,7 +158,7 @@ class Command(BaseImportCommand):
             facility, facility_audit = FACILITY_FORM_MAP.save_with_audit(
                 row_data,
                 data=facility_dict,
-                extra={"case": case.id if case else None},
+                extra={"case": case.case_num if case else None},
                 imported_by=self.__module__,
             )
 

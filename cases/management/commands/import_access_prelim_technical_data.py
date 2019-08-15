@@ -40,7 +40,7 @@ class Command(BaseImportCommand):
                 raise ValueError(error_str)
         pfacility, pfacility_audit = PFACILITY_FORM_MAP.save_with_audit(
             row_data,
-            extra={"pcase": pcase.id if pcase else None},
+            extra={"pcase": pcase.case_num if pcase else None},
             imported_by=self.__module__,
         )
         if pfacility:

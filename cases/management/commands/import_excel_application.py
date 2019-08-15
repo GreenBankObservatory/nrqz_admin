@@ -190,7 +190,7 @@ class Command(BaseImportCommand):
     def _handle_facility(self, row_data, case):
         # TODO: Alter FacilityForm so that it uses case num instead of ID somehow
         facility, facility_audit = FACILITY_FORM_MAP.save_with_audit(
-            extra={"case": case.id if case else None},
+            extra={"case": case.case_num if case else None},
             allow_unknown=True,
             row_data=row_data,
             imported_by=self.__module__,

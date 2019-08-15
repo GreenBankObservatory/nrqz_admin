@@ -41,7 +41,7 @@ class Command(BaseImportCommand):
                 raise ValueError(error_str)
         facility, facility_audit = FACILITY_FORM_MAP.save_with_audit(
             row_data,
-            extra={"case": case.id if case else None},
+            extra={"case": case.case_num if case else None},
             imported_by=self.__module__,
         )
         if facility:
