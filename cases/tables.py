@@ -155,7 +155,7 @@ class FacilityTable(BaseFacilityTable):
         order_by=["case__case_num", "-nrqz_id"],
         verbose_name="Facility ID",
     )
-    case = tables.Column(linkify=True, order_by=["case_num"])
+    case = tables.Column(linkify=True, order_by=["case__case_num", "nrqz_id"])
     # applicant = tables.Column(linkify=True, accessor="case.applicant")
     latitude = tables.Column(accessor="location", verbose_name="Latitude")
     longitude = tables.Column(accessor="location", verbose_name="Longitude")
