@@ -65,9 +65,9 @@ def row_is_invalid(row, threshold=DEFAULT_THRESHOLD):
         if value is None:
             invalid_cells += 1
 
-    if not invalid_cells or invalid_cells / len(row) > threshold:
+    if invalid_cells and invalid_cells / len(row) > threshold:
         # tqdm.write(
-        #     f"Found invalid row ({invalid_cells} / {len(row)} {invalid_cells / len(row) * 100}%>"
+        #     f"Found invalid row ({invalid_cells} / {len(row)} -- {invalid_cells / len(row) * 100}%>"
         #     f"{threshold * 100}% cells invalid): {row}"
         # )
         return True
