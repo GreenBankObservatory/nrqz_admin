@@ -90,6 +90,10 @@ urlpatterns = [
     ),
     path("people/", views.PersonListView.as_view(), name="person_index"),
     path("people/<int:pk>/", views.PersonDetailView.as_view(), name="person_detail"),
+    path("people/create", views.PersonCreateView.as_view(), name="person_create"),
+    path(
+        "people/<int:pk>/edit", views.PersonUpdateView.as_view(), name="person_update"
+    ),
     path(
         "people/<int:pk>/merge", views.merge_similar_people, name="merge_similar_people"
     ),

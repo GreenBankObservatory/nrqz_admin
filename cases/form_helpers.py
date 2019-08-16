@@ -337,3 +337,29 @@ class CaseFormHelper(FormHelper):
         ),
         Submit("submit", "Submit"),
     )
+
+
+class PersonFormHelper(FormHelper):
+    form_class = "readable-form mx-auto"
+
+    layout = Layout(
+        Div(
+            Div(
+                Div(InlineField("name"), css_class="col"),
+                Div(InlineField("email"), css_class="col"),
+                Div(InlineField("phone"), css_class="col"),
+                Div(InlineField("fax"), css_class="col"),
+                css_class="row",
+            ),
+            Div(
+                Div(InlineField("street"), css_class="col"),
+                Div(InlineField("city"), css_class="col"),
+                Div(InlineField("county"), css_class="col"),
+                Div(InlineField("state"), css_class="col"),
+                Div(InlineField("zipcode"), css_class="col"),
+                css_class="row",
+            ),
+            Div(Div(InlineField("comments"), css_class="col"), css_class="row"),
+        ),
+        Submit("submit", "Submit"),
+    )

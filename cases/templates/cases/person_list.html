@@ -3,7 +3,16 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
-<h1><a href="{% url 'person_index' %}">Person Index</a></h1>
+
+<div class="row">
+    <div class="col-auto">
+        <h1><a href="{% url 'person_index' %}">Person Index</a></h1>
+    </div>
+
+    <div class="col">
+        <a href="{% url 'person_create' %}"> Create new Person</a>
+    </div>
+</div>
 
 {% if filter %}
 {% crispy filter.form %}

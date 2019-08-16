@@ -24,7 +24,7 @@ from watson import search as watson
 
 from utils.coord_utils import coords_to_string
 from utils.merge_people import find_similar_people, merge_people
-from .forms import LetterTemplateForm, DuplicateCaseForm, CaseForm
+from .forms import LetterTemplateForm, DuplicateCaseForm, CaseForm, PersonForm
 from .models import (
     Attachment,
     Case,
@@ -928,7 +928,17 @@ class CaseUpdateView(UpdateView):
     model = Case
     form_class = CaseForm
     template_name = "cases/case_update.html"
-    # queryset = Case.objects.all()
+
+
+class PersonCreateView(CreateView):
+    form_class = PersonForm
+    template_name = "cases/person_create.html"
+
+
+class PersonUpdateView(UpdateView):
+    model = Person
+    form_class = PersonForm
+    template_name = "cases/person_update.html"
 
 
 class AttachmentDashboard(SingleTableMixin, TemplateView):

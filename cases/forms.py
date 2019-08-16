@@ -18,7 +18,7 @@ from .models import (
     PreliminaryFacility,
     Structure,
 )
-from .form_helpers import LetterFormHelper, CaseFormHelper
+from .form_helpers import LetterFormHelper, CaseFormHelper, PersonFormHelper
 from .fields import PointField
 from .widgets import PCaseWidget, CaseWidget, PersonWidget, AttachmentsWidget
 
@@ -117,6 +117,12 @@ class PersonForm(forms.ModelForm):
             "street",
             "zipcode",
         )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.helper = PersonFormHelper()
+        self.helper.form_method = "post"
 
 
 class PersonImportForm(PersonForm):
@@ -302,6 +308,7 @@ class BaseFacilityForm(forms.ModelForm):
         ),
         required=True,
     )
+
     class Meta:
         model = Facility
         fields = sorted(

@@ -6,8 +6,16 @@
 
 {% block content %}
 {% make_breadcrumb person %}
+<div class="row">
+    <div class="col-auto">
+        <h1>{{ person.name }}</h1>
+    </div>
 
-<h1>{{ person.name }}</h1>
+    <div class="col">
+        <a href="{% url 'person_update' person.id %}"> Edit</a>
+    </div>
+</div>
+
 {% include "cases/base_detail.html" %}
 
 <div class="row">
