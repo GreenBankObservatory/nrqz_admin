@@ -15,6 +15,7 @@ from django.urls import reverse
 from django.views.generic import FormView, CreateView, TemplateView
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
+from django.views.generic.edit import UpdateView
 
 from django_filters.views import FilterView
 from django_tables2.export.views import ExportMixin
@@ -921,6 +922,13 @@ def duplicate_case(request, case_num):
 class CaseCreateView(CreateView):
     form_class = CaseForm
     template_name = "cases/case_create.html"
+
+
+class CaseUpdateView(UpdateView):
+    model = Case
+    form_class = CaseForm
+    template_name = "cases/case_update.html"
+    # queryset = Case.objects.all()
 
 
 class AttachmentDashboard(SingleTableMixin, TemplateView):
