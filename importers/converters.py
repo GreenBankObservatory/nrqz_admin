@@ -377,7 +377,7 @@ def convert_access_attachment(**kwargs):
     # Strip all non-number characters, leaving only the number
     letter_number = re.sub("[^0-9]", "", letter_name)
 
-    return {"path": clean_path, "original_index": letter_number}
+    return {"file_path": clean_path, "original_index": letter_number}
 
 
 def coerce_access_location(latitude, longitude, nad27=None, nad83=None):
