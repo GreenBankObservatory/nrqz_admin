@@ -176,7 +176,7 @@ version = "0.1.0"
 tqdm = "^4.32"
 
 [package.source]
-reference = "d6d39dbf6930019633b957de190505f6815d417b"
+reference = "3df62a3e202d3ab7ec5f11df46a608538d9faeee"
 type = "git"
 url = "https://github.com/GreenBankObservatory/django-import-data"
 [[package]]
@@ -227,6 +227,7 @@ django = ">=1.11"
 reference = "b69d7bd61368c4ac2e24b4e7efdd621cd4aea217"
 type = "git"
 url = "https://github.com/GreenBankObservatory/django-super-deduper"
+
 [[package]]
 category = "main"
 description = "Table/data-grid framework for Django"
@@ -548,6 +549,7 @@ lxml = ">=2.2.6"
 reference = "d6fc4f6107678fcac88731083b693f761facef00"
 type = "git"
 url = "https://github.com/GreenBankObservatory/pykml.git"
+
 [[package]]
 category = "dev"
 description = "Python parsing module"
