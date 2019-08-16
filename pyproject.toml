@@ -13,7 +13,7 @@ django-crispy-forms = "^1.7"
 django-debug-toolbar = "^2.0"
 django-extensions = "^2.1"
 django-filter = "^2.1"
-django-mass-edit = "^3.2"
+django-mass-edit = { git = "https://github.com/GreenBankObservatory/django-mass-edit" }
 django-sql-explorer = "^1.1"
 django-stronghold = "^0.3.0"
 django-tables2 = "^2.0"

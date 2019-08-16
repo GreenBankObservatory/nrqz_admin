@@ -335,7 +335,7 @@ class CaseFormHelper(FormHelper):
             Div(Div(InlineField("attachments"), css_class="col"), css_class="row"),
             css_class="",
         ),
-        Submit("submit", "Submit"),
+        # Submit("submit", "Submit"),
     )
 
 

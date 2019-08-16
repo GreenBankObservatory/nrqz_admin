@@ -2,6 +2,7 @@
 
 from django import forms
 
+from crispy_forms.layout import Submit
 from dal.forms import FutureModelForm
 from dal import autocomplete
 from tempus_dominus.widgets import DatePicker, DateTimePicker
@@ -207,6 +208,15 @@ class BaseCaseForm(FutureModelForm):
 
 
 class CaseForm(BaseCaseForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.helper = CaseFormHelper()
+        self.helper.form_method = "post"
+        self.helper.add_input(Submit("submit", "Submit"))
+
+
+class CaseAdminForm(BaseCaseForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 

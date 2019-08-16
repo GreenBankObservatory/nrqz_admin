@@ -3,7 +3,7 @@ from django.contrib import admin
 from .forms import (
     AttachmentForm,
     BoundariesForm,
-    CaseForm,
+    CaseAdminForm,
     # CaseGroupForm,
     FacilityForm,
     LocationForm,
@@ -47,9 +47,7 @@ class PreliminaryCaseInline(admin.TabularInline):
 
 @admin.register(CaseGroup)
 class CaseGroupAdmin(admin.ModelAdmin):
-    # fields = ("cases", "comments")
     exclude = ("model_import_attempt",)
-    # form = CaseForm
     autocomplete_fields = ["cases", "pcases"]
 
 
@@ -78,7 +76,7 @@ class PreliminaryCaseAdmin(admin.ModelAdmin):
 
 @admin.register(Case)
 class CaseAdmin(admin.ModelAdmin):
-    form = CaseForm
+    form = CaseAdminForm
     search_fields = ["case_num", "applicant__name", "contact__name"]
     list_display = [
         "case_num",
