@@ -410,7 +410,7 @@ class CaseDetailView(MultiTableMixin, DetailView):
 
         attachment_filter_qs = AttachmentFilter(
             self.request.GET,
-            queryset=self.object.attachments.exclude(is_active=False),
+            # queryset=self.object.attachments.exclude(is_active=False),
             form_helper_kwargs={"form_class": "collapse"},
         ).qs
 
