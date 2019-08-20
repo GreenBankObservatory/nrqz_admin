@@ -772,8 +772,10 @@ class Person(
         return reverse("person_detail", args=[str(self.id)])
 
     def natural_key(self):
-        print("THIS IS A HACK; IF YOU ARE SEEING THIS IT IS BAD")
-        return (self.name, self.email)
+        # print("THIS IS A HACK; IF YOU ARE SEEING THIS IT IS BAD")
+        ret = (self.name, self.email)
+        # print(f"Returning {ret}")
+        return ret
 
     class Meta:
         verbose_name = "Person"

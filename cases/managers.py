@@ -359,5 +359,18 @@ class AttachmentManager(Manager):
 
 class PersonManager(Manager):
     def get_by_natural_key(self, name, email):
-        print("THIS IS A HACK; IF YOU ARE SEEING THIS IT IS BAD")
-        return self.filter(name=name, email=email).first()
+        # print("THIS IS A HACK; IF YOU ARE SEEING THIS IT IS BAD")
+        # print(f"Filtering for name={name}, email={email}")
+
+        people = self.filter(name=name, email=email)
+        # print(f"found {people.count()} people")
+        if people:
+            ret = people.first()
+        else:
+            # print("Created...")
+            ret = self.create(name=name, email=email)
+
+        ret.refresh_from_db()
+        # print(f"returning: {ret} ({ret.id})")
+        # print("---")
+        return ret
