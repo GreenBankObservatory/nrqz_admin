@@ -757,11 +757,17 @@ class Person(
     comments = SensibleTextField(blank=True)
     merge_info = ForeignKey(MergeInfo, null=True, blank=True, on_delete=CASCADE)
 
+    objects = PersonManager()
+
     def __str__(self):
         return f"{self.name}"
 
     def get_absolute_url(self):
         return reverse("person_detail", args=[str(self.id)])
+
+    def natural_key(self):
+        print("THIS IS A HACK; IF YOU ARE SEEING THIS IT IS BAD")
+        return (self.name, self.email)
 
     class Meta:
         verbose_name = "Person"

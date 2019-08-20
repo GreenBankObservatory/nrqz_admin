@@ -352,3 +352,12 @@ class AttachmentManager(Manager):
 
     def get_queryset(self):
         return TrackedFileQueryset(self.model, using=self._db)
+
+    def get_by_natural_key(self, path):
+        return self.get(path=path)
+
+
+class PersonManager(Manager):
+    def get_by_natural_key(self, name, email):
+        print("THIS IS A HACK; IF YOU ARE SEEING THIS IT IS BAD")
+        return self.filter(name=name, email=email).first()
