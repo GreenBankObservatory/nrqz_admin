@@ -44,7 +44,13 @@ from django_import_data.mixins import (
 from django_super_deduper.models import MergeInfo
 
 from .kml import facility_as_kml, case_as_kml, kml_to_string
-from .managers import AttachmentManager, CaseManager, LocationManager, CaseGroupManager
+from .managers import (
+    AttachmentManager,
+    CaseManager,
+    LocationManager,
+    CaseGroupManager,
+    PersonManager,
+)
 from .mixins import (
     AllFieldsModel,
     DataSourceModel,
