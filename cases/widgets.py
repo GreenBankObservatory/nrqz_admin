@@ -65,7 +65,7 @@ PersonWidget = lambda attrs={}: autocomplete.ModelSelect2(
     url="person_autocomplete", attrs={"data-placeholder": "Name", **attrs}
 )
 AttachmentsWidget = lambda: autocomplete.ModelSelect2Multiple(
-    url="attachment_autocomplete", attrs={"data-placeholder": "Path"}
+    url="attachment_autocomplete", attrs={"data-placeholder": "Attachment Path"}
 )
 
 PCasesWidget = lambda: autocomplete.ModelSelect2Multiple(
