@@ -55,7 +55,10 @@ class Command(BaseCommand):
     @transaction.atomic
     def foo(self):
         report = {"fixed": set(), "skipped": set()}
-        relative_prefix_regex = re.compile(r"^(?:\.+[/\\]+)+")
+        # Used for initial conversion
+        # relative_prefix_regex = re.compile(r"^(?:\.+[/\\]+)+")
+        # Then we decided to convert gbfiler stuff, too
+        relative_prefix_regex = re.compile(r"^\\\\Gbfiler\\nrqz\\", re.IGNORECASE)
         manual_prefix_fixes = [
             "SWTAP",
             "CRON",
@@ -104,7 +107,7 @@ class Command(BaseCommand):
                 # for attachment in Attachment.objects.filter(id__in=attachment_ids):
                 #     print("{}: {}".format(key, len(value)))
 
-            valid_prefixes = (r"\\gbfiler", "http", "q")
+            valid_prefixes = ("http", "q")
 
             valid_attachments = Attachment.objects.none()
             for prefix in valid_prefixes:
