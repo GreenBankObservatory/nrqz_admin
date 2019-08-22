@@ -285,7 +285,16 @@ class CaseTable(BaseCaseTable):
     sgrs_approval = tables.BooleanColumn(
         accessor="sgrs_approval", null=True, verbose_name="SGRS Approval"
     )
-    num_facilities = tables.Column(verbose_name="# Facilities")
+    num_sites = tables.Column(
+        verbose_name="Indicated # Facilities",
+        attrs={"th": {"title": "The number of Facilities there are SUPPOSED to be"}},
+    )
+    num_facilities = tables.Column(
+        verbose_name="Actual # Facilities",
+        attrs={
+            "th": {"title": "The actual number of Facilities attached to this case"}
+        },
+    )
     si_done = tables.Column(
         verbose_name="SI Done",
         attrs={"th": {"title": "The date of the most recent site inspection (if any)"}},

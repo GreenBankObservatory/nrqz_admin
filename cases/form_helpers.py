@@ -190,6 +190,7 @@ class CaseFilterFormHelper(FormHelper):
             css_class="row",
         ),
         Div(
+            Div("num_sites", css_class="col"),
             Div("num_facilities", css_class="col"),
             Div("si_done", css_class="col"),
             css_class="row",
