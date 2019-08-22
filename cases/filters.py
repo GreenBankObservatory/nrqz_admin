@@ -101,6 +101,7 @@ class FacilityFilter(BaseFacilityFilter):
     freq_high = django_filters.RangeFilter()
     amsl = django_filters.RangeFilter()
     agl = django_filters.RangeFilter()
+    bandwidth = django_filters.RangeFilter()
 
     structure = django_filters.CharFilter(lookup_expr="asr__exact")
     main_beam_orientation = django_filters.CharFilter(lookup_expr="icontains")
@@ -175,7 +176,8 @@ class CaseFilter(BaseCaseFilter):
         choices=(("false", "False"), ("true", "True"), ("none", "None")),
     )
     search = WatsonFilter(label="Search all text fields")
-    num_facilities = django_filters.RangeFilter(label="# Facilities")
+    num_sites = django_filters.RangeFilter(label="Indicated # Facilities")
+    num_facilities = django_filters.RangeFilter(label="Actual # Facilities")
     si_done = django_filters.DateFromToRangeFilter(
         field_name="si_done", label="SI Done"
     )

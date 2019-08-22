@@ -61,7 +61,7 @@ from .mixins import (
 )
 from utils.constants import WGS84_SRID
 from utils.numrange import get_str_from_nums
-
+from utils.misc import to_file_link
 
 # TODO: Make proper field
 LOCATION_FIELD = lambda: PointField(
@@ -813,7 +813,7 @@ class Attachment(
             href = self.file_path
             path = self.file_path
         else:
-            href = f"file://{self.file_path}"
+            href = f"{to_file_link(self.file_path)}"
             nt_path = ntpath.basename(self.file_path)
             unix_path = os.path.basename(self.file_path)
             path = unix_path if len(unix_path) < len(nt_path) else nt_path

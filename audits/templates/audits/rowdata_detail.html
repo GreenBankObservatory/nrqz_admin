@@ -8,7 +8,7 @@
 
 <h1 title="This is a representation of the EXACT ORIGINAL DATA from a given row">Row Data</h1>
 <p>
-    Row {{ rowdata.row_num }} from <a href="file://{{ rowdata.file_import_attempt.imported_from }}">{{ rowdata.file_import_attempt.imported_from }}</a>
+    Row {{ rowdata.row_num }} from <a href="{{ rowdata.file_import_attempt.imported_from | to_file_link }}">{{ rowdata.file_import_attempt.imported_from }}</a>
 </p>
 
 

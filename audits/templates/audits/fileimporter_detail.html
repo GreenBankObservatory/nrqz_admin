@@ -15,7 +15,7 @@ Imported Status: <b>{{ fileimporter.get_status_display }}</b>
 {% include "audits/file_change_jumbotron.html" with object=fileimporter %}
 {% else %}
     <p>
-        <a href="file://{{ fileimporter.latest_file_import_attempt.imported_from }}">
+        <a href="{{ fileimporter.latest_file_import_attempt.imported_from | to_file_link }}">
             Open most recently-imported file: {{ fileimporter.name }}
         </a>
     </p>
