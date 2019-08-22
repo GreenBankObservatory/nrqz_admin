@@ -7,6 +7,8 @@ from django.utils.safestring import mark_safe
 from django_tables2 import CheckBoxColumn, Column
 from django_tables2.utils import AttributeDict
 
+from utils.misc import to_file_link
+
 
 class TrimmedTextColumn(Column):
     def __init__(self, *args, length=80, **kwargs):
@@ -58,7 +60,7 @@ class UnboundFileColumn(Column):
         # if record.file_missing:
         #     return "File does not exist"
         foo = f"""<a
-href='file://{path}'
+href='{to_file_link(path)}'
 title={os.path.basename(path)}
 >
     Open Attachment

@@ -14,6 +14,7 @@ from django_import_data.utils import DjangoErrorJSONEncoder
 
 from utils.constants import NAD27_SRID, NAD83_SRID
 from utils.coord_utils import dd_to_dms, coords_to_string
+from utils.misc import to_file_link as to_file_link_
 
 register = template.Library()
 
@@ -193,3 +194,8 @@ def table_model_name_plural(table):
             return f"{table._meta.model.__name__}s"
     except AttributeError:
         return None
+
+
+@register.filter
+def to_file_link(path):
+    return to_file_link_()

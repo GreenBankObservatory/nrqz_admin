@@ -42,7 +42,7 @@ While this import attempt failed, a subsequent attempt was successful (see above
         Open File Importer
     </a>
     |
-    <a href="file://{{ fileimportattempt.imported_from }}">
+    <a href="{{ fileimportattempt.imported_from | to_file_link }}">
         Open original file: {{ fileimportattempt.name }}
     </a>
     |
