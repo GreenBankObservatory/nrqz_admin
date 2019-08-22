@@ -101,6 +101,7 @@ class FacilityFilter(BaseFacilityFilter):
     freq_high = django_filters.RangeFilter()
     amsl = django_filters.RangeFilter()
     agl = django_filters.RangeFilter()
+    bandwidth = django_filters.RangeFilter()
 
     structure = django_filters.CharFilter(lookup_expr="asr__exact")
     main_beam_orientation = django_filters.CharFilter(lookup_expr="icontains")

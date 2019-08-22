@@ -170,6 +170,7 @@ class FacilityTable(BaseFacilityTable):
             "longitude",
             "freq_low",
             "freq_high",
+            "bandwidth",
             "main_beam_orientation",
             "distance_to_gbt",
             "azimuth_to_gbt",
