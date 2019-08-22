@@ -53,8 +53,10 @@ class UnboundFileColumn(Column):
         path = value
         record.refresh_from_filesystem()
 
-        if record.file_missing:
-            return "File does not exist"
+        # TODO: Fix this so that it is relative to the client, and not the
+        # server, and it might actually be useful!
+        # if record.file_missing:
+        #     return "File does not exist"
         foo = f"""<a
 href='file://{path}'
 title={os.path.basename(path)}

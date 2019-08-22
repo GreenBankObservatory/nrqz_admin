@@ -18,9 +18,9 @@
         <h1>
             <a
                 href="file://{{ attachment.file_path }}"
-                title={{ attachment.file_path | basename }}
+                title="{{ attachment.file_path }}"
             >
-                {{ attachment.hyperlink }} ({% if attachment.is_active %}Active{%else%}Inactive{% endif %})
+                {{ attachment.hyperlink }} ({% if attachment.is_active %}Found{%else%}Not Found{% endif %})
             </a>
         </h1>
     </div>
@@ -30,7 +30,7 @@
     </div>
 </div>
 <h2>Comments</h2>
-<p>{{ attachment.comments }}</p>
+<p>{{ attachment.comments | linebreaks }}</p>
 
 {% for table in tables %}
     <h2>Attachment for {{ table | table_model_name_plural }} ({{ table.data|length }})</h2>
