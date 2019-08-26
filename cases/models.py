@@ -662,8 +662,8 @@ class Case(AbstractBaseCase):
     si = BooleanField(default=False, blank=True, verbose_name="SI Req.")
     original_si_done = DateField(null=True, blank=True, verbose_name="SI Done")
 
-    sgrs_service_num = PositiveIntegerField(
-        null=True,
+    sgrs_service_num = SensibleCharField(
+        max_length=256,
         blank=True,
         help_text="SGRS Service Num.",
         verbose_name="SGRS Service #",
