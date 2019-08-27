@@ -198,4 +198,4 @@ def table_model_name_plural(table):
 
 @register.filter
 def to_file_link(path):
-    return to_file_link_()
+    return to_file_link_(path)
