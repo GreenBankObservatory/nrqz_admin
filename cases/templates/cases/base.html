@@ -1,12 +1,12 @@
 {% load static %}
-
+{% load cases_tags %}
 
 <!doctype html>
 <html lang="en">
   <head>
 {% block head %}
     <meta charset="utf-8">
-    <title>NRQZ Admin</title>
+    <title>QZAT | {{ view | view_to_str }}</title>
 
     <script src="{% static 'js/jquery-3.4.1.min.js' %}"></script>
     <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
