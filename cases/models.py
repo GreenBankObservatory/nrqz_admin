@@ -554,7 +554,7 @@ class AbstractBaseCase(
     comments = SensibleTextField(blank=True)
     completed = BooleanField(default=False, blank=True, verbose_name="Completed")
     completed_on = DateTimeField(null=True, blank=True, verbose_name="Completed On")
-    is_federal = BooleanField(null=True, verbose_name="Gov.")
+    is_federal = BooleanField(null=True, verbose_name="Gov.", help_text="Gov.")
     num_freqs = PositiveIntegerField(null=True, blank=True, verbose_name="Num. Freq.")
     num_sites = PositiveIntegerField(
         null=True, blank=True, verbose_name="Num. Facilities"

@@ -295,6 +295,7 @@ class CaseFormHelper(FormHelper):
                 Div(InlineField("case_num"), css_class="col"),
                 Div(InlineField("radio_service"), css_class="col"),
                 Div(InlineField("call_sign"), css_class="col"),
+                Div(InlineField("is_federal"), css_class="col"),
                 css_class="row",
             ),
             Div(
@@ -322,7 +323,7 @@ class CaseFormHelper(FormHelper):
             Div(
                 Div(InlineField("shutdown"), css_class="col"),
                 Div(InlineField("si"), css_class="col"),
-                Div(InlineField("si_done"), css_class="col"),
+                # Div(InlineField("si_done"), css_class="col"),
                 Div(InlineField("si_waived"), css_class="col"),
                 css_class="row",
             ),
