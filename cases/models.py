@@ -560,7 +560,7 @@ class AbstractBaseCase(
     comments = SensibleTextField(blank=True)
     completed = BooleanField(default=False, blank=True, verbose_name="Completed")
     completed_on = DateTimeField(null=True, blank=True, verbose_name="Completed On")
-    is_federal = BooleanField(null=True, verbose_name="Gov.")
+    is_federal = BooleanField(null=True, verbose_name="Gov.", help_text="Gov.")
     num_freqs = PositiveIntegerField(null=True, blank=True, verbose_name="Num. Freq.")
     num_sites = PositiveIntegerField(
         null=True, blank=True, verbose_name="Num. Facilities"
@@ -668,8 +668,8 @@ class Case(AbstractBaseCase):
     si = BooleanField(default=False, blank=True, verbose_name="SI Req.")
     original_si_done = DateField(null=True, blank=True, verbose_name="SI Done")
 
-    sgrs_service_num = PositiveIntegerField(
-        null=True,
+    sgrs_service_num = SensibleCharField(
+        max_length=256,
         blank=True,
         help_text="SGRS Service Num.",
         verbose_name="SGRS Service #",
@@ -825,6 +825,17 @@ class Attachment(
         self.is_active = os.path.isfile(self.file_path)
         self.save()
         return self.is_active
+
+    def save(self, *args, **kwargs):
+        if (
+            self.file_path.startswith("'")
+            or self.file_path.startswith('"')
+            and self.file_path.endswith("'")
+            or self.file_path.endswith('"')
+        ):
+            self.file_path = self.file_path[1:-1]
+
+        super().save(*args, **kwargs)
 
 
 class LetterTemplate(IsActiveModel, TrackedModel, Model):

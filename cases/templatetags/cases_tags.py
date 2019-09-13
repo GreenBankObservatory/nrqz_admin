@@ -2,6 +2,7 @@
 
 import json as json_
 import os
+import re
 
 from pygments import highlight
 from pygments.lexers.data import JsonLexer
@@ -198,4 +199,32 @@ def table_model_name_plural(table):
 
 @register.filter
 def to_file_link(path):
-    return to_file_link_()
+    return to_file_link_(path)
+
+
+@register.filter
+def view_to_str(view):
+    title = view.__class__.__name__
+
+    # If this is a detail view, we use the format "<model_name> <model.__str__()>"
+    if "Detail" in title:
+        object_ = getattr(view, "object")
+        object_as_str = str(object_)
+        prefix = object_._meta.verbose_name
+        # Avoid repeating text, in edge cases where object.__str__ inserts
+        # the model name already
+        if prefix not in object_as_str:
+            title = f"{prefix} {object_as_str}"
+        else:
+            title = object_as_str
+    # Otherwise, we convert the view class name to a title string
+    else:
+        # Strip "View" from the end, if it is there
+        if title.endswith("View"):
+            title = title[: -(len("View"))]
+
+        # Then, convert from CamelCase to Title Case
+        # From: https://stackoverflow.com/a/9283563/1883424
+        title = re.sub(r"((?<=[a-z])[A-Z]|(?<!\A)[A-Z](?=[a-z]))", r" \1", title)
+
+    return title
