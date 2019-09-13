@@ -60,22 +60,34 @@ class Command(BaseCommand):
         # Then we decided to convert gbfiler stuff, too
         relative_prefix_regex = re.compile(r"^\\\\Gbfiler\\nrqz\\", re.IGNORECASE)
         manual_prefix_fixes = [
-            "SWTAP",
-            "CRON",
-            "NRQZDOCS",
-            "Site Inspection Worksheets",
+            (r"^SWTAP", r"Q:\\\\"),
+            (r"^CRON", r"Q:\\\\"),
+            (r"^NRQZDOCS", r"Q:\\\\"),
+            (r"^Site Inspection Worksheets", r"Q:\\\\"),
+            (
+                r"^Q:\\MacroExtraction_TAP",
+                r"Q:\\SWTAP\\AutoPath\\MacroExtraction_TAP\\",
+            ),
         ]
+        manual_prefix_fixes = [
+            (re.compile(prefix_regex), replace_regex)
+            for prefix_regex, replace_regex in manual_prefix_fixes
+        ]
+
         attachments = Attachment.objects.only("file_path")
         for attachment in tqdm(attachments, unit="attachment"):
             original_file_path = attachment.file_path
             # Unquote! Some attachments have %20 instead of space, for example
             new_file_path = unquote(original_file_path)
+            # Convert forward slashes to backslashes
+            new_file_path = new_file_path.replace("/", "\\")
             # Replace any relative prefixes with absolute. e.g. '../../<path>'
             # would end up as Q:/<path>
             new_file_path = relative_prefix_regex.sub("Q:\\\\", new_file_path)
 
-            if any(new_file_path.startswith(prefix) for prefix in manual_prefix_fixes):
-                new_file_path = f"Q:\\{new_file_path}"
+            for prefix_regex, replace_regex in manual_prefix_fixes:
+                if prefix_regex.search(new_file_path):
+                    new_file_path = prefix_regex.sub(replace_regex, new_file_path)
             if original_file_path != new_file_path:
                 tqdm.write(
                     f"Path '{original_file_path}' has changed to "
