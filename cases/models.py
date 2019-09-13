@@ -812,6 +812,17 @@ class Attachment(
         self.save()
         return self.is_active
 
+    def save(self, *args, **kwargs):
+        if (
+            self.file_path.startswith("'")
+            or self.file_path.startswith('"')
+            and self.file_path.endswith("'")
+            or self.file_path.endswith('"')
+        ):
+            self.file_path = self.file_path[1:-1]
+
+        super().save(*args, **kwargs)
+
 
 class LetterTemplate(IsActiveModel, TrackedModel, Model):
     name = SensibleCharField(max_length=256, unique=True)
