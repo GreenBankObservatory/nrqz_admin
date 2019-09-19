@@ -59,7 +59,7 @@ description = "Python package for providing Mozilla's CA Bundle."
 name = "certifi"
 optional = false
 python-versions = "*"
-version = "2019.6.16"
+version = "2019.9.11"
 
 [[package]]
 category = "main"
@@ -176,10 +176,9 @@ version = "0.1.0"
 tqdm = "^4.32"
 
 [package.source]
-reference = "91f078aa19ab9f3dc4ea34a19a1a146ee32f00b0"
+reference = "d54308aa1598cc9dac58c6bc5e0d261e13661cfa"
 type = "git"
 url = "https://github.com/GreenBankObservatory/django-import-data"
-
 [[package]]
 category = "main"
 description = "Make bulk changes in the Django admin interface"
@@ -195,7 +194,6 @@ django = "*"
 reference = "1e792c8eb20148efc10331757d46e03b2d3eb4ab"
 type = "git"
 url = "https://github.com/GreenBankObservatory/django-mass-edit"
-
 [[package]]
 category = "main"
 description = "A pluggable app that allows users (admins) to execute SQL, view, and export the results."
@@ -233,7 +231,6 @@ django = ">=1.11"
 reference = "b69d7bd61368c4ac2e24b4e7efdd621cd4aea217"
 type = "git"
 url = "https://github.com/GreenBankObservatory/django-super-deduper"
-
 [[package]]
 category = "main"
 description = "Table/data-grid framework for Django"
@@ -251,7 +248,7 @@ description = "A Django widget for the Tempus Dominus Bootstrap 4 DateTime picke
 name = "django-tempus-dominus"
 optional = false
 python-versions = "*"
-version = "5.1.2.6"
+version = "5.1.2.8"
 
 [package.dependencies]
 django = "*"
@@ -315,7 +312,7 @@ description = "IPython: Productive Interactive Computing"
 name = "ipython"
 optional = false
 python-versions = ">=3.5"
-version = "7.7.0"
+version = "7.8.0"
 
 [package.dependencies]
 appnope = "*"
@@ -555,7 +552,6 @@ lxml = ">=2.2.6"
 reference = "d6fc4f6107678fcac88731083b693f761facef00"
 type = "git"
 url = "https://github.com/GreenBankObservatory/pykml.git"
-
 [[package]]
 category = "dev"
 description = "Python parsing module"
@@ -667,7 +663,7 @@ description = "Fast, Extensible Progress Meter"
 name = "tqdm"
 optional = false
 python-versions = ">=2.6, !=3.0.*, !=3.1.*"
-version = "4.33.0"
+version = "4.36.1"
 
 [[package]]
 category = "main"
@@ -696,7 +692,7 @@ description = "HTTP library with thread-safe connection pooling, file post, and 
 name = "urllib3"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, <4"
-version = "1.25.3"
+version = "1.25.4"
 
 [[package]]
 category = "main"
@@ -733,7 +729,7 @@ attrs = ["69c0dbf2ed392de1cb5ec704444b08a5ef81680a61cb899dc08127123af36a79", "f0
 backcall = ["38ecd85be2c1e78f77fd91700c76e14667dc21e2713b63876c0eb901196e01e4", "bbbf4b1e5cd2bdb08f915895b51081c041bac22394fdfcfdfbe9f14b77c08bf2"]
 "backports.csv" = ["1277dfff73130b2e106bf3dd347adb3c5f6c4340882289d88f31240da92cbd6d", "21f6e09bab589e6c1f877edbc40277b65e626262a86e69a70137db714eaac5ce"]
 black = ["817243426042db1d36617910df579a54f1afd659adb96fc5032fcf4b36209739", "e030a9a28f542debc08acceb273f228ac422798e5215ba2a791a6ddeaaca22a5"]
-certifi = ["046832c04d4e752f37383b628bc601a7ea7211496b4638f6514d0e5b9acc4939", "945e3ba63a0b9f577b1395204e13c3a231f9bc0223888be653286534e5873695"]
+certifi = ["e4f3620cfea4f83eedc95b24abd9cd56f3c4b146dd0177e83a21b4eb49e21e50", "fd7c7c74727ddcf00e9acd26bba8da604ffec95bf1c2144e67aff7a8b50e6cef"]
 chardet = ["84ab92ed1c4d4f16916e05906b6b75a6c0fb5db821cc65e70cbd64a3e2a5eaae", "fc323ffcaeaed0e0a02bf4d117757b98aed530d9ed4531e3e15460124c106691"]
 click = ["2335065e6395b9e67ca716de5f7526736bfa6ceead690adf616d925bdc622b13", "5b94b49521f6456670fdb30cd82a4eca9412788a93fa6dd6df72c94d5a8ff2d7"]
 colorama = ["05eed71e2e327246ad6b38c540c4a3117230b19679b875190486ddd2d721422d", "f8ac84de7840f5b9c4e3347b3c1eaa50f7e49c2b07596221daec5edaabbd7c48"]
@@ -751,13 +747,13 @@ django-sql-explorer = ["65e7b972a51037f4e2de27412dc052f87a4ca58d4c4e8eab4c91d401
 django-stronghold = ["9ffb2d5d61945b67061c60a39ec740a9670dda89d96b3c7ef890c1a1a08fd18a"]
 django-super-deduper = []
 django-tables2 = ["cdecbb14206e7f5edcde73b3796a0eb5c583c63e170b7356aeac14ae9e4a3314", "ef8449a8ff3c3b13cd33c79b74cb2b24428a21e75176aa267a035a9d053abd36"]
-django-tempus-dominus = ["e4086eff5098b17c0ed9f5314b37ca8108c1ec90658f1b6e30ba5fbfc437f794"]
+django-tempus-dominus = ["551b87ae707623f7f7019647aa8013a3682f8c3c7bda2699204b4e723c0510a1", "5ad14b23d3e87b9a53801ca101f44a2edad619ac37d553a86790f73ac81c05b2"]
 django-watson = ["2697c8acf77fd8f0f957d4b71bd9f07f359bb3954a3516a339cac87b3c9f1c9f"]
 docxtpl = ["a502d1137bc44527f801ccb87026dd85493b4984d75c9fccc8802a4239926900", "c65f5142a03d52cd669e2cdcf34de6eed71c8440887bcaa1b7acf0352936198c"]
 et-xmlfile = ["614d9722d572f6246302c4491846d2c393c199cfa4edc9af593437691683335b"]
 idna = ["c357b3f628cf53ae2c4c05627ecc484553142ca23264e593d327bcde5e9c3407", "ea8b7f6188e6fa117537c3df7da9fc686d485087abf6ac197f9c46432f7e4a3c"]
 ipdb = ["473fdd798a099765f093231a8b1fabfa95b0b682fce12de0c74b61a4b4d8ee57"]
-ipython = ["1d3a1692921e932751bc1a1f7bb96dc38671eeefdc66ed33ee4cbc57e92a410e", "537cd0176ff6abd06ef3e23f2d0c4c2c8a4d9277b7451544c6cbf56d1c79a83d"]
+ipython = ["c4ab005921641e40a68e405e286e7a1fcc464497e14d81b6914b4fd95e5dee9b", "dd76831f065f17bddd7eaa5c781f5ea32de5ef217592cf019e34043b56895aa1"]
 ipython-genutils = ["72dd37233799e619666c9f639a9da83c34013a73e8bbc79a7a6348d93c61fab8", "eb2e116e75ecef9d4d228fdc66af54269afa26ab4463042e33785b887c628ba8"]
 jdcal = ["1abf1305fce18b4e8aa248cf8fe0c56ce2032392bc64bbd61b5dff2a19ec8bba", "472872e096eb8df219c23f2689fc336668bdb43d194094b5cc1707e1640acfc8"]
 jedi = ["786b6c3d80e2f06fd77162a07fed81b8baa22dde5d62896a790a331d6ac21a27", "ba859c74fa3c966a22f2aeebe1b74ee27e2a462f56d3f5f7ca4a59af61bfe42e"]
@@ -791,10 +787,10 @@ tablib = ["0f88a9cebdaa1a2cc29ae57387082ee81015d1149ecd34e48a8c8d3b4dd21670", "5
 tabulate = ["8af07a39377cee1103a5c8b3330a421c2d99b9141e9cc5ddd2e3263fea416943"]
 texttable = ["eff3703781fbc7750125f50e10f001195174f13825a92a45e9403037d539b4f4"]
 toml = ["229f81c57791a41d65e399fc06bf0848bab550a9dfd5ed66df18ce5f05e73d5c", "235682dd292d5899d361a811df37e04a8828a5b1da3115886b73cf81ebc9100e", "f1db651f9657708513243e61e6cc67d101a39bad662eaa9b5546f789338e07a3"]
-tqdm = ["1dc82f87a8726602fa7177a091b5e8691d6523138a8f7acd08e58088f51e389f", "47220a4f2aeebbc74b0ab317584264ea44c745e1fd5ff316b675cd0aff8afad8"]
+tqdm = ["abc25d0ce2397d070ef07d8c7e706aede7920da163c64997585d42d3537ece3d", "dd3fcca8488bb1d416aa7469d2f277902f26260c45aa86b667b074cd44b3b115"]
 traitlets = ["9c4bd2d267b7153df9152698efb1050a5d84982d3384a37b2c1f7723ba3e7835", "c6cb5e6f57c5a9bdaa40fa71ce7b4af30298fbab9ece9815b5d995ab6217c7d9"]
 unicodecsv = ["018c08037d48649a0412063ff4eda26eaa81eff1546dbffa51fa5293276ff7fc"]
-urllib3 = ["b246607a25ac80bedac05c6f282e3cdaf3afb65420fd024ac94435cabe6e18d1", "dbe59173209418ae49d485b87d1681aefa36252ee85884c31346debd19463232"]
+urllib3 = ["319cef72311e511d94be1bb478d202fde499935d0347a9e8f0d232dc3bce47c6", "8a8090dd02b145256534c205e624eb20161080428ffa14408f6f283c0d0c356e"]
 wcwidth = ["3df37372226d6e63e1b1e1eda15c594bca98a22d33a23832a90998faa96bc65e", "f4ebe71925af7b40a864553f761ed559b43544f8f71746c2d756c7fe788ade7c"]
 xlrd = ["546eb36cee8db40c3eaa46c351e67ffee6eeb5fa2650b71bc4c758a29a1b29b2", "e551fb498759fa3a5384a94ccd4c3c02eb7c00ea424426e212ac0c57be9dfbde"]
 xlwt = ["a082260524678ba48a297d922cc385f58278b8aa68741596a87de01a9c628b2e", "c59912717a9b28f1a3c2a98fd60741014b06b043936dcecbc113eaaada156c88"]
