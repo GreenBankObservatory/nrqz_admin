@@ -366,7 +366,7 @@ class PreliminaryCaseDetailView(MultiTableMixin, DetailView):
         ).qs
         attachment_filter_qs = AttachmentFilter(
             self.request.GET,
-            queryset=self.object.attachments.exclude(is_active=False),
+            queryset=self.object.attachments.all(),
             form_helper_kwargs={"form_class": "collapse"},
         ).qs
         pcase_filter_qs = PreliminaryCaseFilter(
