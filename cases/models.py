@@ -14,7 +14,7 @@ from django.db.models import (
     CASCADE,
     CharField,
     DateField,
-    DateTimeField,
+    DateField,
     EmailField,
     F,
     FilePathField,
@@ -437,7 +437,7 @@ class Facility(AbstractBaseFacility):
         null=True, blank=True, verbose_name="Power Density Limit"
     )
     sgrs_approval = BooleanField(null=True, blank=True, verbose_name="SGRS Approval")
-    sgrs_responded_on = DateTimeField(
+    sgrs_responded_on = DateField(
         null=True, blank=True, verbose_name="SGRS Responded On"
     )
     tap_file = SensibleCharField(max_length=256, blank=True)
@@ -553,7 +553,7 @@ class AbstractBaseCase(
 
     comments = SensibleTextField(blank=True)
     completed = BooleanField(default=False, blank=True, verbose_name="Completed")
-    completed_on = DateTimeField(null=True, blank=True, verbose_name="Completed On")
+    completed_on = DateField(null=True, blank=True, verbose_name="Completed On")
     is_federal = BooleanField(null=True, verbose_name="Gov.", help_text="Gov.")
     num_freqs = PositiveIntegerField(null=True, blank=True, verbose_name="Num. Freq.")
     num_sites = PositiveIntegerField(
@@ -562,7 +562,7 @@ class AbstractBaseCase(
     radio_service = SensibleCharField(
         max_length=256, blank=True, verbose_name="Radio Service"
     )
-    date_recorded = DateTimeField(null=True, blank=True, verbose_name="Date Recorded")
+    date_recorded = DateField(null=True, blank=True, verbose_name="Date Recorded")
 
     slug = SlugField(unique=True)
 
@@ -641,7 +641,7 @@ class Case(AbstractBaseCase):
     # From Access
     shutdown = BooleanField(default=False, blank=True, verbose_name="Shut Down")
     sgrs_notify = BooleanField(default=False, blank=True, verbose_name="SGRS Notified")
-    sgrs_responded_on = DateTimeField(
+    sgrs_responded_on = DateField(
         null=True, blank=True, verbose_name="SGRS Responded On"
     )
     # TODO: Propagate to Facility
