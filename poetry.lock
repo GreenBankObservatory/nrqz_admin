@@ -179,7 +179,6 @@ tqdm = "^4.32"
 reference = "d54308aa1598cc9dac58c6bc5e0d261e13661cfa"
 type = "git"
 url = "https://github.com/GreenBankObservatory/django-import-data"
-
 [[package]]
 category = "main"
 description = "Make bulk changes in the Django admin interface"
@@ -195,7 +194,6 @@ django = "*"
 reference = "1e792c8eb20148efc10331757d46e03b2d3eb4ab"
 type = "git"
 url = "https://github.com/GreenBankObservatory/django-mass-edit"
-
 [[package]]
 category = "main"
 description = "A pluggable app that allows users (admins) to execute SQL, view, and export the results."
@@ -233,7 +231,6 @@ django = ">=1.11"
 reference = "b69d7bd61368c4ac2e24b4e7efdd621cd4aea217"
 type = "git"
 url = "https://github.com/GreenBankObservatory/django-super-deduper"
-
 [[package]]
 category = "main"
 description = "Table/data-grid framework for Django"
@@ -555,7 +552,6 @@ lxml = ">=2.2.6"
 reference = "d6fc4f6107678fcac88731083b693f761facef00"
 type = "git"
 url = "https://github.com/GreenBankObservatory/pykml.git"
-
 [[package]]
 category = "dev"
 description = "Python parsing module"

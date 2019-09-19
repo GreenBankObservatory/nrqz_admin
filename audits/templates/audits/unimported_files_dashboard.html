@@ -1,0 +1,16 @@
+{% extends "cases/base.html" %}
+{% load crispy_forms_tags %}
+{% load render_table from django_tables2 %}
+
+{% block content %}
+<h1>Unimported Files Dashboard</h1>
+{% if table.data %}
+<p>Files on this page have not been imported, but probably should be</p>
+<form method="POST" >{% csrf_token %}
+    {% render_table table %}
+    <button class="btn btn-primary" type="submit" value="submit" name="Submit">Import</button>
+</form>
+{% else %}
+{% include "audits/congratulations.html" with name="File Importers"%}
+{% endif %}
+{% endblock content %}
