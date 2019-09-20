@@ -177,7 +177,7 @@ class CaseFilter(BaseCaseFilter):
     )
     search = WatsonFilter(label="Search all text fields")
     num_sites = django_filters.RangeFilter(label="Indicated # Facilities")
-    num_facilities = django_filters.RangeFilter(label="Actual # Facilities")
+    num_facilities = django_filters.RangeFilter(label="# Facilities Evaluated")
     si_done = django_filters.DateFromToRangeFilter(
         field_name="si_done", label="SI Done"
     )

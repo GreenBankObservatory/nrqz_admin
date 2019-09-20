@@ -290,7 +290,7 @@ class CaseTable(BaseCaseTable):
         attrs={"th": {"title": "The number of Facilities there are SUPPOSED to be"}},
     )
     num_facilities = tables.Column(
-        verbose_name="Actual # Facilities",
+        verbose_name="# Facilities Evaluated",
         attrs={
             "th": {"title": "The actual number of Facilities attached to this case"}
         },
