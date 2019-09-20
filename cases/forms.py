@@ -283,18 +283,12 @@ BASE_FACILITY_FIELDS = (
 )
 
 
-class BasePreliminaryFacilityForm(forms.ModelForm):
+class PreliminaryFacilityImportForm(forms.ModelForm):
     class Meta:
         model = PreliminaryFacility
-        fields = sorted((*BASE_FACILITY_FIELDS, "pcase"))
-        widgets = {"pcase": PCaseWidget(), "attachments": AttachmentsWidget()}
-
-
-class PreliminaryFacilityImportForm(BasePreliminaryFacilityForm):
-    class Meta(BasePreliminaryFacilityForm.Meta):
         fields = sorted(
             [
-                *BasePreliminaryFacilityForm.Meta.fields,
+                "pcase",
                 "data_source",
                 "original_created_on",
                 "original_modified_on",
@@ -304,9 +298,14 @@ class PreliminaryFacilityImportForm(BasePreliminaryFacilityForm):
         )
 
 
-class PreliminaryFacilityForm(BasePreliminaryFacilityForm):
+class PreliminaryFacilityForm(forms.ModelForm):
     # We DO NOT want this when importing; it interferes with our conversions
     location = PointField()
+
+    class Meta:
+        model = PreliminaryFacility
+        fields = sorted((*BASE_FACILITY_FIELDS, "pcase"))
+        widgets = {"pcase": PCaseWidget(), "attachments": AttachmentsWidget()}
 
 
 class BaseFacilityForm(forms.ModelForm):
