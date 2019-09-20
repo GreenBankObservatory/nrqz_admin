@@ -118,8 +118,8 @@ class FacilityFilter(BaseFacilityFilter):
         lookup_expr="unaccent__icontains",
         label="Contact Name",
     )
-    path = django_filters.CharFilter(
-        field_name="model_import_attempt__file_import_attempt__imported_from",
+    imported_from = django_filters.CharFilter(
+        field_name="model_import_attempt__model_importer__row_data__file_import_attempt__imported_from",
         lookup_expr="icontains",
         label="Imported-from Path contains",
     )

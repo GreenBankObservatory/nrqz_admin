@@ -111,8 +111,9 @@ class FacilityFilterFormHelper(FormHelper):
             css_class="row",
         ),
         Div(
-            Div("si_done", css_class="col-sm-5"),
-            Div("location", css_class="col-sm-7"),
+            Div("si_done", css_class="col-sm-4"),
+            Div("imported_from", css_class="col-sm-2"),
+            Div("location", css_class="col-sm-6"),
             css_class="row",
         ),
         extra_buttons=[
