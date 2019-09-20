@@ -288,6 +288,7 @@ class PreliminaryFacilityImportForm(forms.ModelForm):
         model = PreliminaryFacility
         fields = sorted(
             [
+                *BASE_FACILITY_FIELDS,
                 "pcase",
                 "data_source",
                 "original_created_on",
