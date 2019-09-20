@@ -192,18 +192,6 @@ class AbstractBaseFacility(
         verbose_name="Site Name",
         help_text="What you call it! Include MCN and eNB information.",
     )
-    latitude = SensibleCharField(
-        blank=True,
-        max_length=256,
-        verbose_name="Latitude",
-        help_text="Latitude of site, in degrees",
-    )
-    longitude = SensibleCharField(
-        blank=True,
-        max_length=256,
-        verbose_name="Longitude",
-        help_text="Longitude of site, in degrees",
-    )
     location = LOCATION_FIELD()
     location_description = SensibleCharField(
         blank=True,
