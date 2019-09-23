@@ -164,6 +164,3 @@ ul.messages li.error {
     font-weight: bold;
 }
 
-.select2-container--default .select2-selection--single {
-    padding-top: 0px;
-}

@@ -236,6 +236,24 @@ class CaseImportForm(BaseCaseForm):
         )
 
 
+class CaseQuickJumpForm(forms.Form):
+    jump_to_case_id = forms.ModelChoiceField(
+        queryset=Case.objects.all(),
+        # to_field_name="case_num",
+        widget=autocomplete.ModelSelect2(
+            url="case_autocomplete",
+            attrs={
+                "data-placeholder": "Quick-jump to Case #",
+                # "data-select-on-close": True,
+                "class": "case-quick-jump-field",
+                "accesskey": "c",
+            },
+        ),
+        required=False,
+        label="",
+    )
+
+
 class AttachmentForm(forms.ModelForm):
     class Meta:
         model = Attachment

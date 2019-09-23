@@ -1,0 +1,39 @@
+{% load static %}
+
+<form id="case-quick-jump-form" class="form-inline my-1" action="{% url 'case_index' %}" method="get">
+    {{ case_quick_jump_form }}
+</form>
+
+{{ case_quick_jump_form.media }}
+
+<script type="text/javascript">
+    // Adapted from: https://stackoverflow.com/a/49261426/11870070
+    // Open dropdown when it is focused
+    // yl.jQuery(document).one('focus', '.select2-selection.select2-selection--single', function (e) {
+    //     console.log("Focus!!")
+    //     yl.jQuery('#id_jump_to_case_id').select2("open")
+    // });
+
+    // // Whenever it is closing, reset its event handler so that it will again
+    // // open on focus, but only once more (until it closes again)
+    // yl.jQuery('#id_jump_to_case_id').on('select2:closing', function (e) {
+    //     console.log("select2:closing!")
+    //     yl.jQuery(e.target).data("select2").$selection.one('focus focusing', function (e) {
+    //         yl.jQuery(document).one('focus', '.select2-selection.select2-selection--single', function (e) {
+    //             console.log("Focus!!")
+    //             yl.jQuery('#id_jump_to_case_id').select2("open")
+    //         });
+    //         e.stopPropagation();
+    //     });
+    // });
+
+    // This MUST be a reference to yl.jQuery, here, because that is the jQuery that has been
+    // passed to Select2! If we use the global $ variable, then it will have already been reverted
+    // to the jQuery instance we load in base.html. See DAL's jquery.init.js and jquery.post-setup.js
+    // for details on how this swapping around works, and where the yl variable
+    // comes from
+    yl.jQuery('#id_jump_to_case_id').on('select2:select', function (e) {
+        console.log("Jumping to case: ", e.target.value)
+        $('#case-quick-jump-form').submit();
+    });
+</script>

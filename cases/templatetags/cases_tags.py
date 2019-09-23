@@ -13,6 +13,7 @@ from django.urls import reverse
 
 from django_import_data.utils import DjangoErrorJSONEncoder
 
+from cases.forms import CaseQuickJumpForm
 from utils.constants import NAD27_SRID, NAD83_SRID
 from utils.coord_utils import dd_to_dms, coords_to_string
 from utils.misc import to_file_link as to_file_link_
@@ -228,3 +229,8 @@ def view_to_str(view):
         title = re.sub(r"((?<=[a-z])[A-Z]|(?<!\A)[A-Z](?=[a-z]))", r" \1", title)
 
     return title
+
+
+@register.inclusion_tag("cases/case_quick_jump.html")
+def case_quick_jump():
+    return {"case_quick_jump_form": CaseQuickJumpForm()}

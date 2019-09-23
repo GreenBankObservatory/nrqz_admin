@@ -222,7 +222,11 @@ class CaseListView(FilterTableView):
         return queryset
 
     def get(self, request, *args, **kwargs):
-        if "kml" in request.GET:
+        if "jump_to_case_id" in request.GET:
+            case_id = request.GET.get("jump_to_case_id")
+            return HttpResponseRedirect(reverse("case_detail", args=[case_id]))
+
+        elif "kml" in request.GET:
             # TODO: Must be a cleaner way to do this
             qs = self.get_filterset(self.filterset_class).qs
             response = HttpResponse(
