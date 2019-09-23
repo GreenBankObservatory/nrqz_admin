@@ -23,6 +23,7 @@ from django_import_data.models import (
     ModelImporter,
     RowData,
 )
+from django_import_data.utils import determine_files_to_process
 
 
 from cases.views import FilterTableView
@@ -43,6 +44,7 @@ from .tables import (
     ModelImporterTable,
     RowDataTable,
     FileImporterErrorSummaryTable,
+    UnimportedFilesDashboardTable,
 )
 from .forms import FileImporterForm
 from cases.models import Case, Facility, Person, PreliminaryCase, PreliminaryFacility
@@ -53,6 +55,7 @@ from cases.forms import (
     PreliminaryCaseForm,
     PreliminaryFacilityForm,
 )
+from utils.spec import parse_importer_spec, SPEC_FILE
 
 
 class PersonCreateFromAuditView(CreateFromImportAttemptView):
@@ -229,13 +232,17 @@ class FileImportAttemptDetailView(MultiTableMixin, DetailView):
 
 
 @transaction.atomic
-def _import_file(request, importer_name, path, on_error=None):
+def _import_file(
+    request, importer_name, path, on_error=None, quiet=False, file_importer_batch=None
+):
     if on_error is None:
         on_error = reverse("fileimporter_create")
     try:
         call_command(importer_name, path, overwrite=True, durable=True, propagate=True)
     except Exception as error:
-        messages.error(request, f"FATAL ERROR: {error.__class__.__name__}: {error}")
+        messages.error(
+            request, f"FATAL ERROR in {path}: {error.__class__.__name__}: {error}"
+        )
         # Manually set rollback since we aren't raising an Exception here
         transaction.set_rollback(True)
         return HttpResponseRedirect(on_error)
@@ -243,45 +250,50 @@ def _import_file(request, importer_name, path, on_error=None):
     file_importer = get_object_or_404(
         FileImporter, importer_name=importer_name, file_path=path
     )
+    if file_importer_batch:
+        file_importer.file_importer_batch = file_importer_batch
+        file_importer.save()
+
     file_import_attempt = file_importer.latest_file_import_attempt
-    # file_import_attempt.save()
-    mias = ModelImportAttempt.objects.filter(
-        model_importer__row_data__file_import_attempt=file_import_attempt.id
-    )
-    mias.derive_values()
-    file_import_attempt.refresh_from_db()
-    messages.success(
-        request,
-        f"Successfully created {file_import_attempt._meta.verbose_name} "
-        f"for path {file_import_attempt.name}!",
-    )
-
-    STATUSES = file_import_attempt.STATUSES
-    status = STATUSES[file_import_attempt.status]
-    if status == STATUSES.rejected:
-        messager = messages.error
-        message_stub = (
-            "However, one or more Model Import Attempts failed (no model was created)!"
+    if not quiet:
+        # file_import_attempt.save()
+        mias = ModelImportAttempt.objects.filter(
+            model_importer__row_data__file_import_attempt=file_import_attempt.id
         )
-    elif status == STATUSES.empty:
-        messager = messages.error
-        message_stub = "However, no Model Import Attempts were created (empty file)!"
-    elif status == STATUSES.created_dirty:
-        messager = messages.warning
-        message_stub = (
-            "All Model Import Attempts were successful, however, "
-            "one or more Model Import Attempts were created with minor errors!"
+        mias.derive_values()
+        file_import_attempt.refresh_from_db()
+        messages.success(
+            request,
+            f"Successfully created {file_import_attempt._meta.verbose_name} "
+            f"for path {file_import_attempt.name}!",
         )
-    elif status == STATUSES.created_clean:
-        messager = messages.success
-        message_stub = "All Model Import Attempts were successful!"
-    else:
-        raise ValueError(f"This should never happen: status is {status}")
 
-    messager(
-        request,
-        f"{message_stub} See {file_import_attempt._meta.verbose_name} (below) for more details.",
-    )
+        STATUSES = file_import_attempt.STATUSES
+        status = STATUSES[file_import_attempt.status]
+        if status == STATUSES.rejected:
+            messager = messages.error
+            message_stub = "However, one or more Model Import Attempts failed (no model was created)!"
+        elif status == STATUSES.empty:
+            messager = messages.error
+            message_stub = (
+                "However, no Model Import Attempts were created (empty file)!"
+            )
+        elif status == STATUSES.created_dirty:
+            messager = messages.warning
+            message_stub = (
+                "All Model Import Attempts were successful, however, "
+                "one or more Model Import Attempts were created with minor errors!"
+            )
+        elif status == STATUSES.created_clean:
+            messager = messages.success
+            message_stub = "All Model Import Attempts were successful!"
+        else:
+            raise ValueError(f"This should never happen: status is {status}")
+
+        messager(
+            request,
+            f"{message_stub} See {file_import_attempt._meta.verbose_name} (below) for more details.",
+        )
 
     return HttpResponseRedirect(file_import_attempt.get_absolute_url())
 
@@ -544,3 +556,51 @@ class FileImporterDashboard(SingleTableMixin, TemplateView, ProcessFormView):
             return HttpResponseRedirect(reverse("file_dashboard"))
 
         return super().dispatch(request, *args, **kwargs)
+
+
+class UnimportedFilesDashboard(SingleTableMixin, TemplateView):
+    table_class = UnimportedFilesDashboardTable
+    template_name = "audits/unimported_files_dashboard.html"
+    table_pagination = {"per_page": 10}
+
+    def get_table_data(self):
+        known_paths = set(FileImporter.objects.values_list("file_path", flat=True))
+
+        importer_specs = parse_importer_spec(SPEC_FILE)
+        unimported_path_data = [
+            {"importer": importer, "file_path": file_path}
+            for importer, importer_spec in importer_specs.items()
+            for file_path in set(
+                determine_files_to_process(importer_spec["paths"])
+            ).difference(known_paths)
+        ]
+        self.importer_specs = importer_specs
+        return unimported_path_data
+
+    def post(self, request, *args, **kwargs):
+        print(request.POST)
+        if request.POST.get("all"):
+            paths_to_import = [item["file_path"] for item in self.get_table_data()]
+        else:
+            paths_to_import = request.POST.getlist("check")
+
+        to_import = [(path, request.POST.get(path)) for path in paths_to_import]
+
+        if len(to_import) > 1:
+            file_importer_batch = FileImporterBatch.objects.create(
+                command="Meta", args=[], kwargs=[]
+            )
+        else:
+            file_importer_batch = None
+
+        for file_path, importer_name in to_import:
+            print(f"Importing {file_path} using importer  {importer_name}")
+            _import_file(
+                request,
+                importer_name,
+                file_path,
+                file_importer_batch=file_importer_batch,
+                quiet=True,
+            )
+
+        return HttpResponseRedirect(reverse("unimported_files_dashboard"))

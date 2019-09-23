@@ -1,0 +1,5 @@
+<select name="{{record.file_path}}">
+    {% for importer in importers %}
+        <option value="{{importer}}" {% if importer == value %} selected {% endif %}>{{importer}}</option>
+    {% endfor %}
+</select> 

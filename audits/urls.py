@@ -11,6 +11,11 @@ urlpatterns = [
         "file-dashboard/", views.FileImporterDashboard.as_view(), name="file_dashboard"
     ),
     path(
+        "unimported-files-dashboard/",
+        views.UnimportedFilesDashboard.as_view(),
+        name="unimported_files_dashboard",
+    ),
+    path(
         "file-importers/",
         views.FileImporterListView.as_view(),
         name="fileimporter_index",

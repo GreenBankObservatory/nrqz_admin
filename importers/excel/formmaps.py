@@ -221,33 +221,6 @@ class FacilityImportFormMap(FormMap):
                 ]
             },
         ),
-        OneToOneFieldMap(
-            to_field="latitude",
-            # TODO: CONSOLIDATE
-            from_field={
-                "latitude": [
-                    "LAT (dd mm ss.ss)",
-                    "LatN (dd mm ss.ss) Pay close attention to formatting. Spaces required, and NO symbols or special characters!",
-                    "LatN. Correct submission format is dd mm ss.ss (space seperated).              No symbols or special characters!",
-                    # Working Data
-                    "Lat (dd mm ss.ss)N",
-                ]
-            },
-        ),
-        OneToOneFieldMap(
-            to_field="longitude",
-            # TODO: CONSOLIDATE
-            from_field={
-                "longitude": [
-                    "LON (-dd mm ss.ss)",
-                    "LON (dd mm ss.ss)",
-                    "LonW (dd mm ss.ss)  Pay close attention to formatting. Spaces required, and NO symbols or special characters!",
-                    "LonW. Correct submission format is dd mm ss.ss (space seperated).                 No symbols or special characters!",
-                    # Working Data
-                    "Lon (dd mm ss.ss)W",
-                ]
-            },
-        ),
         ManyToOneFieldMap(
             to_field="location",
             converter=coerce_location,

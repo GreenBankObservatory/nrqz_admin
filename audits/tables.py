@@ -1,5 +1,7 @@
 """Audits Table definitions"""
 
+from django.utils.safestring import mark_safe
+
 import django_tables2 as tables
 from django_import_data.models import (
     ModelImporter,
@@ -25,6 +27,7 @@ from .columns import (
     CurrentStatusColumn,
     TitledCheckBoxColumn,
 )
+from utils.spec import parse_importer_spec, SPEC_FILE
 
 
 class FileImporterBatchTable(tables.Table):
@@ -265,3 +268,22 @@ class FileImporterErrorSummaryTable(tables.Table):
     row_nums = tables.Column(verbose_name="Row #s")
     aliases = tables.Column(verbose_name="From Fields")
     error = tables.Column(verbose_name="Errors")
+
+
+class UnimportedFilesDashboardTable(tables.Table):
+    file_path = tables.Column(verbose_name="Path")
+    importer = tables.TemplateColumn(
+        template_name="audits/importer_column.html",
+        extra_context={"importers": list(parse_importer_spec(SPEC_FILE).keys())},
+    )
+
+    check = TitledCheckBoxColumn(
+        accessor="file_path",
+        attrs={
+            "th": {
+                "title": "Select the files you want to affect (or the checkbox here to affect all of them)"
+            },
+            "th__input": {"title": "Select all", "name": "all"},
+        },
+        verbose_name="Select",
+    )
