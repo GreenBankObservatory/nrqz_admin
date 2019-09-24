@@ -45,11 +45,11 @@ description = "The uncompromising code formatter."
 name = "black"
 optional = false
 python-versions = ">=3.6"
-version = "18.9b0"
+version = "19.3b0"
 
 [package.dependencies]
 appdirs = "*"
-attrs = ">=17.4.0"
+attrs = ">=18.1.0"
 click = ">=6.5"
 toml = ">=0.9.4"
 
@@ -179,6 +179,7 @@ tqdm = "^4.32"
 reference = "d54308aa1598cc9dac58c6bc5e0d261e13661cfa"
 type = "git"
 url = "https://github.com/GreenBankObservatory/django-import-data"
+
 [[package]]
 category = "main"
 description = "Make bulk changes in the Django admin interface"
@@ -194,13 +195,14 @@ django = "*"
 reference = "1e792c8eb20148efc10331757d46e03b2d3eb4ab"
 type = "git"
 url = "https://github.com/GreenBankObservatory/django-mass-edit"
+
 [[package]]
 category = "main"
 description = "A pluggable app that allows users (admins) to execute SQL, view, and export the results."
 name = "django-sql-explorer"
 optional = false
 python-versions = "*"
-version = "1.1.2"
+version = "1.1.3"
 
 [package.dependencies]
 Django = ">=1.8.0"
@@ -231,13 +233,14 @@ django = ">=1.11"
 reference = "b69d7bd61368c4ac2e24b4e7efdd621cd4aea217"
 type = "git"
 url = "https://github.com/GreenBankObservatory/django-super-deduper"
+
 [[package]]
 category = "main"
 description = "Table/data-grid framework for Django"
 name = "django-tables2"
 optional = false
 python-versions = "*"
-version = "2.1.0"
+version = "2.1.1"
 
 [package.dependencies]
 Django = ">=1.11"
@@ -253,6 +256,10 @@ version = "5.1.2.8"
 [package.dependencies]
 django = "*"
 
+[package.source]
+reference = "c5d775283fd7c7d284d65747b43168507e49b8dc"
+type = "git"
+url = "https://github.com/FlipperPA/django-tempus-dominus"
 [[package]]
 category = "main"
 description = "Full-text multi-table search application for Django. Easy to install and use, with good performance."
@@ -552,6 +559,7 @@ lxml = ">=2.2.6"
 reference = "d6fc4f6107678fcac88731083b693f761facef00"
 type = "git"
 url = "https://github.com/GreenBankObservatory/pykml.git"
+
 [[package]]
 category = "dev"
 description = "Python parsing module"
@@ -692,7 +700,7 @@ description = "HTTP library with thread-safe connection pooling, file post, and 
 name = "urllib3"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, <4"
-version = "1.25.4"
+version = "1.25.6"
 
 [[package]]
 category = "main"
@@ -719,7 +727,7 @@ python-versions = "*"
 version = "1.3.0"
 
 [metadata]
-content-hash = "16b37778bf33717dcdb1822ebeaf2e51c5fddafa65099f80c69e6bc217eb0183"
+content-hash = "e14739157d79e1ec279d881f5034e6848abf2bbc2f00f85ae6ad184f24ee0a31"
 python-versions = "^3.7"
 
 [metadata.hashes]
@@ -728,7 +736,7 @@ appnope = ["5b26757dc6f79a3b7dc9fab95359328d5747fcb2409d331ea66d0272b90ab2a0", "
 attrs = ["69c0dbf2ed392de1cb5ec704444b08a5ef81680a61cb899dc08127123af36a79", "f0b870f674851ecbfbbbd364d6b5cbdff9dcedbc7f3f5e18a6891057f21fe399"]
 backcall = ["38ecd85be2c1e78f77fd91700c76e14667dc21e2713b63876c0eb901196e01e4", "bbbf4b1e5cd2bdb08f915895b51081c041bac22394fdfcfdfbe9f14b77c08bf2"]
 "backports.csv" = ["1277dfff73130b2e106bf3dd347adb3c5f6c4340882289d88f31240da92cbd6d", "21f6e09bab589e6c1f877edbc40277b65e626262a86e69a70137db714eaac5ce"]
-black = ["817243426042db1d36617910df579a54f1afd659adb96fc5032fcf4b36209739", "e030a9a28f542debc08acceb273f228ac422798e5215ba2a791a6ddeaaca22a5"]
+black = ["09a9dcb7c46ed496a9850b76e4e825d6049ecd38b611f1224857a79bd985a8cf", "68950ffd4d9169716bcb8719a56c07a2f4485354fec061cdd5910aa07369731c"]
 certifi = ["e4f3620cfea4f83eedc95b24abd9cd56f3c4b146dd0177e83a21b4eb49e21e50", "fd7c7c74727ddcf00e9acd26bba8da604ffec95bf1c2144e67aff7a8b50e6cef"]
 chardet = ["84ab92ed1c4d4f16916e05906b6b75a6c0fb5db821cc65e70cbd64a3e2a5eaae", "fc323ffcaeaed0e0a02bf4d117757b98aed530d9ed4531e3e15460124c106691"]
 click = ["2335065e6395b9e67ca716de5f7526736bfa6ceead690adf616d925bdc622b13", "5b94b49521f6456670fdb30cd82a4eca9412788a93fa6dd6df72c94d5a8ff2d7"]
@@ -743,11 +751,11 @@ django-extensions = ["4aafdb865104eaa5d681b9976b36c52c9d441be89b7d782e40808f1c5c
 django-filter = ["558c727bce3ffa89c4a7a0b13bc8976745d63e5fd576b3a9a851650ef11c401b", "c3deb57f0dd7ff94d7dce52a047516822013e2b441bed472b722a317658cfd14"]
 django-import-data = []
 django-mass-edit = []
-django-sql-explorer = ["65e7b972a51037f4e2de27412dc052f87a4ca58d4c4e8eab4c91d40119f9eace"]
+django-sql-explorer = ["b28f33750b7c1f1564644755dcffa393b75790598dc98ee155e487390855b967"]
 django-stronghold = ["9ffb2d5d61945b67061c60a39ec740a9670dda89d96b3c7ef890c1a1a08fd18a"]
 django-super-deduper = []
-django-tables2 = ["cdecbb14206e7f5edcde73b3796a0eb5c583c63e170b7356aeac14ae9e4a3314", "ef8449a8ff3c3b13cd33c79b74cb2b24428a21e75176aa267a035a9d053abd36"]
-django-tempus-dominus = ["551b87ae707623f7f7019647aa8013a3682f8c3c7bda2699204b4e723c0510a1", "5ad14b23d3e87b9a53801ca101f44a2edad619ac37d553a86790f73ac81c05b2"]
+django-tables2 = ["2a94c3458f7cd0cb914d561ec040c616e18f5c1af2c16c1a70c0c6125b299ce9", "78fbac8197721cee4da4bab34a5590365d08224d206462db15a166148cb75562"]
+django-tempus-dominus = []
 django-watson = ["2697c8acf77fd8f0f957d4b71bd9f07f359bb3954a3516a339cac87b3c9f1c9f"]
 docxtpl = ["a502d1137bc44527f801ccb87026dd85493b4984d75c9fccc8802a4239926900", "c65f5142a03d52cd669e2cdcf34de6eed71c8440887bcaa1b7acf0352936198c"]
 et-xmlfile = ["614d9722d572f6246302c4491846d2c393c199cfa4edc9af593437691683335b"]
@@ -790,7 +798,7 @@ toml = ["229f81c57791a41d65e399fc06bf0848bab550a9dfd5ed66df18ce5f05e73d5c", "235
 tqdm = ["abc25d0ce2397d070ef07d8c7e706aede7920da163c64997585d42d3537ece3d", "dd3fcca8488bb1d416aa7469d2f277902f26260c45aa86b667b074cd44b3b115"]
 traitlets = ["9c4bd2d267b7153df9152698efb1050a5d84982d3384a37b2c1f7723ba3e7835", "c6cb5e6f57c5a9bdaa40fa71ce7b4af30298fbab9ece9815b5d995ab6217c7d9"]
 unicodecsv = ["018c08037d48649a0412063ff4eda26eaa81eff1546dbffa51fa5293276ff7fc"]
-urllib3 = ["319cef72311e511d94be1bb478d202fde499935d0347a9e8f0d232dc3bce47c6", "8a8090dd02b145256534c205e624eb20161080428ffa14408f6f283c0d0c356e"]
+urllib3 = ["3de946ffbed6e6746608990594d08faac602528ac7015ac28d33cee6a45b7398", "9a107b99a5393caf59c7aa3c1249c16e6879447533d0887f4336dde834c7be86"]
 wcwidth = ["3df37372226d6e63e1b1e1eda15c594bca98a22d33a23832a90998faa96bc65e", "f4ebe71925af7b40a864553f761ed559b43544f8f71746c2d756c7fe788ade7c"]
 xlrd = ["546eb36cee8db40c3eaa46c351e67ffee6eeb5fa2650b71bc4c758a29a1b29b2", "e551fb498759fa3a5384a94ccd4c3c02eb7c00ea424426e212ac0c57be9dfbde"]
 xlwt = ["a082260524678ba48a297d922cc385f58278b8aa68741596a87de01a9c628b2e", "c59912717a9b28f1a3c2a98fd60741014b06b043936dcecbc113eaaada156c88"]
