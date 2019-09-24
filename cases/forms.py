@@ -208,6 +208,11 @@ class BaseCaseForm(FutureModelForm):
 
 
 class CaseForm(BaseCaseForm):
+    class Meta(BaseCaseForm.Meta):
+        fields = [
+            field for field in BaseCaseForm.Meta.fields if field not in ["completed"]
+        ]
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 

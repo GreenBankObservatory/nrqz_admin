@@ -675,6 +675,9 @@ class Case(AbstractBaseCase):
 
     def save(self, *args, **kwargs):
         self.slug = str(self.case_num)
+        # Set completed to True if the completed_on field is set
+        if not self.completed and self.completed_on:
+            self.completed = True
         super(Case, self).save(*args, **kwargs)
 
     def get_meets_erpd_limit(self):
