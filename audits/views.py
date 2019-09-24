@@ -372,8 +372,8 @@ class FileImporterCreateView(CreateView):
         with transaction.atomic():
             return _import_file(
                 self.request,
-                importer_name=form.data["importer_name"],
-                path=form.data["file_path"],
+                importer_name=form.cleaned_data["importer_name"],
+                path=form.cleaned_data["file_path"],
             )
 
 

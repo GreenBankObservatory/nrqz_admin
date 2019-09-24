@@ -38,11 +38,18 @@ def parse_importer_spec(import_spec_path, requested_commands=None):
     return command_info
 
 
-def determine_importer_from_path(path, import_spec_path):
+def determine_importer_from_path(path, import_spec_path=None):
+    if import_spec_path is None:
+        import_spec_path = SPEC_FILE
     command_info = load_spec(import_spec_path)
 
+    known_patterns = set()
     for importer_name, info in command_info.items():
+        known_patterns.add(info["pattern"])
         if re.match(info["pattern"], path):
             return importer_name
 
-    return None
+    raise ValueError(
+        f"No patterns match file {os.path.basename(path)!r}! "
+        f"Known file patterns: {known_patterns}"
+    )
