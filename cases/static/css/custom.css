@@ -139,7 +139,8 @@ ul.messages li.error {
 
 /* Make form field labels a little shorter */
 .col-form-label {
-    padding-bottom: calc(.1rem + 1px)
+    padding-bottom: calc(.05rem + 1px);
+    padding-top: calc(.05rem + 1px);
 }
 
 .colM {
@@ -164,3 +165,23 @@ ul.messages li.error {
     font-weight: bold;
 }
 
+
+
+
+.select2-selection__rendered {
+    line-height: 20px !important;
+}
+.select2-container .select2-selection--single {
+    height: calc(1.75rem + 2px) !important;
+}
+.select2-selection__arrow {
+    height: calc(1.75rem + 2px) !important;
+}
+
+
+.select2-container--default .select2-selection--single {
+    border: 1px solid #ced4da !important;
+    background-clip: padding-box !important;
+    border-radius: .25rem !important;
+    border-color: .15s ease-in-out,box-shadow .15s ease-in-out !important;
+}

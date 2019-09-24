@@ -22,6 +22,7 @@ from .models import (
 from .form_helpers import LetterFormHelper, CaseFormHelper, PersonFormHelper
 from .fields import PointField
 from .widgets import PCaseWidget, CaseWidget, PersonWidget, AttachmentsWidget
+from utils.misc import put_help_text_in_title
 
 
 class LetterTemplateForm(forms.Form):
@@ -205,6 +206,7 @@ class BaseCaseForm(FutureModelForm):
         }
 
 
+@put_help_text_in_title
 class CaseForm(BaseCaseForm):
     class Meta(BaseCaseForm.Meta):
         fields = [
