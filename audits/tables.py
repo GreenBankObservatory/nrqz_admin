@@ -287,3 +287,19 @@ class UnimportedFilesDashboardTable(tables.Table):
         },
         verbose_name="Select",
     )
+
+
+class OrphanedFilesDashboardTable(tables.Table):
+    file_import_attempt = tables.Column(
+        linkify=True, accessor="imported_from", verbose_name="FIA Path (Path on Disk)"
+    )
+    file_importer = tables.Column(
+        linkify=True,
+        accessor="file_importer.file_path",
+        verbose_name="File Importer Path",
+    )
+    is_on_disk = tables.Column(verbose_name="FIA Path Exists on Disk")
+
+    class Meta:
+        model = FileImportAttempt
+        fields = ("file_import_attempt", "file_importer", "is_on_disk")

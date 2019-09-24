@@ -45,6 +45,7 @@ from .tables import (
     RowDataTable,
     FileImporterErrorSummaryTable,
     UnimportedFilesDashboardTable,
+    OrphanedFilesDashboardTable,
 )
 from .forms import FileImporterForm
 from cases.models import Case, Facility, Person, PreliminaryCase, PreliminaryFacility
@@ -574,11 +575,9 @@ class UnimportedFilesDashboard(SingleTableMixin, TemplateView):
                 determine_files_to_process(importer_spec["paths"])
             ).difference(known_paths)
         ]
-        self.importer_specs = importer_specs
         return unimported_path_data
 
     def post(self, request, *args, **kwargs):
-        print(request.POST)
         if request.POST.get("all"):
             paths_to_import = [item["file_path"] for item in self.get_table_data()]
         else:
@@ -604,3 +603,62 @@ class UnimportedFilesDashboard(SingleTableMixin, TemplateView):
             )
 
         return HttpResponseRedirect(reverse("unimported_files_dashboard"))
+
+
+class OrphanedFilesDashboard(SingleTableMixin, TemplateView):
+    table_class = OrphanedFilesDashboardTable
+    template_name = "audits/orphaned_files_dashboard.html"
+    table_pagination = {"per_page": 10}
+
+    def get_table_data(self):
+        known_fi_paths = set(FileImporter.objects.values_list("file_path", flat=True))
+        known_fia_paths = set(
+            FileImportAttempt.objects.values_list("imported_from", flat=True)
+        )
+
+        importer_specs = parse_importer_spec(SPEC_FILE)
+        file_paths_on_disk = set(
+            file_path
+            for importer, importer_spec in importer_specs.items()
+            for file_path in set(determine_files_to_process(importer_spec["paths"]))
+        )
+        the_fias = FileImportAttempt.objects.filter(
+            imported_from__in=file_paths_on_disk.union(known_fia_paths).difference(
+                known_fi_paths
+            )
+        )
+
+        for fia in the_fias:
+            fia.fia_path_exists_on_disk = fia.imported_from in file_paths_on_disk
+            fia.fi_path_exists_on_disk = (
+                fia.file_importer.file_path in file_paths_on_disk
+            )
+
+        return the_fias
+
+    def post(self, request, *args, **kwargs):
+        if request.POST.get("all"):
+            paths_to_import = [item["file_path"] for item in self.get_table_data()]
+        else:
+            paths_to_import = request.POST.getlist("check")
+
+        to_import = [(path, request.POST.get(path)) for path in paths_to_import]
+        print("TO IMPORT", to_import)
+        # if len(to_import) > 1:
+        #     file_importer_batch = FileImporterBatch.objects.create(
+        #         command="Meta", args=[], kwargs=[]
+        #     )
+        # else:
+        #     file_importer_batch = None
+
+        # for file_path, importer_name in to_import:
+        #     print(f"Importing {file_path} using importer  {importer_name}")
+        #     # _import_file(
+        #     #     request,
+        #     #     importer_name,
+        #     #     file_path,
+        #     #     file_importer_batch=file_importer_batch,
+        #     #     quiet=True,
+        #     # )
+
+        return HttpResponseRedirect(reverse("orphaned_files_dashboard"))

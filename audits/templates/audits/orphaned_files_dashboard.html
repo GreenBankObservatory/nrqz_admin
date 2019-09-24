@@ -1,0 +1,25 @@
+{% extends "cases/base.html" %}
+{% load crispy_forms_tags %}
+{% load render_table from django_tables2 %}
+
+{% block content %}
+<h1>Orphaned Files Dashboard</h1>
+{% if table.data %}
+<p>
+    Files on this page have:
+    <ul>
+        <li>Been imported at least once before</li>
+        <li>Are no longer referenced by any File Importer</li>
+    </ul>
+
+    To resolve these, you will need to do one of the following:
+    <ul>
+        <li>Re-import the File Importer (updating its path if need-be)</li>
+        <li>Delete the file on disk, if it should no longer be there</li>
+    </ul>
+</p>
+{% render_table table %}
+{% else %}
+{% include "audits/congratulations.html" with name="Orphaned Files"%}
+{% endif %}
+{% endblock content %}

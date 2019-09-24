@@ -16,6 +16,11 @@ urlpatterns = [
         name="unimported_files_dashboard",
     ),
     path(
+        "orphaned-files-dashboard/",
+        views.OrphanedFilesDashboard.as_view(),
+        name="orphaned_files_dashboard",
+    ),
+    path(
         "file-importers/",
         views.FileImporterListView.as_view(),
         name="fileimporter_index",
