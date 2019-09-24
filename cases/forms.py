@@ -5,7 +5,7 @@ from django import forms
 from crispy_forms.layout import Submit
 from dal.forms import FutureModelForm
 from dal import autocomplete
-from tempus_dominus.widgets import DatePicker, DateTimePicker
+from tempus_dominus.widgets import DatePicker
 
 from .models import (
     Attachment,
@@ -198,12 +198,10 @@ class BaseCaseForm(FutureModelForm):
             "contact": PersonWidget({"data-placeholder": "Contact Name"}),
             "attachments": AttachmentsWidget(),
             # Currently cannot use; not sure why
-            # "date_recorded": DateTimePicker(options={"format": "MM/DD/YY h:mm:ss a"}),
-            # "completed_on": DateTimePicker(options={"format": "MM/DD/YY h:mm:ss a"}),
-            # "sgrs_responded_on": DateTimePicker(
-            #     options={"format": "MM/DD/YY h:mm:ss a"}
-            # ),
-            # "si_done": DatePicker(options={"format": "MM/DD/YY"}),
+            "date_recorded": DatePicker(options={"format": "MM/DD/YY"}),
+            "completed_on": DatePicker(options={"format": "MM/DD/YY"}),
+            "sgrs_responded_on": DatePicker(options={"format": "MM/DD/YY"}),
+            "si_done": DatePicker(options={"format": "MM/DD/YY"}),
         }
 
 

@@ -444,12 +444,12 @@ class CaseDetailView(MultiTableMixin, DetailView):
             "shutdown",
             (
                 "Completed On",
-                self.object.completed_on.date() if self.object.completed_on else None,
+                self.object.completed_on if self.object.completed_on else None,
                 "",
             ),
             "si_waived",
             "si",
-            ("SI Done", si_done.date() if si_done else None, ""),
+            ("SI Done", si_done if si_done else None, ""),
             "is_federal",
         ]
         context["application_info"] = [
@@ -466,7 +466,7 @@ class CaseDetailView(MultiTableMixin, DetailView):
             "sgrs_notify",
             (
                 "SGRS Responded On",
-                self.object.sgrs_responded_on.date()
+                self.object.sgrs_responded_on
                 if self.object.sgrs_responded_on
                 else None,
                 "",

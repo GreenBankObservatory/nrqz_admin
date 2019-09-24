@@ -183,3 +183,7 @@ DEFAULT_FROM_EMAIL = "noreply@nrao.edu"
 EMAIL_HOST = "smtp.gb.nrao.edu"
 
 ADMINS = (("Thomas Chamberlin", "tchamber@nrao.edu"),)
+
+# We are bring in the latest tempus dominus assets ourselves, so we need to
+# tell it not to do it itself
+TEMPUS_DOMINUS_INCLUDE_ASSETS = False
