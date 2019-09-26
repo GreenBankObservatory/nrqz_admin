@@ -194,17 +194,6 @@ class BaseCaseForm(FutureModelForm):
             )
         )
 
-        widgets = {
-            "applicant": PersonWidget({"data-placeholder": "Applicant Name"}),
-            "contact": PersonWidget({"data-placeholder": "Contact Name"}),
-            "attachments": AttachmentsWidget(),
-            # Currently cannot use; not sure why
-            "date_recorded": DatePicker(options={"format": "MM/DD/YY"}),
-            "completed_on": DatePicker(options={"format": "MM/DD/YY"}),
-            "sgrs_responded_on": DatePicker(options={"format": "MM/DD/YY"}),
-            "si_done": DatePicker(options={"format": "MM/DD/YY"}),
-        }
-
 
 @put_help_text_in_title
 class CaseForm(BaseCaseForm):
@@ -212,6 +201,16 @@ class CaseForm(BaseCaseForm):
         fields = [
             field for field in BaseCaseForm.Meta.fields if field not in ["completed"]
         ]
+
+        widgets = {
+            "applicant": PersonWidget({"data-placeholder": "Applicant Name"}),
+            "contact": PersonWidget({"data-placeholder": "Contact Name"}),
+            "attachments": AttachmentsWidget(),
+            "date_recorded": DatePicker(options={"format": "MM/DD/YY"}),
+            "completed_on": DatePicker(options={"format": "MM/DD/YY"}),
+            "sgrs_responded_on": DatePicker(options={"format": "MM/DD/YY"}),
+            "si_done": DatePicker(options={"format": "MM/DD/YY"}),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
