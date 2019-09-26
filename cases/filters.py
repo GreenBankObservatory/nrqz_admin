@@ -20,6 +20,78 @@ from .form_helpers import (
 from .fields import PointSearchField
 from .widgets import PCaseWidget
 
+from django_import_data.numranges import (
+    range_notation_to_list_of_ranges,
+    make_list_of_ranges_from_nums,
+    get_nums_from_str,
+)
+from django.db.models import Q
+
+from django import forms
+
+import re
+
+# REP = re.compile(r"[^0-9,\-\s]")
+
+
+class FancyRangeField(forms.CharField):
+    default_error_messages = {
+        "invalid_range": 'Range query must be in the format "1,2,3-4".'
+    }
+
+    def clean(self, value):
+        if value:
+            # value = REP.sub("", value)
+            try:
+                value = range_notation_to_list_of_ranges(value)
+            except ValueError:
+                raise forms.ValidationError(
+                    self.error_messages["invalid_range"], code="invalid_range"
+                )
+        return value
+
+
+class RangeNotationFilter(django_filters.CharFilter):
+    """A range filter that parses range-notation strings to generate range filters
+    
+    e.g. 1,3-5 would yield a query of Q(<field_name>__gte=1, <field_name>__lte=1) |
+    Q(<field_name>__gte=3, <field_name>__lte=5)  
+    """
+
+    field_class = FancyRangeField
+
+    def filter(self, qs, num_ranges, inclusive=True):
+        if num_ranges is not None:
+            # num_ranges = make_list_of_ranges_from_nums(nums)
+            # Start with an emtpy query
+            filtered_by_range = Q()
+            # Then, for every range in the derived ranges...
+            for range_ in num_ranges:
+                # ...filter for all values that are between its bounds
+
+                try:
+                    range_start, range_end = range_
+                except ValueError:
+                    # If we can't unpack, then we treat the value as atomic --
+                    # that is, as a non-range item -- and use it for an
+                    # "exact" query
+                    value = range_
+                    filtered_by_range |= Q(**{self.field_name: value})
+                else:
+                    # If we have successfully unpacked our range, we use its
+                    # boundaries to perform our range query (respecting the
+                    # inclusive argument)
+                    filtered_by_range |= Q(
+                        **{
+                            f"{self.field_name}__gt{'e' if inclusive else ''}": range_start,
+                            f"{self.field_name}__lt{'e' if inclusive else ''}": range_end,
+                        }
+                    )
+
+            # Finally, apply the filter we just built to the existing queryset and return
+            return qs.filter(filtered_by_range)
+        return qs
+
 
 class WatsonFilter(django_filters.CharFilter):
     def filter(self, qs, value):
@@ -67,27 +139,28 @@ class BaseFacilityFilter(HelpedFilterSet):
     )
     location = PointFilter()
     in_nrqz = django_filters.BooleanFilter(field_name="in_nrqz", label="In NRQZ")
-    distance_to_gbt = django_filters.RangeFilter(
+    distance_to_gbt = RangeNotationFilter(
         field_name="distance_to_gbt", label="Distance to GBT (meters)"
     )
-    azimuth_to_gbt = django_filters.RangeFilter(
+    azimuth_to_gbt = RangeNotationFilter(
         field_name="azimuth_to_gbt", label="Azimuth Bearing to GBT"
     )
 
 
 class PreliminaryFacilityFilter(BaseFacilityFilter):
     call_sign = django_filters.CharFilter(lookup_expr="icontains")
-    freq_low = django_filters.RangeFilter()
-    freq_high = django_filters.RangeFilter()
-    amsl = django_filters.RangeFilter()
-    agl = django_filters.RangeFilter()
+    freq_low = RangeNotationFilter()
+    freq_high = RangeNotationFilter()
+    amsl = RangeNotationFilter()
+    agl = RangeNotationFilter()
     structure = django_filters.CharFilter(lookup_expr="asr__exact")
     main_beam_orientation = django_filters.CharFilter(lookup_expr="icontains")
     antenna_model_number = django_filters.CharFilter(lookup_expr="icontains")
     comments = django_filters.CharFilter(lookup_expr="search")
-    pcase = django_filters.ModelChoiceFilter(
-        queryset=models.PreliminaryCase.objects.all(), widget=PCaseWidget()
-    )
+    pcase = RangeNotationFilter()
+    # pcase = django_filters.ModelChoiceFilter(
+    #     queryset=models.PreliminaryCase.objects.all(), widget=PCaseWidget()
+    # )
 
     class Meta:
         model = models.PreliminaryFacility
@@ -97,17 +170,17 @@ class PreliminaryFacilityFilter(BaseFacilityFilter):
 
 class FacilityFilter(BaseFacilityFilter):
     call_sign = django_filters.CharFilter(lookup_expr="icontains")
-    freq_low = django_filters.RangeFilter()
-    freq_high = django_filters.RangeFilter()
-    amsl = django_filters.RangeFilter()
-    agl = django_filters.RangeFilter()
-    bandwidth = django_filters.RangeFilter()
+    freq_low = RangeNotationFilter()
+    freq_high = RangeNotationFilter()
+    amsl = RangeNotationFilter()
+    agl = RangeNotationFilter()
+    bandwidth = RangeNotationFilter()
 
     structure = django_filters.CharFilter(lookup_expr="asr__exact")
     main_beam_orientation = django_filters.CharFilter(lookup_expr="icontains")
     antenna_model_number = django_filters.CharFilter(lookup_expr="icontains")
     # comments = django_filters.CharFilter(lookup_expr="search")
-    case = django_filters.NumberFilter(label="Case Num", field_name="case__case_num")
+    case = RangeNotationFilter(label="Case Num", field_name="case__case_num")
     applicant = django_filters.CharFilter(
         field_name="case__applicant__name",
         lookup_expr="unaccent__icontains",
@@ -123,10 +196,10 @@ class FacilityFilter(BaseFacilityFilter):
         lookup_expr="icontains",
         label="Imported-from Path contains",
     )
-    nrao_aerpd = django_filters.RangeFilter()
-    requested_max_erp_per_tx = django_filters.RangeFilter()
+    nrao_aerpd = RangeNotationFilter()
+    requested_max_erp_per_tx = RangeNotationFilter()
     search = WatsonFilter(label="Search all text fields")
-    si_done = django_filters.DateFromToRangeFilter()
+    si_done = django_filters.DateFromToRangeFilter(label="SI Done (date from, date to)")
 
     class Meta:
         model = models.Facility
@@ -135,10 +208,10 @@ class FacilityFilter(BaseFacilityFilter):
 
 
 class CaseGroupFilter(HelpedFilterSet):
-    id = django_filters.NumberFilter(label="CG ID")
+    id = RangeNotationFilter(label="CG ID")
     comments = django_filters.CharFilter(lookup_expr="search")
-    num_cases = django_filters.RangeFilter(label="# Cases")
-    num_pcases = django_filters.RangeFilter(label="# Prelim. Cases")
+    num_cases = RangeNotationFilter(label="# Cases")
+    num_pcases = RangeNotationFilter(label="# Prelim. Cases")
     completed = django_filters.BooleanFilter(label="Completed")
 
     class Meta:
@@ -162,6 +235,7 @@ class PreliminaryCaseFilter(BaseCaseFilter):
 
 
 class CaseFilter(BaseCaseFilter):
+    case_num = RangeNotationFilter()
     freq_coord = django_filters.CharFilter(lookup_expr="icontains")
     fcc_file_num = django_filters.CharFilter(lookup_expr="icontains")
     call_sign = django_filters.CharFilter(lookup_expr="icontains")
@@ -176,8 +250,8 @@ class CaseFilter(BaseCaseFilter):
         choices=(("false", "False"), ("true", "True"), ("none", "None")),
     )
     search = WatsonFilter(label="Search all text fields")
-    num_sites = django_filters.RangeFilter(label="Indicated # Facilities")
-    num_facilities = django_filters.RangeFilter(label="# Facilities Evaluated")
+    num_sites = RangeNotationFilter(label="Indicated # Facilities")
+    num_facilities = RangeNotationFilter(label="# Facilities Evaluated")
     si_done = django_filters.DateFromToRangeFilter(
         field_name="si_done", label="SI Done"
     )
