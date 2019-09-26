@@ -1,9 +1,17 @@
 """Custom django_filters.FilterSet sub-classes for cases app"""
 
+from django import forms
 from django.contrib.gis.measure import Distance
-import django_filters
+from django.db.models import Q
 
+
+import django_filters
+from django_import_data.numranges import (
+    range_notation_to_list_of_ranges,
+    get_nums_from_str,
+)
 from watson import search as watson
+
 
 from utils.layout import discover_fields
 from . import models
@@ -20,21 +28,8 @@ from .form_helpers import (
 from .fields import PointSearchField
 from .widgets import PCaseWidget
 
-from django_import_data.numranges import (
-    range_notation_to_list_of_ranges,
-    make_list_of_ranges_from_nums,
-    get_nums_from_str,
-)
-from django.db.models import Q
 
-from django import forms
-
-import re
-
-# REP = re.compile(r"[^0-9,\-\s]")
-
-
-class FancyRangeField(forms.CharField):
+class RangeNotationField(forms.CharField):
     default_error_messages = {
         "invalid_range": 'Range query must be in the format "1,2,3-4".'
     }
@@ -44,7 +39,8 @@ class FancyRangeField(forms.CharField):
             # value = REP.sub("", value)
             try:
                 value = range_notation_to_list_of_ranges(value)
-            except ValueError:
+            except ValueError as error:
+                print(f"RangeNotationField: Invalid range: {value}\nERROR: {error}")
                 raise forms.ValidationError(
                     self.error_messages["invalid_range"], code="invalid_range"
                 )
@@ -53,17 +49,16 @@ class FancyRangeField(forms.CharField):
 
 class RangeNotationFilter(django_filters.CharFilter):
     """A range filter that parses range-notation strings to generate range filters
-    
+
     e.g. 1,3-5 would yield a query of Q(<field_name>__gte=1, <field_name>__lte=1) |
-    Q(<field_name>__gte=3, <field_name>__lte=5)  
+    Q(<field_name>__gte=3, <field_name>__lte=5)
     """
 
-    field_class = FancyRangeField
+    field_class = RangeNotationField
 
     def filter(self, qs, num_ranges, inclusive=True):
         if num_ranges is not None:
-            # num_ranges = make_list_of_ranges_from_nums(nums)
-            # Start with an emtpy query
+            # Start with an empty query
             filtered_by_range = Q()
             # Then, for every range in the derived ranges...
             for range_ in num_ranges:
@@ -158,9 +153,6 @@ class PreliminaryFacilityFilter(BaseFacilityFilter):
     antenna_model_number = django_filters.CharFilter(lookup_expr="icontains")
     comments = django_filters.CharFilter(lookup_expr="search")
     pcase = RangeNotationFilter()
-    # pcase = django_filters.ModelChoiceFilter(
-    #     queryset=models.PreliminaryCase.objects.all(), widget=PCaseWidget()
-    # )
 
     class Meta:
         model = models.PreliminaryFacility
@@ -228,6 +220,8 @@ class BaseCaseFilter(HelpedFilterSet):
 
 
 class PreliminaryCaseFilter(BaseCaseFilter):
+    case_num = RangeNotationFilter()
+
     class Meta:
         model = models.PreliminaryCase
         formhelper_class = PreliminaryCaseFilterFormHelper
