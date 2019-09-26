@@ -7,6 +7,8 @@ from dal.forms import FutureModelForm
 from dal import autocomplete
 from tempus_dominus.widgets import DatePicker
 
+from utils.misc import put_help_text_in_title
+
 from .models import (
     Attachment,
     Boundaries,
@@ -22,7 +24,6 @@ from .models import (
 from .form_helpers import LetterFormHelper, CaseFormHelper, PersonFormHelper
 from .fields import PointField
 from .widgets import PCaseWidget, CaseWidget, PersonWidget, AttachmentsWidget
-from utils.misc import put_help_text_in_title
 
 
 class LetterTemplateForm(forms.Form):

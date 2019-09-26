@@ -3,7 +3,6 @@ import tempfile
 
 from docxtpl import DocxTemplate
 
-from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
@@ -30,7 +29,6 @@ from .models import (
     Case,
     CaseGroup,
     Facility,
-    LetterTemplate,
     Person,
     PreliminaryCase,
     PreliminaryFacility,
@@ -88,6 +86,7 @@ class FilterTableView(ExportMixin, SingleTableMixin, FilterView):
     filterset_class = None
     object_list = None
     export_table_class = None
+    export_requested = None
 
     def get(self, request, *args, **kwargs):
         if "show-all" in request.GET:
@@ -303,7 +302,8 @@ class LetterView(FormView):
 
         return initial
 
-    def get_letter_context(self, post_dict):
+    @staticmethod
+    def get_letter_context(post_dict):
         cases = post_dict["cases"]
         facilities = post_dict["facilities"]
 
@@ -481,7 +481,7 @@ class CaseDetailView(MultiTableMixin, DetailView):
         return context
 
     def as_kml(self):
-        case_as_kml(self.object)
+        return case_as_kml(self.object)
 
 
 class BaseFacilityDetailView(DetailView):
@@ -640,6 +640,8 @@ class AttachmentListView(FilterTableView):
                 f"Successfully refreshed all attachments from filesystem: {report_counts}",
             )
             return HttpResponseRedirect(reverse("attachment_index"))
+
+        return super().post(request, *args, **kwargs)
 
 
 class AttachmentDetailView(MultiTableMixin, DetailView):
