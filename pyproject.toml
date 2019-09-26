@@ -30,8 +30,8 @@ tabulate = "^0.8.3"
 tqdm = "^4.32"
 django-import-data = { git = "https://github.com/GreenBankObservatory/django-import-data" }
 django-super-deduper = { git = "https://github.com/GreenBankObservatory/django-super-deduper", branch = "merge_audit" }
-django-tempus-dominus = { git = "https://github.com/FlipperPA/django-tempus-dominus" }
-# django-tempus-dominus = "^5.1"
+# django-tempus-dominus = { git = "https://github.com/FlipperPA/django-tempus-dominus" }
+django-tempus-dominus = "^5.1"
 pykml = { git = "https://github.com/GreenBankObservatory/pykml.git", branch = "python3" }
 django-autocomplete-light = "^3.4"
 
@@ -39,6 +39,8 @@ django-autocomplete-light = "^3.4"
 ipdb = "^0.12.0"
 pydotplus = "^2.0"
 black = {version = "^19.3b0", allows-prereleases = true}
+pylint = "~2.3"
+pylint-django = "^2.0"
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
