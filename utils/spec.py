@@ -8,7 +8,7 @@ import re
 # TODO: Naughty! Fix this... one day...
 SCRIPT_DIR = Path(__file__).resolve().parent
 SPEC_FILE = os.path.join(
-    SCRIPT_DIR.parent, "cases", "management", "commands", "importer_spec2.json"
+    SCRIPT_DIR.parent, "cases", "management", "commands", "importer_spec.json"
 )
 
 

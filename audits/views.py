@@ -572,7 +572,9 @@ class UnimportedFilesDashboard(SingleTableMixin, TemplateView):
             {"importer": importer, "file_path": file_path}
             for importer, importer_spec in importer_specs.items()
             for file_path in set(
-                determine_files_to_process(importer_spec["paths"])
+                determine_files_to_process(
+                    importer_spec["paths"], importer_spec.get("pattern", None)
+                )
             ).difference(known_paths)
         ]
         return unimported_path_data
@@ -620,7 +622,11 @@ class OrphanedFilesDashboard(SingleTableMixin, TemplateView):
         file_paths_on_disk = set(
             file_path
             for importer, importer_spec in importer_specs.items()
-            for file_path in set(determine_files_to_process(importer_spec["paths"]))
+            for file_path in set(
+                determine_files_to_process(
+                    importer_spec["paths"], importer_spec.get("pattern", None)
+                )
+            )
         )
         the_fias = FileImportAttempt.objects.filter(
             imported_from__in=file_paths_on_disk.union(known_fia_paths).difference(
