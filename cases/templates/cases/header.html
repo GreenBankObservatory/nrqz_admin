@@ -31,11 +31,9 @@
          <a class="nav-link" href={% url "attachment_index" %} title="All attachments that have ever been attached to anything">Attachments</a>
           <a class="nav-link" href={% url "case_group_index" %} title="Case Group Index">Case Groups</a>
           <a class="nav-link" href={% url "structure_index" %} title="Structure Index" >Structures</a>
-
           <a class="nav-link" href={% url "person_index" %} title="All People that the Tool knows about">People</a>
-
           <a class="nav-link" href={% url "letters" %} title="Generate (non-)concurrence letters">Letters</a>
-            
+          <a class="nav-link text-primary" href={% url "fileimporter_create" %} title="Import a new file">Import File</a>
         </div>
       </li>
 
@@ -68,7 +66,10 @@
       </li>
 
       <li class="nav-item">
-        <a class="nav-link text-primary" href={% url "fileimporter_create" %} title="Import a new file">Import File</a>
+        <a class="nav-link text-primary" href="{% url 'case_create' %}">
+            New Case
+        </a>
+
       </li>
 
       <li class="nav-item">
