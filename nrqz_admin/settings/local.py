@@ -56,5 +56,4 @@ INTERNAL_IPS = ["10.16.96.146", "10.16.96.90", "192.33.116.185", "localhost"]
 # )
 
 NRQZ_LETTER_TEMPLATE_DIR = "/home/sandboxes/tchamber/repos/nrqz_admin/letter_templates"
-NRQZ_ATTACHMENT_DIR = "/home/sandboxes/tchamber/projects/nrqz_admin"
 CRISPY_FAIL_SILENTLY = not DEBUG
