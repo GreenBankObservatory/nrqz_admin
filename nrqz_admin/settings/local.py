@@ -28,8 +28,8 @@ DATABASES = {
         "NAME": f"nrqz_{user}_dev",
         # Hack to change to admin user for unit tests, since the DB needs to be created (sometimes)
         "USER": user if "test" not in sys.argv else "postgres",
-#        "PASSWORD": "potato",
-#        "HOST": "galileo.gb.nrao.edu",
+        #        "PASSWORD": "potato",
+        #        "HOST": "galileo.gb.nrao.edu",
         "PORT": "5432",
         # Possibly important for import speed?
         "CONN_MAX_AGE": None,
@@ -56,4 +56,4 @@ INTERNAL_IPS = ["10.16.96.146", "10.16.96.90", "192.33.116.185"]
 # )
 
 NRQZ_LETTER_TEMPLATE_DIR = "/home/sandboxes/tchamber/repos/nrqz_admin/letter_templates"
-NRQZ_ATTACHMENT_DIR = "/home/sandboxes/tchamber/projects/nrqz_admin"
+CRISPY_FAIL_SILENTLY = not DEBUG
