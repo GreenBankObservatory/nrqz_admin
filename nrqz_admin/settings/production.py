@@ -22,5 +22,5 @@ DATABASES = {
 
 SECRET_KEY = "nw20&ip%@lhstow7-u6!dx_+f@a#&93z3784$0_@_m-#@@dher"
 
-NRQZ_LETTER_TEMPLATE_DIR = "/home/nrqz.gb.nrao.edu/active/nrqz_admin/letter_templates"
+NRQZ_LETTER_TEMPLATE_DIR = "/home/code/nrqz/NRQZ Admin Data/Letter Templates/"
 STATIC_ROOT = "/home/nrqz.gb.nrao.edu/content"
