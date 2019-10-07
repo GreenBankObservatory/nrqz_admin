@@ -311,7 +311,7 @@ class PreliminaryFacility(AbstractBaseFacility):
 
     pcase = ForeignKey(
         "PreliminaryCase",
-        on_delete=CASCADE,
+        on_delete=PROTECT,
         related_name="pfacilities",
         help_text="The Preliminary Case that this Facility is being considered under",
     )
@@ -389,7 +389,7 @@ class Facility(AbstractBaseFacility):
         verbose_name="Total number of TXers per sector",
         help_text="(or No. of RRH's ports with feed power",
     )
-    case = ForeignKey("Case", on_delete=CASCADE, related_name="facilities")
+    case = ForeignKey("Case", on_delete=PROTECT, related_name="facilities")
     structure = ForeignKey(
         "Structure", blank=True, null=True, on_delete=CASCADE, related_name="facilities"
     )

@@ -81,7 +81,19 @@ While this import attempt failed, a subsequent attempt was successful (see above
     <div class="row">
         <div class="col-lg-4">
             <h2 title="Summary of all models that were successfully created during this file import attempt">Models Created from File</h2>
-            {{ fileimportattempt.creations | json | safe }}
+            <ul class="modelstuff">
+                {% for model, creations in fileimportattempt.get_creations.items %}
+                <li>{{model}} ({{creations|length}})
+                    {% for instance in creations %}
+                    <ul>
+                        <li>
+                            <a href="{{ instance.get_absolute_url }}">{{instance}}</a>
+                        </li>
+                    </ul>
+                    {% endfor %}
+                </li>
+                {% endfor %}
+            </ul>
         </div>
 
         <div class="col-lg-4">

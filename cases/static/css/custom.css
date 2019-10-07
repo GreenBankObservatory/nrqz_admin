@@ -185,3 +185,8 @@ ul.messages li.error {
     border-radius: .25rem !important;
     border-color: .15s ease-in-out,box-shadow .15s ease-in-out !important;
 }
+
+.modelstuff {
+    overflow: scroll;
+    height: 300px;
+}
