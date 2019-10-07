@@ -51,18 +51,14 @@ Imported Status: <b>{{ fileimporter.get_status_display }}</b>
         </form>
     </div>
 </div>
-{% if tables.1.data %}
-<h2>Summary of Errors by Row</h2>
-{% render_table tables.1 %}
-{% endif %}
 
-<h2 title="Rows imported during this file import attempt">Row Importers</h2>
-{% render_table tables.2 %}
 
+<hr>
+
+{% include "audits/fileimportattempt_common.html" with fileimportattempt=fileimporter.latest_file_import_attempt %}
 
 
 <h2>File Import History</h2>
-
-{% render_table tables.0 %}
+{% render_table tables.3 %}
 
 {% endblock %}

@@ -77,48 +77,9 @@ While this import attempt failed, a subsequent attempt was successful (see above
         {% endif %}
     </div>
 </div>
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-lg-4">
-            <h2 title="Summary of all models that were successfully created during this file import attempt">Models Created from File</h2>
-            <ul class="modelstuff">
-                {% for model, creations in fileimportattempt.get_creations.items %}
-                <li>{{model}} ({{creations|length}})
-                    {% for instance in creations %}
-                    <ul>
-                        <li>
-                            <a href="{{ instance.get_absolute_url }}">{{instance}}</a>
-                        </li>
-                    </ul>
-                    {% endfor %}
-                </li>
-                {% endfor %}
-            </ul>
-        </div>
 
-        <div class="col-lg-4">
-            <h2 title="General information regarding the file import attempt">File-Level Import Info</h2>
-            {% if fileimportattempt.info %}
-            {{ fileimportattempt.info | json | safe }}
-            {% else %}
-            <p>None</p>
-            {% endif %}
-        </div>
+<hr>
+{% include "audits/fileimportattempt_common.html" with fileimportattempt=fileimportattempt %}
 
-        <div class="col-lg-4">
-            <h2 title="Any errors associated with the file import attempt">File-Level Import Errors</h2>
-            {% if fileimportattempt.errors %}
-            {{ fileimportattempt.errors | json | safe }}
-            {% else %}
-            <p>None</p>
-            {% endif %}
-        </div>
-    </div>
-</div>
-
-<h2 title="Rows imported during this file import attempt">Row Importers</h2>
-
-
-{% render_table tables.0 %}
 
 {% endblock %}

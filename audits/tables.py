@@ -303,3 +303,17 @@ class OrphanedFilesDashboardTable(tables.Table):
     class Meta:
         model = FileImportAttempt
         fields = ("file_import_attempt", "file_importer", "is_on_disk")
+
+
+class FileImportAttemptSummaryTable(tables.Table):
+    model_class = tables.Column()
+    instance = tables.Column(linkify=True)
+    row_data = tables.Column(
+        accessor="instance.model_import_attempt.model_importer.row_data", linkify=True
+    )
+    model_import_attempt = tables.Column(
+        accessor="instance.model_import_attempt", linkify=True
+    )
+
+    def render_row_data(self, value):
+        return f"Row {value.row_num}"

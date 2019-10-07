@@ -1,0 +1,41 @@
+{% load cases_tags %}
+{% load render_table from django_tables2 %}
+
+{% if tables.0.data %}
+<h2>Summary of Errors by Row</h2>
+{% render_table tables.0 %}
+{% endif %}
+
+{% if tables.2.data %}
+<h2 title="Summary of attempt">Created Models</h2>
+{% render_table tables.2 %}
+{% endif %}
+
+
+{% if tables.1.data %}
+<h2 title="Rows that were REJECTED during this file import attempt">Rejected Row Importers</h2>
+{% render_table tables.1 %}
+{% endif %}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-4">
+            <h2 title="General information regarding the file import attempt">File-Level Import Info</h2>
+            {% if fileimportattempt.info %}
+            {{ fileimportattempt.info | json | safe }}
+            {% else %}
+            <p>None</p>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-4">
+            <h2 title="Any errors associated with the file import attempt">File-Level Import Errors</h2>
+            {% if fileimportattempt.errors %}
+            {{ fileimportattempt.errors | json | safe }}
+            {% else %}
+            <p>None</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+

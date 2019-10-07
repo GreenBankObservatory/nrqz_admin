@@ -46,6 +46,7 @@ from .tables import (
     FileImporterErrorSummaryTable,
     UnimportedFilesDashboardTable,
     OrphanedFilesDashboardTable,
+    FileImportAttemptSummaryTable,
 )
 from .forms import FileImporterForm
 from cases.models import Case, Facility, Person, PreliminaryCase, PreliminaryFacility
@@ -123,7 +124,12 @@ class FileImportAttemptListView(FilterTableView):
 
 class FileImporterDetailView(MultiTableMixin, DetailView):
     model = FileImporter
-    tables = [FileImportAttemptTable, FileImporterErrorSummaryTable, RowDataTable]
+    tables = [
+        FileImporterErrorSummaryTable,
+        RowDataTable,
+        FileImportAttemptSummaryTable,
+        FileImportAttemptTable,
+    ]
     template_name = "audits/fileimporter_detail.html"
     table_pagination = {"per_page": 10}
 
@@ -142,7 +148,13 @@ class FileImporterDetailView(MultiTableMixin, DetailView):
             .annotate_current_status(),
             form_helper_kwargs={"form_class": "collapse"},
         ).qs
-        return [fia_filter_qs, error_table_data, rd_filter_qs]
+        creations = self.object.latest_file_import_attempt.get_creations()
+        fia_summary_table_data = (
+            {"model_class": model_class._meta.verbose_name, "instance": instance}
+            for model_class, instances in creations.items()
+            for instance in instances
+        )
+        return [error_table_data, rd_filter_qs, fia_summary_table_data, fia_filter_qs]
 
     def get_object(self, *args, **kwargs):
         instance = super().get_object(*args, **kwargs)
@@ -210,19 +222,33 @@ class ModelImportAttemptListView(FilterTableView):
 
 class FileImportAttemptDetailView(MultiTableMixin, DetailView):
     model = FileImportAttempt
-    tables = [RowDataTable]
+    tables = [
+        FileImporterErrorSummaryTable,
+        RowDataTable,
+        FileImportAttemptSummaryTable,
+    ]
     template_name = "audits/fileimportattempt_detail.html"
     table_pagination = {"per_page": 10}
 
     def get_tables_data(self):
+
+        creations = self.object.get_creations()
+        fia_summary_table_data = (
+            {"model_class": model_class._meta.verbose_name, "instance": instance}
+            for model_class, instances in creations.items()
+            for instance in instances
+        )
+
+        error_table_data = self.object.condensed_errors_by_row_as_dicts()
         rd_filter_qs = RowDataFilter(
             self.request.GET,
-            queryset=RowData.objects.filter(
-                file_import_attempt=self.object.id
-            ).annotate_num_model_importers(),
+            queryset=RowData.objects.get_rejected()
+            .filter(file_import_attempt=self.object.id)
+            .annotate_num_model_importers()
+            .annotate_current_status(),
             form_helper_kwargs={"form_class": "collapse"},
         ).qs
-        return [rd_filter_qs]
+        return [error_table_data, rd_filter_qs, fia_summary_table_data]
 
     def get_object(self, *args, **kwargs):
         instance = super().get_object(*args, **kwargs)
