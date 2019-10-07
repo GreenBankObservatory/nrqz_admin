@@ -9,7 +9,7 @@ from tqdm import tqdm
 from django_import_data import BaseImportCommand
 
 
-from cases.models import Case
+from cases.models import Case, Facility
 from importers.excel.formmaps import (
     CASE_FORM_MAP,
     FACILITY_FORM_MAP,
@@ -37,6 +37,8 @@ class Command(BaseImportCommand):
         TAP_FILE_FORM_MAP,
     ]
     IGNORED_HEADERS = IGNORED_HEADERS
+
+    MODELS_TO_REIMPORT = [Facility]
 
     def add_arguments(self, parser):
         super().add_arguments(parser)

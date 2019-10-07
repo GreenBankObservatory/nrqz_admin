@@ -22,6 +22,8 @@ class Command(BaseImportCommand):
 
     IGNORED_HEADERS = IGNORED_HEADERS
 
+    MODELS_TO_REIMPORT = ["facility"]
+
     def load_rows(self, path):
         with open(path, newline="", encoding="latin1") as file:
             lines = file.readlines()
