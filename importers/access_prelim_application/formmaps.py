@@ -54,7 +54,7 @@ class PCaseImportFormMap(FormMap):
         ),
         OneToOneFieldMap(to_field="comments", converter=None, from_field="COMMENTS"),
         OneToOneFieldMap(
-            to_field="date_recorded",
+            to_field="date_received",
             converter=convert_access_datetime,
             from_field="DATEREC",
         ),

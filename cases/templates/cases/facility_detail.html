@@ -16,7 +16,7 @@
             <h1>Facility {{ facility }}</h1>
         </div>
         <div class="col-lg d-print-none">
-            <p>Date Received: {{ facility.case.date_recorded|default:"None" }}</p>
+            <p>Date Received: {{ facility.case.date_received|default:"None" }}</p>
         </div>
         <div class="col-lg d-print-none">
             <a href="{% url 'case_detail' facility.case.case_num %}">View case</a>

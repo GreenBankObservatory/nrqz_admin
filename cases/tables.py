@@ -286,7 +286,7 @@ class CaseTable(BaseCaseTable):
         accessor="sgrs_approval", null=True, verbose_name="SGRS Approval"
     )
     num_sites = tables.Column(
-        verbose_name="Indicated # Facilities",
+        verbose_name="# Facilities Indicated",
         attrs={"th": {"title": "The number of Facilities there are SUPPOSED to be"}},
     )
     num_facilities = tables.Column(
@@ -299,7 +299,7 @@ class CaseTable(BaseCaseTable):
         verbose_name="SI Done",
         attrs={"th": {"title": "The date of the most recent site inspection (if any)"}},
     )
-    date_recorded = tables.DateColumn()
+    date_received = tables.DateColumn()
 
     class Meta:
         model = models.Case

@@ -550,7 +550,7 @@ class AbstractBaseCase(
     radio_service = SensibleCharField(
         max_length=256, blank=True, verbose_name="Radio Service"
     )
-    date_recorded = DateField(null=True, blank=True, verbose_name="Date Recorded")
+    date_received = DateField(null=True, blank=True, verbose_name="Date Received")
 
     slug = SlugField(unique=True)
 
