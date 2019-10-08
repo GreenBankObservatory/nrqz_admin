@@ -1,3 +1,4 @@
+from django import http
 from dal import autocomplete
 
 from .models import (
@@ -75,10 +76,36 @@ class AttachmentAutocompleteView(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         attachment = Attachment.objects.order_by("file_path")
         if self.q:
+            self.q = Attachment.clean_path(self.q)
             attachment = attachment.filter(file_path__icontains=self.q).order_by(
                 "file_path"
             )
         return attachment
+
+    def get_result_label(self, result):
+        label = super().get_result_label(result)
+        return Attachment.clean_path(label)
+
+    # Had to override this method in full, because I don't see any way to
+    # manipulate q before it gets to get_create_option
+    def render_to_response(self, context):
+        """Return a JSON response in Select2 format."""
+        q = self.request.GET.get("q", None)
+
+        # Strip leading/trailing quotes here so that the creation option
+        # works correctly (previously it was showing Create even though
+        # there was already something matching the _clean_ path)
+        if q:
+            q = Attachment.clean_path(q)
+
+        create_option = self.get_create_option(context, q)
+
+        return http.JsonResponse(
+            {
+                "results": self.get_results(context) + create_option,
+                "pagination": {"more": self.has_more(context)},
+            }
+        )
 
 
 class CaseGroupAutocompleteView(autocomplete.Select2QuerySetView):

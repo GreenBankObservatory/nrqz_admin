@@ -803,14 +803,20 @@ class Attachment(
         self.save()
         return self.is_active
 
+    @staticmethod
+    def clean_path(file_path):
+        return file_path.strip("'\"")
+        # if (
+        #     file_path.startswith("'")
+        #     or file_path.startswith('"')
+        #     and file_path.endswith("'")
+        #     or file_path.endswith('"')
+        # ):
+        #     return file_path[1:-1]
+        # return file_path
+
     def save(self, *args, **kwargs):
-        if (
-            self.file_path.startswith("'")
-            or self.file_path.startswith('"')
-            and self.file_path.endswith("'")
-            or self.file_path.endswith('"')
-        ):
-            self.file_path = self.file_path[1:-1]
+        self.file_path = self.clean_path(self.file_path)
 
         super().save(*args, **kwargs)
 
