@@ -272,12 +272,24 @@ class FileImporterErrorSummaryTable(tables.Table):
 
 class UnimportedFilesDashboardTable(tables.Table):
     file_paths = tables.TemplateColumn(
-        verbose_name="Paths", template_name="audits/paths_column.html"
+        verbose_name="Path Groups",
+        template_name="audits/paths_column.html",
+        attrs={
+            "th": {
+                "title": "Each row here contains all files that have exactly the "
+                "same contents (same hash)"
+            }
+        },
     )
-    # file_hash = tables.Column(verbose_name="Hash")
     importer = tables.TemplateColumn(
         template_name="audits/importer_column.html",
         extra_context={"importers": list(parse_importer_spec(SPEC_FILE).keys())},
+        attrs={
+            "th": {
+                "title": "The importer to use for importing. The correct one has almost certainly "
+                "been automatically selected, but you can change it if you need to."
+            }
+        },
     )
 
     check = TitledCheckBoxColumn(

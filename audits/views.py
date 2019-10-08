@@ -595,8 +595,16 @@ class UnimportedFilesDashboard(SingleTableMixin, TemplateView):
     # table_pagination = {"per_page": 10}
 
     def get_table_data(self):
+        # Get a set of all unique, known paths. That is, all paths that have either been imported
+        # before (FIAs), or are "owned" by an FI (even if they haven't actually been imported)
         known_paths = set(
-            FileImportAttempt.objects.values_list("imported_from", flat=True)
+            (
+                path
+                for paths in FileImportAttempt.objects.values_list(
+                    "imported_from", "file_importer__file_path"
+                )
+                for path in paths
+            )
         )
         known_hashes = set(
             FileImportAttempt.objects.values_list("hash_when_imported", flat=True)
@@ -612,9 +620,14 @@ class UnimportedFilesDashboard(SingleTableMixin, TemplateView):
                 importer_spec["paths"], importer_spec.get("pattern", None)
             )
             for path in paths_for_importer:
-                file_hash = hash_file(path)
-                if not (path in known_paths or file_hash in known_hashes):
-                    hash_to_file_data_map[file_hash].append((importer, path))
+                if path not in known_paths:
+                    # Only calculate the file_hash if we have to! We only care about the hash
+                    # if the path is not in known_paths (if it is in there, we aren't going
+                    # to add it to the table, regardless of the hash)
+                    file_hash = hash_file(path)
+                    if file_hash not in known_hashes:
+                        # If the hash isn't known either, then append!
+                        hash_to_file_data_map[file_hash].append((importer, path))
 
         # Now we unpack the dictionary into table data
         unimported_file_data = [
@@ -630,6 +643,11 @@ class UnimportedFilesDashboard(SingleTableMixin, TemplateView):
         ]
 
         return unimported_file_data
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["total_paths"] = sum(len(row["paths"]) for row in context["table"].data)
+        return context
 
     def post(self, request, *args, **kwargs):
         if request.POST.get("all"):
