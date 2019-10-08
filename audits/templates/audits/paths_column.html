@@ -1,0 +1,9 @@
+{% load cases_tags %}
+
+{% for full_path in record.paths %}
+<div class="radio">
+    <label title="{{record.file_hash}}">
+        <input type="radio" value="{{full_path}}" name="path.{{record.file_hash}}" {% if forloop.first %} checked {% endif %}></input>{{full_path}}
+    </label>
+</div>
+{% endfor %}

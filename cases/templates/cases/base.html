@@ -6,7 +6,7 @@
   <head>
 {% block head %}
     <meta charset="utf-8">
-    <title>QZAT | {{ view | view_to_str }}</title>
+    <title>QZAT | {% if view %}{{ view | view_to_str }}{% else %}{{ request | request_to_str }}{% endif %}</title>
 
     <link rel="shortcut icon" type="image/png" href="{% static 'favicon.png' %}"/>
 

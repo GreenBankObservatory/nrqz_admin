@@ -3,9 +3,11 @@
 {% load render_table from django_tables2 %}
 
 {% block content %}
-<h1>Unimported Files Dashboard</h1>
+<h1>Unimported Files Dashboard ({{table.data|length}})</h1>
 {% if table.data %}
-<p>Files on this page have not been imported, but probably should be</p>
+<p>
+    Files on this page have not been imported, but probably should be! Each row in the table represents a unique file. In cases where there are duplicates of a given file, they are listed individualy in the first column. You may select <strong>one</strong> of these to import! The other should probably be deleted, but that's up to you.
+</p>
 <form method="POST" >{% csrf_token %}
     {% render_table table %}
     <button class="btn btn-primary" type="submit" value="submit" name="Submit">Import</button>

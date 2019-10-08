@@ -271,14 +271,18 @@ class FileImporterErrorSummaryTable(tables.Table):
 
 
 class UnimportedFilesDashboardTable(tables.Table):
-    file_path = tables.Column(verbose_name="Path")
+    file_paths = tables.TemplateColumn(
+        verbose_name="Paths", template_name="audits/paths_column.html"
+    )
+    # file_hash = tables.Column(verbose_name="Hash")
     importer = tables.TemplateColumn(
         template_name="audits/importer_column.html",
         extra_context={"importers": list(parse_importer_spec(SPEC_FILE).keys())},
     )
 
     check = TitledCheckBoxColumn(
-        accessor="file_path",
+        empty_values=(),
+        accessor="file_hash",
         attrs={
             "th": {
                 "title": "Select the files you want to affect (or the checkbox here to affect all of them)"

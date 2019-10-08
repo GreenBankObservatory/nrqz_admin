@@ -12,6 +12,7 @@ from django.views.generic.base import RedirectView
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import ProcessFormView
+from django.utils.safestring import mark_safe
 
 from django_tables2.views import SingleTableMixin, MultiTableMixin
 from django_import_data.views import CreateFromImportAttemptView
@@ -23,7 +24,7 @@ from django_import_data.models import (
     ModelImporter,
     RowData,
 )
-from django_import_data.utils import determine_files_to_process
+from django_import_data.utils import determine_files_to_process, hash_file
 
 
 from cases.views import FilterTableView
@@ -585,38 +586,75 @@ class FileImporterDashboard(SingleTableMixin, TemplateView, ProcessFormView):
         return super().dispatch(request, *args, **kwargs)
 
 
+from collections import defaultdict
+
+
 class UnimportedFilesDashboard(SingleTableMixin, TemplateView):
     table_class = UnimportedFilesDashboardTable
     template_name = "audits/unimported_files_dashboard.html"
-    table_pagination = {"per_page": 10}
+    # table_pagination = {"per_page": 10}
 
     def get_table_data(self):
-        known_paths = set(FileImporter.objects.values_list("file_path", flat=True))
+        known_paths = set(
+            FileImportAttempt.objects.values_list("imported_from", flat=True)
+        )
+        known_hashes = set(
+            FileImportAttempt.objects.values_list("hash_when_imported", flat=True)
+        )
 
         importer_specs = parse_importer_spec(SPEC_FILE)
-        unimported_path_data = [
-            {"importer": importer, "file_path": file_path}
-            for importer, importer_spec in importer_specs.items()
-            for file_path in set(
-                determine_files_to_process(
-                    importer_spec["paths"], importer_spec.get("pattern", None)
-                )
-            ).difference(known_paths)
+
+        unimported_file_data = []
+        # A dict mapping file has to all the paths/importers with that path
+        hash_to_file_data_map = defaultdict(list)
+        for importer, importer_spec in importer_specs.items():
+            paths_for_importer = determine_files_to_process(
+                importer_spec["paths"], importer_spec.get("pattern", None)
+            )
+            for path in paths_for_importer:
+                file_hash = hash_file(path)
+                if not (path in known_paths or file_hash in known_hashes):
+                    hash_to_file_data_map[file_hash].append((importer, path))
+
+        # Now we unpack the dictionary into table data
+        unimported_file_data = [
+            {
+                "file_hash": file_hash,
+                # Pull out the path component from each item in the data
+                "paths": [item[1] for item in file_data],
+                # Just pick an arbitrary importer. They should all be the same anyway,
+                # and if they aren't this can be corrected later on in the form
+                "importer": file_data[0][0],
+            }
+            for file_hash, file_data in hash_to_file_data_map.items()
         ]
-        return unimported_path_data
+
+        return unimported_file_data
 
     def post(self, request, *args, **kwargs):
         if request.POST.get("all"):
-            paths_to_import = [item["file_path"] for item in self.get_table_data()]
+            to_import = [
+                (request.POST[key], request.POST["importer." + key.split(".")[1]])
+                for key in request.POST.keys()
+                if key.startswith("path")
+            ]
         else:
-            paths_to_import = request.POST.getlist("check")
+            hashes_to_import = request.POST.getlist("check")
 
-        to_import = [(path, request.POST.get(path)) for path in paths_to_import]
+            to_import = [
+                (
+                    request.POST.get(f"path.{file_hash}"),
+                    request.POST.get(f"importer.{file_hash}"),
+                )
+                for file_hash in hashes_to_import
+            ]
 
+        print("theimp   ", to_import)
         if len(to_import) > 1:
             file_importer_batch = FileImporterBatch.objects.create(
                 command="Meta", args=[], kwargs=[]
             )
+            print(f"Created FIB {file_importer_batch}")
         else:
             file_importer_batch = None
 
@@ -628,6 +666,14 @@ class UnimportedFilesDashboard(SingleTableMixin, TemplateView):
                 file_path,
                 file_importer_batch=file_importer_batch,
                 quiet=True,
+            )
+
+        if file_importer_batch:
+            messages.success(
+                request,
+                mark_safe(
+                    f"Successfully created <a href={file_importer_batch.get_absolute_url()}>File Import Batch {file_importer_batch.id}</a>"
+                ),
             )
 
         return HttpResponseRedirect(reverse("unimported_files_dashboard"))

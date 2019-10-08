@@ -177,6 +177,28 @@ def basename(value):
 
 
 @register.filter
+def ellipsify(value, numchars):
+    str_len = len(value)
+    if str_len > numchars:
+        return f"… {value[-numchars:]}"
+    return value
+
+
+@register.filter
+def trunc_paths(paths):
+    prefix = os.path.commonprefix(paths)
+    prefix_len = len(prefix)
+    ret = []
+    if prefix:
+        for value in paths:
+            prev_slash = value.rfind("/", 0, prefix_len)
+            ret.append((value, f"…{value[prev_slash + 1:]}"))
+        return ret
+
+    return zip(paths, paths)
+
+
+@register.filter
 def table_model_name(table):
     try:
         try:
@@ -227,6 +249,16 @@ def view_to_str(view):
         # Then, convert from CamelCase to Title Case
         # From: https://stackoverflow.com/a/9283563/1883424
         title = re.sub(r"((?<=[a-z])[A-Z]|(?<!\A)[A-Z](?=[a-z]))", r" \1", title)
+
+    return title
+
+
+@register.filter
+def request_to_str(request):
+    """Convert relative path from request into a title"""
+
+    title = os.path.basename(request.path.strip("/"))
+    title = " ".join(x.capitalize() or " " for x in re.split("[-_]", title))
 
     return title
 
