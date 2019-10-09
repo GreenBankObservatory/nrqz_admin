@@ -61,7 +61,6 @@ class UnboundFileColumn(Column):
 
     def render(self, value, bound_column, record):
         path = value
-        record.refresh_from_filesystem()
 
         # TODO: Fix this so that it is relative to the client, and not the
         # server, and it might actually be useful!
@@ -74,6 +73,12 @@ title="{path}"
     {self.text if self.text else path}
 </a>"""
         return mark_safe(foo)
+
+
+class AttachmentFileColumn(UnboundFileColumn):
+    def render(self, value, bound_column, record):
+        record.refresh_from_filesystem()
+        return super().render(value, bound_column, record)
 
 
 class RemappedUnboundFileColumn(UnboundFileColumn):

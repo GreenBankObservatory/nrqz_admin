@@ -17,7 +17,7 @@ from .filters import (
     PreliminaryCaseFilter,
     CaseGroupFilter,
 )
-from .columns import SelectColumn, TrimmedTextColumn, UnboundFileColumn
+from .columns import SelectColumn, TrimmedTextColumn, AttachmentFileColumn
 
 
 class LetterFacilityTable(tables.Table):
@@ -336,7 +336,7 @@ class PersonTable(tables.Table):
 
 class AttachmentTable(tables.Table):
     file_path = tables.Column(linkify=True, verbose_name="Attachment")
-    file = UnboundFileColumn(accessor="file_path", verbose_name="Link")
+    file = AttachmentFileColumn(accessor="file_path", verbose_name="Link")
     original_index = tables.Column(verbose_name="Letter #")
 
     class Meta:
