@@ -249,6 +249,7 @@ class CaseFilter(BaseCaseFilter):
     si_done = django_filters.DateFromToRangeFilter(
         field_name="si_done", label="SI Done"
     )
+    date_received = django_filters.DateFromToRangeFilter()
     # TODO: Broken...
     # case_groups = django_filters.ModelChoiceFilter(
     #     queryset=models.CaseGroup.objects.all(), widget=CaseGroupWidget()
