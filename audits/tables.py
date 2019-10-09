@@ -13,6 +13,7 @@ from django_import_data.models import (
 )
 from django_import_data.utils import to_fancy_str
 
+from cases.columns import RemappedUnboundFileColumn
 from .filters import (
     ModelImporterFilter,
     ModelImportAttemptFilter,
@@ -71,7 +72,9 @@ class FileImporterBatchTable(tables.Table):
 
 class FileImporterTable(tables.Table):
     id = tables.Column(linkify=True, verbose_name="FI")
-    file_path = BaseNameColumn()
+    file_path = RemappedUnboundFileColumn(
+        remap_regex=r"/home/code/nrqz/", replacement_str="Q:\\\\"
+    )
     status = ImportStatusColumn(
         verbose_name="Import Status",
         attrs={
@@ -94,7 +97,33 @@ class FileImporterTable(tables.Table):
     class Meta:
         model = FileImporter
         fields = FileImporterFilter.Meta.fields
-        order_by = ["-modified_on"]
+
+    def render_id(self, value):
+        return f"FI {value}"
+
+
+class FileImporterSummaryTable(tables.Table):
+    id = tables.Column(linkify=True, verbose_name="FI")
+    # TODO: This should not be hardcoded here; this really should be table driven somehow...
+    file_path = RemappedUnboundFileColumn(
+        remap_regex=r"/home/code/nrqz/",
+        replacement_str="Q:\\\\",
+        verbose_name="Open File",
+    )
+    status = ImportStatusColumn(
+        verbose_name="Import Status",
+        attrs={
+            "th": {
+                "title": "The most severe status out of all File Import "
+                "Attempts in the history of this Importer"
+            }
+        },
+    )
+    current_status = CurrentStatusColumn()
+
+    class Meta:
+        model = FileImporter
+        fields = FileImporterFilter.Meta.fields
 
     def render_id(self, value):
         return f"FI {value}"
@@ -134,7 +163,9 @@ class FileImportAttemptTable(tables.Table):
         # },
     )
     current_status = CurrentStatusColumn()
-    imported_from = BaseNameColumn()
+    imported_from = RemappedUnboundFileColumn(
+        remap_regex=r"/home/code/nrqz/", replacement_str="Q:\\\\"
+    )
 
     num_model_importers = tables.Column(
         verbose_name="# MIs",

@@ -6,7 +6,7 @@ from docxtpl import DocxTemplate
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
-from django.db.models import Q, Count, Exists, OuterRef
+from django.db.models import Q, Count, Exists, OuterRef, Sum
 from django.db.utils import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
@@ -16,11 +16,14 @@ from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 from django.views.generic.edit import UpdateView
 
+from django_import_data.models import FileImporter
 from django_filters.views import FilterView
 from django_tables2.export.views import ExportMixin
 from django_tables2.views import SingleTableMixin, MultiTableMixin
 from watson import search as watson
 
+from audits.filters import FileImporterFilter
+from audits.tables import FileImporterSummaryTable
 from utils.coord_utils import coords_to_string
 from utils.merge_people import find_similar_people, merge_people
 from .forms import LetterTemplateForm, DuplicateCaseForm, CaseForm, PersonForm
@@ -402,7 +405,13 @@ class PreliminaryCaseDetailView(MultiTableMixin, DetailView):
 
 class CaseDetailView(MultiTableMixin, DetailView):
     model = Case
-    tables = [FacilityTable, AttachmentTable, CaseTable, PreliminaryCaseTable]
+    tables = [
+        FacilityTable,
+        AttachmentTable,
+        CaseTable,
+        PreliminaryCaseTable,
+        FileImporterSummaryTable,
+    ]
     table_pagination = {"per_page": 10}
 
     def get_tables_data(self):
@@ -414,7 +423,7 @@ class CaseDetailView(MultiTableMixin, DetailView):
 
         attachment_filter_qs = AttachmentFilter(
             self.request.GET,
-            queryset=self.object.attachments,  # .exclude(is_active=False),
+            queryset=self.object.attachments,
             form_helper_kwargs={"form_class": "collapse"},
         ).qs
 
@@ -430,11 +439,31 @@ class CaseDetailView(MultiTableMixin, DetailView):
             form_helper_kwargs={"form_class": "collapse"},
         ).qs
 
+        related_file_impoters = FileImporter.objects.none()
+        if self.object.model_import_attempt:
+            related_file_impoters |= FileImporter.objects.filter(
+                file_import_attempts__row_datas__model_importers__model_import_attempts=(
+                    self.object.model_import_attempt
+                )
+            )
+        if facility_filter_qs:
+            related_file_impoters |= FileImporter.objects.filter(
+                file_import_attempts__row_datas__model_importers__model_import_attempts__in=(
+                    facility_filter_qs.values("model_import_attempt")
+                )
+            )
+        fi_filter_qs = FileImporterFilter(
+            self.request.GET,
+            queryset=related_file_impoters.order_by("id")
+            .annotate_current_status()
+            .distinct(),
+        ).qs
         return [
             facility_filter_qs,
             attachment_filter_qs,
             case_filter_qs,
             pcase_filter_qs,
+            fi_filter_qs,
         ]
 
     def get_context_data(self, **kwargs):

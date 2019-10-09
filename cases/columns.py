@@ -1,5 +1,6 @@
 """Custom djang_tables2.Column sub-classes for cases app"""
 import os
+import re
 
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
@@ -51,6 +52,13 @@ class SelectColumn(CheckBoxColumn):
 
 
 class UnboundFileColumn(Column):
+    def __init__(self, *args, text=None, **kwargs):
+        if text:
+            self.text = text
+        else:
+            self.text = None
+        super().__init__(*args, **kwargs)
+
     def render(self, value, bound_column, record):
         path = value
         record.refresh_from_filesystem()
@@ -61,8 +69,22 @@ class UnboundFileColumn(Column):
         #     return "File does not exist"
         foo = f"""<a
 href='{to_file_link(path)}'
-title={os.path.basename(path)}
+title="{path}"
 >
-    Open Attachment
+    {self.text if self.text else path}
 </a>"""
         return mark_safe(foo)
+
+
+class RemappedUnboundFileColumn(UnboundFileColumn):
+    def __init__(self, remap_regex, replacement_str, *args, text=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.remap_regex = re.compile(remap_regex)
+        self.replacement_str = replacement_str
+
+    def render(self, value, bound_column, record):
+        return super().render(
+            self.remap_regex.sub(self.replacement_str, value).replace("/", "\\"),
+            bound_column,
+            record,
+        )

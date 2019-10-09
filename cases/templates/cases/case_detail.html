@@ -117,6 +117,13 @@
 <p>No comments</p>
 {% endif %}
 
+<h2 title="Each row represents a file that contributed data to this Case or its Facilities">File Importer Info</h2>
+{% if tables.4.data %}
+{% render_table tables.4 %}
+{% else %}
+<p>No external files have contributed data to this Case or its Facilities</p>
+{% endif %}
+
 <h2>Attachments</h2>
 {% if tables.1.data %}
 {% render_table tables.1 %}

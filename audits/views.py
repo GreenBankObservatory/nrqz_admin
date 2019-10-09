@@ -109,6 +109,7 @@ class FileImporterListView(FilterTableView):
         queryset = super().get_queryset()
         queryset = queryset.annotate_num_file_import_attempts()
         queryset = queryset.annotate_num_model_importers()
+        queryset = queryset.annotate_current_status()
         return queryset
 
 
