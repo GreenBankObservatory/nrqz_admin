@@ -193,7 +193,7 @@ version = "0.1.0"
 tqdm = "^4.32"
 
 [package.source]
-reference = "d3bfca14d342c2ffa85fa25bbc368d815c1a25d7"
+reference = "a404743ae17d61b5dbb7f7dafb19ea2faeaad04f"
 type = "git"
 url = "https://github.com/GreenBankObservatory/django-import-data"
 [[package]]
