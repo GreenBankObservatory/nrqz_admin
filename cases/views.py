@@ -233,7 +233,7 @@ class CaseListView(FilterTableView):
             qs = self.get_filterset(self.filterset_class).qs
             response = HttpResponse(
                 kml_to_string(
-                    cases_as_kml(qs.filter(facility__location__isnull=False).all())
+                    cases_as_kml(qs.filter(facilities__location__isnull=False).all())
                 ),
                 content_type="application/vnd.google-earth.kml+xml.",
             )
