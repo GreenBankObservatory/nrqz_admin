@@ -439,22 +439,17 @@ class CaseDetailView(MultiTableMixin, DetailView):
             form_helper_kwargs={"form_class": "collapse"},
         ).qs
 
-        related_file_impoters = FileImporter.objects.none()
-        if self.object.model_import_attempt:
-            related_file_impoters |= FileImporter.objects.filter(
-                file_import_attempts__row_datas__model_importers__model_import_attempts=(
-                    self.object.model_import_attempt
-                )
+        # Get the File Importers that contain the MIAs used to create this Case's Facilities
+        related_file_importers = FileImporter.objects.prefetch_related(
+            "file_import_attempts__row_datas__model_importers__model_import_attempts"
+        ).filter(
+            file_import_attempts__row_datas__model_importers__model_import_attempts__in=(
+                facility_filter_qs.values("model_import_attempt")
             )
-        if facility_filter_qs:
-            related_file_impoters |= FileImporter.objects.filter(
-                file_import_attempts__row_datas__model_importers__model_import_attempts__in=(
-                    facility_filter_qs.values("model_import_attempt")
-                )
-            )
+        )
         fi_filter_qs = FileImporterFilter(
             self.request.GET,
-            queryset=related_file_impoters.order_by("id")
+            queryset=related_file_importers.order_by("id")
             .annotate_current_status()
             .distinct(),
         ).qs
@@ -486,6 +481,7 @@ class CaseDetailView(MultiTableMixin, DetailView):
             "call_sign",
             "freq_coord",
             "fcc_file_num",
+            ("# Facilities Evaluated", self.object.num_facilities_evaluated, ""),
             "num_sites",
             "num_freqs",
             "num_outside",

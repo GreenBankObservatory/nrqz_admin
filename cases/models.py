@@ -730,6 +730,10 @@ class Case(AbstractBaseCase):
 
         return True
 
+    @property
+    def num_facilities_evaluated(self):
+        return self.facilities.count()
+
 
 class Person(
     AbstractBaseAuditedModel, IsActiveModel, TrackedModel, DataSourceModel, Model
