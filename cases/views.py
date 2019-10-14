@@ -1,9 +1,9 @@
 from datetime import date
 import tempfile
-
 from docx.opc.exceptions import PackageNotFoundError
 from docxtpl import DocxTemplate
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
@@ -406,9 +406,10 @@ class PreliminaryCaseDetailView(MultiTableMixin, DetailView):
         context = super().get_context_data(**kwargs)
         context["status_info"] = ["completed_on"]
         context["application_info"] = ["radio_service", "num_freqs", "num_sites"]
-        context["unsorted_info"] = get_fields_missing_from_info_tables(
-            context, self.object.all_fields()
-        )
+        if settings.DEBUG:
+            context["unsorted_info"] = get_fields_missing_from_info_tables(
+                context, self.object.all_fields()
+            )
         return context
 
 
@@ -508,9 +509,10 @@ class CaseDetailView(MultiTableMixin, DetailView):
             "sgrs_service_num",
             ("SGRS Approval", self.object.get_sgrs_approval, ""),
         ]
-        context["unsorted_info"] = get_fields_missing_from_info_tables(
-            context, self.object.all_fields()
-        )
+        if settings.DEBUG:
+            context["unsorted_info"] = get_fields_missing_from_info_tables(
+                context, self.object.all_fields()
+            )
         context["duplicate_case_form"] = DuplicateCaseForm()
         return context
 
@@ -602,9 +604,10 @@ class PreliminaryFacilityDetailView(BaseFacilityDetailView):
             # "num_tx_per_facility",
             # "max_erp_per_tx",
         ]
-        context["unsorted_info"] = get_fields_missing_from_info_tables(
-            context, self.object.all_fields()
-        )
+        if settings.DEBUG:
+            context["unsorted_info"] = get_fields_missing_from_info_tables(
+                context, self.object.all_fields()
+            )
         context["federal_info"] = [
             ("Is Federal?", self.object.pcase.is_federal, ""),
             "s367",
@@ -645,9 +648,10 @@ class FacilityDetailView(MultiTableMixin, BaseFacilityDetailView):
             "num_tx_per_facility",
             "requested_max_erp_per_tx",
         ]
-        context["unsorted_info"] = get_fields_missing_from_info_tables(
-            context, self.object.all_fields()
-        )
+        if settings.DEBUG:
+            context["unsorted_info"] = get_fields_missing_from_info_tables(
+                context, self.object.all_fields()
+            )
 
         context["analysis_results_info"] = [
             "meets_erpd_limit",
