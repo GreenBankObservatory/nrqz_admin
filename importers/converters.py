@@ -174,17 +174,21 @@ def convert_access_datetime(value):
 
 def coerce_positive_int(value):
     num = coerce_float(value)
-    if num is None or num < 0:
+    if num is None:
         return None
+    if num < 0:
+        raise ValueError("Must be positive!")
 
     return int(num)
 
 
 def coerce_positive_float(value):
     num = coerce_float(value)
-    if num is None or num < 0:
+    if num is None:
         return None
-    return float(num)
+    if num < 0:
+        raise ValueError("Must be positive!")
+    return num
 
 
 def convert_case_num(value):
