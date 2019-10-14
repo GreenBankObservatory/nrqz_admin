@@ -17,7 +17,12 @@ from .filters import (
     PreliminaryCaseFilter,
     CaseGroupFilter,
 )
-from .columns import SelectColumn, TrimmedTextColumn, AttachmentFileColumn
+from .columns import (
+    SelectColumn,
+    TrimmedTextColumn,
+    AttachmentFileColumn,
+    UnboundFileColumn,
+)
 
 
 class LetterFacilityTable(tables.Table):
@@ -62,12 +67,16 @@ class LetterFacilityTable(tables.Table):
 class BaseFacilityTable(tables.Table):
     # comments = TrimmedTextColumn()
     distance_to_gbt = tables.Column(
-        empty_values=(), accessor="distance_to_gbt", verbose_name="Distance to GBT"
+        empty_values=(),
+        accessor="distance_to_gbt",
+        verbose_name="Dist. to GBT (km)",
+        attrs={"th": {"title": "Distance to GBT (km)"}},
     )
     azimuth_to_gbt = tables.Column(
         empty_values=(),
         accessor="azimuth_to_gbt",
-        verbose_name="Azimuth Bearing to GBT",
+        verbose_name="Az. Bearing",
+        attrs={"th": {"title": "Azimuth Bearing to GBT"}},
     )
 
     # in_nrqz = tables.Column(verbose_name="In NRQZ")
@@ -159,6 +168,12 @@ class FacilityTable(BaseFacilityTable):
     # applicant = tables.Column(linkify=True, accessor="case.applicant")
     latitude = tables.Column(accessor="location", verbose_name="Latitude")
     longitude = tables.Column(accessor="location", verbose_name="Longitude")
+    bandwidth = tables.Column(
+        verbose_name="B/W (MHz)", attrs={"th": {"title": "Bandwidth (MHz)"}}
+    )
+    # file_path = UnboundFileColumn(
+    #     accessor="model_import_attempt.model_importer.row_data.file_import_attempt.imported_from"
+    # )
 
     class Meta:
         model = models.Facility
