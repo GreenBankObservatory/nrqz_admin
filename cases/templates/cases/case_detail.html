@@ -89,7 +89,7 @@
     </tr>
 </table>
 
-<h2>Facilities</h2>
+<h2>Facilities ({{tables.0.data|length}})</h2>
 {% if tables.0.data %}
 <a href="{% url 'case_kml' case.id %}">As KML</a>
 {% render_table tables.0 %}
@@ -117,14 +117,14 @@
 <p>No comments</p>
 {% endif %}
 
-<h2>Attachments</h2>
+<h2>Attachments ({{tables.1.data|length}})</h2>
 {% if tables.1.data %}
 {% render_table tables.1 %}
 {% else %}
 <p>No attachments</p>
 {% endif %}
 
-<h2 title="Each row represents a file that contributed data to this Case or its Facilities">File Importer Info</h2>
+<h2 title="Each row represents a file that contributed data to this Case or its Facilities">File Importer Info ({{tables.4.data|length}})</h2>
 {% if tables.4.data %}
 {% render_table tables.4 %}
 {% else %}
