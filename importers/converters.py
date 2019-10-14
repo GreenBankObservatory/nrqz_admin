@@ -86,7 +86,9 @@ def coerce_scientific_notation(value):
         ipdb.set_trace()
 
 
-def coerce_none(value, none_str_values=("", "None", "#N/A", "Not provided")):
+def coerce_none(
+    value, none_str_values=("", "None", "#N/A", "Not provided", "N/A", "NA")
+):
     clean = str(value).strip().lower()
     if clean in [v.lower() for v in none_str_values]:
         return None
@@ -182,7 +184,6 @@ def coerce_positive_float(value):
     num = coerce_float(value)
     if num is None or num < 0:
         return None
-    print("coerce_positive_float", value, float(num))
     return float(num)
 
 
