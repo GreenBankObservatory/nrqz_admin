@@ -831,6 +831,8 @@ class LetterTemplate(IsActiveModel, TrackedModel, Model):
         path=settings.NRQZ_LETTER_TEMPLATE_DIR,
         max_length=512,
         unique=True,
+        allow_folders=False,
+        match=settings.NRQZ_LETTER_TEMPLATE_REGEX,
         help_text=f"Save new files into '{settings.NRQZ_LETTER_TEMPLATE_DIR}' in order to select them here",
     )
     description = SensibleTextField(blank=True)

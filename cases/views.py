@@ -1,6 +1,7 @@
 from datetime import date
 import tempfile
 
+from docx.opc.exceptions import PackageNotFoundError
 from docxtpl import DocxTemplate
 
 from django.contrib import messages
@@ -332,7 +333,15 @@ class LetterView(FormView):
         # We make a temp file...
         letter_context = self.get_letter_context(form.cleaned_data)
         letter_template = form.cleaned_data["template"]
-        dt = DocxTemplate(letter_template.path)
+        try:
+            dt = DocxTemplate(letter_template.path)
+        except PackageNotFoundError as error:
+            messages.error(
+                self.request,
+                f"Letter template at {letter_template.path} does not exist! "
+                "You will need to resolve this manually.",
+            )
+            return HttpResponseRedirect(reverse("letters"))
 
         with tempfile.NamedTemporaryFile() as fp:
             dt.render(letter_context)

@@ -187,3 +187,6 @@ ADMINS = (("Thomas Chamberlin", "tchamber@nrao.edu"),)
 # We are bring in the latest tempus dominus assets ourselves, so we need to
 # tell it not to do it itself
 TEMPUS_DOMINUS_INCLUDE_ASSETS = False
+
+# Match only docx files -- NOT the ~$tempfiles that Word creates
+NRQZ_LETTER_TEMPLATE_REGEX = r"^[^~].*\.docx$"
