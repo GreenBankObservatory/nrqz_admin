@@ -397,7 +397,7 @@ class Facility(AbstractBaseFacility):
     # From Working Data
     band_allowance = FloatField(null=True, blank=True, verbose_name="Band Allowance")
     distance_to_first_obstacle = SensibleCharField(
-        max_length=256, blank=True, verbose_name="Distance to First Obstacle"
+        max_length=256, blank=True, verbose_name="Distance to First Obstacle (km)"
     )
     dominant_path = SensibleCharField(
         max_length=256,

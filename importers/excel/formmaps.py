@@ -332,7 +332,12 @@ class FacilityImportFormMap(FormMap):
         OneToOneFieldMap(
             to_field="height_of_first_obstacle",
             converter=coerce_positive_float,
-            from_field={"height_of_first_obstacle": ["Height of 1st obstacle (ft)"]},
+            from_field={
+                "height_of_first_obstacle": [
+                    "Height of 1st obstacle (ft)",
+                    "Height (ft) to 1st obstacle",
+                ]
+            },
         ),
         OneToOneFieldMap(
             to_field="max_aerpd",
