@@ -417,7 +417,7 @@ class CaseDetailView(MultiTableMixin, DetailView):
     def get_tables_data(self):
         facility_filter_qs = FacilityFilter(
             self.request.GET,
-            queryset=self.object.facilities.all(),
+            queryset=self.object.facilities.all().annotate_azimuth_to_gbt(),
             form_helper_kwargs={"form_class": "collapse"},
         ).qs
 

@@ -117,7 +117,7 @@ class BaseFacilityTable(tables.Table):
             azimuth_to_gbt = record.get_azimuth_to_gbt()
         if azimuth_to_gbt is None:
             return "—"
-        return f"{azimuth_to_gbt:.2f}°"
+        return f"{azimuth_to_gbt:.3f}°"
 
 
 class PreliminaryFacilityTable(BaseFacilityTable):

@@ -284,7 +284,7 @@ class AbstractBaseFacility(
             return None
         return math.degrees(
             Location.objects.filter(name="GBT")
-            .annotate(azimuth=Azimuth(F("location"), self.location))
+            .annotate(azimuth=Azimuth(self.location, F("location")))
             .values("azimuth")
             .last()["azimuth"]
         )
