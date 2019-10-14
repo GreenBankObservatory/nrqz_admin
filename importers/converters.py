@@ -172,7 +172,7 @@ def convert_access_datetime(value):
 
 def coerce_positive_int(value):
     num = coerce_float(value)
-    if num is None or num < 1:
+    if num is None or num < 0:
         return None
 
     return int(num)
@@ -180,9 +180,9 @@ def coerce_positive_int(value):
 
 def coerce_positive_float(value):
     num = coerce_float(value)
-    if num is None or num < 1:
+    if num is None or num < 0:
         return None
-
+    print("coerce_positive_float", value, float(num))
     return float(num)
 
 
