@@ -544,6 +544,13 @@ class BaseFacilityDetailView(DetailView):
             "tpa",
             "distance_to_first_obstacle",
             "height_of_first_obstacle",
+            (
+                "Azimuth Bearing (derived)",
+                f"{self.object.get_azimuth_to_gbt():.3f}°"
+                if self.object.location
+                else None,
+                "Azimuth bearing to GBT in degrees",
+            ),
             "dominant_path",
             ("Propagation Study", self.object.get_prop_study_as_link(), ""),
         ]
@@ -570,8 +577,8 @@ class PreliminaryFacilityDetailView(BaseFacilityDetailView):
             "agl",
             "antenna_model_number",
             (
-                "Azimuth Bearing",
-                f"{self.object.get_azimuth_to_gbt():.2f}°"
+                "Azimuth Bearing (derived)",
+                f"{self.object.get_azimuth_to_gbt():.3f}°"
                 if self.object.location
                 else None,
                 "Azimuth bearing to GBT in degrees",
