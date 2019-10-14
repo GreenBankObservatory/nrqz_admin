@@ -1,3 +1,4 @@
+from collections import defaultdict
 import os
 
 from django.contrib import messages
@@ -587,9 +588,6 @@ class FileImporterDashboard(SingleTableMixin, TemplateView, ProcessFormView):
         return super().dispatch(request, *args, **kwargs)
 
 
-from collections import defaultdict
-
-
 class UnimportedFilesDashboard(SingleTableMixin, TemplateView):
     table_class = UnimportedFilesDashboardTable
     template_name = "audits/unimported_files_dashboard.html"
@@ -668,7 +666,6 @@ class UnimportedFilesDashboard(SingleTableMixin, TemplateView):
                 for file_hash in hashes_to_import
             ]
 
-        print("theimp   ", to_import)
         if len(to_import) > 1:
             file_importer_batch = FileImporterBatch.objects.create(
                 command="Meta", args=[], kwargs=[]
@@ -679,13 +676,17 @@ class UnimportedFilesDashboard(SingleTableMixin, TemplateView):
 
         for file_path, importer_name in to_import:
             print(f"Importing {file_path} using importer  {importer_name}")
-            _import_file(
+            fia_redirect = _import_file(
                 request,
                 importer_name,
                 file_path,
                 file_importer_batch=file_importer_batch,
                 quiet=True,
             )
+        if len(to_import) == 1:
+            redirect_to = fia_redirect
+        else:
+            redirect_to = HttpResponseRedirect(file_importer_batch.get_absolute_url())
 
         if file_importer_batch:
             messages.success(
@@ -695,7 +696,7 @@ class UnimportedFilesDashboard(SingleTableMixin, TemplateView):
                 ),
             )
 
-        return HttpResponseRedirect(reverse("unimported_files_dashboard"))
+        return redirect_to
 
 
 class OrphanedFilesDashboard(SingleTableMixin, TemplateView):
