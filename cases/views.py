@@ -452,14 +452,16 @@ class CaseDetailView(MultiTableMixin, DetailView):
 
         mia_failures_filter_qs = ModelImportAttemptFilter(
             self.request.GET,
-            queryset=ModelImportAttempt.objects.annotate_is_latest().filter(
+            queryset=ModelImportAttempt.objects.all()
+            # .annotate_is_latest()
+            .filter(
                 id__in=(
                     self.object.model_import_attempt.model_importer.row_data.model_importers.values(
                         "model_import_attempts"
                     )
                 ),
                 status=ModelImportAttempt.STATUSES.rejected.db_value,
-                is_latest=True,
+                # is_latest=True,
             ),
             form_helper_kwargs={"form_class": "collapse"},
         ).qs
