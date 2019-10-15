@@ -17,14 +17,14 @@ from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 from django.views.generic.edit import UpdateView
 
-from django_import_data.models import FileImporter
+from django_import_data.models import FileImporter, ModelImportAttempt
 from django_filters.views import FilterView
 from django_tables2.export.views import ExportMixin
 from django_tables2.views import SingleTableMixin, MultiTableMixin
 from watson import search as watson
 
-from audits.filters import FileImporterFilter
-from audits.tables import FileImporterSummaryTable
+from audits.filters import FileImporterFilter, ModelImportAttemptFilter
+from audits.tables import FileImporterSummaryTable, ModelImportAttemptFailureTable
 from utils.coord_utils import coords_to_string
 from utils.merge_people import find_similar_people, merge_people
 from .forms import LetterTemplateForm, DuplicateCaseForm, CaseForm, PersonForm
@@ -421,6 +421,7 @@ class CaseDetailView(MultiTableMixin, DetailView):
         CaseTable,
         PreliminaryCaseTable,
         FileImporterSummaryTable,
+        ModelImportAttemptFailureTable,
     ]
     table_pagination = {"per_page": 10}
 
@@ -449,6 +450,20 @@ class CaseDetailView(MultiTableMixin, DetailView):
             form_helper_kwargs={"form_class": "collapse"},
         ).qs
 
+        mia_failures_filter_qs = ModelImportAttemptFilter(
+            self.request.GET,
+            queryset=ModelImportAttempt.objects.annotate_is_latest().filter(
+                id__in=(
+                    self.object.model_import_attempt.model_importer.row_data.model_importers.values(
+                        "model_import_attempts"
+                    )
+                ),
+                status=ModelImportAttempt.STATUSES.rejected.db_value,
+                is_latest=True,
+            ),
+            form_helper_kwargs={"form_class": "collapse"},
+        ).qs
+
         # Get the File Importers that contain the MIAs used to create this Case's Facilities
         related_file_importers = FileImporter.objects.prefetch_related(
             "file_import_attempts__row_datas__model_importers__model_import_attempts"
@@ -469,6 +484,7 @@ class CaseDetailView(MultiTableMixin, DetailView):
             case_filter_qs,
             pcase_filter_qs,
             fi_filter_qs,
+            mia_failures_filter_qs,
         ]
 
     def get_context_data(self, **kwargs):

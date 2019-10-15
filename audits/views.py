@@ -49,6 +49,7 @@ from .tables import (
     UnimportedFilesDashboardTable,
     OrphanedFilesDashboardTable,
     FileImportAttemptSummaryTable,
+    ModelImportAttemptFailureTable,
 )
 from .forms import FileImporterForm
 from cases.models import Case, Facility, Person, PreliminaryCase, PreliminaryFacility
@@ -229,6 +230,7 @@ class FileImportAttemptDetailView(MultiTableMixin, DetailView):
         FileImporterErrorSummaryTable,
         RowDataTable,
         FileImportAttemptSummaryTable,
+        # ModelImportAttemptFailureTable,
     ]
     template_name = "audits/fileimportattempt_detail.html"
     table_pagination = {"per_page": 10}
@@ -251,6 +253,18 @@ class FileImportAttemptDetailView(MultiTableMixin, DetailView):
             .annotate_current_status(),
             form_helper_kwargs={"form_class": "collapse"},
         ).qs
+        # TODO: Could be useful if we want more granularity later
+        # mia_table_qs = ModelImportAttemptFilter(
+        #     self.request.GET,
+        #     queryset=ModelImportAttempt.objects.filter(
+        #         id__in=self.object.row_datas.values(
+        #             "model_importers__model_import_attempts"
+        #         )
+        #     )
+        #     .annotate_is_latest()
+        #     .filter(is_latest=True, status=4),
+        #     form_helper_kwargs={"form_class": "collapse"},
+        # ).qs
         return [error_table_data, rd_filter_qs, fia_summary_table_data]
 
     def get_object(self, *args, **kwargs):

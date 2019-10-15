@@ -27,6 +27,7 @@ from .columns import (
     ImportStatusColumn,
     CurrentStatusColumn,
     TitledCheckBoxColumn,
+    JsonColumn,
 )
 from utils.spec import parse_importer_spec, SPEC_FILE
 
@@ -209,6 +210,20 @@ class RowDataTable(tables.Table):
     def render_id(self, value):
         return f"RD {value}"
 
+    def render_importee_field_data(self, record):
+        return (
+            record.model_importers.all()
+            .annotate_latest_mia_importee_field_data()
+            .values("latest_mia_importee_field_data")
+        )
+
+    def render_errors(self, record):
+        return (
+            record.model_importers.all()
+            .annotate_latest_mia_errors()
+            .values("latest_mia_errors")
+        )
+
 
 class ModelImporterTable(tables.Table):
     id = tables.Column(linkify=True, verbose_name="MI")
@@ -269,12 +284,12 @@ class ModelImportAttemptTable(tables.Table):
         attrs={"th": {"title": "The model that the importer ATTEMPTED to create"}},
     )
     status = ImportStatusColumn(
-        verbose_name="Model Import Attempt Status",
+        verbose_name="MIA Status",
         attrs={"th": {"title": "The status of the import attempted for THIS MODEL"}},
     )
     current_status = CurrentStatusColumn()
     row_data = tables.Column(linkify=True, verbose_name="Row Data")
-    errors = tables.Column(verbose_name="Fields with Errors")
+    error_summary = tables.Column(verbose_name="Fields with Errors")
 
     class Meta:
         model = ModelImportAttempt
@@ -291,8 +306,16 @@ class ModelImportAttemptTable(tables.Table):
     def render_importee(self, record):
         return str(record.importee)
 
-    def render_errors(self, record):
+    def render_error_summary(self, record):
         return to_fancy_str(record.gen_error_summary(), quote=True)
+
+
+class ModelImportAttemptFailureTable(ModelImportAttemptTable):
+    errors = JsonColumn()
+    importee_field_data = JsonColumn()
+
+    class Meta(ModelImportAttemptTable.Meta):
+        exclude = ["current_status", "importee", "error_summary"]
 
 
 class FileImporterErrorSummaryTable(tables.Table):

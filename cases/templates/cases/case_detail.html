@@ -10,6 +10,16 @@
     {% make_breadcrumb case %}
 {% endif %}
 
+{% if tables.5.data %}
+<div class="jumbotron jumbotron-warning">
+    <h2 style="color: red" class="display-4">Case is Missing Data</h2>
+    <p class="lead"><span style="color: red">One or more related models failed to import! You will need to manually fix these by editing the Case.</span></p>
+
+    {% render_table tables.5 %}
+</div>
+{% endif %}
+
+
 <div class="row">
     <div class="col-lg-3">
         <h1>Case {{ case.case_num }}</h1>

@@ -5,7 +5,7 @@ import os
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
-from django_tables2 import Column, CheckBoxColumn
+from django_tables2 import Column, CheckBoxColumn, TemplateColumn
 from django_import_data.mixins import ImportStatusModel, CurrentStatusModel
 
 
@@ -85,3 +85,10 @@ class TitledCheckBoxColumn(CheckBoxColumn):
     @property
     def header(self):
         return mark_safe(f"<span>{self.verbose_name} {super().header}</span>")
+
+
+class JsonColumn(TemplateColumn):
+    def __init__(self, *args, **kwargs):
+        template_name = "audits/json_column.html"
+
+        super().__init__(*args, template_name=template_name, **kwargs)
