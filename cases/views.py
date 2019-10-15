@@ -450,21 +450,24 @@ class CaseDetailView(MultiTableMixin, DetailView):
             form_helper_kwargs={"form_class": "collapse"},
         ).qs
 
-        mia_failures_filter_qs = ModelImportAttemptFilter(
-            self.request.GET,
-            queryset=ModelImportAttempt.objects.all()
-            # .annotate_is_latest()
-            .filter(
-                id__in=(
-                    self.object.model_import_attempt.model_importer.row_data.model_importers.values(
-                        "model_import_attempts"
-                    )
+        if self.object.model_import_attempt:
+            mia_failures_filter_qs = ModelImportAttemptFilter(
+                self.request.GET,
+                queryset=ModelImportAttempt.objects.all()
+                # .annotate_is_latest()
+                .filter(
+                    id__in=(
+                        self.object.model_import_attempt.model_importer.row_data.model_importers.values(
+                            "model_import_attempts"
+                        )
+                    ),
+                    status=ModelImportAttempt.STATUSES.rejected.db_value,
+                    # is_latest=True,
                 ),
-                status=ModelImportAttempt.STATUSES.rejected.db_value,
-                # is_latest=True,
-            ),
-            form_helper_kwargs={"form_class": "collapse"},
-        ).qs
+                form_helper_kwargs={"form_class": "collapse"},
+            ).qs
+        else:
+            mia_failures_filter_qs = ModelImportAttempt.objects.none()
 
         # Get the File Importers that contain the MIAs used to create this Case's Facilities
         related_file_importers = FileImporter.objects.prefetch_related(
