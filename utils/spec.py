@@ -45,11 +45,16 @@ def determine_importer_from_path(path, import_spec_path=None):
 
     known_patterns = set()
     for importer_name, info in command_info.items():
-        known_patterns.add(info["pattern"])
-        if re.match(info["pattern"], path):
-            return importer_name
+        pattern = info.get("pattern", None)
+        if pattern:
+            known_patterns.add(pattern)
+            if re.match(pattern, path):
+                return importer_name
 
+    # If we get here, it means that none of the patterns defined in our .spec
+    # file matched the given path. So, we can't guess this, and the user
+    # will need to do it by hand
     raise ValueError(
-        f"No patterns match file {os.path.basename(path)!r}! "
-        f"Known file patterns: {known_patterns}"
+        f"No patterns match file {os.path.basename(path)!r}! You will need to "
+        "specify the importer manually"
     )
