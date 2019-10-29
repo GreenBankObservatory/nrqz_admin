@@ -104,7 +104,7 @@ class FacilityFilterFormHelper(FormHelper):
                 "azimuth_to_gbt",
                 "nrao_aerpd",
                 "requested_max_erp_per_tx",
-                "data_source",
+                "call_sign",
                 "search",
                 css_class="col-sm-5",
             ),
