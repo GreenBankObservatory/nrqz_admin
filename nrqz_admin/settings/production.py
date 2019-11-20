@@ -14,8 +14,7 @@ DATABASES = {
         "ENGINE": "django.contrib.gis.db.backends.postgis",
         "NAME": "nrqz_admin_prod",
         "USER": "nrqz",
-        "PASSWORD": "potato",
-        "HOST": "galileo.gb.nrao.edu",
+        "HOST": "trent2.gb.nrao.edu",
         "PORT": "5432",
     }
 }
