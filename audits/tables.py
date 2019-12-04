@@ -108,7 +108,7 @@ class FileImporterSummaryTable(tables.Table):
     # TODO: This should not be hardcoded here; this really should be table driven somehow...
     file_path = RemappedUnboundFileColumn(
         remap_regex=r"/home/code/nrqz/",
-        replacement_str="Q:\\\\",
+        replacement_str="\\\\\\\\gbfiler/nrqz/",
         verbose_name="Open File",
     )
     status = ImportStatusColumn(
