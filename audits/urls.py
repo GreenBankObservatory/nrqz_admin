@@ -41,6 +41,11 @@ urlpatterns = [
         name="fileimporter_reimport",
     ),
     path(
+        "file-importers/<int:pk>/recheck/",
+        views.recheck_file,
+        name="fileimporter_recheck",
+    ),
+    path(
         "file-importers/<int:pk>/delete/",
         views.delete_file_import_models,
         name="fileimporter_delete_models",

@@ -407,6 +407,12 @@ def reimport_file(request, pk):
     )
 
 
+def recheck_file(request, pk):
+    file_importer = get_object_or_404(FileImporter, id=pk)
+    file_importer.refresh_from_filesystem()
+    return HttpResponseRedirect(file_importer.get_absolute_url())
+
+
 class FileImporterCreateView(CreateView):
     model = FileImporter
     form_class = FileImporterForm
