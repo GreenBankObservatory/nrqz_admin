@@ -1,6 +1,6 @@
 """Audits Table definitions"""
 
-from django.utils.safestring import mark_safe
+from django.conf import settings
 
 import django_tables2 as tables
 from django_import_data.models import (
@@ -73,9 +73,7 @@ class FileImporterBatchTable(tables.Table):
 
 class FileImporterTable(tables.Table):
     id = tables.Column(linkify=True, verbose_name="FI")
-    file_path = RemappedUnboundFileColumn(
-        remap_regex=r"/home/code/nrqz/", replacement_str="Q:\\\\"
-    )
+    file_path = RemappedUnboundFileColumn()
     status = ImportStatusColumn(
         verbose_name="Import Status",
         attrs={
@@ -106,11 +104,7 @@ class FileImporterTable(tables.Table):
 class FileImporterSummaryTable(tables.Table):
     id = tables.Column(linkify=True, verbose_name="FI")
     # TODO: This should not be hardcoded here; this really should be table driven somehow...
-    file_path = RemappedUnboundFileColumn(
-        remap_regex=r"/home/code/nrqz/",
-        replacement_str="\\\\\\\\gbfiler/nrqz/",
-        verbose_name="Open File",
-    )
+    file_path = RemappedUnboundFileColumn(verbose_name="Open File")
     status = ImportStatusColumn(
         verbose_name="Import Status",
         attrs={
@@ -164,9 +158,7 @@ class FileImportAttemptTable(tables.Table):
         # },
     )
     current_status = CurrentStatusColumn()
-    imported_from = RemappedUnboundFileColumn(
-        remap_regex=r"/home/code/nrqz/", replacement_str="Q:\\\\"
-    )
+    imported_from = RemappedUnboundFileColumn()
 
     num_model_importers = tables.Column(
         verbose_name="# MIs",

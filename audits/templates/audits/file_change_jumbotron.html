@@ -1,10 +1,12 @@
+{% load cases_tags %}
+
 <div class="jumbotron jumbotron-warning">
     {% if object.file_missing %}
     <h2 style="color: red" class="display-4">File missing!</h2>
-    <p class="lead"><b style="color: red">File '{{ object.file_path }}' has been moved or deleted!</b></p>
+    <p class="lead"><b style="color: red">File <a href="{{ remapped_imported_from | to_file_link }}">{{ remapped_imported_from }}</a> has been moved or deleted!</b></p>
     {% else %}
     <h2 style="color: red" class="display-4">File changed!</h2>
-    <p class="lead"><b style="color: red">File '{{ object.file_path }}' has changed on disk since it was imported</b></p>
+    <p class="lead"><b style="color: red">File <a href="{{ remapped_imported_from | to_file_link }}">{{ remapped_imported_from }}</a> has changed on disk since it was imported</b></p>
     {% endif %}
     <p>You should do one of the following using the buttons below:</p>
     <ul>

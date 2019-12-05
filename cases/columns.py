@@ -8,7 +8,7 @@ from django.utils.safestring import mark_safe
 from django_tables2 import CheckBoxColumn, Column
 from django_tables2.utils import AttributeDict
 
-from utils.misc import to_file_link
+from utils.misc import to_file_link, remap_by_client_host
 
 
 class TrimmedTextColumn(Column):
@@ -82,14 +82,7 @@ class AttachmentFileColumn(UnboundFileColumn):
 
 
 class RemappedUnboundFileColumn(UnboundFileColumn):
-    def __init__(self, remap_regex, replacement_str, *args, text=None, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.remap_regex = re.compile(remap_regex)
-        self.replacement_str = replacement_str
-
-    def render(self, value, bound_column, record):
-        return super().render(
-            self.remap_regex.sub(self.replacement_str, value).replace("/", "\\"),
-            bound_column,
-            record,
-        )
+    def render(self, record, table, value, bound_column, **kwargs):
+        context = getattr(table, "context")
+        remapped = remap_by_client_host(table.request, value)
+        return super().render(remapped, bound_column, record)

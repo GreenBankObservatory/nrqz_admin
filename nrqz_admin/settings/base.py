@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "django_super_deduper",
     "tempus_dominus",
     "massadmin",
+    "django_user_agents",
     "cases",
     "audits",
 ]
@@ -45,6 +46,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django_user_agents.middleware.UserAgentMiddleware",
     "stronghold.middleware.LoginRequiredMiddleware",
 ]
 
@@ -190,3 +192,20 @@ TEMPUS_DOMINUS_INCLUDE_ASSETS = False
 
 # Match only docx files -- NOT the ~$tempfiles that Word creates
 NRQZ_LETTER_TEMPLATE_REGEX = r"^[^~].*\.docx$"
+
+# Remaps file paths based on the client host. This is necessary because unix and
+# Windows hosts will access the filer using different paths. Since the server
+# stores unix paths, for a Windows host to open them properly they will need to be
+# remapped. But, we can't remap all of them, since all clients are not on Windows!
+PATH_REMAPPINGS_BY_CLIENT_HOST = {
+    "Windows": ("/home/code/nrqz/", "\\\\\\\\gbfiler/nrqz/")
+}
+
+# TODO: Enable memcached? Working, just need to see if it makes a difference
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django.core.cache.backends.memcached.MemcachedCache",
+#         "LOCATION": "127.0.0.1:11211",
+#     }
+# }
+# USER_AGENTS_CACHE = "default"

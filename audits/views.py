@@ -2,6 +2,7 @@ from collections import defaultdict
 import os
 
 from django.contrib import messages
+from django.conf import settings
 from django.core.management import call_command
 from django.db import transaction
 from django.db.utils import IntegrityError
@@ -37,6 +38,7 @@ from .filters import (
     ModelImporterFilter,
     RowDataFilter,
 )
+from utils.misc import remap_by_client_host
 from .tables import (
     FileImportAttemptTable,
     FileImporterBatchTable,
@@ -137,6 +139,13 @@ class FileImporterDetailView(MultiTableMixin, DetailView):
     template_name = "audits/fileimporter_detail.html"
     table_pagination = {"per_page": 10}
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["remapped_imported_from"] = remap_by_client_host(
+            self.request, self.object.latest_file_import_attempt.imported_from
+        )
+        return context
+
     def get_tables_data(self):
         fia_filter_qs = FileImportAttemptFilter(
             self.request.GET,
@@ -212,10 +221,24 @@ class RowDataDetailView(SingleTableMixin, DetailView):
     def get_table_data(self):
         return self.object.model_importers.all().annotate_num_model_import_attempts()
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["remapped_imported_from"] = remap_by_client_host(
+            self.request, self.object.file_import_attempt.imported_from
+        )
+        return context
+
 
 class ModelImportAttemptDetailView(DetailView):
     model = ModelImportAttempt
     template_name = "audits/modelimportattempt_detail.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["remapped_imported_from"] = remap_by_client_host(
+            self.request, self.object.file_import_attempt.imported_from
+        )
+        return context
 
 
 class ModelImportAttemptListView(FilterTableView):
@@ -234,6 +257,13 @@ class FileImportAttemptDetailView(MultiTableMixin, DetailView):
     ]
     template_name = "audits/fileimportattempt_detail.html"
     table_pagination = {"per_page": 10}
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["remapped_imported_from"] = remap_by_client_host(
+            self.request, self.object.imported_from
+        )
+        return context
 
     def get_tables_data(self):
 

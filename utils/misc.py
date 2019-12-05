@@ -1,3 +1,8 @@
+import re
+
+from django.conf import settings
+
+
 def to_file_link(path):
     # If path starts with a \, assume that it is a network path
     # (e.g. \\gbfiler). These paths must be prefixed with extra backslashes in
@@ -11,6 +16,24 @@ def to_file_link(path):
         return path
 
     return f"file://{path}"
+
+
+def remap_by_client_host(request, path):
+    print("OS", request.user_agent.os.family)
+    try:
+        remap_regex, replacement_str = settings.PATH_REMAPPINGS_BY_CLIENT_HOST[
+            request.user_agent.os.family
+        ]
+    except KeyError:
+        # No-op
+        return path
+
+    remapped = re.sub(remap_regex, replacement_str, path).replace("/", "\\")
+
+    print(
+        f"Went from {path} to {remapped} for client OS {request.user_agent.os.family}"
+    )
+    return remapped
 
 
 # Adapted from https://stackoverflow.com/a/9756239/11870070

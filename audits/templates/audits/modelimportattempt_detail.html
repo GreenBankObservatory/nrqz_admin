@@ -1,4 +1,5 @@
 {% extends "cases/base.html" %}
+{% load cases_tags %}
 {% load django_import_data_tags %}
 
 {% block content %}
@@ -19,7 +20,7 @@ While this import attempt failed, a subsequent attempt was successful: <a href={
 </p>
 {% endif %}
 
-<p>Imported from row {{ modelimportattempt.row_data.row_num }} of file: {{ modelimportattempt.file_import_attempt.imported_from }} by importer {{ modelimportattempt.file_import_attempt.imported_by }}</p>
+<p>Imported from row {{ modelimportattempt.row_data.row_num }} of file: <a href="{{ remapped_imported_from | to_file_link }}">{{ remapped_imported_from }}</a> by importer {{ modelimportattempt.file_import_attempt.imported_by }}</p>
 
 {% if not modelimportattempt.model_importer.latest_model_import_attempt.importee %}
 <p><a href={{ modelimportattempt.get_create_from_import_attempt_url }}>Create {{ modelimportattempt.importee_class | model_name }} from Model Import Attempt {{ modelimportattempt.id }}</a></p>
