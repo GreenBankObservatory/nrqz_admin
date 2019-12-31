@@ -51,10 +51,12 @@
 </div>
 {% endif %}
 
+{% if unsorted_info %}
 <div class="row">
     <div class="col-lg">
         {% info_table preliminaryfacility "TODO: Unsorted" unsorted_info %}
     </div>
 </div>
+{% endif %}
 
 {% endblock %}

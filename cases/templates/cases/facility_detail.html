@@ -74,9 +74,11 @@
 <p>No attachments</p>
 {% endif %}
 
+{% if unsorted_info %}
 <div class="row">
     <div class="col-lg">
         {% info_table facility "TODO: Unsorted" unsorted_info %}
     </div>
 </div>
+{% endif %}
 {% endblock %}

@@ -656,7 +656,9 @@ class Case(AbstractBaseCase):
         help_text="SGRS Service Num.",
         verbose_name="SGRS Service #",
     )
-    agency_num = SensibleCharField(max_length=256, blank=True, help_text="Agency Num.")
+    agency_num = SensibleCharField(
+        max_length=256, blank=True, help_text="Agency Num.", verbose_name="Agency #"
+    )
 
     objects = CaseManager()
 

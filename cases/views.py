@@ -517,6 +517,7 @@ class CaseDetailView(MultiTableMixin, DetailView):
             "num_freqs",
             "num_outside",
             ("Meets ERPd Limit", self.object.get_meets_erpd_limit, ""),
+            "agency_num",
         ]
         context["sgrs_info"] = [
             "sgrs_notify",
