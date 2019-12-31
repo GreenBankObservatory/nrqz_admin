@@ -252,6 +252,7 @@ class CaseQuickJumpForm(forms.Form):
                 # "data-select-on-close": True,
                 "class": "case-quick-jump-field",
                 "accesskey": "c",
+                "data-ajax--delay": 0,
             },
         ),
         required=False,
