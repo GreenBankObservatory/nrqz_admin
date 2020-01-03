@@ -324,7 +324,7 @@ class CaseFormHelper(FormHelper):
             Div(
                 Div(Field("shutdown"), css_class="col"),
                 Div(Field("si"), css_class="col"),
-                # Div(Field("si_done"), css_class="col"),
+                Div(Field("original_si_done"), css_class="col"),
                 Div(Field("si_waived"), css_class="col"),
                 css_class="row",
             ),

@@ -210,7 +210,7 @@ class CaseForm(BaseCaseForm):
             "date_received": DatePicker(options={"format": "MM/DD/YY"}),
             "completed_on": DatePicker(options={"format": "MM/DD/YY"}),
             "sgrs_responded_on": DatePicker(options={"format": "MM/DD/YY"}),
-            "si_done": DatePicker(options={"format": "MM/DD/YY"}),
+            "original_si_done": DatePicker(options={"format": "MM/DD/YY"}),
         }
 
     def __init__(self, *args, **kwargs):

@@ -504,7 +504,18 @@ class CaseDetailView(MultiTableMixin, DetailView):
             ),
             "si_waived",
             "si",
-            ("SI Done", si_done if si_done else None, ""),
+            (
+                "SI Done",
+                si_done if si_done else None,
+                "This is the 'SI Done' that is derived from "
+                "the per-facility inspection information",
+            ),
+            (
+                "Case-level SI Done",
+                self.object.original_si_done,
+                "This is the 'SI Done' that is stored per-case, without consideration "
+                "of per-facility inspection information",
+            ),
             "is_federal",
         ]
         context["application_info"] = [
