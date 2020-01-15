@@ -103,7 +103,10 @@ class FacilityImportFormMap(FormMap):
                 ]
             },
         ),
-        OneToOneFieldMap(to_field="location_description", from_field="GeoLocal"),
+        OneToOneFieldMap(
+            to_field="location_description",
+            from_field={"geolocal": ("GeoLocal", "GEoLocal")},
+        ),
         ManyToOneFieldMap(
             to_field="location",
             converter=coerce_location,
