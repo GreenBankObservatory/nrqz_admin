@@ -1,0 +1,60 @@
+<div class="row">
+    <div class="col-auto pr-1">
+        <div>
+            Applicant:
+        </div>
+        <div>
+            Contact:
+        </div>
+    </div>
+    <div class="col-auto px-1">
+        <div style="max-width:400px" class="text-truncate">
+            {% if case.applicant %}
+            <a title="{{ case.applicant.name }}" href="{% url 'person_detail' case.applicant.id %}">{{ case.applicant.name }}</a>
+            {% else %}
+            —
+            {% endif %}
+        </div>
+        <div style="max-width:400px" class="text-truncate">
+            {% if case.contact %}
+            <a title="{{ case.contact.name }}" href="{% url 'person_detail' case.contact.id %}">{{ case.contact.name }}</a>
+            {% else %}
+            —
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-auto px-1">
+        <div style="max-width:400px" class="text-truncate">
+            {% if case.applicant.phone %}
+            {{ case.applicant.phone }}
+            {% else %}
+            —
+            {% endif %}
+        </div>
+        <div style="max-width:400px" class="text-truncate">
+            {% if case.contact.phone %}
+            {{ case.contact.phone }}
+            {% else %}
+            —
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-auto pl-1">
+        <div style="max-width:400px" class="text-truncate">
+            {% if case.applicant.email %}
+            {{ case.applicant.email }}
+            {% else %}
+            —
+            {% endif %}
+        </div>
+        <div style="max-width:400px" class="text-truncate">
+            {% if case.contact.email %}
+            {{ case.contact.email }}
+            {% else %}
+            —
+            {% endif %}
+        </div>
+    </div>
+</div>

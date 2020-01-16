@@ -1,6 +1,8 @@
 """Custom djang_tables2.Column sub-classes for cases app"""
 import os
+from pathlib import PurePosixPath, PureWindowsPath
 import re
+
 
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
@@ -52,25 +54,35 @@ class SelectColumn(CheckBoxColumn):
 
 
 class UnboundFileColumn(Column):
-    def __init__(self, *args, text=None, **kwargs):
+    def __init__(self, *args, basename=True, windows_path=False, text=None, **kwargs):
+        super().__init__(*args, **kwargs)
+
         if text:
             self.text = text
         else:
             self.text = None
-        super().__init__(*args, **kwargs)
+        self.basename = basename
+        self.windows_path = windows_path
 
     def render(self, value, bound_column, record):
-        path = value
+        if self.windows_path:
+            path = PureWindowsPath(value)
+        else:
+            path = PurePosixPath(value)
 
         # TODO: Fix this so that it is relative to the client, and not the
         # server, and it might actually be useful!
         # if record.file_missing:
         #     return "File does not exist"
+        text = self.text if self.text else path
+        if self.basename and not self.text:
+            text = path.name
+
         foo = f"""<a
-href='{to_file_link(path)}'
+href='{to_file_link(str(path))}'
 title="{path}"
 >
-    {self.text if self.text else path}
+    {text}
 </a>"""
         return mark_safe(foo)
 

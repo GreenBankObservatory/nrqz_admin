@@ -12,7 +12,7 @@ This means that we don't lose valuable space on small screens, but we have good
 readability on large ones*/
 @media (min-width: 1500px) {
     .container{
-        max-width: 1500px;
+        max-width: 90%;
     }
 }
 
@@ -108,6 +108,7 @@ ul.messages li.error {
 
 .breadcrumb {
     padding: 2px 15px;
+    margin-bottom: 5px;
 }
 
 
@@ -124,7 +125,11 @@ ul.messages li.error {
 
 /* Make headings a little smaller */
 .h2, h2 {
-    font-size: 1.5rem;
+    font-size:rem;
+}
+
+.h3, h3 {
+    font-size: 1.1rem;
 }
 
 /* Make form fields a little shorter */
@@ -189,4 +194,12 @@ ul.messages li.error {
 .modelstuff {
     overflow: scroll;
     height: 300px;
+}
+
+.table td, .table th {
+    padding: 0.15rem 0.25rem;
+}
+
+.navbar {
+    padding: 0.1rem 1.0rem;
 }

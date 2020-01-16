@@ -252,6 +252,7 @@ class AttachmentFilterFormHelper(FormHelper):
             Div("data_source", css_class="col"),
             Div("hash_on_disk", css_class="col"),
             Div("is_active", css_class="col"),
+            Div("cases", css_class="col"),
             css_class="row",
         )
     )

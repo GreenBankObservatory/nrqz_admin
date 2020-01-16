@@ -104,7 +104,7 @@ class FileImporterTable(tables.Table):
 class FileImporterSummaryTable(tables.Table):
     id = tables.Column(linkify=True, verbose_name="FI")
     # TODO: This should not be hardcoded here; this really should be table driven somehow...
-    file_path = RemappedUnboundFileColumn(verbose_name="Open File")
+    file_path = RemappedUnboundFileColumn(basename=True, verbose_name="Open File")
     status = ImportStatusColumn(
         verbose_name="Import Status",
         attrs={

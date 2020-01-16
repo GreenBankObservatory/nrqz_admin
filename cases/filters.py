@@ -310,6 +310,7 @@ class AttachmentFilter(HelpedFilterSet):
         label="File Exists", method="filter_exists"
     )
     is_active = django_filters.BooleanFilter()
+    cases = RangeNotationFilter(label="Case", field_name="cases__case_num")
 
     class Meta:
         model = models.Attachment

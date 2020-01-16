@@ -10,6 +10,8 @@
     {% make_breadcrumb case %}
 {% endif %}
 
+<div id="top"></div>
+
 {% if tables.5.data %}
 <div class="jumbotron jumbotron-warning">
     <h2 style="color: red" class="display-4">Case is Missing Data</h2>
@@ -19,126 +21,89 @@
 </div>
 {% endif %}
 
-
 <div class="row">
-    <div class="col-lg-3">
+    <div class="col-auto">
         <h1>Case {{ case.case_num }}</h1>
     </div>
 
-    <div class="col-lg-1 d-print-none">
-        <a href="{% url 'case_update' case.case_num %}">Edit</a>
+    <div class="col-auto pl-4">
+        <div class="row">
+            {% include "cases/person_info_inline.html" with case=case %}
+        </div>
     </div>
 
-    <div class="col-lg-1 d-print-none">
-        <a href="{% url 'admin:cases_case_delete' case.id %}"> Delete</a>
+    <div class="col-auto d-print-none pl-4">
+        <div>Date Received: {{ case.date_received|default:"None" }}</div>
+        <div>Date Completed: {{ case.completed_on|default:"None" }}</div>
     </div>
 
-    <div class="col-lg-3 d-print-none">
-        <p>Date Received: {{ case.date_received|default:"None" }}</p>
+    <div class="ml-auto col-auto d-print-none">
+        <div class="row">
+            <div class="col-auto d-print-none">
+                <div><a href="{% url 'case_update' case.case_num %}">Edit</a></div>
+                <div><a href="{% url 'admin:cases_case_delete' case.id %}"> Delete</a></div>
+            </div>
+
+            <div class="col-auto d-print-none">
+                <form action="{% url 'duplicate_case' case.case_num %}" method="post">
+                    {% csrf_token %}
+                    {{ duplicate_case_form.as_p }}
+                </form>
+            </div>
+        </div>
     </div>
-
-    <div class="col-lg-4 d-print-none">
-        <form action="{% url 'duplicate_case' case.case_num %}" method="post">
-            {% csrf_token %}
-            {{ duplicate_case_form.as_p }}
-        </form>
-    </div>
-
-
 </div>
 
-<h2>Applicant Info</h2>
-<table class="table">
-    <tr>
-        <th>Applicant</th>
-        <td>
-            {% if case.applicant %}
-            <a href={% url "person_detail" case.applicant.id %}>{{ case.applicant.name }}</a>
-            {% else %}
-            <p>None</p>
-            {% endif %}
-        </td>
-        <td>
-            {% if case.applicant.phone %}
-            <p>{{ case.applicant.phone }}</p>
-            {% else %}
-            <p>No phone</p>
-            {% endif %}
-        </td>
-        <td>
-            {% if case.applicant.email %}
-            <p>{{ case.applicant.email }}</p>
-            {% else %}
-            <p>No email</p>
-            {% endif %}
-        </td>
-    </tr>
-    <tr>
-        <th>Contact</th>
-        <td>
-            {% if case.contact %}
-            <a href={% url "person_detail" case.contact.id %}>{{ case.contact.name }}</a>
-            {% else %}
-            <p>None</p>
-            {% endif %}
-        </td>
-        <td>
-            {% if case.contact.phone %}
-            <p>{{ case.contact.phone }}</p>
-            {% else %}
-            <p>No phone</p>
-            {% endif %}
-        </td>
-        <td>
-            {% if case.contact.email %}
-            <p>{{ case.contact.email }}</p>
-            {% else %}
-            <p>No email</p>
-            {% endif %}
-        </td>
-    </tr>
-</table>
+<div class="row pt-3">
+    <div class="col-auto">
+        <h2 title="Files that have contributed data to this Case or its Facilities">File Info</h2>
+        {% if tables.4.data %}
+        {% render_table tables.4 %}
+        {% else %}
+        <p>No external files have contributed data to this Case or its Facilities</p>
+        {% endif %}
+        <div class="row">
+            <div class="col">
+                {% info_table case "Case Info" application_info %}
+            </div>
 
-<h2>Facilities ({{tables.0.data|length}})</h2>
+            <div class="col">
+                {% info_table case "Sugar Grove Info" sgrs_info %}
+            </div>
+
+            <div class="col">
+                {% info_table case "Case Status" status_info %}
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <h2>Comments</h2>
+        {% if case.comments %}
+        <div style="max-height: 450px; overflow: auto">
+        {{ case.comments | linebreaks }}
+
+        </div>
+        {% else %}
+        <p>No comments</p>
+        {% endif %}
+    </div>
+</div>
+
+<h2 style="display: inline">Facilities ({{tables.0.data|length}})</h2>
 {% if tables.0.data %}
 <a href="{% url 'case_kml' case.id %}">As KML</a>
+<a href="{% url 'facility_index' %}?case={{ case.case_num }}">View in Facilities Index</a>
 {% render_table tables.0 %}
 {% else %}
 <p>No Facilities</p>
 {% endif %}
 
-
-<div class="row">
-    <div class="col-lg">
-        {% info_table case "Case Info" application_info %}
-    </div>
-    <div class="col-lg">
-        {% info_table case "Case Status" status_info %}
-    </div>
-    <div class="col-lg">
-        {% info_table case "Sugar Grove Info" sgrs_info %}
-    </div>
-</div>
-
-<h2>Comments</h2>
-{% if case.comments %}
-{{ case.comments | linebreaks}}
-{% else %}
-<p>No comments</p>
-{% endif %}
-
-<h2>Attachments ({{tables.1.data|length}})</h2>
+<h2 style="display: inline">Attachments ({{tables.1.data|length}})</h2>
 {% if tables.1.data %}
+<a href="{% url 'attachment_index' %}?cases={{ case.case_num }}">View in Attachments Index</a>
 {% render_table tables.1 %}
 {% else %}
 <p>No attachments</p>
-{% endif %}
-
-<h2 title="Each row represents a file that contributed data to this Case or its Facilities">File Importer Info ({{tables.4.data|length}})</h2>
-{% if tables.4.data %}
-{% render_table tables.4 %}
-{% else %}
-<p>No external files have contributed data to this Case or its Facilities</p>
 {% endif %}
 
 {% include "cases/related_cases_info.html" with case=case case_table=tables.2 pcase_table=tables.3 %}
@@ -158,4 +123,5 @@
     </div>
 </div>
 {% endif %}
+
 {% endblock %}

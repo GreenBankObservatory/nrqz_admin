@@ -350,14 +350,18 @@ class PersonTable(tables.Table):
 
 
 class AttachmentTable(tables.Table):
-    file_path = tables.Column(linkify=True, verbose_name="Attachment")
-    file = AttachmentFileColumn(accessor="file_path", verbose_name="Link")
+    file_path = UnboundFileColumn(
+        basename=True, verbose_name="Attachment", windows_path=True
+    )
+    file = AttachmentFileColumn(
+        accessor="file_path", verbose_name="Link", basename=False
+    )
     original_index = tables.Column(verbose_name="Letter #")
 
     class Meta:
         model = models.Attachment
         fields = AttachmentFilter.Meta.fields
-        exclude = ("is_active", "hash_on_disk")
+        exclude = ("is_active", "hash_on_disk", "cases")
         order_by = ["-modified_on", "original_index"]
 
 
