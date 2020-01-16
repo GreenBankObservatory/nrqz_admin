@@ -1,0 +1,8 @@
+{% load render_table from django_tables2 %}
+
+<h2>{{ model }} Results ({{ table.data|length }})</h2>
+{% if table.data %}
+{% render_table table %}
+{% else %}
+<p>No results</p>
+{% endif %}

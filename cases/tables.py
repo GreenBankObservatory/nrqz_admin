@@ -400,7 +400,8 @@ class StructureTable(tables.Table):
 
 
 class SearchEntryTable(tables.Table):
-    title = tables.Column(linkify=True)
+    title = tables.Column(verbose_name="Instance", linkify=True)
+    content = tables.Column(verbose_name="Result")
 
     class Meta:
         model = SearchEntry
@@ -414,7 +415,7 @@ class SearchEntryTable(tables.Table):
         super().__init__(*args, **kwargs)
 
     def render_content(self, value, record):
-        window_size = 60
+        window_size = 30
         try:
             found_index = value.lower().index(self.query.lower())
         except ValueError:

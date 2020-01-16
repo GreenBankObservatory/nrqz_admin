@@ -28,7 +28,9 @@ INSTALLED_APPS = [
     "crispy_forms",
     "explorer",
     "watson",
-    "django_import_data",
+    # We are using a custom AppConfig for django_import_data to enable watson
+    # for FileImporter
+    "cases.apps.WatsonDjangoImportDataConfig",
     "django_super_deduper",
     "tempus_dominus",
     "massadmin",

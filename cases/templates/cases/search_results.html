@@ -7,13 +7,23 @@
 <h1>Search Results</h1>
 <p>{{ object_list.count }} results for '{{ query }}'</p>
 
-{% for model, table in tables_with_model_names %}
-    <h2>{{ model }} Results ({{ table.data|length }})</h2>
-    {% if table.data %}
-    {% render_table table %}
-    {% else %}
-    <p>No results</p>
-    {% endif %}
-{% endfor %}
+
+<div class="row">
+    {% for model, table in tables_with_model_names|slice:":2" %}
+    <div class="col-6">
+        {% include 'cases/search_result.html' with model=model table=table %}
+    </div>
+    {% endfor %}
+</div>
+
+<div class="row">
+    {% for model, table in tables_with_model_names|slice:"2:" %}
+    <div class="col-6">
+        {% include 'cases/search_result.html' with model=model table=table %}
+    </div>
+    {% endfor %}
+</div>
+
+
 
 {% endblock %}

@@ -904,8 +904,9 @@ class StructureDetailView(DetailView):
 
 
 class SearchView(MultiTableMixin, ListView):
-    tables = [SearchEntryTable, SearchEntryTable, SearchEntryTable]
-    table_pagination = {"per_page": 10}
+    search_classes = (Case, Facility, Person, FileImporter)
+    tables = [SearchEntryTable for __ in search_classes]
+    table_pagination = {"per_page": 7}
     template_name = "cases/search_results.html"
 
     def get_tables_data(self):
@@ -916,15 +917,15 @@ class SearchView(MultiTableMixin, ListView):
             self.object_list.filter(
                 content_type=ContentType.objects.get_for_model(model)
             )
-            for model in [Case, Facility, Person]
+            for model in self.search_classes
         ]
         return data
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["query"] = self.query
-        context["tables_with_model_names"] = zip(
-            ["Case", "Facility", "Person"], context["tables"]
+        context["tables_with_model_names"] = list(
+            zip([c.__name__ for c in self.search_classes], context["tables"])
         )
         return context
 

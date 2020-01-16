@@ -1,6 +1,13 @@
 from django.apps import AppConfig
 
+from django_import_data.apps import DjangoImportDataProjectConfig
+
 from watson import search as watson
+
+
+class WatsonDjangoImportDataConfig(DjangoImportDataProjectConfig):
+    def ready(self):
+        watson.register(self.get_model("FileImporter"))
 
 
 class CasesConfig(AppConfig):
