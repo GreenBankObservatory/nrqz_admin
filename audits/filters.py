@@ -42,6 +42,7 @@ class FileImporterFilter(HelpedFilterSet):
     status = django_filters.ChoiceFilter(
         label="Import Status", choices=ModelImportAttempt.STATUSES.as_filter_choices()
     )
+    last_imported = django_filters.DateFromToRangeFilter(label="Last Imported")
 
     class Meta:
         model = FileImporter

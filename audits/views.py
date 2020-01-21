@@ -595,6 +595,7 @@ class FileImporterDashboard(SingleTableMixin, TemplateView, ProcessFormView):
         queryset = queryset.annotate_current_status()
         queryset = queryset.annotate_num_model_importers()
         queryset = queryset.annotate_num_file_import_attempts()
+        queryset = queryset.annotate_last_imported()
 
         return queryset.exclude(
             current_status=FileImportAttempt.CURRENT_STATUSES.acknowledged.db_value

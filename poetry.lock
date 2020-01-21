@@ -199,10 +199,9 @@ version = "0.1.0"
 tqdm = "^4.32"
 
 [package.source]
-reference = "8301488ee71bc4042d401035aa3c5385014e5591"
+reference = "80b75f5a1a750c75c1d9f6c759a357cf600d4a5e"
 type = "git"
 url = "https://github.com/GreenBankObservatory/django-import-data"
-
 [[package]]
 category = "main"
 description = "Make bulk changes in the Django admin interface"
