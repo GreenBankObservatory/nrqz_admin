@@ -10,7 +10,7 @@ from django.contrib.gis.geos.error import GEOSException
 import django_filters
 
 from utils.constants import WGS84_SRID
-from utils.coord_utils import parse_coords
+from utils.coord_utils import parse_coords, point_to_string
 from .widgets import PointWidget, PointSearchWidget, AttachmentsWidget
 
 
@@ -34,7 +34,15 @@ class PointField(forms.CharField):
 class PointSearchField(forms.MultiValueField):
     widget = PointSearchWidget
 
-    def __init__(self, *args, fields=None, unit_choices=None, **kwargs):
+    def __init__(
+        self,
+        *args,
+        fields=None,
+        unit_choices=None,
+        boundaries=None,
+        buffer_size=1,
+        **kwargs,
+    ):
         if unit_choices is None:
             unit_choices = [
                 ("m", "Meters"),
@@ -56,11 +64,14 @@ class PointSearchField(forms.MultiValueField):
                 django_filters.fields.ChoiceField(choices=unit_choices),
             )
 
+        self.boundaries = boundaries
+        self.buffer_size = buffer_size
+
         super().__init__(fields, *args, **kwargs, error_messages=error_messages)
 
-    def coord_validator(self, coords):
+    def coord_validator(self, coords_orig):
         try:
-            return parse_coords(coords)
+            return parse_coords(coords_orig)
         except ValueError:
             raise forms.ValidationError(self.error_messages["invalid"], code="invalid")
 
@@ -104,6 +115,16 @@ class PointSearchField(forms.MultiValueField):
                 raise forms.ValidationError(
                     f"Failed to create Point from ({coords_orig})!"
                 )
+
+            if self.boundaries:
+                bounds = self.boundaries.bounds
+                buffered = bounds.buffer(self.buffer_size)
+                if not buffered.contains(point):
+                    raise forms.ValidationError(
+                        f"Point {point_to_string(point)} is >{self.buffer_size} "
+                        f"{buffered.srs.units[1]} out of {self.boundaries.name} bounds"
+                    )
+
             return (point, radius, unit)
 
         return None

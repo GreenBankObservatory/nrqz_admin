@@ -4,14 +4,12 @@ from django import forms
 from django.contrib.gis.measure import Distance
 from django.db.models import Q
 
-
 import django_filters
 from django_import_data.numranges import (
     range_notation_to_list_of_ranges,
     get_nums_from_str,
 )
 from watson import search as watson
-
 
 from utils.layout import discover_fields
 from . import models
@@ -120,19 +118,26 @@ class PointFilter(django_filters.Filter):
     field_class = PointSearchField
 
     def filter(self, qs, value):
+        print("PointFilter value", value)
+
         if value:
             point, radius, unit = value
+            print("PointFilter point, radius, unit", point, radius, unit)
             return qs.filter(location__distance_lte=(point, Distance(**{unit: radius})))
         else:
             return super().filter(qs, value)
 
 
 class BaseFacilityFilter(HelpedFilterSet):
+    try:
+        _boundaries = models.Boundaries.objects.get(name="NRQZ")
+    except models.Boundaries.DoesNotExist:
+        raise ValueError("No NRQZ boundaries! Did you run the DB init script?")
     site_name = django_filters.CharFilter(lookup_expr="icontains")
     nrqz_id = django_filters.CharFilter(
         lookup_expr="icontains", label="Facility ID contains"
     )
-    location = PointFilter()
+    location = PointFilter(boundaries=_boundaries)
     in_nrqz = django_filters.BooleanFilter(field_name="in_nrqz", label="In NRQZ")
     distance_to_gbt = RangeNotationFilter(
         field_name="distance_to_gbt", label="Distance to GBT (meters)"
