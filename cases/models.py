@@ -263,6 +263,9 @@ class AbstractBaseFacility(
         verbose_name="AZ bearing degrees True",
         help_text="The Azimuth bearing between the Facility and the GBT, as imported from existing data",
     )
+    agency_num = SensibleCharField(
+        max_length=256, blank=True, help_text="Agency Num.", verbose_name="Agency #"
+    )
 
     class Meta:
         abstract = True
