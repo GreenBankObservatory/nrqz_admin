@@ -643,6 +643,7 @@ class PreliminaryFacilityDetailView(BaseFacilityDetailView):
             )
         context["federal_info"] = [
             ("Is Federal?", self.object.pcase.is_federal, ""),
+            "agency_num",
             "s367",
         ]
         return context
@@ -696,6 +697,7 @@ class FacilityDetailView(MultiTableMixin, BaseFacilityDetailView):
         ]
         context["federal_info"] = [
             ("Is Federal?", self.object.case.is_federal, ""),
+            "agency_num",
             "s367",
         ]
         return context
