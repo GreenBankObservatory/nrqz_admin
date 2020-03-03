@@ -85,12 +85,6 @@ class FacilityImportFormMap(FormMap):
             converter=coerce_access_none,
             from_field="LOCATION",
         ),
-        OneToOneFieldMap(
-            to_field="latitude", converter=coerce_none, from_field="LATITUDE"
-        ),
-        OneToOneFieldMap(
-            to_field="longitude", converter=coerce_none, from_field="LONGITUDE"
-        ),
         ManyToOneFieldMap(
             to_field="location",
             converter=coerce_access_location,
