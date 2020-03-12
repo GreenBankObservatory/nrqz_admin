@@ -272,6 +272,7 @@ class AttachmentImportForm(AttachmentForm):
 
 
 BASE_FACILITY_FIELDS = (
+    "agency_num",
     "agl",
     "amsl",
     "antenna_model_number",
