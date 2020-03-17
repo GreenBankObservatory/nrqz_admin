@@ -197,6 +197,7 @@ class FacilityFilter(BaseFacilityFilter):
     requested_max_erp_per_tx = RangeNotationFilter()
     search = WatsonFilter(label="Search all text fields")
     si_done = django_filters.DateFromToRangeFilter(label="SI Done (date from, date to)")
+    agency_num = django_filters.CharFilter(lookup_expr="icontains")
 
     class Meta:
         model = models.Facility
