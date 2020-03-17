@@ -98,7 +98,7 @@ class FacilityFilterFormHelper(FormHelper):
                 "freq_high",
                 "bandwidth",
                 "distance_to_gbt",
-                css_class="col-sm-5",
+                css_class="col-sm-3",
             ),
             Div(
                 "azimuth_to_gbt",
@@ -106,8 +106,9 @@ class FacilityFilterFormHelper(FormHelper):
                 "requested_max_erp_per_tx",
                 "call_sign",
                 "search",
-                css_class="col-sm-5",
+                css_class="col-sm-3",
             ),
+            Div("agency_num"),
             css_class="row",
         ),
         Div(
