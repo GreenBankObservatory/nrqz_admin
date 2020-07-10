@@ -188,7 +188,7 @@ class CaseFilterFormHelper(FormHelper):
                 "sgrs_approval",
                 css_class="col",
             ),
-            Div("date_received", "completed", "is_federal", "search", css_class="col"),
+            Div("date_received", "completed", "is_federal", "agency_num", css_class="col"),
             css_class="row",
         ),
         Div(

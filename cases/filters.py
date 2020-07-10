@@ -260,6 +260,7 @@ class CaseFilter(BaseCaseFilter):
     # case_groups = django_filters.ModelChoiceFilter(
     #     queryset=models.CaseGroup.objects.all(), widget=CaseGroupWidget()
     # )
+    agency_num = django_filters.CharFilter(lookup_expr="icontains")
 
     class Meta:
         model = models.Case
