@@ -250,8 +250,8 @@ class CaseFilter(BaseCaseFilter):
         choices=(("false", "False"), ("true", "True"), ("none", "None")),
     )
     search = WatsonFilter(label="Search all text fields")
-    num_sites = RangeNotationFilter(label="# Facilities Indicated")
-    num_facilities = RangeNotationFilter(label="# Facilities Evaluated")
+    # num_sites = RangeNotationFilter(label="# Facilities Indicated")
+    # num_facilities = RangeNotationFilter(label="# Facilities Evaluated")
     si_done = django_filters.DateFromToRangeFilter(
         field_name="si_done", label="SI Done"
     )
@@ -265,7 +265,11 @@ class CaseFilter(BaseCaseFilter):
     class Meta:
         model = models.Case
         formhelper_class = CaseFilterFormHelper
-        fields = discover_fields(formhelper_class.layout)
+        fields = [
+            field
+            for field in discover_fields(formhelper_class.layout)
+            if field not in ("num_sites", "num_facilities")
+        ]
 
     def filter_sgrs_approval(self, queryset, name, value):
         if value == "true":
