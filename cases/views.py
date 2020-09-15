@@ -700,7 +700,7 @@ class FacilityDetailView(MultiTableMixin, BaseFacilityDetailView):
             "agency_num",
             "s367",
         ]
-        context["fcc_info"] = ["fcc_file_num"]
+        context["fcc_info"] = ["fcc_file_number"]
         return context
 
     def as_kml(self):
