@@ -92,7 +92,7 @@ class CaseAdmin(admin.ModelAdmin):
         # "comments",
         "is_federal",
     ]
-    autocomplete_fields = ["applicant", "contact"]
+    autocomplete_fields = ["applicant", "contact", "attachments"]
     ordering = ("-case_num",)
     # add_form_template = "cases/case_add_form.html"
     change_form_template = "cases/case_change_form.html"
