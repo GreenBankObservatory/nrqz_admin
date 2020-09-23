@@ -198,6 +198,9 @@ class BaseCaseForm(FutureModelForm):
 
 @put_help_text_in_title
 class CaseForm(BaseCaseForm):
+    sgrs_notify = forms.BooleanField(initial=True, label="SGRS Notified")
+    is_federal = forms.BooleanField(label="Gov.")
+
     class Meta(BaseCaseForm.Meta):
         fields = [
             field for field in BaseCaseForm.Meta.fields if field not in ["completed"]
