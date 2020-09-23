@@ -225,6 +225,9 @@ class CaseForm(BaseCaseForm):
 
 
 class CaseAdminForm(BaseCaseForm):
+    sgrs_notify = forms.BooleanField(initial=True, label="SGRS Notified")
+    is_federal = forms.BooleanField(label="Gov.")
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
