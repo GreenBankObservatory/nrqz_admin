@@ -520,6 +520,7 @@ class CaseDetailView(MultiTableMixin, DetailView):
         ]
         context["application_info"] = [
             "radio_service",
+            "agency_num",
             "call_sign",
             "freq_coord",
             "fcc_file_num",
@@ -528,7 +529,6 @@ class CaseDetailView(MultiTableMixin, DetailView):
             "num_freqs",
             "num_outside",
             ("Meets ERPd Limit", self.object.get_meets_erpd_limit, ""),
-            "agency_num",
         ]
         context["sgrs_info"] = [
             "sgrs_notify",
