@@ -5,7 +5,7 @@
     {% for label, value, help_text in rows %}
     <tr title="{{ help_text }}">
         <td>{{ label|safe }}</td>
-        <td>{{ value|safe }}</td>
+        <td>{{ value }}</td>
     </tr>
     {% endfor %}
 </table>
