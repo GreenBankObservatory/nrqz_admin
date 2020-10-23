@@ -599,7 +599,11 @@ class BaseFacilityDetailView(DetailView):
             ("Propagation Study", self.object.get_prop_study_as_link(), ""),
         ]
 
-        context["sgrs_info"] = ["sgrs_approval", "sgrs_responded_on"]
+        context["sgrs_info"] = [
+            "sgrs_approval",
+            "sgrs_responded_on",
+            "sgrs_work_order_num",
+        ]
 
         return context
 

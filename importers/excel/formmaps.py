@@ -423,6 +423,11 @@ class FacilityImportFormMap(FormMap):
                 ]
             },
         ),
+        OneToOneFieldMap(
+            to_field="sgrs_work_order_num",
+            converter=None,
+            from_field={"sgrs_work_order_num": ["SGRS WO No."]},
+        ),
     ]
     form_class = FacilityImportForm
     form_defaults = {

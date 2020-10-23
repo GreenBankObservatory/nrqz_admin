@@ -431,6 +431,9 @@ class Facility(AbstractBaseFacility):
     sgrs_responded_on = DateField(
         null=True, blank=True, verbose_name="SGRS Responded On"
     )
+    sgrs_work_order_num = SensibleCharField(
+        max_length=256, blank=True, verbose_name="SGRS WO #"
+    )
     tap_file = SensibleCharField(max_length=256, blank=True)
     tx_power = FloatField(null=True, blank=True, verbose_name="TX Power (dBm)")
     aeirp_to_gbt = FloatField(null=True, blank=True, verbose_name="AEiRP to GBT")

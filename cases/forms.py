@@ -398,6 +398,7 @@ class FacilityImportForm(BaseFacilityForm):
         fields = sorted(
             [
                 *BaseFacilityForm.Meta.fields,
+                "sgrs_work_order_num",
                 "data_source",
                 "original_created_on",
                 "original_modified_on",
