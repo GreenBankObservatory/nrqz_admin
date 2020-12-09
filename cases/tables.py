@@ -211,19 +211,26 @@ class FacilityTable(BaseFacilityTable):
 
 
 class FacilityExportTable(FacilityTable):
+    applicant = tables.Column(accessor="case.applicant")
+
     class Meta:
         model = models.Facility
-        exclude = [
-            "model_import_attempt",
-            "is_active",
-            "original_created_on",
-            "original_modified_on",
-            "created_on",
-            "modified_on",
-            "data_source",
-            "id",
-            "original_srs",
-            "structure",
+        fields = [
+            "nrqz_id",
+            "case",
+            "applicant",
+            "site_name",
+            "latitude",
+            "longitude",
+            "freq_low",
+            "freq_high",
+            "bandwidth",
+            "main_beam_orientation",
+            "distance_to_gbt",
+            "azimuth_to_gbt",
+            "nrao_aerpd",
+            "requested_max_erp_per_tx",
+            "si_done",
         ]
         order_by = ["-nrqz_id", "freq_low"]
 
