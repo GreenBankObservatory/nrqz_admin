@@ -255,7 +255,7 @@ class AbstractBaseFacility(
     nrao_tropo = FloatField(null=True, blank=True)
     original_outside_nrqz = BooleanField(null=True, blank=True)
     requested_max_erp_per_tx = SensibleCharField(
-        max_length=256, blank=True, verbose_name="Max ERPd per TX"
+        max_length=256, blank=True, verbose_name="ERP / # Tx"
     )
     az_bearing = SensibleCharField(
         max_length=256,
