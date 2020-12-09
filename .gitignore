@@ -3,3 +3,5 @@ __pycache__
 nrqz_admin/settings.py
 importer_spec.json
 *.egg-info
+nrqz_admin/settings/local.py
+.python-version
