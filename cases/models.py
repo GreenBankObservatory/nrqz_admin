@@ -419,7 +419,7 @@ class Facility(AbstractBaseFacility):
     max_aerpd = FloatField(null=True, blank=True, verbose_name="Max AERPd (dBm)")
     max_eirp = FloatField(null=True, blank=True, verbose_name="Max AEiRP")
     requested_max_erp_per_tx = FloatField(
-        null=True, blank=True, verbose_name="Max ERP per TX (W)"
+        null=True, blank=True, verbose_name="ERP / # Tx"
     )
     max_gain = FloatField(null=True, blank=True, verbose_name="Max Gain (dBi)")
     max_tx_power = FloatField(null=True, blank=True, verbose_name="Max TX Pwr (W)")
