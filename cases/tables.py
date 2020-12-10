@@ -216,21 +216,51 @@ class FacilityExportTable(FacilityTable):
     class Meta:
         model = models.Facility
         fields = [
-            "nrqz_id",
-            "case",
             "applicant",
+            # NRQZ ID
+            "nrqz_id",
+            # Site Name
             "site_name",
+            # GeoLocation
+            "location_description",
+            # Call Sign
+            "call_sign",
+            # FCC File Number
+            "fcc_file_num",
+            # Lat N NAD83
             "latitude",
+            # Lon NAD83
             "longitude",
+            # MSL (m)
+            "msl",
+            # Max TX Pwr (W)
+            "max_tx_power",
+            # No TX per sector
+            "tx_per_sector",
+            # No TX per facility
+            "num_tx_per_facility",
+            # Freq Low (MHz)
             "freq_low",
+            # Freq High (MHz)
             "freq_high",
+            # Bandwidth BW (MHz)
             "bandwidth",
+            # Max Gain (dBi)
+            "max_gain",
+            # Antenna Model
+            "antenna_model_number",
+            # AGL (m)
+            "agl",
+            # AZ ° True
             "main_beam_orientation",
-            "distance_to_gbt",
-            "azimuth_to_gbt",
+            # Mechanical-DT
+            "mechanical_downtilt"
+            # Electrical-DT
+            "electrical_downtilt",
+            # Max ERPd of facility (W)
+            "max_aerpd",
+            # NRAO ERPd Limit (W)
             "nrao_aerpd",
-            "requested_max_erp_per_tx",
-            "si_done",
         ]
         order_by = ["-nrqz_id", "freq_low"]
 
