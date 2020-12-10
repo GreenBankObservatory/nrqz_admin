@@ -214,6 +214,9 @@ class FacilityExportTable(tables.Table):
     applicant = tables.Column(accessor="case.applicant")
     latitude = tables.Column(accessor="location", verbose_name="Latitude")
     longitude = tables.Column(accessor="location", verbose_name="Longitude")
+    az_bearing_derived = tables.Column(
+        empty_values=(), verbose_name="Az. Bearing to GBT"
+    )
 
     class Meta:
         model = models.Facility
@@ -261,6 +264,9 @@ class FacilityExportTable(tables.Table):
             "electrical_downtilt",
             # NRAO ERPd Limit (W)
             "nrao_aerpd",
+            # ERP / # Tx
+            "requested_max_erp_per_tx",
+            "az_bearing_derived",
         ]
         order_by = ["-nrqz_id", "freq_low"]
 
@@ -269,6 +275,9 @@ class FacilityExportTable(tables.Table):
 
     def value_longitude(self, value):
         return long_to_string(longitude=value.x, concise=True)
+
+    def value_az_bearing_derived(self, record):
+        return record.get_azimuth_to_gbt()
 
 
 class FacilityTableWithConcur(FacilityTable):
