@@ -210,8 +210,10 @@ class FacilityTable(BaseFacilityTable):
         return value
 
 
-class FacilityExportTable(FacilityTable):
+class FacilityExportTable(tables.Table):
     applicant = tables.Column(accessor="case.applicant")
+    latitude = tables.Column(accessor="location", verbose_name="Latitude")
+    longitude = tables.Column(accessor="location", verbose_name="Longitude")
 
     class Meta:
         model = models.Facility
@@ -232,7 +234,7 @@ class FacilityExportTable(FacilityTable):
             # Lon NAD83
             "longitude",
             # MSL (m)
-            "msl",
+            "amsl",
             # Max TX Pwr (W)
             "max_tx_power",
             # No TX per sector
@@ -246,7 +248,7 @@ class FacilityExportTable(FacilityTable):
             # Bandwidth BW (MHz)
             "bandwidth",
             # Max Gain (dBi)
-            "max_gain",
+            "antenna_gain",
             # Antenna Model
             "antenna_model_number",
             # AGL (m)
@@ -254,15 +256,19 @@ class FacilityExportTable(FacilityTable):
             # AZ ° True
             "main_beam_orientation",
             # Mechanical-DT
-            "mechanical_downtilt"
+            "mechanical_downtilt",
             # Electrical-DT
             "electrical_downtilt",
-            # Max ERPd of facility (W)
-            "max_aerpd",
             # NRAO ERPd Limit (W)
             "nrao_aerpd",
         ]
         order_by = ["-nrqz_id", "freq_low"]
+
+    def value_latitude(self, value):
+        return lat_to_string(latitude=value.y, concise=True)
+
+    def value_longitude(self, value):
+        return long_to_string(longitude=value.x, concise=True)
 
 
 class FacilityTableWithConcur(FacilityTable):
