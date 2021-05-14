@@ -1,13 +1,16 @@
 """Base Django settings for nrqz_admin project."""
 
 import os
+from getpass import getuser
 from pathlib import Path
 
 import environ
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 
-env = environ.Env()
+
+_user = getuser()
+env = environ.Env(SENTRY_ENV=(str, f"{_user}_dev"))
 environ.Env.read_env()
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -218,7 +221,7 @@ PATH_REMAPPINGS_BY_CLIENT_HOST = {
 # USER_AGENTS_CACHE = "default"
 
 sentry_sdk.init(
-    dsn=env("SENTRY_DSN"),
+    environment=env("SENTRY_ENV"),
     integrations=[DjangoIntegration()],
     # Set traces_sample_rate to 1.0 to capture 100%
     # of transactions for performance monitoring.
