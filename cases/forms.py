@@ -230,7 +230,11 @@ class CaseAdminForm(BaseCaseForm):
     sgrs_notify = forms.BooleanField(
         initial=True, required=False, label="SGRS Notified"
     )
-    is_federal = forms.BooleanField(initial=False, label="Gov.", required=False,)
+    is_federal = forms.BooleanField(
+        initial=False,
+        label="Gov.",
+        required=False,
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -263,6 +267,8 @@ class CaseQuickJumpForm(forms.Form):
                 "class": "case-quick-jump-field",
                 "accesskey": "c",
                 "data-ajax--delay": 0,
+                "data-dropdown-auto-width": "true",
+                "data-width": "100%",
             },
         ),
         required=False,

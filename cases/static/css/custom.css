@@ -190,3 +190,7 @@ ul.messages li.error {
     overflow: scroll;
     height: 300px;
 }
+
+.select2-container {
+    min-width: 100px;
+}
