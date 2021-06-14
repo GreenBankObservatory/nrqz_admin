@@ -13,6 +13,7 @@ _user = getuser()
 env = environ.Env(
     SENTRY_ENV=(str, f"{_user}_dev"),
     NRQZ_LETTER_TEMPLATE_DIR=(str, ""),
+    STATIC_ROOT=(str, ""),
     ALLOWED_HOSTS=(list, []),
 )
 environ.Env.read_env()
@@ -25,8 +26,9 @@ DEBUG = env("DEBUG")
 NRQZ_LETTER_TEMPLATE_DIR = env("NRQZ_LETTER_TEMPLATE_DIR")
 DATABASES = {
     # read os.environ['DATABASE_URL'] and raises ImproperlyConfigured exception if not found
-    'default': env.db(),
+    "default": env.db()
 }
+STATIC_ROOT = env("STATIC_ROOT")
 
 # Application definition
 
@@ -34,6 +36,7 @@ DATABASES = {
 ATOMIC_REQUESTS = True
 
 INSTALLED_APPS = [
+    "django_extensions",
     "dal",
     "dal_select2",
     "django.contrib.admin",
