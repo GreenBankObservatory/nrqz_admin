@@ -69,10 +69,10 @@ class PreliminaryFacilityFilterFormHelper(FormHelper):
         extra_buttons=[
             Submit(
                 "_export",
-                "Export as .csv",
+                "Export as .xlsx",
                 title=(
                     "Download the locations of all currently-filtered "
-                    "PFacilities as a .csv file"
+                    "PFacilities as a .xlsx file"
                 ),
             )
         ],
@@ -128,10 +128,10 @@ class FacilityFilterFormHelper(FormHelper):
             ),
             Submit(
                 "_export",
-                "Export as .csv",
+                "Export as .xlsx",
                 title=(
                     "Download the locations of all currently-filtered "
-                    "Facilities as a .csv file"
+                    "Facilities as a .xlsx file"
                 ),
             ),
         ],
@@ -165,10 +165,10 @@ class PreliminaryCaseFilterFormHelper(FormHelper):
         extra_buttons=[
             Submit(
                 "_export",
-                "Export as .csv",
+                "Export as .xlsx",
                 title=(
                     "Download the locations of all currently-filtered "
-                    "PCases as a .csv file"
+                    "PCases as a .xlsx file"
                 ),
             )
         ],
@@ -188,7 +188,13 @@ class CaseFilterFormHelper(FormHelper):
                 "sgrs_approval",
                 css_class="col",
             ),
-            Div("date_received", "completed", "is_federal", "agency_num", css_class="col"),
+            Div(
+                "date_received",
+                "completed",
+                "is_federal",
+                "agency_num",
+                css_class="col",
+            ),
             css_class="row",
         ),
         Div(
@@ -209,10 +215,10 @@ class CaseFilterFormHelper(FormHelper):
             ),
             Submit(
                 "_export",
-                "Export as .csv",
+                "Export as .xlsx",
                 title=(
                     "Download the locations of all currently-filtered "
-                    "Facilities as a .csv file"
+                    "Facilities as a .xlsx file"
                 ),
             ),
         ],
@@ -233,10 +239,10 @@ class PersonFilterFormHelper(FormHelper):
         extra_buttons=[
             Submit(
                 "_export",
-                "Export as .csv",
+                "Export as .xlsx",
                 title=(
                     "Download the locations of all currently-filtered "
-                    "Facilities as a .csv file"
+                    "Facilities as a .xlsx file"
                 ),
             )
         ],
@@ -273,10 +279,10 @@ class StructureFilterFormHelper(FormHelper):
         extra_buttons=[
             Submit(
                 "_export",
-                "Export as .csv",
+                "Export as .xlsx",
                 title=(
                     "Download the locations of all currently-filtered "
-                    "Facilities as a .csv file"
+                    "Facilities as a .xlsx file"
                 ),
             )
         ],

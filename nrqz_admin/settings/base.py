@@ -10,11 +10,23 @@ from sentry_sdk.integrations.django import DjangoIntegration
 
 
 _user = getuser()
-env = environ.Env(SENTRY_ENV=(str, f"{_user}_dev"))
+env = environ.Env(
+    SENTRY_ENV=(str, f"{_user}_dev"),
+    NRQZ_LETTER_TEMPLATE_DIR=(str, ""),
+    ALLOWED_HOSTS=(list, []),
+)
 environ.Env.read_env()
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
+ALLOWED_HOSTS = env("ALLOWED_HOSTS")
+SECRET_KEY = env("SECRET_KEY")
+DEBUG = env("DEBUG")
+NRQZ_LETTER_TEMPLATE_DIR = env("NRQZ_LETTER_TEMPLATE_DIR")
+DATABASES = {
+    # read os.environ['DATABASE_URL'] and raises ImproperlyConfigured exception if not found
+    'default': env.db(),
+}
 
 # Application definition
 
