@@ -101,12 +101,12 @@ class FilterTableView(ExportMixin, SingleTableMixin, FilterView):
                 reverse(f"{self.table_class.Meta.model.__name__.lower()}_index")
             )
 
-        if "xlsx" in request.GET.get("_export", ""):
+        if "xls" in request.GET.get("_export", ""):
             self.export_requested = True
-            # Change the value to xlsx so that django-tables2 understands the
+            # Change the value to xls so that django-tables2 understands the
             # export request
             request.GET = request.GET.copy()
-            request.GET["_export"] = "xlsx"
+            request.GET["_export"] = "xls"
         else:
             self.export_requested = False
 

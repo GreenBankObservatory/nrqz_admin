@@ -79,7 +79,7 @@ class Command(BaseImportCommand):
             # We can't get values from this workbook; it stores formulas instead
             book_with_formulas = openpyxl.load_workbook(path)
         except openpyxl.utils.exceptions.InvalidFileException as error:
-            raise ValueError(f"{path} must be manually converted to .xlsx!")
+            raise ValueError(f"{path} must be manually converted to .xls!")
         # TODO: this is a file-level error!
         try:
             sheet_with_values = book_with_values[primary_sheet]
