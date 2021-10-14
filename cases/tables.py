@@ -268,7 +268,7 @@ class FacilityExportTable(tables.Table):
             "requested_max_erp_per_tx",
             "az_bearing_derived",
         ]
-        order_by = ["-nrqz_id", "freq_low"]
+        order_by = ["nrqz_id", "freq_low"]
 
     def value_latitude(self, value):
         return lat_to_string(latitude=value.y, concise=True)
@@ -388,7 +388,7 @@ class CaseExportTable(CaseTable):
             "data_source",
             "id",
         ]
-        order_by = ["-case_num"]
+        order_by = ["case_num"]
 
 
 class PersonTable(tables.Table):
