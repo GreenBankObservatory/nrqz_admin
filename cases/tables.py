@@ -344,7 +344,7 @@ class PreliminaryCaseExportTable(PreliminaryCaseTable):
             "data_source",
             "id",
         ]
-        order_by = ["-case_num"]
+        order_by = ["case_num"]
 
 
 class CaseTable(BaseCaseTable):
@@ -361,10 +361,6 @@ class CaseTable(BaseCaseTable):
         attrs={
             "th": {"title": "The actual number of Facilities attached to this case"}
         },
-    )
-    si_done = tables.Column(
-        verbose_name="SI Done",
-        attrs={"th": {"title": "The date of the most recent site inspection (if any)"}},
     )
     date_received = tables.DateColumn()
 
