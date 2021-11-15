@@ -479,9 +479,12 @@ class CaseDetailView(MultiTableMixin, DetailView):
         )
         fi_filter_qs = FileImporterFilter(
             self.request.GET,
-            queryset=related_file_importers.order_by("id")
-            .annotate_current_status()
-            .distinct(),
+            queryset=(
+                related_file_importers.order_by("id")
+                .annotate_current_status()
+                .annotate_last_imported()
+                .distinct()
+            ),
         ).qs
         return [
             facility_filter_qs,
