@@ -10,7 +10,7 @@ Welcome to the NRQZ Admin documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   requirements/index
+   overview
 
    
 Indices and tables
