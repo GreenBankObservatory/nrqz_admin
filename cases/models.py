@@ -626,8 +626,12 @@ class Case(AbstractBaseCase):
         null=True,
         blank=True,
     )
-    case_num = PositiveIntegerField(
-        unique=True, db_index=True, verbose_name="Case Num.", default=get_case_num
+    case_num = SensibleCharField(
+        max_length=256,
+        unique=True,
+        db_index=True,
+        verbose_name="Case Num.",
+        # default=get_case_num,
     )
 
     attachments = ManyToManyField("Attachment", related_name="cases", blank=True)
