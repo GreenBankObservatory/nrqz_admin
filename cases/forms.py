@@ -86,6 +86,60 @@ class LetterTemplateForm(forms.Form):
         return cleaned_data
 
 
+class LetterTemplateFormSimple(forms.Form):
+    cases = forms.ModelMultipleChoiceField(
+        queryset=Case.objects.all(),
+        to_field_name="case_num",
+        required=False,
+        help_text="Select a set of cases to generate a letter for",
+    )
+    facilities = forms.ModelMultipleChoiceField(
+        queryset=Facility.objects.all(),
+        # TODO: This isn't unique; can't use it!
+        # to_field_name="nrqz_id",
+        required=False,
+        help_text=(
+            "Select Facilities that are not included in any of the "
+            "Cases you have selected. This should only rarely be used!"
+        ),
+    )
+    template = forms.ModelChoiceField(
+        queryset=LetterTemplate.objects.all(),
+        empty_label=None,
+        to_field_name="name",
+        required=False,
+        help_text=(
+            "Select a template to render below. This will determine "
+            'the "type" of letter (concur, non-concur, etc.)'
+        ),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super(LetterTemplateFormSimple, self).__init__(*args, **kwargs)
+        self.helper = LetterFormHelper()
+
+    def clean(self):
+        cleaned_data = super().clean()
+        cases = cleaned_data["cases"]
+        facilities = cleaned_data["facilities"]
+        if not (cases or facilities):
+            raise forms.ValidationError(
+                "At least one of Cases or Facilities must be populated!"
+            )
+
+        if facilities:
+            cases |= Case.objects.filter(facilities__in=facilities.values("id"))
+
+        if cases.count() != 1:
+            raise forms.ValidationError(
+                f"There should only be one unique case! Got {cases.count()}!"
+            )
+
+        cleaned_data["cases"] = cases
+
+        return cleaned_data
+
+
 class StructureForm(forms.ModelForm):
     class Meta:
         model = Structure

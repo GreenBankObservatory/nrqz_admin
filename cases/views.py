@@ -27,7 +27,13 @@ from audits.filters import FileImporterFilter, ModelImportAttemptFilter
 from audits.tables import FileImporterSummaryTable, ModelImportAttemptFailureTable
 from utils.coord_utils import coords_to_string
 from utils.merge_people import find_similar_people, merge_people
-from .forms import LetterTemplateForm, DuplicateCaseForm, CaseForm, PersonForm
+from .forms import (
+    LetterTemplateForm,
+    LetterTemplateFormSimple,
+    DuplicateCaseForm,
+    CaseForm,
+    PersonForm,
+)
 from .models import (
     Attachment,
     Case,
@@ -362,6 +368,11 @@ class LetterView(FormView):
         )
         response["Content-Disposition"] = f'application; filename="{filename}"'
         return response
+
+
+class LetterViewSimple(LetterView):
+    form_class = LetterTemplateFormSimple
+    template_name = "cases/concurrence_letter.html"
 
 
 class PreliminaryCaseDetailView(MultiTableMixin, DetailView):
