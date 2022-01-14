@@ -737,7 +737,7 @@ class Case(AbstractBaseCase):
             or site_inspection_dates.filter(si_done=None).exists()
         ):
             return None
-        if site_inspection_dates.filter(si_done=False).exists():
+        if site_inspection_dates.filter(si_done__isnull=True).exists():
             return False
 
         return True
