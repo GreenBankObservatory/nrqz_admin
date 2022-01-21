@@ -59,6 +59,7 @@ urlpatterns = [
     ),
     path("letters/", views.LetterView.as_view(), name="letters"),
     path("letters-simple/", views.LetterViewSimple.as_view(), name="letters_simple"),
+    path("letters-fancy/", views.LetterHtmlView.as_view(), name="letters_fancy"),
     path(
         "pfacilities/",
         views.PreliminaryFacilityListView.as_view(),

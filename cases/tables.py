@@ -20,17 +20,36 @@ from .filters import (
 from .columns import (
     SelectColumn,
     TrimmedTextColumn,
-    AttachmentFileColumn,
+    RemappedUnboundFileColumn,
     UnboundFileColumn,
 )
+
+
+class LetterCaseTable(tables.Table):
+    is_approved_by_nrao = tables.Column(
+        verbose_name="NRAO Approved", accessor="is_approved_by_nrao"
+    )
+    is_approved_by_sgrs = tables.Column(
+        verbose_name="SGRS Approved", accessor="is_approved_by_sgrs"
+    )
+
+    class Meta:
+        model = models.Facility
+        orderable = False
+        fields = (
+            "case__case_num",
+            "site_name",
+            "location_description",
+            "is_approved_by_nrao",
+            "is_approved_by_sgrs",
+        )
 
 
 class LetterFacilityTable(tables.Table):
     nrqz_id = tables.Column(verbose_name="Facility ID")
     site_name = tables.Column(verbose_name="Site Name")
-    max_output = tables.Column(verbose_name="Max TX Power (W)")
+    max_tx_power = tables.Column(verbose_name="Max TX Power (W)")
     antenna_model_number = tables.Column(verbose_name="Antenna Model")
-    tx_per_sector = tables.Column(verbose_name="Num TX per sector")
     amsl = tables.Column(verbose_name="MSL (m)")
     agl = tables.Column(verbose_name="AGL (m)")
     freq_low = tables.Column(verbose_name="Freq Low (MHz)")
@@ -38,30 +57,47 @@ class LetterFacilityTable(tables.Table):
     bandwidth = tables.Column(verbose_name="Bandwidth BW (MHz)")
     mechanical_downtilt = tables.Column(verbose_name="Mechanical-DT")
     electrical_downtilt = tables.Column(verbose_name="Electrical-DT")
+    latitude = tables.Column(accessor="location", verbose_name="Latitude")
+    longitude = tables.Column(accessor="location", verbose_name="Longitude")
+
+    def render_latitude(self, value):
+        return lat_to_string(latitude=value.y, concise=True)
+
+    def render_longitude(self, value):
+        return long_to_string(longitude=value.x, concise=True)
+
+    def render_requested_max_erp_per_tx(self, value):
+        return f"{value:.1f}"
+
+    def render_nrao_aerpd(self, value):
+        # e.g. 2.0e+04
+        return f"{value:.1e}"
 
     class Meta:
         model = models.Facility
         fields = (
             "nrqz_id",
             "site_name",
-            "max_output",
-            "antenna_model_number",
-            "tx_per_sector",
-            "location",
+            "latitude",
+            "longitude",
             "amsl",
-            "agl",
+            "max_tx_power",
+            "tx_per_sector",
+            "num_tx_per_facility",
             "freq_low",
             "freq_high",
             "bandwidth",
+            "antenna_gain",
+            "antenna_model_number",
+            "agl",
+            "az_bearing",
             "mechanical_downtilt",
             "electrical_downtilt",
+            "requested_max_erp_per_tx",
+            "nrao_aerpd",
         )
         orderable = False
-
-    def render_location(self, value):
-        """Render a coordinate as DD MM SS.sss"""
-        longitude, latitude = value.coords
-        return coords_to_string(latitude=latitude, longitude=longitude, concise=True)
+        order_by = ["nrqz_id"]
 
 
 class BaseFacilityTable(tables.Table):
@@ -399,7 +435,7 @@ class PersonTable(tables.Table):
 
 class AttachmentTable(tables.Table):
     file_path = tables.Column(linkify=True, verbose_name="Attachment")
-    file = AttachmentFileColumn(accessor="file_path", verbose_name="Link")
+    file = RemappedUnboundFileColumn(accessor="file_path", verbose_name="Link")
     original_index = tables.Column(verbose_name="Letter #")
 
     class Meta:

@@ -493,6 +493,14 @@ class Facility(AbstractBaseFacility):
     def as_kml(self):
         return kml_to_string(facility_as_kml(self))
 
+    @property
+    def is_approved_by_nrao(self):
+        return self.meets_erpd_limit
+
+    @property
+    def is_approved_by_sgrs(self):
+        return self.sgrs_approval
+
 
 class CaseGroup(TrackedModel, Model):
     """Provides a way to group groups of PreliminaryCases and Cases"""
@@ -691,6 +699,14 @@ class Case(AbstractBaseCase):
         if not self.completed and self.completed_on:
             self.completed = True
         super(Case, self).save(*args, **kwargs)
+
+    @property
+    def is_approved_by_nrao(self):
+        return self.get_meets_erpd_limit()
+
+    @property
+    def is_approved_by_sgrs(self):
+        return self.get_sgrs_approval()
 
     def get_meets_erpd_limit(self):
         approvals = self.facilities.values("meets_erpd_limit").distinct()

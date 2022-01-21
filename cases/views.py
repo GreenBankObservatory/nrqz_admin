@@ -26,6 +26,7 @@ from watson import search as watson
 from audits.filters import FileImporterFilter, ModelImportAttemptFilter
 from audits.tables import FileImporterSummaryTable, ModelImportAttemptFailureTable
 from utils.coord_utils import coords_to_string
+from utils.numrange import get_str_from_nums
 from utils.merge_people import find_similar_people, merge_people
 from .forms import (
     LetterTemplateForm,
@@ -62,6 +63,7 @@ from .tables import (
     CaseTable,
     FacilityExportTable,
     FacilityTable,
+    LetterCaseTable,
     LetterFacilityTable,
     PersonTable,
     PreliminaryCaseExportTable,
@@ -317,21 +319,42 @@ class LetterView(FormView):
         cases = post_dict["cases"]
         facilities = post_dict["facilities"]
 
-        if cases.count() != 1:
-            raise ValueError(
-                f"There should only be one unique case! Got {cases.count()}!"
-            )
+        derived_cases = Case.objects.filter(
+            id__in=[
+                *cases.values_list("id", flat=True),
+                *facilities.values_list("case_id", flat=True),
+            ]
+        ).distinct()
 
-        case = cases.first()
+        # if derived_cases.count() != 1:
+        #     raise ValueError(
+        #         f"There should only be one unique case! Got {cases.count()}!"
+        #     )
 
-        letter_context = {"case": case, "facilities": facilities}
+        derived_facilities = Facility.objects.filter(
+            case_id__in=derived_cases.values("id")
+        )
 
+        letter_context = {
+            "cases": derived_cases,
+            "facilities": derived_facilities,
+            "nrao_unapproved_facilities": derived_facilities.filter(
+                meets_erpd_limit=False
+            ),
+            "sgrs_unapproved_facilities": derived_facilities.filter(
+                sgrs_approval=False
+            ),
+        }
+        get_str_from_nums(derived_cases.values_list("case_num").order_by("case_num"))
+        letter_context["case_nums_ranges"]
         letter_context["generation_date"] = date.today().strftime("%B %d, %Y")
         letter_context["nrqz_ids"] = ", ".join(
-            facilities.filter(nrqz_id__isnull=False).values_list("nrqz_id", flat=True)
+            derived_facilities.filter(nrqz_id__isnull=False).values_list(
+                "nrqz_id", flat=True
+            )
         )
-        table = LetterFacilityTable(data=facilities)
-        letter_context["facilities_table"] = table
+        table = LetterFacilityTable(data=derived_facilities)
+        letter_context["facilities_table_rows"] = list(table.as_values())[1:]
 
         return letter_context
 
@@ -1084,3 +1107,70 @@ class AttachmentDashboard(SingleTableMixin, TemplateView):
             messages.warning(request, "No Attachments selected")
 
         return HttpResponseRedirect(reverse("attachment_dashboard"))
+
+
+class LetterHtmlView(TemplateView):
+    template_name = "cases/test_letter.html"
+
+    def get_context_data(self):
+        context = super().get_context_data()
+
+        ### MANUAL DATA ENTRY -- TEST ###
+        cases = Case.objects.filter(case_num__gte=13272, case_num__lte=13287)
+
+        context["contact_name"] = "FCC Regulator Group*"
+        context["applicant_name"] = "T-Mobile USA*"
+        context["applicant_street"] = "200 Westgate Parkway; Suite 200*"
+        context["applicant_city"] = "Richmond*"
+        context["applicant_state"] = "VA*"
+        context["applicant_zipcode"] = "23233*"
+        context["application_purpose"] = "Pre-coordination Notification*"
+
+        ### END ###
+        derived_facilities = Facility.objects.filter(case_id__in=cases.values("id"))
+        derived_facilities.update(sgrs_approval=True)
+
+        if derived_facilities.filter(meets_erpd_limit=None).exists():
+            raise ValueError("One or more Facilities are missing their NRAO approval!")
+
+        if derived_facilities.filter(sgrs_approval=None).exists():
+            raise ValueError("One or more Facilities are missing their SGRS approval!")
+        context = {
+            **context,
+            "cases": cases,
+            "facilities": derived_facilities,
+            "facilities_requiring": derived_facilities.filter(
+                meets_erpd_limit__isnull=False
+            ).exists(),
+            "at_least_some_facilities_have_been_approved_by_sgrs": derived_facilities.filter(
+                sgrs_approval__isnull=False
+            ).exists(),
+            "nrao_unapproved_facilities": derived_facilities.filter(
+                meets_erpd_limit=False
+            ),
+            "sgrs_unapproved_facilities": derived_facilities.filter(
+                sgrs_approval=False
+            ),
+        }
+        context["case_nums"] = get_str_from_nums(
+            cases.values_list("case_num", flat=True).order_by("case_num")
+        )
+        context["generation_date"] = date.today().strftime("%B %d, %Y")
+        cases_rows = list(
+            derived_facilities.values(
+                "case__case_num",
+                "site_name",
+                "location_description",
+            ).distinct()
+        )
+        for row in cases_rows:
+            _facilities = Facility.objects.filter(**row)
+            row["is_approved_by_nrao"] = (
+                _facilities.filter(meets_erpd_limit=True).count() == _facilities.count()
+            )
+            row["is_approved_by_sgrs"] = (
+                _facilities.filter(sgrs_approval=True).count() == _facilities.count()
+            )
+        context["cases_table"] = LetterCaseTable(data=cases_rows)
+        context["facilities_table"] = LetterFacilityTable(data=derived_facilities)
+        return context
