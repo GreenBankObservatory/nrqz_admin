@@ -7,28 +7,19 @@ import django_import_data.mixins
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('cases', '0024_update_sites_domain'),
+        ("cases", "0024_update_sites_domain"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='case',
-            name='case_num',
-            field=django_import_data.mixins.SensibleCharField(db_index=True, default=None, max_length=256, unique=True, verbose_name='Case Num.'),
-        ),
-        migrations.AlterField(
-            model_name='facility',
-            name='requested_max_erp_per_tx',
-            field=models.FloatField(blank=True, null=True, verbose_name='ERP / # Tx'),
-        ),
-        migrations.AlterField(
-            model_name='lettertemplate',
-            name='path',
-            field=models.FilePathField(help_text="Save new files into '' in order to select them here", match='^[^~].*\\.docx$', max_length=512, unique=True),
-        ),
-        migrations.AlterField(
-            model_name='preliminaryfacility',
-            name='requested_max_erp_per_tx',
-            field=django_import_data.mixins.SensibleCharField(blank=True, max_length=256, verbose_name='ERP / # Tx'),
+            model_name="case",
+            name="case_num",
+            field=django_import_data.mixins.SensibleCharField(
+                db_index=True,
+                default=None,
+                max_length=256,
+                unique=True,
+                verbose_name="Case Num.",
+            ),
         ),
     ]

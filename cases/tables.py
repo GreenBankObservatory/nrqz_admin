@@ -1,5 +1,6 @@
 """Custom django_tables2.Table sub-classes for cases app"""
 from django.utils.safestring import mark_safe
+from django.db.models import F
 
 import django_tables2 as tables
 from watson.models import SearchEntry
@@ -404,7 +405,15 @@ class CaseTable(BaseCaseTable):
         model = models.Case
         fields = CaseFilter.Meta.fields
         exclude = ("search",)
-        order_by = ["-case_num"]
+        order_by = ["-date_received", "case_num"]
+
+    def order_date_received(self, queryset, is_descending):
+        order_attr = "desc" if is_descending else "asc"
+        orderer = getattr(F("date_received"), order_attr)(nulls_last=True)
+        queryset = queryset.order_by(
+            orderer,
+        )
+        return (queryset, True)
 
 
 class CaseExportTable(CaseTable):

@@ -11,8 +11,8 @@ urlpatterns = [
     ),
     path("cases/", views.CaseListView.as_view(), name="case_index"),
     path("cases/create", views.CaseCreateView.as_view(), name="case_create"),
-    path("cases/<int:slug>/", views.CaseDetailView.as_view(), name="case_detail"),
-    path("cases/<int:slug>/edit", views.CaseUpdateView.as_view(), name="case_update"),
+    path("cases/<str:slug>/", views.CaseDetailView.as_view(), name="case_detail"),
+    path("cases/<str:slug>/edit", views.CaseUpdateView.as_view(), name="case_update"),
     path("cases/<int:pk>/as_kml/", views.case_as_kml_view, name="case_kml"),
     path("case-groups/", views.CaseGroupListView.as_view(), name="case_group_index"),
     path(
@@ -105,5 +105,5 @@ urlpatterns = [
         name="person_autocomplete",
     ),
     path("search/", views.SearchView.as_view(), name="search"),
-    path("cases/<int:case_num>/duplicate", views.duplicate_case, name="duplicate_case"),
+    path("cases/<str:case_num>/duplicate", views.duplicate_case, name="duplicate_case"),
 ]

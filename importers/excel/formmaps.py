@@ -44,8 +44,8 @@ IGNORED_HEADERS = [
 
 class CaseImportFormMap(FormMap):
     field_maps = [
-        OneToOneFieldMap(
-            to_field="case_num",
+        OneToManyFieldMap(
+            to_fields=("case_num", "date_received"),
             converter=convert_nrqz_id_to_case_num,
             from_field={
                 "nrqz_id": [

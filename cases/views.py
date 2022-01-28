@@ -1002,7 +1002,7 @@ def duplicate_case(request, case_num):
     failed_duplications = []
     for __ in range(num_duplicates):
         case.id = None
-        case.case_num += 1
+        case.case_num = case.derive_next_case_num()
         try:
             with transaction.atomic():
                 case.save()

@@ -20,6 +20,7 @@ from .models import (
     PreliminaryCase,
     PreliminaryFacility,
     Structure,
+    get_case_num,
 )
 from .form_helpers import LetterFormHelper, CaseFormHelper, PersonFormHelper
 from .fields import PointField
@@ -252,6 +253,7 @@ class BaseCaseForm(FutureModelForm):
 
 @put_help_text_in_title
 class CaseForm(BaseCaseForm):
+    case_num = forms.CharField(initial=get_case_num())
     sgrs_notify = forms.BooleanField(
         initial=True, required=False, label="SGRS Notified"
     )

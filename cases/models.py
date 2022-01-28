@@ -1,5 +1,6 @@
 """Case models"""
 
+from datetime import date
 import math
 import ntpath
 import os
@@ -72,9 +73,26 @@ LOCATION_FIELD = lambda: PointField(
 )
 
 
-def get_case_num():
+def get_case_num(previous_case=None):
+    stub = date.today().strftime("%y%m%d")
+    if previous_case is None:
+        previous_cases = Case.objects.filter(case_num__startswith=stub)
+        if previous_cases.exists():
+            previous_case = previous_cases.latest("case_num")
+        else:
+            return 1
+
     try:
-        return Case.objects.order_by("case_num").last().case_num + 1
+        previous_case_num = previous_case.case_num.upper()
+        suffix = previous_case_num[-1]
+        if previous_case_num:
+            if suffix == "Z":
+                next_case_num = f"{previous_case_num}A"
+            else:
+                next_case_num = f"{previous_case_num[:-1]}{chr(ord(suffix) + 1)}"
+        else:
+            next_case_num = f"{stub}A"
+        return next_case_num
     except AttributeError:
         return 1
 
@@ -686,6 +704,9 @@ class Case(AbstractBaseCase):
 
     def __str__(self):
         return f"{self.case_num}"
+
+    def derive_next_case_num(self):
+        return get_case_num(self)
 
     def get_absolute_url(self):
         return reverse("case_detail", args=[str(self.case_num)])

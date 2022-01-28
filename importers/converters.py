@@ -30,22 +30,35 @@ COORD_PATTERN_STR = (
 )
 COORD_PATTERN = re.compile(COORD_PATTERN_STR)
 
-CASE_REGEX_STR = r"^P?(?P<case_num>\d+).*"
+CASE_REGEX_STR = r"^P?(?P<case_num>(?P<date>\d+)[a-zA-Z]{,2}).*"
 CASE_REGEX = re.compile(CASE_REGEX_STR)
 MDY_REGEX = re.compile(r"(?P<month>\d{1,2})[/\\](?P<day>\d{1,2})[/\\](?P<year>\d{1,4})")
 
-# TODO:
-# https://regex101.com/r/gRPTN8/5
-# nrqz_id_regex_str = r"^(?P<case_num>\d+)(?:[\-\_](?:REV
-# )?(?P<site_num>\d+))?(?:[\s_\*]+(?:\(.*\)[\s_]+)?(?P<site_name>(?:(?:\w+\s+)?\S{5}|\D+))[\s_]+(?P<facility_name>\S+))?"
-# nrqz_id_regex = re.compile(nrqz_id_regex_str)
+
 def convert_nrqz_id_to_case_num(nrqz_id):
     match = CASE_REGEX.match(str(nrqz_id))
     if not match:
         raise ValueError(
             f"Could not parse NRQZ ID '{nrqz_id}' using '{CASE_REGEX_STR}'!"
         )
-    return convert_case_num(match["case_num"])
+
+    case_num = match["case_num"].upper()
+
+    # "Old" style case #s (i.e. actually numbers)
+    if case_num.isnumeric():
+        return {"case_num": convert_case_num(case_num), "date_received": None}
+
+    if match["date"]:
+        date_received_str = match["date"]
+        try:
+            date_received = datetime.strptime(date_received_str, "%y%m%d").date()
+        except (IndexError, ValueError) as error:
+            raise ValueError(
+                f"Invalid date string in nrqz_id {nrqz_id!r}: {date_received_str!r}"
+            ) from error
+
+    # "New" style case #s (i.e. dates)
+    return {"case_num": case_num, "date_received": date_received}
 
 
 def coerce_feet_to_meters(value):
