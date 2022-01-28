@@ -326,17 +326,17 @@ class LetterView(FormView):
             ]
         ).distinct()
 
-        # if derived_cases.count() != 1:
-        #     raise ValueError(
-        #         f"There should only be one unique case! Got {cases.count()}!"
-        #     )
+        if derived_cases.count() != 1:
+            raise ValueError(
+                f"There should only be one unique case! Got {cases.count()}!"
+            )
 
         derived_facilities = Facility.objects.filter(
             case_id__in=derived_cases.values("id")
         )
 
         letter_context = {
-            "cases": derived_cases,
+            "case": derived_cases.first(),
             "facilities": derived_facilities,
             "nrao_unapproved_facilities": derived_facilities.filter(
                 meets_erpd_limit=False
@@ -345,8 +345,7 @@ class LetterView(FormView):
                 sgrs_approval=False
             ),
         }
-        get_str_from_nums(derived_cases.values_list("case_num").order_by("case_num"))
-        letter_context["case_nums_ranges"]
+        # letter_context["case_nums_ranges"] = get_str_from_nums(derived_cases.values_list("case_num").order_by("case_num"))
         letter_context["generation_date"] = date.today().strftime("%B %d, %Y")
         letter_context["nrqz_ids"] = ", ".join(
             derived_facilities.filter(nrqz_id__isnull=False).values_list(
