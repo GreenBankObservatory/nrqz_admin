@@ -347,6 +347,9 @@ class LetterView(FormView):
         }
         # letter_context["case_nums_ranges"] = get_str_from_nums(derived_cases.values_list("case_num").order_by("case_num"))
         letter_context["generation_date"] = date.today().strftime("%B %d, %Y")
+        letter_context["generation_date_ymd"] = (
+            date.today().strftime("%Y %b %d").upper()
+        )
         letter_context["nrqz_ids"] = ", ".join(
             derived_facilities.filter(nrqz_id__isnull=False).values_list(
                 "nrqz_id", flat=True
