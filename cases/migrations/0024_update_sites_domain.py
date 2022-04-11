@@ -15,6 +15,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("cases", "0023_facility_sgrs_work_order_num"),
+        ("sites", "0002_alter_domain_unique"),
     ]
 
     operations = [

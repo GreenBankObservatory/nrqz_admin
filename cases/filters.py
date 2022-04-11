@@ -140,7 +140,9 @@ class BaseFacilityFilter(HelpedFilterSet):
     location = PointFilter(boundaries=_boundaries)
     in_nrqz = django_filters.BooleanFilter(field_name="in_nrqz", label="In NRQZ")
     distance_to_gbt = RangeNotationFilter(
-        field_name="distance_to_gbt", label="Distance to GBT (meters)"
+        field_name="distance_to_gbt",
+        label="Distance to GBT (meters)",
+        widget=forms.widgets.TextInput(attrs={"placeholder": "e.g. 0-1000, 5000-6000"}),
     )
     azimuth_to_gbt = RangeNotationFilter(
         field_name="azimuth_to_gbt", label="Azimuth Bearing to GBT"

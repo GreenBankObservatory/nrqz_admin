@@ -3,3 +3,5 @@ __pycache__
 importer_spec.json
 *.egg-info
 .python-version
+.env
+docs/_build
