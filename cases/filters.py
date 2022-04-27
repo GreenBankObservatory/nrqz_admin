@@ -1,5 +1,6 @@
 """Custom django_filters.FilterSet sub-classes for cases app"""
 
+import django
 from django import forms
 from django.contrib.gis.measure import Distance
 from django.db.models import Q
@@ -133,6 +134,9 @@ class BaseFacilityFilter(HelpedFilterSet):
         _boundaries = models.Boundaries.objects.get(name="NRQZ")
     except models.Boundaries.DoesNotExist:
         raise ValueError("No NRQZ boundaries! Did you run the DB init script?")
+    except django.db.utils.ProgrammingError:
+        # Initial migration; just do nothing
+        _boundaries = None
     site_name = django_filters.CharFilter(lookup_expr="icontains")
     nrqz_id = django_filters.CharFilter(
         lookup_expr="icontains", label="Facility ID contains"
