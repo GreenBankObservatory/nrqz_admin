@@ -6,9 +6,12 @@ from django.db import migrations
 def combine_names(apps, schema_editor):
     Site = apps.get_model("sites", "Site")
     site = Site.objects.first()
-    site.name = "nrqz.gb.nrao.edu"
-    site.domain = "nrqz.gb.nrao.edu"
-    site.save()
+    if not site:
+        Site.objects.create(name="nrqz.gb.nrao.edu", domain="nrqz.gb.nrao.edu")
+    else:
+        site.name = "nrqz.gb.nrao.edu"
+        site.domain = "nrqz.gb.nrao.edu"
+        site.save()
 
 
 class Migration(migrations.Migration):
