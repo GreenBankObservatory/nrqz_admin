@@ -64,6 +64,11 @@ from cases.forms import (
 )
 from utils.spec import parse_importer_spec, SPEC_FILE
 
+import logging
+
+
+logger = logging.getLogger(__name__)
+
 
 class PersonCreateFromAuditView(CreateFromImportAttemptView):
     model = Person
@@ -317,6 +322,7 @@ def _import_file(
         messages.error(
             request, f"FATAL ERROR in {path}: {error.__class__.__name__}: {error}"
         )
+        logger.error(f"FATAL ERROR in {path}: {error.__class__.__name__}: {error}")
         # Manually set rollback since we aren't raising an Exception here
         transaction.set_rollback(True)
         return HttpResponseRedirect(on_error)
@@ -460,9 +466,11 @@ class FileImporterCreateView(CreateView):
 def delete_file_import_models(request, pk):
     file_importer = get_object_or_404(FileImporter, id=pk)
     # file_import_attempt = file_importer.latest_file_import_attempt
-    total_num_fia_deletions, total_num_mia_deletions, all_mia_deletions = (
-        file_importer.delete_imported_models()
-    )
+    (
+        total_num_fia_deletions,
+        total_num_mia_deletions,
+        all_mia_deletions,
+    ) = file_importer.delete_imported_models()
 
     if total_num_mia_deletions:
         deleted_models_str = ", ".join(
@@ -488,9 +496,11 @@ def reimport_file_batch(request, pk):
 
 def delete_file_importer_batch_imported_models(request, pk):
     file_importer_batch = get_object_or_404(FileImporterBatch, id=pk)
-    num_fias_deleted, num_models_deleted, deletions = (
-        file_importer_batch.delete_imported_models()
-    )
+    (
+        num_fias_deleted,
+        num_models_deleted,
+        deletions,
+    ) = file_importer_batch.delete_imported_models()
     if num_models_deleted:
         deleted_mias_str = ", ".join(
             [
