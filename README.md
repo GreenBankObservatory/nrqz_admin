@@ -18,10 +18,11 @@ pip install -U pip setuptools wheel poetry
 poetry install
 
 # All Python dependencies are now installed. We now need to configure Django
+# Ensure secrets file will be user-readable only
+umask 077
 # First, copy the env-file template
 cp nrqz_admin/.env.template nrqz_admin/.env
-# Make the file user-readable only
-chmod 600 nrqz_admin/.env
+# Can reset your umask now
 # Now edit the file to set the DATABASE_URL
 ```
 
@@ -39,6 +40,10 @@ ALTER TABLE public.spatial_ref_sys OWNER TO your_username;
 A few final tasks:
 
 ```bash
+# Create or copy an importer_spec.json file, e.g.
+cp /path/to/importer_spec.json cases/management/commands/importer_spec.json
+# Initialize your DB
+python manage.py migrate
 # Initialize the DB with some data
 python tools/build_dev_data.py
 # Create a user account that you can log into
