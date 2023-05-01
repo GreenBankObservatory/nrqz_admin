@@ -1,0 +1,28 @@
+{
+    "import_access_application": {
+        "paths": [],
+        "durable": true
+    },
+    "import_access_prelim_application": {
+        "paths": [],
+        "durable": true
+    },
+    "import_excel_application": {
+        "paths": [],
+        "durable": true,
+        "pattern": ".*/[^~][^/]+\\.(xls.?|csv)$"
+    },
+    "import_access_technical_data": {
+        "paths": [],
+        "durable": true
+    },
+    "import_access_prelim_technical_data": {
+        "paths": [],
+        "durable": true
+    },
+    "import_nam_application": {
+        "paths": [],
+        "durable": true,
+        "pattern": ".*\\.wrk$"
+    }
+}

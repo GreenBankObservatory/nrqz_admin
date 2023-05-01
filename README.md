@@ -41,7 +41,7 @@ A few final tasks:
 
 ```bash
 # Create or copy an importer_spec.json file, e.g.
-cp /path/to/importer_spec.json cases/management/commands/importer_spec.json
+cp cases/management/commands/importer_spec.template.json cases/management/commands/importer_spec.json
 # Initialize your DB
 python manage.py migrate
 # Initialize the DB with some data
